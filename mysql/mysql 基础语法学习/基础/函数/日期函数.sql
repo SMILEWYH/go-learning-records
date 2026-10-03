@@ -1,0 +1,102 @@
+/*
+MySQL中内置了很多日期函数，常用的几个如下：
+
+    CURDATE()                              返回当前日期
+    CURTIME()                              返回当前时间
+    NOW()                                  返回当前日期和时间
+
+
+    YEAR(date)                             获取指定date的年份
+    MONTH(date)                            获取指定date的月份
+    DAY(date)                              获取指定date是当月的第几天
+    HOUR(time)                             获取指定时间的小时部分（日期时间中的小时为0～23）
+    MINUTE(time)                           获取指定时间的分钟部分（0～59）
+    SECOND(time)                           获取指定时间的秒部分（0～59）
+
+
+    DATE_ADD(date, INTERVAL expr type)      返回日期/时间值date加上指定时间间隔后的值，expr为间隔数值，type为间隔单位
+
+        示例（以下语句在注释中，可复制出来单独执行）：
+        1. 增加1年
+           SELECT DATE_ADD('2026-10-03', INTERVAL 1 YEAR);
+           结果：2027-10-03
+
+        2. 增加2个月
+           SELECT DATE_ADD('2026-10-03', INTERVAL 2 MONTH);
+           结果：2026-12-03
+
+        3. 增加7天（expr为7，type为DAY）
+           SELECT DATE_ADD('2026-10-03', INTERVAL 7 DAY);
+           结果：2026-10-10
+
+        4. 减去5天（expr为负数表示减去时间间隔）
+           SELECT DATE_ADD('2026-10-03', INTERVAL -5 DAY);
+           结果：2026-09-28
+
+        5. 增加3小时（跨到第二天）
+           SELECT DATE_ADD('2026-10-03 22:30:00', INTERVAL 3 HOUR);
+           结果：2026-10-04 01:30:00
+
+        6. 增加30分钟
+           SELECT DATE_ADD('2026-10-03 12:00:00', INTERVAL 30 MINUTE);
+           结果：2026-10-03 12:30:00
+
+        7. 增加15秒
+           SELECT DATE_ADD('2026-10-03 12:00:00', INTERVAL 15 SECOND);
+           结果：2026-10-03 12:00:15
+
+    DATEDIFF(date1, date2)                  返回date1减去date2的天数差，只计算日期部分
+    
+    TIMESTAMPDIFF(unit, start_time, end_time) 按指定单位返回end_time减去start_time的整数差值
+
+        注意：这里是第三个参数减去第二个参数，与DATEDIFF(date1, date2)的相减顺序不同。
+        只计算完整单位，不足一个单位的部分舍去；结束时间早于开始时间时，结果可为负数。
+        unit直接写单位关键字，不加引号，也不需要写INTERVAL。
+
+        示例（按时间单位从大到小排列）：
+        1. YEAR：相差多少整年
+           SELECT TIMESTAMPDIFF(YEAR, '2024-10-03', '2026-10-03');
+           结果：2
+
+        2. QUARTER：相差多少完整季度（每3个月为一个单位）
+           SELECT TIMESTAMPDIFF(QUARTER, '2026-01-03', '2026-10-03');
+           结果：3
+
+        3. MONTH：相差多少整月
+           SELECT TIMESTAMPDIFF(MONTH, '2026-01-03', '2026-10-03');
+           结果：9
+
+        4. WEEK：相差多少整周（每7天为一个单位）
+           SELECT TIMESTAMPDIFF(WEEK, '2026-10-03', '2026-10-17');
+           结果：2
+
+        5. DAY：相差多少整天（每24小时为一个单位）
+           SELECT TIMESTAMPDIFF(DAY, '2026-10-03 12:00:00', '2026-10-05 11:00:00');
+           结果：1（相差47小时，只有1个完整的24小时）
+
+           与上面的DATEDIFF示例对比：跨日但只有2小时，不满1整天
+           SELECT TIMESTAMPDIFF(DAY, '2026-10-03 23:00:00', '2026-10-04 01:00:00');
+           结果：0
+
+        6. HOUR：相差多少整小时
+           SELECT TIMESTAMPDIFF(HOUR, '2026-10-03 12:00:00', '2026-10-03 15:30:00');
+           结果：3（不足1小时的30分钟舍去）
+
+        7. MINUTE：相差多少整分钟
+           SELECT TIMESTAMPDIFF(MINUTE, '2026-10-03 12:00:00', '2026-10-03 12:30:45');
+           结果：30（不足1分钟的45秒舍去）
+
+        8. SECOND：相差多少整秒
+           SELECT TIMESTAMPDIFF(SECOND, '2026-10-03 12:00:00', '2026-10-03 12:00:15');
+           结果：15
+
+        9. MICROSECOND：相差多少微秒（1秒 = 1000000微秒）
+           SELECT TIMESTAMPDIFF(MICROSECOND, '2026-10-03 12:00:00.000000', '2026-10-03 12:00:00.500000');
+           结果：500000
+
+    TIMEDIFF(time1, time2)                 返回time1减去time2的时间差，通常显示为HH:MM:SS，可包含微秒
+
+
+    简单的调用语法：
+        SELECT 函数(参数);
+*/

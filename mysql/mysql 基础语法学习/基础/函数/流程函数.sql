@@ -1,0 +1,16 @@
+/*
+MySQL中内置了很多流程函数，常用的几个如下：
+
+    IF(value, t, f)
+        如果value为true，则返回t，否则返回f。
+
+    IFNULL(value1, value2)
+        如果value1不为NULL，则返回value1，否则返回value2（空字符串不等于NULL）。
+
+    CASE WHEN val1 THEN res1 ... ELSE default END
+        按顺序判断条件，返回第一个为true的条件对应的结果；如果都不满足，则返回default默认值。
+
+    CASE expr WHEN val1 THEN res1 ... ELSE default END
+        按顺序比较expr与各个值，返回第一个相等的值对应的结果；如果都不匹配，则返回default默认值。
+
+*/

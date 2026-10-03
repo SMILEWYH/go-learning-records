@@ -1,0 +1,16 @@
+/*
+MySQL中内置了很多数值函数，常用的几个如下：
+
+    CEIL(x)         向上取整
+    FLOOR(x)        向下取整
+    MOD(x, y)       返回x除 以y的余数
+    RAND()          返回0到1之间的随机数
+    ROUND(x, d)     返回x的四舍五入值，保留d位小数
+
+    ABS(x)          返回x的绝对值
+    POWER(x, y)     返回x的y次幂
+    SQRT(x)         返回x的平方根
+
+    简单的调用语法：
+        SELECT 函数(参数);
+*/

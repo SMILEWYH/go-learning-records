@@ -99,4 +99,8 @@
         DROP TABLE [IF EXISTS] 表名;
     8. 清空表数据：
         TRUNCATE TABLE 表名;
+    补充：删除指定数据行（属于DML）：
+        -- 删除数据行，表结构和约束保留
+        DELETE FROM `user` WHERE id = 1;
+        注意：省略WHERE条件会删除表中所有数据行。
 */
