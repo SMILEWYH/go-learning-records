@@ -1,0 +1,598 @@
+<!--{
+  "Title": "encoding/hex package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package hex</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/hex"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package hex implements hexadecimal encoding and decoding.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AppendDecode">func AppendDecode(dst, src []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#AppendEncode">func AppendEncode(dst, src []byte) []byte</a></dd>
+			
+				<dd><a href="#Decode">func Decode(dst, src []byte) (int, error)</a></dd>
+			
+				<dd><a href="#DecodeString">func DecodeString(s string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#DecodedLen">func DecodedLen(x int) int</a></dd>
+			
+				<dd><a href="#Dump">func Dump(data []byte) string</a></dd>
+			
+				<dd><a href="#Dumper">func Dumper(w io.Writer) io.WriteCloser</a></dd>
+			
+				<dd><a href="#Encode">func Encode(dst, src []byte) int</a></dd>
+			
+				<dd><a href="#EncodeToString">func EncodeToString(src []byte) string</a></dd>
+			
+				<dd><a href="#EncodedLen">func EncodedLen(n int) int</a></dd>
+			
+				<dd><a href="#NewDecoder">func NewDecoder(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#NewEncoder">func NewEncoder(w io.Writer) io.Writer</a></dd>
+			
+			
+				
+				<dd><a href="#InvalidByteError">type InvalidByteError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InvalidByteError.Error">func (e InvalidByteError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Decode">Decode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecodeString">DecodeString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Dump">Dump</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Dumper">Dumper</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Encode">Encode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_EncodeToString">EncodeToString</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/hex/hex.go">hex.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrLength reports an attempt to decode an odd-length input
+using <a href="#Decode">Decode</a> or <a href="#DecodeString">DecodeString</a>.
+The stream-based Decoder returns <a href="/pkg/io/#ErrUnexpectedEOF">io.ErrUnexpectedEOF</a> instead of ErrLength.
+
+				<pre>var <span id="ErrLength">ErrLength</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;encoding/hex: odd length hex string&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="AppendDecode">func <a href="/src/encoding/hex/hex.go?s=3971:4021#L108">AppendDecode</a>
+				
+				<span title="自 Go 1.22 起提供">1.22</span>
+			</h2>
+			<pre>func AppendDecode(dst, src []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>AppendDecode appends the hexadecimally decoded src to dst
+and returns the extended buffer.
+If the input is malformed, it returns the partially decoded src and an error.
+
+			
+		
+			
+			<h2 id="AppendEncode">func <a href="/src/encoding/hex/hex.go?s=2128:2169#L47">AppendEncode</a>
+				
+				<span title="自 Go 1.22 起提供">1.22</span>
+			</h2>
+			<pre>func AppendEncode(dst, src []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendEncode appends the hexadecimally encoded src to dst
+and returns the extended buffer.
+
+			
+		
+			
+			<h2 id="Decode">func <a href="/src/encoding/hex/hex.go?s=3215:3256#L77">Decode</a>
+				
+				
+			</h2>
+			<pre>func Decode(dst, src []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Decode decodes src into <a href="#DecodedLen">DecodedLen</a>(len(src)) bytes,
+returning the actual number of bytes written to dst.
+<p>Decode expects that src contains only hexadecimal
+characters and that src has even length.
+If the input is malformed, Decode returns the number
+of bytes decoded before the error.
+
+			
+
+
+<div id="example_Decode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	src := []byte(&#34;48656c6c6f20476f7068657221&#34;)
+
+	dst := make([]byte, hex.DecodedLen(len(src)))
+	n, err := hex.Decode(dst, src)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, dst[:n])
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello Gopher!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeString">func <a href="/src/encoding/hex/hex.go?s=4609:4652#L128">DecodeString</a>
+				
+				
+			</h2>
+			<pre>func DecodeString(s <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DecodeString returns the bytes represented by the hexadecimal string s.
+<p>DecodeString expects that src contains only hexadecimal
+characters and that src has even length.
+If the input is malformed, DecodeString returns
+the bytes decoded before the error.
+
+			
+
+
+<div id="example_DecodeString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	const s = &#34;48656c6c6f20476f7068657221&#34;
+	decoded, err := hex.DecodeString(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, decoded)
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello Gopher!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodedLen">func <a href="/src/encoding/hex/hex.go?s=2863:2889#L68">DecodedLen</a>
+				
+				
+			</h2>
+			<pre>func DecodedLen(x <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>DecodedLen returns the length of a decoding of x source bytes.
+Specifically, it returns x / 2.
+
+			
+		
+			
+			<h2 id="Dump">func <a href="/src/encoding/hex/hex.go?s=4909:4938#L136">Dump</a>
+				
+				
+			</h2>
+			<pre>func Dump(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Dump returns a string that contains a hex dump of the given data. The format
+of the hex dump matches the output of `hexdump -C` on the command line.
+
+			
+
+
+<div id="example_Dump" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	content := []byte(&#34;Go is an open source programming language.&#34;)
+
+	fmt.Printf(&#34;%s&#34;, hex.Dump(content))
+
+}
+</textarea></div>
+        <div class="output"><pre>00000000  47 6f 20 69 73 20 61 6e  20 6f 70 65 6e 20 73 6f  |Go is an open so|
+00000010  75 72 63 65 20 70 72 6f  67 72 61 6d 6d 69 6e 67  |urce programming|
+00000020  20 6c 61 6e 67 75 61 67  65 2e                    | language.|
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Dumper">func <a href="/src/encoding/hex/hex.go?s=7485:7524#L232">Dumper</a>
+				
+				
+			</h2>
+			<pre>func Dumper(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+			<p>Dumper returns a <a href="/pkg/io/#WriteCloser">io.WriteCloser</a> that writes a hex dump of all written data to
+w. The format of the dump matches the output of `hexdump -C` on the command
+line.
+
+			
+
+
+<div id="example_Dumper" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	lines := []string{
+		&#34;Go is an open source programming language.&#34;,
+		&#34;\n&#34;,
+		&#34;We encourage all Go users to subscribe to golang-announce.&#34;,
+	}
+
+	stdoutDumper := hex.Dumper(os.Stdout)
+
+	defer stdoutDumper.Close()
+
+	for _, line := range lines {
+		stdoutDumper.Write([]byte(line))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>00000000  47 6f 20 69 73 20 61 6e  20 6f 70 65 6e 20 73 6f  |Go is an open so|
+00000010  75 72 63 65 20 70 72 6f  67 72 61 6d 6d 69 6e 67  |urce programming|
+00000020  20 6c 61 6e 67 75 61 67  65 2e 0a 57 65 20 65 6e  | language..We en|
+00000030  63 6f 75 72 61 67 65 20  61 6c 6c 20 47 6f 20 75  |courage all Go u|
+00000040  73 65 72 73 20 74 6f 20  73 75 62 73 63 72 69 62  |sers to subscrib|
+00000050  65 20 74 6f 20 67 6f 6c  61 6e 67 2d 61 6e 6e 6f  |e to golang-anno|
+00000060  75 6e 63 65 2e                                    |unce.|
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Encode">func <a href="/src/encoding/hex/hex.go?s=1871:1903#L35">Encode</a>
+				
+				
+			</h2>
+			<pre>func Encode(dst, src []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Encode encodes src into <a href="#EncodedLen">EncodedLen</a>(len(src))
+bytes of dst. As a convenience, it returns the number
+of bytes written to dst, but this value is always <a href="#EncodedLen">EncodedLen</a>(len(src)).
+Encode implements hexadecimal encoding.
+
+			
+
+
+<div id="example_Encode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	src := []byte(&#34;Hello Gopher!&#34;)
+
+	dst := make([]byte, hex.EncodedLen(len(src)))
+	hex.Encode(dst, src)
+
+	fmt.Printf(&#34;%s\n&#34;, dst)
+
+}
+</textarea></div>
+        <div class="output"><pre>48656c6c6f20476f7068657221
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncodeToString">func <a href="/src/encoding/hex/hex.go?s=4213:4251#L116">EncodeToString</a>
+				
+				
+			</h2>
+			<pre>func EncodeToString(src []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>EncodeToString returns the hexadecimal encoding of src.
+
+			
+
+
+<div id="example_EncodeToString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/hex&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	src := []byte(&#34;Hello&#34;)
+	encodedStr := hex.EncodeToString(src)
+
+	fmt.Printf(&#34;%s\n&#34;, encodedStr)
+
+}
+</textarea></div>
+        <div class="output"><pre>48656c6c6f
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncodedLen">func <a href="/src/encoding/hex/hex.go?s=1599:1625#L29">EncodedLen</a>
+				
+				
+			</h2>
+			<pre>func EncodedLen(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>EncodedLen returns the length of an encoding of n source bytes.
+Specifically, it returns n * 2.
+
+			
+		
+			
+			<h2 id="NewDecoder">func <a href="/src/encoding/hex/hex.go?s=6334:6372#L192">NewDecoder</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<pre>func NewDecoder(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>NewDecoder returns an <a href="/pkg/io/#Reader">io.Reader</a> that decodes hexadecimal characters from r.
+NewDecoder expects that r contain only an even number of hexadecimal characters.
+
+			
+		
+			
+			<h2 id="NewEncoder">func <a href="/src/encoding/hex/hex.go?s=5609:5647#L163">NewEncoder</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<pre>func NewEncoder(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+			<p>NewEncoder returns an <a href="/pkg/io/#Writer">io.Writer</a> that writes lowercase hexadecimal characters to w.
+
+			
+		
+		
+			
+			<h2 id="InvalidByteError">type <a href="/src/encoding/hex/hex.go?s=2624:2650#L60">InvalidByteError</a>
+				
+				
+			</h2>
+			<p>InvalidByteError values describe errors resulting from an invalid byte in a hex string.
+
+			<pre>type InvalidByteError <a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InvalidByteError.Error">func (InvalidByteError) <a href="/src/encoding/hex/hex.go?s=2652:2692#L62">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#InvalidByteError">InvalidByteError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

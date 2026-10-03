@@ -1,0 +1,814 @@
+<!--{
+  "Title": "crypto/hpke 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package hpke</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/hpke"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>hpke 包实现 <a href="https://www.rfc-editor.org/rfc/rfc9180.html">RFC 9180</a> 定义的混合公钥加密（HPKE）。
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 此示例使用 MLKEM768-X25519 作为 KEM、HKDF-SHA256 作为</span>
+<span class="comment">// KDF、AES-256-GCM 作为 AEAD，通过一次性 API 加密</span>
+<span class="comment">// 发送方发给接收方的一条消息。</span>
+
+kem, kdf, aead := MLKEM768X25519(), HKDFSHA256(), AES256GCM()
+
+<span class="comment">// 接收方</span>
+var (
+    recipientPrivateKey PrivateKey
+    publicKeyBytes      []byte
+)
+{
+    k, err := kem.GenerateKey()
+    if err != nil {
+        panic(err)
+    }
+    recipientPrivateKey = k
+    publicKeyBytes = k.PublicKey().Bytes()
+}
+
+<span class="comment">// 发送方</span>
+var ciphertext []byte
+{
+    publicKey, err := kem.NewPublicKey(publicKeyBytes)
+    if err != nil {
+        panic(err)
+    }
+
+    message := []byte(&#34;|-()-|&#34;)
+    ct, err := Seal(publicKey, kdf, aead, []byte(&#34;example&#34;), message)
+    if err != nil {
+        panic(err)
+    }
+
+    ciphertext = ct
+}
+
+<span class="comment">// 接收方</span>
+{
+    plaintext, err := Open(recipientPrivateKey, kdf, aead, []byte(&#34;example&#34;), ciphertext)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf(&#34;Decrypted message: %s\n&#34;, plaintext)
+}
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">Decrypted message: |-()-|
+</pre>
+      
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Open">func Open(k PrivateKey, kdf KDF, aead AEAD, info, ciphertext []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Seal">func Seal(pk PublicKey, kdf KDF, aead AEAD, info, plaintext []byte) ([]byte, error)</a></dd>
+			
+			
+				
+				<dd><a href="#AEAD">type AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AES128GCM">func AES128GCM() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AES256GCM">func AES256GCM() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChaCha20Poly1305">func ChaCha20Poly1305() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ExportOnly">func ExportOnly() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewAEAD">func NewAEAD(id uint16) (AEAD, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#KDF">type KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA256">func HKDFSHA256() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA384">func HKDFSHA384() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA512">func HKDFSHA512() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewKDF">func NewKDF(id uint16) (KDF, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE128">func SHAKE128() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE256">func SHAKE256() KDF</a></dd>
+				
+				
+			
+				
+				<dd><a href="#KEM">type KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DHKEM">func DHKEM(curve ecdh.Curve) KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM1024">func MLKEM1024() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM1024P384">func MLKEM1024P384() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768">func MLKEM768() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768P256">func MLKEM768P256() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768X25519">func MLKEM768X25519() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewKEM">func NewKEM(id uint16) (KEM, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDHKEMPrivateKey">func NewDHKEMPrivateKey(priv ecdh.KeyExchanger) (PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewHybridPrivateKey">func NewHybridPrivateKey(pq crypto.Decapsulator, t ecdh.KeyExchanger) (PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMLKEMPrivateKey">func NewMLKEMPrivateKey(priv crypto.Decapsulator) (PrivateKey, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDHKEMPublicKey">func NewDHKEMPublicKey(pub *ecdh.PublicKey) (PublicKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewHybridPublicKey">func NewHybridPublicKey(pq crypto.Encapsulator, t *ecdh.PublicKey) (PublicKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMLKEMPublicKey">func NewMLKEMPublicKey(pub crypto.Encapsulator) (PublicKey, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Recipient">type Recipient</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRecipient">func NewRecipient(enc []byte, k PrivateKey, kdf KDF, aead AEAD, info []byte) (*Recipient, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Recipient.Export">func (r *Recipient) Export(exporterContext string, length int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Recipient.Open">func (r *Recipient) Open(aad, ciphertext []byte) ([]byte, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Sender">type Sender</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSender">func NewSender(pk PublicKey, kdf KDF, aead AEAD, info []byte) (enc []byte, s *Sender, err error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Sender.Export">func (s *Sender) Export(exporterContext string, length int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sender.Seal">func (s *Sender) Seal(aad, plaintext []byte) ([]byte, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/hpke/aead.go">aead.go</a>
+			
+				<a href="/src/crypto/hpke/aead_fips140v1.26.go">aead_fips140v1.26.go</a>
+			
+				<a href="/src/crypto/hpke/hpke.go">hpke.go</a>
+			
+				<a href="/src/crypto/hpke/kdf.go">kdf.go</a>
+			
+				<a href="/src/crypto/hpke/kem.go">kem.go</a>
+			
+				<a href="/src/crypto/hpke/pq.go">pq.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Open">func <a href="/src/crypto/hpke/hpke.go?s=7352:7436#L214">Open</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Open(k <a href="#PrivateKey">PrivateKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info, ciphertext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Open 像 <a href="#NewRecipient">NewRecipient</a> 一样实例化一个仅使用一次的 HPKE 接收上下文，再像 <a href="#Recipient.Open">Recipient.Open</a> 一样解密给定密文（不使用 aad）。ciphertext 必须由封装密钥与实际密文拼接而成。
+
+			
+		
+			
+			<h2 id="Seal">func <a href="/src/crypto/hpke/hpke.go?s=5917:6000#L173">Seal</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Seal(pk <a href="#PublicKey">PublicKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info, plaintext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Seal 像 <a href="#NewSender">NewSender</a> 一样实例化一个仅使用一次的 HPKE 发送上下文，再像 <a href="#Sender.Seal">Sender.Seal</a> 一样加密给定明文（不使用 aad）。Seal 返回封装密钥与密文的拼接结果。
+
+			
+		
+		
+			
+			<h2 id="AEAD">type <a href="/src/crypto/hpke/aead.go?s=366:473#L7">AEAD</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>AEAD 是 HPKE 密码套件的三个组成部分之一，实现对称加密。
+
+			<pre>type AEAD interface {
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AES128GCM">func <a href="/src/crypto/hpke/aead.go?s=1107:1128#L34">AES128GCM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func AES128GCM() <a href="#AEAD">AEAD</a></pre>
+				<p>AES128GCM 返回 AES-128-GCM 的 AEAD 实现。
+
+				
+			
+				<h3 id="AES256GCM">func <a href="/src/crypto/hpke/aead.go?s=1208:1229#L37">AES256GCM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func AES256GCM() <a href="#AEAD">AEAD</a></pre>
+				<p>AES256GCM 返回 AES-256-GCM 的 AEAD 实现。
+
+				
+			
+				<h3 id="ChaCha20Poly1305">func <a href="/src/crypto/hpke/aead.go?s=1320:1348#L40">ChaCha20Poly1305</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func ChaCha20Poly1305() <a href="#AEAD">AEAD</a></pre>
+				<p>ChaCha20Poly1305 返回 ChaCha20Poly1305 的 AEAD 实现。
+
+				
+			
+				<h3 id="ExportOnly">func <a href="/src/crypto/hpke/aead.go?s=1616:1638#L46">ExportOnly</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func ExportOnly() <a href="#AEAD">AEAD</a></pre>
+				<p>ExportOnly 返回占位 AEAD 实现，不能加密或解密，只能通过 <a href="#Sender.Export">Sender.Export</a> 或 <a href="#Recipient.Export">Recipient.Export</a> 导出秘密值。
+<p>使用此实现时，<a href="#Sender.Seal">Sender.Seal</a> 和 <a href="#Recipient.Open">Recipient.Open</a> 都返回错误。
+
+				
+			
+				<h3 id="NewAEAD">func <a href="/src/crypto/hpke/aead.go?s=694:731#L18">NewAEAD</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewAEAD(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewAEAD 返回给定 AEAD ID 对应的 AEAD 实现。
+<p>除非需要在运行时灵活选择算法，否则建议应用程序改用 <a href="#AES128GCM">AES128GCM</a> 或 <a href="#ChaCha20Poly1305">ChaCha20Poly1305</a> 等具体实现。
+
+				
+			
+
+			
+		
+			
+			<h2 id="KDF">type <a href="/src/crypto/hpke/kdf.go?s=395:752#L10">KDF</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>KDF 是 HPKE 密码套件的三个组成部分之一，实现密钥派生。
+
+			<pre>type KDF interface {
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="HKDFSHA256">func <a href="/src/crypto/hpke/kdf.go?s=1396:1417#L41">HKDFSHA256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA256() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA256 返回 HKDF-SHA256 的 KDF 实现。
+
+				
+			
+				<h3 id="HKDFSHA384">func <a href="/src/crypto/hpke/kdf.go?s=1498:1519#L44">HKDFSHA384</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA384() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA384 返回 HKDF-SHA384 的 KDF 实现。
+
+				
+			
+				<h3 id="HKDFSHA512">func <a href="/src/crypto/hpke/kdf.go?s=1600:1621#L47">HKDFSHA512</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA512() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA512 返回 HKDF-SHA512 的 KDF 实现。
+
+				
+			
+				<h3 id="NewKDF">func <a href="/src/crypto/hpke/kdf.go?s=949:984#L23">NewKDF</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewKDF(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#KDF">KDF</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewKDF 返回给定 KDF ID 对应的 KDF 实现。
+<p>除非需要在运行时灵活选择算法，否则建议应用程序改用 <a href="#HKDFSHA256">HKDFSHA256</a> 等具体实现。
+
+				
+			
+				<h3 id="SHAKE128">func <a href="/src/crypto/hpke/kdf.go?s=3293:3312#L95">SHAKE128</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func SHAKE128() <a href="#KDF">KDF</a></pre>
+				<p>SHAKE128 返回 SHAKE128 的 KDF 实现。
+
+				
+			
+				<h3 id="SHAKE256">func <a href="/src/crypto/hpke/kdf.go?s=3389:3408#L100">SHAKE256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func SHAKE256() <a href="#KDF">KDF</a></pre>
+				<p>SHAKE256 返回 SHAKE256 的 KDF 实现。
+
+				
+			
+
+			
+		
+			
+			<h2 id="KEM">type <a href="/src/crypto/hpke/kem.go?s=365:1053#L7">KEM</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>KEM 是密钥封装机制，为 HPKE 密码套件的三个组成部分之一。
+
+			<pre>type KEM interface {
+    <span class="comment">// ID 返回 HPKE KEM 标识符。</span>
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+
+    <span class="comment">// GenerateKey 生成新的密钥对。</span>
+    GenerateKey() (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPublicKey 从字节反序列化公钥。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它实现 RFC 9180 定义的 DeserializePublicKey。</span>
+    NewPublicKey([]<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPrivateKey 从字节反序列化私钥。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它实现 RFC 9180 定义的 DeserializePrivateKey。</span>
+    NewPrivateKey([]<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// DeriveKeyPair 根据给定的输入密钥材料派生密钥对。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它实现 RFC 9180 定义的 DeriveKeyPair。</span>
+    DeriveKeyPair(ikm []<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DHKEM">func <a href="/src/crypto/hpke/kem.go?s=4294:4326#L137">DHKEM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func DHKEM(curve <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#Curve">Curve</a>) <a href="#KEM">KEM</a></pre>
+				<p>DHKEM 返回实现下列算法之一的 KEM：
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>具体取决于 curve。
+
+				
+			
+				<h3 id="MLKEM1024">func <a href="/src/crypto/hpke/pq.go?s=10704:10724#L384">MLKEM1024</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM1024() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM1024 返回实现 draft-ietf-hpke-pq 中 ML-KEM-1024 的 KEM。
+
+				
+			
+				<h3 id="MLKEM1024P384">func <a href="/src/crypto/hpke/pq.go?s=2153:2177#L77">MLKEM1024P384</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM1024P384() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM1024P384 返回实现 draft-ietf-hpke-pq 中 MLKEM1024-P384 的 KEM。
+
+				
+			
+				<h3 id="MLKEM768">func <a href="/src/crypto/hpke/pq.go?s=10171:10190#L365">MLKEM768</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768 返回实现 draft-ietf-hpke-pq 中 ML-KEM-768 的 KEM。
+
+				
+			
+				<h3 id="MLKEM768P256">func <a href="/src/crypto/hpke/pq.go?s=1546:1569#L54">MLKEM768P256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768P256() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768P256 返回实现 draft-ietf-hpke-pq 中 MLKEM768-P256 的 KEM。
+
+				
+			
+				<h3 id="MLKEM768X25519">func <a href="/src/crypto/hpke/pq.go?s=943:968#L31">MLKEM768X25519</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768X25519() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768X25519 返回实现 draft-ietf-hpke-pq 中 MLKEM768-X25519（也称为 X-Wing）的 KEM。
+
+				
+			
+				<h3 id="NewKEM">func <a href="/src/crypto/hpke/kem.go?s=1265:1300#L36">NewKEM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewKEM(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#KEM">KEM</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewKEM 返回给定 KEM ID 对应的 KEM 实现。
+<p>除非需要在运行时灵活选择算法，否则建议应用程序改用 <a href="#DHKEM">DHKEM</a> 或 <a href="#MLKEM768X25519">MLKEM768X25519</a> 等具体实现。
+
+				
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/hpke/kem.go?s=2776:3240#L81">PrivateKey</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>PrivateKey 是使用解封装密钥（即秘密密钥）实例化的 KEM，而 KEM 是 HPKE 密码套件的三个组成部分之一。
+<p>PrivateKey 通常通过相应 <a href="#KEM">KEM</a> 的方法获得，例如 <a href="#KEM.GenerateKey">KEM.GenerateKey</a> 或 <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a>。
+
+			<pre>type PrivateKey interface {
+    <span class="comment">// KEM 返回已实例化的 KEM。</span>
+    KEM() <a href="#KEM">KEM</a>
+
+    <span class="comment">// Bytes 以 RFC 9180 定义的 SerializePrivateKey 的</span>
+    <span class="comment">// 输出形式返回私钥。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意，对于 X25519，它可能与 NewPrivateKey 的输入不同。</span>
+    <span class="comment">// 这是 RFC 9180 第 7.1.2 节的要求。</span>
+    Bytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// PublicKey 返回对应的 PublicKey。</span>
+    PublicKey() <a href="#PublicKey">PublicKey</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDHKEMPrivateKey">func <a href="/src/crypto/hpke/kem.go?s=7866:7933#L267">NewDHKEMPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewDHKEMPrivateKey(priv <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#KeyExchanger">KeyExchanger</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewDHKEMPrivateKey 返回实现下列算法之一的 PrivateKey：
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>具体取决于 priv 的底层曲线（<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>、<a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>、<a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a> 或 <a href="/pkg/crypto/ecdh/#P521">ecdh.P521</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/ecdh 私钥或其他 <a href="/pkg/crypto/ecdh/#KeyExchanger">ecdh.KeyExchanger</a> 实现（例如硬件密钥）的应用程序。否则，应用程序应使用 <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> 方法，该方法由 <a href="#DHKEM">DHKEM</a> 提供。
+
+				
+			
+				<h3 id="NewHybridPrivateKey">func <a href="/src/crypto/hpke/pq.go?s=6541:6630#L234">NewHybridPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewHybridPrivateKey(pq <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Decapsulator">Decapsulator</a>, t <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#KeyExchanger">KeyExchanger</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewHybridPrivateKey 返回实现下列算法之一的 PrivateKey：
+<ul>
+<li>MLKEM768-X25519（也称为 X-Wing）
+<li>MLKEM768-P256
+<li>MLKEM1024-P384
+</ul>
+<p>这些算法来自 draft-ietf-hpke-pq，具体取决于 t 的底层曲线（<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>、<a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a> 或 <a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>），以及 pq.Encapsulator() 的类型（*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> 或 *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/ecdh 和 crypto/mlkem 私钥，或其他 <a href="/pkg/crypto/ecdh/#KeyExchanger">ecdh.KeyExchanger</a> 和 <a href="/pkg/crypto/#Decapsulator">crypto.Decapsulator</a> 实现（例如硬件密钥）的应用程序。否则，应使用 <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> 方法，例如 <a href="#MLKEM768X25519">MLKEM768X25519</a> 提供的该方法。
+
+				
+			
+				<h3 id="NewMLKEMPrivateKey">func <a href="/src/crypto/hpke/pq.go?s=12964:13033#L471">NewMLKEMPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewMLKEMPrivateKey(priv <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Decapsulator">Decapsulator</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewMLKEMPrivateKey 返回实现下列算法之一的 KEMPrivateKey：
+<ul>
+<li>ML-KEM-768
+<li>ML-KEM-1024
+</ul>
+<p>这些算法来自 draft-ietf-hpke-pq，具体取决于 priv.Encapsulator() 的类型（*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> 或 *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/mlkem 私钥的应用程序。否则，应使用 <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> 方法，例如 <a href="#MLKEM768">MLKEM768</a> 提供的该方法。
+
+				
+			
+
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/hpke/kem.go?s=2279:2491#L66">PublicKey</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>PublicKey 是使用封装密钥（即公钥）实例化的 KEM，而 KEM 是 HPKE 密码套件的三个组成部分之一。
+<p>PublicKey 通常通过相应 <a href="#KEM">KEM</a> 或 <a href="#PrivateKey">PrivateKey</a> 的方法获得，例如 <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> 或 <a href="#PrivateKey.PublicKey">PrivateKey.PublicKey</a>。
+
+			<pre>type PublicKey interface {
+    <span class="comment">// KEM 返回已实例化的 KEM。</span>
+    KEM() <a href="#KEM">KEM</a>
+
+    <span class="comment">// Bytes 以 SerializePublicKey 的输出形式返回公钥。</span>
+    Bytes() []<a href="/pkg/builtin/#byte">byte</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDHKEMPublicKey">func <a href="/src/crypto/hpke/kem.go?s=5908:5970#L194">NewDHKEMPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewDHKEMPublicKey(pub *<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PublicKey">PublicKey</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewDHKEMPublicKey 返回实现下列算法之一的 PublicKey：
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>具体取决于 pub 的底层曲线（<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>、<a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>、<a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a> 或 <a href="/pkg/crypto/ecdh/#P521">ecdh.P521</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/ecdh 公钥的应用程序。否则，应使用 <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> 方法，该方法由 <a href="#DHKEM">DHKEM</a> 提供。
+
+				
+			
+				<h3 id="NewHybridPublicKey">func <a href="/src/crypto/hpke/pq.go?s=3510:3595#L132">NewHybridPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewHybridPublicKey(pq <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Encapsulator">Encapsulator</a>, t *<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PublicKey">PublicKey</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewHybridPublicKey 返回实现下列算法之一的 PublicKey：
+<ul>
+<li>MLKEM768-X25519（也称为 X-Wing）
+<li>MLKEM768-P256
+<li>MLKEM1024-P384
+</ul>
+<p>这些算法来自 draft-ietf-hpke-pq，具体取决于 t 的底层曲线（<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>、<a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a> 或 <a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>），以及 pq 的类型（*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> 或 *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/ecdh 和 crypto/mlkem 公钥的应用程序。否则，应使用 <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> 方法，例如 <a href="#MLKEM768X25519">MLKEM768X25519</a> 提供的该方法。
+
+				
+			
+				<h3 id="NewMLKEMPublicKey">func <a href="/src/crypto/hpke/pq.go?s=11608:11674#L420">NewMLKEMPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewMLKEMPublicKey(pub <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Encapsulator">Encapsulator</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewMLKEMPublicKey 返回实现下列算法之一的 KEMPublicKey：
+<ul>
+<li>ML-KEM-768
+<li>ML-KEM-1024
+</ul>
+<p>这些算法来自 draft-ietf-hpke-pq，具体取决于 pub 的类型（*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> 或 *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>）。
+<p>此函数适用于已经拥有实例化的 crypto/mlkem 公钥的应用程序。否则，应使用 <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> 方法，例如 <a href="#MLKEM768">MLKEM768</a> 提供的该方法。
+
+				
+			
+
+			
+		
+			
+			<h2 id="Recipient">type <a href="/src/crypto/hpke/hpke.go?s=1137:1172#L29">Recipient</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Recipient 是 HPKE 接收上下文，使用特定的 KEM 解封装密钥（即秘密密钥）实例化。它有状态，每次成功调用 <a href="#Recipient.Open">Recipient.Open</a> 时都会递增 nonce 计数器。
+
+			<pre>type Recipient struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewRecipient">func <a href="/src/crypto/hpke/hpke.go?s=4895:4991#L144">NewRecipient</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewRecipient(enc []<a href="/pkg/builtin/#byte">byte</a>, k <a href="#PrivateKey">PrivateKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#Recipient">Recipient</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewRecipient 为给定的 KEM 解封装密钥（即秘密密钥）返回 HPKE 接收上下文，使用由 KEM、KDF 和 AEAD 的组合确定的密码套件。
+<p>enc 参数必须由匹配的 HPKE 发送上下文使用对应的 KEM 封装密钥生成。info 参数是附加的公开信息，发送方与接收方必须一致。
+
+				
+			
+
+			
+				<h3 id="Recipient.Export">func (*Recipient) <a href="/src/crypto/hpke/hpke.go?s=7864:7942#L229">Export</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (r *<a href="#Recipient">Recipient</a>) Export(exporterContext <a href="/pkg/builtin/#string">string</a>, length <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Export 根据发送方与接收方之间的共享密钥派生秘密值。length 最大为 65,535。
+
+				
+			
+				<h3 id="Recipient.Open">func (*Recipient) <a href="/src/crypto/hpke/hpke.go?s=6808:6872#L199">Open</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (r *<a href="#Recipient">Recipient</a>) Open(aad, ciphertext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 解密给定密文，可选地绑定附加公开数据 aad；如果解密失败，则返回错误。
+<p>Open 在每次成功调用时使用递增的计数器，调用顺序必须与发送方的 Seal 相同。
+
+				
+			
+		
+			
+			<h2 id="Sender">type <a href="/src/crypto/hpke/hpke.go?s=881:913#L22">Sender</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Sender 是 HPKE 发送上下文，使用特定的 KEM 封装密钥（即公钥）实例化。它有状态，每次调用 <a href="#Sender.Seal">Sender.Seal</a> 时都会递增 nonce 计数器。
+
+			<pre>type Sender struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewSender">func <a href="/src/crypto/hpke/hpke.go?s=4110:4206#L125">NewSender</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewSender(pk <a href="#PublicKey">PublicKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info []<a href="/pkg/builtin/#byte">byte</a>) (enc []<a href="/pkg/builtin/#byte">byte</a>, s *<a href="#Sender">Sender</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewSender 为给定的 KEM 封装密钥（即公钥）返回 HPKE 发送上下文，使用由 KEM、KDF 和 AEAD 的组合确定的密码套件。
+<p>info 参数是附加的公开信息，发送方与接收方必须一致。
+<p>返回的 enc 密文可以与对应的 KEM 解封装密钥一起，用来实例化匹配的 HPKE 接收上下文。
+
+				
+			
+
+			
+				<h3 id="Sender.Export">func (*Sender) <a href="/src/crypto/hpke/hpke.go?s=6322:6397#L187">Export</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (s *<a href="#Sender">Sender</a>) Export(exporterContext <a href="/pkg/builtin/#string">string</a>, length <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Export 根据发送方与接收方之间的共享密钥派生秘密值。length 最大为 65,535。
+
+				
+			
+				<h3 id="Sender.Seal">func (*Sender) <a href="/src/crypto/hpke/hpke.go?s=5441:5501#L161">Seal</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (s *<a href="#Sender">Sender</a>) Seal(aad, plaintext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Seal 加密给定明文，可选地绑定附加公开数据 aad。
+<p>Seal 在每次调用时使用递增的计数器，接收方 Open 的调用顺序必须与 Seal 相同。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

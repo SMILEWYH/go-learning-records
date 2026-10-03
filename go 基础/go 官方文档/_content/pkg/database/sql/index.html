@@ -1,0 +1,2666 @@
+<!--{
+  "Title": "database/sql 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>database/sql 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "database/sql"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>sql 包为 SQL（或类似 SQL）的数据库提供通用接口。<p>sql 包必须配合数据库驱动使用。驱动列表见 <a href="/golang.org/s/sqldrivers">https://golang.org/s/sqldrivers</a>。<p>不支持上下文取消的驱动，只有在查询完成后才会返回。<p>使用示例见 Wiki 页面：<a href="/golang.org/s/sqlwiki">https://golang.org/s/sqlwiki</a>。<div id="example__openDBCLI" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（命令行程序中打开数据库）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（命令行程序中打开数据库）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;flag&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+	&#34;time&#34;
+)
+
+var pool *sql.DB // 数据库连接池。
+
+func main() {
+	id := flag.Int64(&#34;id&#34;, 0, &#34;person ID to find&#34;)
+	dsn := flag.String(&#34;dsn&#34;, os.Getenv(&#34;DSN&#34;), &#34;connection data source name&#34;)
+	flag.Parse()
+
+	if len(*dsn) == 0 {
+		log.Fatal(&#34;missing dsn flag&#34;)
+	}
+	if *id == 0 {
+		log.Fatal(&#34;missing person ID&#34;)
+	}
+	var err error
+
+	// 打开驱动时通常不会尝试连接数据库。
+	pool, err = sql.Open(&#34;driver-name&#34;, *dsn)
+	if err != nil {
+		// 这通常不是连接错误，而是 DSN 解析错误或
+		// 其他初始化错误。
+		log.Fatal(&#34;unable to use data source name&#34;, err)
+	}
+	defer pool.Close()
+
+	pool.SetConnMaxLifetime(0)
+	pool.SetMaxIdleConns(3)
+	pool.SetMaxOpenConns(3)
+
+	ctx, stop := context.WithCancel(context.Background())
+	defer stop()
+
+	appSignal := make(chan os.Signal, 3)
+	signal.Notify(appSignal, os.Interrupt)
+
+	go func() {
+		&lt;-appSignal
+		stop()
+	}()
+
+	Ping(ctx)
+
+	Query(ctx, *id)
+}
+
+// 通过 Ping 数据库，验证使用者提供的 DSN 有效，且
+// 服务器可访问。如果 Ping 失败，则报错并退出程序。
+func Ping(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	if err := pool.PingContext(ctx); err != nil {
+		log.Fatalf(&#34;unable to connect to database: %v&#34;, err)
+	}
+}
+
+// 查询数据库以获取所需信息，并打印结果。
+// 如果查询失败，则报错并退出程序。
+func Query(ctx context.Context, id int64) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var name string
+	err := pool.QueryRowContext(ctx, &#34;select p.name from people as p where p.id = :id;&#34;, sql.Named(&#34;id&#34;, id)).Scan(&amp;name)
+	if err != nil {
+		log.Fatal(&#34;unable to execute search query&#34;, err)
+	}
+	log.Println(&#34;name=&#34;, name)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__openDBService" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（服务程序中打开数据库）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（服务程序中打开数据库）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	// 打开驱动时通常不会尝试连接数据库。
+	db, err := sql.Open(&#34;driver-name&#34;, &#34;database=test1&#34;)
+	if err != nil {
+		// 这通常不是连接错误，而是 DSN 解析错误或
+		// 其他初始化错误。
+		log.Fatal(err)
+	}
+	db.SetConnMaxLifetime(0)
+	db.SetMaxIdleConns(50)
+	db.SetMaxOpenConns(50)
+
+	s := &amp;Service{db: db}
+
+	http.ListenAndServe(&#34;:8080&#34;, s)
+}
+
+type Service struct {
+	db *sql.DB
+}
+
+func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	db := s.db
+	switch r.URL.Path {
+	default:
+		http.Error(w, &#34;not found&#34;, http.StatusNotFound)
+		return
+	case &#34;/healthz&#34;:
+		ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+		defer cancel()
+
+		err := s.db.PingContext(ctx)
+		if err != nil {
+			http.Error(w, fmt.Sprintf(&#34;db down: %v&#34;, err), http.StatusFailedDependency)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		return
+	case &#34;/quick-action&#34;:
+		// 这是一个耗时较短的 SELECT。以请求上下文为基础
+		// 创建带超时的上下文。
+		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+		defer cancel()
+
+		id := 5
+		org := 10
+		var name string
+		err := db.QueryRowContext(ctx, `
+select
+	p.name
+from
+	people as p
+	join organization as o on p.organization = o.id
+where
+	p.id = :id
+	and o.id = :org
+;`,
+			sql.Named(&#34;id&#34;, id),
+			sql.Named(&#34;org&#34;, org),
+		).Scan(&amp;name)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, &#34;not found&#34;, http.StatusNotFound)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		io.WriteString(w, name)
+		return
+	case &#34;/long-action&#34;:
+		// 这是一个耗时较长的 SELECT。以请求上下文为基础
+		// 创建带超时的上下文，但留出足够时间完成查询。如果
+		// 客户端在查询完成之前取消请求，查询也会
+		// 被取消。
+		ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
+		defer cancel()
+
+		var names []string
+		rows, err := db.QueryContext(ctx, &#34;select p.name from people as p where p.active = true;&#34;)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for rows.Next() {
+			var name string
+			err = rows.Scan(&amp;name)
+			if err != nil {
+				break
+			}
+			names = append(names, name)
+		}
+		// 检查关闭 Rows 时发生的错误。
+		// 如果一次批处理执行多个语句，且既写入又读取数据行，
+		// 这项检查可能更加重要。
+		if closeErr := rows.Close(); closeErr != nil {
+			http.Error(w, closeErr.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// 检查行读取错误。
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// 检查遍历行时发生的错误。
+		if err = rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(names)
+		return
+	case &#34;/async-action&#34;:
+		// 此操作产生的副作用应当保留，
+		// 即使客户端中途取消 HTTP 请求也是如此。
+		// 因此，这里不以 HTTP 请求上下文作为
+		// 超时上下文的基础。
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		var orderRef = &#34;ABC123&#34;
+		tx, err := db.BeginTx(ctx, &amp;sql.TxOptions{Isolation: sql.LevelSerializable})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, err = tx.ExecContext(ctx, &#34;stored_proc_name&#34;, orderRef)
+
+		if err != nil {
+			tx.Rollback()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = tx.Commit()
+		if err != nil {
+			http.Error(w, &#34;action in unknown state, check state before attempting again&#34;, http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#ConvertAssign">func ConvertAssign(scanCtx driver.ScanContext, dest any, src driver.Value) error</a></dd>
+			
+				<dd><a href="#Drivers">func Drivers() []string</a></dd>
+			
+				<dd><a href="#Register">func Register(name string, driver driver.Driver)</a></dd>
+			
+			
+				
+				<dd><a href="#ColumnType">type ColumnType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.DatabaseTypeName">func (ci *ColumnType) DatabaseTypeName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.DecimalSize">func (ci *ColumnType) DecimalSize() (precision, scale int64, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.Length">func (ci *ColumnType) Length() (length int64, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.Name">func (ci *ColumnType) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.Nullable">func (ci *ColumnType) Nullable() (nullable, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ColumnType.ScanType">func (ci *ColumnType) ScanType() reflect.Type</a></dd>
+				
+			
+				
+				<dd><a href="#Conn">type Conn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.BeginTx">func (c *Conn) BeginTx(ctx context.Context, opts *TxOptions) (*Tx, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Close">func (c *Conn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.ExecContext">func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.PingContext">func (c *Conn) PingContext(ctx context.Context) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.PrepareContext">func (c *Conn) PrepareContext(ctx context.Context, query string) (*Stmt, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.QueryContext">func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.QueryRowContext">func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Raw">func (c *Conn) Raw(f func(driverConn any) error) (err error)</a></dd>
+				
+			
+				
+				<dd><a href="#DB">type DB</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(driverName, dataSourceName string) (*DB, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenDB">func OpenDB(c driver.Connector) *DB</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Begin">func (db *DB) Begin() (*Tx, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.BeginTx">func (db *DB) BeginTx(ctx context.Context, opts *TxOptions) (*Tx, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Close">func (db *DB) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Conn">func (db *DB) Conn(ctx context.Context) (*Conn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Driver">func (db *DB) Driver() driver.Driver</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Exec">func (db *DB) Exec(query string, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.ExecContext">func (db *DB) ExecContext(ctx context.Context, query string, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Ping">func (db *DB) Ping() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.PingContext">func (db *DB) PingContext(ctx context.Context) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Prepare">func (db *DB) Prepare(query string) (*Stmt, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.PrepareContext">func (db *DB) PrepareContext(ctx context.Context, query string) (*Stmt, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Query">func (db *DB) Query(query string, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.QueryContext">func (db *DB) QueryContext(ctx context.Context, query string, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.QueryRow">func (db *DB) QueryRow(query string, args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.QueryRowContext">func (db *DB) QueryRowContext(ctx context.Context, query string, args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.SetConnMaxIdleTime">func (db *DB) SetConnMaxIdleTime(d time.Duration)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.SetConnMaxLifetime">func (db *DB) SetConnMaxLifetime(d time.Duration)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.SetMaxIdleConns">func (db *DB) SetMaxIdleConns(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.SetMaxOpenConns">func (db *DB) SetMaxOpenConns(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DB.Stats">func (db *DB) Stats() DBStats</a></dd>
+				
+			
+				
+				<dd><a href="#DBStats">type DBStats</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IsolationLevel">type IsolationLevel</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IsolationLevel.String">func (i IsolationLevel) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#NamedArg">type NamedArg</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named">func Named(name string, value any) NamedArg</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Null">type Null</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Null.Scan">func (n *Null[T]) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Null.Value">func (n Null[T]) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullBool">type NullBool</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullBool.Scan">func (n *NullBool) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullBool.Value">func (n NullBool) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullByte">type NullByte</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullByte.Scan">func (n *NullByte) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullByte.Value">func (n NullByte) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullFloat64">type NullFloat64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullFloat64.Scan">func (n *NullFloat64) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullFloat64.Value">func (n NullFloat64) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullInt16">type NullInt16</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt16.Scan">func (n *NullInt16) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt16.Value">func (n NullInt16) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullInt32">type NullInt32</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt32.Scan">func (n *NullInt32) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt32.Value">func (n NullInt32) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullInt64">type NullInt64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt64.Scan">func (n *NullInt64) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullInt64.Value">func (n NullInt64) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullString">type NullString</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullString.Scan">func (ns *NullString) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullString.Value">func (ns NullString) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#NullTime">type NullTime</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NullTime.Scan">func (n *NullTime) Scan(value any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NullTime.Value">func (n NullTime) Value() (driver.Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Out">type Out</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RawBytes">type RawBytes</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Result">type Result</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Row">type Row</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Row.Err">func (r *Row) Err() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Row.Scan">func (r *Row) Scan(dest ...any) error</a></dd>
+				
+			
+				
+				<dd><a href="#Rows">type Rows</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.Close">func (rs *Rows) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.ColumnTypes">func (rs *Rows) ColumnTypes() ([]*ColumnType, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.Columns">func (rs *Rows) Columns() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.Err">func (rs *Rows) Err() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.Next">func (rs *Rows) Next() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.NextResultSet">func (rs *Rows) NextResultSet() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rows.Scan">func (rs *Rows) Scan(dest ...any) error</a></dd>
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Stmt">type Stmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.Close">func (s *Stmt) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.Exec">func (s *Stmt) Exec(args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.ExecContext">func (s *Stmt) ExecContext(ctx context.Context, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.Query">func (s *Stmt) Query(args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.QueryContext">func (s *Stmt) QueryContext(ctx context.Context, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.QueryRow">func (s *Stmt) QueryRow(args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stmt.QueryRowContext">func (s *Stmt) QueryRowContext(ctx context.Context, args ...any) *Row</a></dd>
+				
+			
+				
+				<dd><a href="#Tx">type Tx</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Commit">func (tx *Tx) Commit() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Exec">func (tx *Tx) Exec(query string, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.ExecContext">func (tx *Tx) ExecContext(ctx context.Context, query string, args ...any) (Result, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Prepare">func (tx *Tx) Prepare(query string) (*Stmt, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.PrepareContext">func (tx *Tx) PrepareContext(ctx context.Context, query string) (*Stmt, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Query">func (tx *Tx) Query(query string, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.QueryContext">func (tx *Tx) QueryContext(ctx context.Context, query string, args ...any) (*Rows, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.QueryRow">func (tx *Tx) QueryRow(query string, args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.QueryRowContext">func (tx *Tx) QueryRowContext(ctx context.Context, query string, args ...any) *Row</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Rollback">func (tx *Tx) Rollback() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.Stmt">func (tx *Tx) Stmt(stmt *Stmt) *Stmt</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tx.StmtContext">func (tx *Tx) StmtContext(ctx context.Context, stmt *Stmt) *Stmt</a></dd>
+				
+			
+				
+				<dd><a href="#TxOptions">type TxOptions</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span></h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Conn_ExecContext">Conn.ExecContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_BeginTx">DB.BeginTx</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_ExecContext">DB.ExecContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_PingContext">DB.PingContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_Prepare">DB.Prepare</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_QueryContext">DB.QueryContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_QueryRowContext">DB.QueryRowContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DB_Query_multipleResultSets">DB.Query（多个结果集）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Rows">Rows</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Stmt">Stmt</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Stmt_QueryRowContext">Stmt.QueryRowContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Tx_ExecContext">Tx.ExecContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Tx_Prepare">Tx.Prepare</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Tx_Rollback">Tx.Rollback</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__openDBCLI">包（命令行程序中打开数据库）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__openDBService">包（服务程序中打开数据库）</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/database/sql/closemu.go">closemu.go</a>
+			
+				<a href="/src/database/sql/convert.go">convert.go</a>
+			
+				<a href="/src/database/sql/ctxutil.go">ctxutil.go</a>
+			
+				<a href="/src/database/sql/sql.go">sql.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>对已经归还到连接池的连接执行任何操作，都会返回 ErrConnDone。<pre>var <span id="ErrConnDone">ErrConnDone</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;sql: connection is already closed&#34;)</pre>
+			
+				<p>当 <a href="#DB.QueryRow">DB.QueryRow</a> 未返回任何行时，<a href="#Row.Scan">Row.Scan</a> 会返回 ErrNoRows。此时，QueryRow 返回一个占位的 <a href="#Row">*Row</a> 值，将该错误推迟到调用 Scan 时报告。<pre>var <span id="ErrNoRows">ErrNoRows</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;sql: no rows in result set&#34;)</pre>
+			
+				<p>对已经提交或回滚的事务执行任何操作，都会返回 ErrTxDone。<pre>var <span id="ErrTxDone">ErrTxDone</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;sql: transaction has already been committed or rolled back&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="ConvertAssign">func <a href="/src/database/sql/convert.go?s=6645:6725#L227">ConvertAssign</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func ConvertAssign(scanCtx <a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#ScanContext">ScanContext</a>, dest <a href="/pkg/builtin/#any">any</a>, src <a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>ConvertAssign 将 src 中的值复制到 dest 指向的值。有关转换的详细规则，见 <a href="#Rows.Scan">Rows.Scan</a> 文档。dest 必须是指针，或者实现 <a href="#Scanner">Scanner</a> 接口。<p><a href="/pkg/database/sql/driver/#RowsColumnScanner">driver.RowsColumnScanner</a> 的实现应原样传递其 <a href="/pkg/database/sql/driver/#ScanContext">driver.ScanContext</a> 参数。其他情况下，使用 driver.ScanContext{} 作为上下文。<p>ConvertAssign 供驱动实现使用。大多数使用者不需要直接调用它。<h2 id="Drivers">func <a href="/src/database/sql/sql.go?s=1850:1873#L64">Drivers</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<pre>func Drivers() []<a href="/pkg/builtin/#string">string</a></pre>
+			<p>Drivers 返回已注册驱动名称的排序列表。<h2 id="Register">func <a href="/src/database/sql/sql.go?s=1364:1412#L44">Register</a>
+				
+				
+			</h2>
+			<pre>func Register(name <a href="/pkg/builtin/#string">string</a>, driver <a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Driver">Driver</a>)</pre>
+			<p>Register 将数据库驱动注册到给定名称下，使其可用。如果使用相同名称调用两次 Register，或者 driver 为 nil，则触发 panic。<h2 id="ColumnType">type <a href="/src/database/sql/sql.go?s=92234:92474#L3229">ColumnType</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ColumnType 包含一列的名称和类型。<pre>type ColumnType struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ColumnType.DatabaseTypeName">func (*ColumnType) <a href="/src/database/sql/sql.go?s=94093:94140#L3283">DatabaseTypeName</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) DatabaseTypeName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>DatabaseTypeName 返回数据库系统中该列类型的名称。如果返回空字符串，表示驱动不支持提供类型名称。驱动数据类型列表请参阅所用驱动的文档。返回名称不包含 <a href="#ColumnType.Length">ColumnType.Length</a> 所表示的长度限定。常见类型名包括“VARCHAR”、“TEXT”、“NVARCHAR”、“DECIMAL”、“BOOL”、“INT”和“BIGINT”。<h3 id="ColumnType.DecimalSize">func (*ColumnType) <a href="/src/database/sql/sql.go?s=93129:93198#L3260">DecimalSize</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) DecimalSize() (precision, scale <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>DecimalSize 返回十进制数类型的小数位数（scale）和精度（precision）。如果不适用或不受支持，ok 为 false。<h3 id="ColumnType.Length">func (*ColumnType) <a href="/src/database/sql/sql.go?s=92917:92971#L3254">Length</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) Length() (length <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Length 返回文本、二进制字段等变长列类型的长度。如果类型长度不受限，该值为 <a href="/pkg/math/#MaxInt64">math.MaxInt64</a>（数据库本身的限制仍然适用）。如果列类型不是变长类型（例如 int），或者驱动不支持此属性，ok 为 false。<h3 id="ColumnType.Name">func (*ColumnType) <a href="/src/database/sql/sql.go?s=92525:92560#L3245">Name</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回列的名称或别名。<h3 id="ColumnType.Nullable">func (*ColumnType) <a href="/src/database/sql/sql.go?s=93622:93674#L3273">Nullable</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) Nullable() (nullable, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Nullable 报告该列是否允许为 NULL。如果驱动不支持此属性，ok 为 false。<h3 id="ColumnType.ScanType">func (*ColumnType) <a href="/src/database/sql/sql.go?s=93435:93480#L3267">ScanType</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (ci *<a href="#ColumnType">ColumnType</a>) ScanType() <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a></pre>
+				<p>ScanType 返回一个适合通过 <a href="#Rows.Scan">Rows.Scan</a> 接收列值的 Go 类型。如果驱动不支持此属性，ScanType 返回空接口的类型。<h2 id="Conn">type <a href="/src/database/sql/sql.go?s=55108:55724#L1971">Conn</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>Conn 表示单个数据库连接，而非数据库连接池。除非确实需要持续使用同一个数据库连接，否则应优先通过 <a href="#DB">DB</a> 执行查询。<p>使用 Conn 后，必须调用 <a href="#Conn.Close">Conn.Close</a> 将连接归还到数据库连接池；该调用可以与正在运行的查询并发进行。<p>调用 <a href="#Conn.Close">Conn.Close</a> 后，对此连接的所有操作都会以 <a href="#ErrConnDone">ErrConnDone</a> 失败。<pre>type Conn struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Conn.BeginTx">func (*Conn) <a href="/src/database/sql/sql.go?s=59470:59543#L2105">BeginTx</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) BeginTx(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, opts *<a href="#TxOptions">TxOptions</a>) (*<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>BeginTx 开始一个事务。<p>所提供的上下文会一直使用到事务提交或回滚。如果上下文被取消，sql 包会回滚事务。如果传给 BeginTx 的上下文被取消，<a href="#Tx.Commit">Tx.Commit</a> 会返回错误。<p><a href="#TxOptions">TxOptions</a> 是可选参数；使用默认选项时可以传入 nil。如果指定了非默认的隔离级别，而驱动不支持该级别，则返回错误。<h3 id="Conn.Close">func (*Conn) <a href="/src/database/sql/sql.go?s=60609:60637#L2147">Close</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 将连接归还到连接池。Close 之后的所有操作都会返回 <a href="#ErrConnDone">ErrConnDone</a>。Close 可以与其他操作安全地并发调用，并会阻塞，直到其他所有操作完成。先取消所用的上下文，再紧接着调用 Close，可能更为合适。<h3 id="Conn.ExecContext">func (*Conn) <a href="/src/database/sql/sql.go?s=56455:56545#L2017">ExecContext</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ExecContext 执行一个不返回任何行的查询。args 用于填充查询中的占位参数。<div id="example_Conn_ExecContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	// *DB 是一个连接池。调用 Conn 获取一个
+	// 供独占使用的连接。
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close() // 将连接归还到连接池。
+	id := 41
+	result, err := conn.ExecContext(ctx, `UPDATE balances SET balance = balance &#43; 10 WHERE user_id = ?;`, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rows != 1 {
+		log.Fatalf(&#34;expected single row affected, got %d rows affected&#34;, rows)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Conn.PingContext">func (*Conn) <a href="/src/database/sql/sql.go?s=56167:56220#L2007">PingContext</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) PingContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>PingContext 验证与数据库的连接仍然可用。<h3 id="Conn.PrepareContext">func (*Conn) <a href="/src/database/sql/sql.go?s=57955:58034#L2054">PrepareContext</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) PrepareContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>) (*<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>PrepareContext 创建一个预处理语句，供之后查询或执行。返回的语句可以并发用于多次查询或执行。不再需要该语句时，调用方必须调用其 <a href="#Stmt.Close">*Stmt.Close</a> 方法。<p>所提供的上下文用于语句的准备阶段，而非语句的执行阶段。<h3 id="Conn.QueryContext">func (*Conn) <a href="/src/database/sql/sql.go?s=56810:56900#L2027">QueryContext</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>QueryContext 执行一个返回行的查询，通常是 SELECT。args 用于填充查询中的占位参数。<h3 id="Conn.QueryRowContext">func (*Conn) <a href="/src/database/sql/sql.go?s=57391:57474#L2041">QueryRowContext</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) QueryRowContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRowContext 执行一个预期最多返回一行的查询。QueryRowContext 始终返回非 nil 值，错误会推迟到调用 <a href="#Row.Scan">*Row.Scan</a> 方法时报告。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<h3 id="Conn.Raw">func (*Conn) <a href="/src/database/sql/sql.go?s=58426:58486#L2067">Raw</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Raw(f func(driverConn <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Raw 执行 f，并在 f 执行期间暴露底层驱动连接。不得在 f 外部使用 driverConn。<p>f 返回后，只要 err 不是 <a href="/pkg/database/sql/driver/#ErrBadConn">driver.ErrBadConn</a>，<a href="#Conn">Conn</a> 就仍然可用，直到调用 <a href="#Conn.Close">Conn.Close</a>。<h2 id="DB">type <a href="/src/database/sql/sql.go?s=13458:15272#L502">DB</a>
+				
+				
+			</h2>
+			<p>DB 是一个数据库句柄，表示由零个或多个底层连接组成的连接池。多个 goroutine 可以安全地并发使用它。<p>sql 包自动创建和释放连接，同时维护一个空闲连接池。如果数据库具有连接级别的状态，可以在事务（<a href="#Tx">Tx</a>）或连接（<a href="#Conn">Conn</a>）中可靠地访问该状态。调用 <a href="#DB.Begin">DB.Begin</a> 后，返回的 <a href="#Tx">Tx</a> 会绑定到单个连接。对该事务调用 <a href="#Tx.Commit">Tx.Commit</a> 或 <a href="#Tx.Rollback">Tx.Rollback</a> 后，其连接会归还到 <a href="#DB">DB</a> 的空闲连接池。可以通过 <a href="#DB.SetMaxIdleConns">DB.SetMaxIdleConns</a> 控制池大小。<pre>type DB struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Open">func <a href="/src/database/sql/sql.go?s=24326:24383#L858">Open</a>
+					
+					
+				</h3>
+				<pre>func Open(driverName, dataSourceName <a href="/pkg/builtin/#string">string</a>) (*<a href="#DB">DB</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 根据数据库驱动名称和特定于驱动的数据源名称打开数据库。数据源名称通常至少包含数据库名和连接信息。<p>大多数使用者会通过驱动提供的连接辅助函数打开数据库，该函数返回 <a href="#DB">*DB</a>。Go 标准库不包含任何数据库驱动。第三方驱动列表见 <a href="/golang.org/s/sqldrivers">https://golang.org/s/sqldrivers</a>。<p>Open 可能只验证实参，而不真正建立数据库连接。要确认数据源名称有效，请调用 <a href="#DB.Ping">DB.Ping</a>。<p>返回的 <a href="#DB">DB</a> 可由多个 goroutine 安全地并发使用，并维护自己的空闲连接池。因此，Open 通常只应调用一次。很少需要关闭 <a href="#DB">DB</a>。<h3 id="OpenDB">func <a href="/src/database/sql/sql.go?s=23214:23249#L827">OpenDB</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func OpenDB(c <a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Connector">Connector</a>) *<a href="#DB">DB</a></pre>
+				<p>OpenDB 使用 <a href="/pkg/database/sql/driver/#Connector">driver.Connector</a> 打开数据库，使驱动无需使用字符串形式的数据源名称。<p>大多数使用者会通过驱动提供的连接辅助函数打开数据库，该函数返回 <a href="#DB">*DB</a>。Go 标准库不包含任何数据库驱动。第三方驱动列表见 <a href="/golang.org/s/sqldrivers">https://golang.org/s/sqldrivers</a>。<p>OpenDB 可能只验证实参，而不真正建立数据库连接。要确认数据源名称有效，请调用 <a href="#DB.Ping">DB.Ping</a>。<p>返回的 <a href="#DB">DB</a> 可由多个 goroutine 安全地并发使用，并维护自己的空闲连接池。因此，OpenDB 通常只应调用一次。很少需要关闭 <a href="#DB">DB</a>。<h3 id="DB.Begin">func (*DB) <a href="/src/database/sql/sql.go?s=52309:52343#L1881">Begin</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Begin() (*<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Begin 开始一个事务。默认隔离级别由驱动决定。<p>Begin 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.BeginTx">DB.BeginTx</a>。<h3 id="DB.BeginTx">func (*DB) <a href="/src/database/sql/sql.go?s=51885:51957#L1864">BeginTx</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) BeginTx(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, opts *<a href="#TxOptions">TxOptions</a>) (*<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>BeginTx 开始一个事务。<p>所提供的上下文会一直使用到事务提交或回滚。如果上下文被取消，sql 包会回滚事务。如果传给 BeginTx 的上下文被取消，<a href="#Tx.Commit">Tx.Commit</a> 会返回错误。<p><a href="#TxOptions">TxOptions</a> 是可选参数；使用默认选项时可以传入 nil。如果指定了非默认的隔离级别，而驱动不支持该级别，则返回错误。<div id="example_DB_BeginTx" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	tx, err := db.BeginTx(ctx, &amp;sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Fatal(err)
+	}
+	id := 37
+	_, execErr := tx.Exec(`UPDATE users SET status = ? WHERE id = ?`, &#34;paid&#34;, id)
+	if execErr != nil {
+		_ = tx.Rollback()
+		log.Fatal(execErr)
+	}
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.Close">func (*DB) <a href="/src/database/sql/sql.go?s=26017:26044#L921">Close</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭数据库，并阻止新的查询开始。随后，Close 会等待服务器上已经开始处理的所有查询完成。<p>通常很少关闭 <a href="#DB">DB</a>，因为 <a href="#DB">DB</a> 句柄设计为长期存活，并由多个 goroutine 共享。<h3 id="DB.Conn">func (*DB) <a href="/src/database/sql/sql.go?s=54337:54391#L1940">Conn</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Conn(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (*<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Conn 通过打开新连接或从连接池取出已有连接，返回一个数据库连接。Conn 会一直阻塞，直到返回连接或 ctx 被取消。同一个 Conn 上的查询会在同一个数据库会话中执行。<p>每个 Conn 使用完后，都必须通过调用 <a href="#Conn.Close">Conn.Close</a> 归还到数据库连接池。<h3 id="DB.Driver">func (*DB) <a href="/src/database/sql/sql.go?s=53682:53718#L1925">Driver</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Driver() <a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Driver">Driver</a></pre>
+				<p>Driver 返回数据库使用的底层驱动。<h3 id="DB.Exec">func (*DB) <a href="/src/database/sql/sql.go?s=46344:46405#L1679">Exec</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Exec(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Exec 执行一个不返回任何行的查询。args 用于填充查询中的占位参数。<p>Exec 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.ExecContext">DB.ExecContext</a>。<h3 id="DB.ExecContext">func (*DB) <a href="/src/database/sql/sql.go?s=45864:45953#L1662">ExecContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ExecContext 执行一个不返回任何行的查询。args 用于填充查询中的占位参数。<div id="example_DB_ExecContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	id := 47
+	result, err := db.ExecContext(ctx, &#34;UPDATE balances SET balance = balance &#43; 10 WHERE user_id = ?&#34;, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rows != 1 {
+		log.Fatalf(&#34;expected to affect 1 row, affected %d&#34;, rows)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.Ping">func (*DB) <a href="/src/database/sql/sql.go?s=25660:25686#L911">Ping</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Ping() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Ping 验证与数据库的连接仍然可用，并在必要时建立连接。<p>Ping 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.PingContext">DB.PingContext</a>。<h3 id="DB.PingContext">func (*DB) <a href="/src/database/sql/sql.go?s=25176:25228#L890">PingContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) PingContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>PingContext 验证与数据库的连接仍然可用，并在必要时建立连接。<div id="example_DB_PingContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+	&#34;time&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	// Ping 和 PingContext 可以用于确认是否仍能
+	// 与数据库服务器通信。
+	//
+	// 在命令行应用中，Ping 可用于确认
+	// 能够继续执行查询，也就是提供的 DSN 有效。
+	//
+	// 在长期运行的服务中，Ping 可以作为健康
+	// 检查系统的一部分。
+
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	status := &#34;up&#34;
+	if err := db.PingContext(ctx); err != nil {
+		status = &#34;down&#34;
+	}
+	log.Println(status)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.Prepare">func (*DB) <a href="/src/database/sql/sql.go?s=44156:44206#L1609">Prepare</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Prepare(query <a href="/pkg/builtin/#string">string</a>) (*<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Prepare 创建一个预处理语句，供之后查询或执行。返回的语句可以并发用于多次查询或执行。不再需要该语句时，调用方必须调用其 <a href="#Stmt.Close">*Stmt.Close</a> 方法。<p>Prepare 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.PrepareContext">DB.PrepareContext</a>。<div id="example_DB_Prepare" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var db *sql.DB
+
+func main() {
+	projects := []struct {
+		mascot  string
+		release int
+	}{
+		{&#34;tux&#34;, 1991},
+		{&#34;duke&#34;, 1996},
+		{&#34;gopher&#34;, 2009},
+		{&#34;moby dock&#34;, 2013},
+	}
+
+	stmt, err := db.Prepare(&#34;INSERT INTO projects(id, mascot, release, category) VALUES( ?, ?, ?, ? )&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close() // 预处理语句会占用服务器资源，使用完毕后应关闭。
+
+	for id, project := range projects {
+		if _, err := stmt.Exec(id&#43;1, project.mascot, project.release, &#34;open source&#34;); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.PrepareContext">func (*DB) <a href="/src/database/sql/sql.go?s=43529:43607#L1589">PrepareContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) PrepareContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>) (*<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>PrepareContext 创建一个预处理语句，供之后查询或执行。返回的语句可以并发用于多次查询或执行。不再需要该语句时，调用方必须调用其 <a href="#Stmt.Close">*Stmt.Close</a> 方法。<p>所提供的上下文用于语句的准备阶段，而非语句的执行阶段。<h3 id="DB.Query">func (*DB) <a href="/src/database/sql/sql.go?s=48259:48320#L1749">Query</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Query(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Query 执行一个返回行的查询，通常是 SELECT。args 用于填充查询中的占位参数。<p>Query 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.QueryContext">DB.QueryContext</a>。<div id="example_DB_Query_multipleResultSets" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（多个结果集）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（多个结果集）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var db *sql.DB
+
+func main() {
+	age := 27
+	q := `
+create temp table uid (id bigint); -- Create temp table for queries.
+insert into uid
+select id from users where age &lt; ?; -- Populate temp table.
+
+-- First result set.
+select
+	users.id, name
+from
+	users
+	join uid on users.id = uid.id
+;
+
+-- Second result set.
+select 
+	ur.user, ur.role
+from
+	user_roles as ur
+	join uid on uid.id = ur.user
+;
+	`
+	rows, err := db.Query(q, age)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			id   int64
+			name string
+		)
+		if err := rows.Scan(&amp;id, &amp;name); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf(&#34;id %d name is %s\n&#34;, id, name)
+	}
+	if !rows.NextResultSet() {
+		log.Fatalf(&#34;expected more result sets: %v&#34;, rows.Err())
+	}
+	var roleMap = map[int64]string{
+		1: &#34;user&#34;,
+		2: &#34;admin&#34;,
+		3: &#34;gopher&#34;,
+	}
+	for rows.Next() {
+		var (
+			id   int64
+			role int64
+		)
+		if err := rows.Scan(&amp;id, &amp;role); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf(&#34;id %d has role %s\n&#34;, id, roleMap[role])
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.QueryContext">func (*DB) <a href="/src/database/sql/sql.go?s=47762:47851#L1732">QueryContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>QueryContext 执行一个返回行的查询，通常是 SELECT。args 用于填充查询中的占位参数。<div id="example_DB_QueryContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	age := 27
+	rows, err := db.QueryContext(ctx, &#34;SELECT name FROM users WHERE age=?&#34;, age)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	names := make([]string, 0)
+
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&amp;name); err != nil {
+			// 检查 Scan 是否产生错误。
+			// 查询返回的 Rows 会通过 defer 关闭。
+			log.Fatal(err)
+		}
+		names = append(names, name)
+	}
+	// 如果涉及向数据库写入，请务必检查 Close
+	// 返回的驱动错误。查询可能
+	// 遇到自动提交错误，并被迫回滚更改。
+	rerr := rows.Close()
+	if rerr != nil {
+		log.Fatal(rerr)
+	}
+
+	// Rows.Err 会报告 Rows.Scan 遇到的最后一个错误。
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s are %d years old&#34;, strings.Join(names, &#34;, &#34;), age)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.QueryRow">func (*DB) <a href="/src/database/sql/sql.go?s=51282:51336#L1850">QueryRow</a>
+					
+					
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) QueryRow(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRow 执行一个预期最多返回一行的查询。QueryRow 始终返回非 nil 值，错误会推迟到调用 <a href="#Row">Row</a> 的 Scan 方法时报告。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<p>QueryRow 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#DB.QueryRowContext">DB.QueryRowContext</a>。<h3 id="DB.QueryRowContext">func (*DB) <a href="/src/database/sql/sql.go?s=50670:50752#L1836">QueryRowContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) QueryRowContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRowContext 执行一个预期最多返回一行的查询。QueryRowContext 始终返回非 nil 值，错误会推迟到调用 <a href="#Row">Row</a> 的 Scan 方法时报告。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<div id="example_DB_QueryRowContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+	&#34;time&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	id := 123
+	var username string
+	var created time.Time
+	err := db.QueryRowContext(ctx, &#34;SELECT username, created_at FROM users WHERE id=?&#34;, id).Scan(&amp;username, &amp;created)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Printf(&#34;no user with id %d\n&#34;, id)
+	case err != nil:
+		log.Fatalf(&#34;query error: %v\n&#34;, err)
+	default:
+		log.Printf(&#34;username is %q, account created on %s\n&#34;, username, created)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DB.SetConnMaxIdleTime">func (*DB) <a href="/src/database/sql/sql.go?s=29450:29499#L1064">SetConnMaxIdleTime</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) SetConnMaxIdleTime(d <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>)</pre>
+				<p>SetConnMaxIdleTime 设置连接允许空闲的最长时间。<p>到期的连接可能延迟到再次复用之前才关闭。<p>如果 d &lt;= 0，则不会因为连接的空闲时间而关闭连接。<h3 id="DB.SetConnMaxLifetime">func (*DB) <a href="/src/database/sql/sql.go?s=28897:28946#L1042">SetConnMaxLifetime</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) SetConnMaxLifetime(d <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>)</pre>
+				<p>SetConnMaxLifetime 设置连接可以复用的最长时间。<p>到期的连接可能延迟到再次复用之前才关闭。<p>如果 d &lt;= 0，则不会因为连接的存活时间而关闭连接。<h3 id="DB.SetMaxIdleConns">func (*DB) <a href="/src/database/sql/sql.go?s=27502:27538#L990">SetMaxIdleConns</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) SetMaxIdleConns(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>SetMaxIdleConns 设置空闲连接池中的最大连接数。<p>如果 MaxOpenConns 大于 0，但小于新的 MaxIdleConns，则会降低新的 MaxIdleConns，使其符合 MaxOpenConns 的限制。<p>如果 n &lt;= 0，则不保留空闲连接。<p>当前默认最大空闲连接数为 2，未来版本可能更改此值。<h3 id="DB.SetMaxOpenConns">func (*DB) <a href="/src/database/sql/sql.go?s=28447:28483#L1024">SetMaxOpenConns</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) SetMaxOpenConns(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>SetMaxOpenConns 设置数据库允许打开的最大连接数。<p>如果 MaxIdleConns 大于 0，且新的 MaxOpenConns 小于 MaxIdleConns，则会降低 MaxIdleConns，使其符合新的 MaxOpenConns 限制。<p>如果 n &lt;= 0，则不限制打开的连接数。默认值为 0（无限制）。<h3 id="DB.Stats">func (*DB) <a href="/src/database/sql/sql.go?s=33422:33451#L1210">Stats</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (db *<a href="#DB">DB</a>) Stats() <a href="#DBStats">DBStats</a></pre>
+				<p>Stats 返回数据库统计信息。<h2 id="DBStats">type <a href="/src/database/sql/sql.go?s=32569:33382#L1193">DBStats</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>DBStats 包含数据库统计信息。<pre>type DBStats struct {
+<span id="DBStats.MaxOpenConnections"></span>    MaxOpenConnections <a href="/pkg/builtin/#int">int</a> <span class="comment">// 数据库允许打开的最大连接数；Go 1.11 新增</span>
+
+    <span class="comment">// 连接池状态</span>
+<span id="DBStats.OpenConnections"></span>    OpenConnections <a href="/pkg/builtin/#int">int</a> <span class="comment">// 已建立连接的数量，包括使用中和空闲的连接。</span>
+<span id="DBStats.InUse"></span>    InUse           <a href="/pkg/builtin/#int">int</a> <span class="comment">// 当前正在使用的连接数；Go 1.11 新增</span>
+<span id="DBStats.Idle"></span>    Idle            <a href="/pkg/builtin/#int">int</a> <span class="comment">// 空闲连接数；Go 1.11 新增</span>
+
+    <span class="comment">// 计数器</span>
+<span id="DBStats.WaitCount"></span>    WaitCount         <a href="/pkg/builtin/#int64">int64</a>         <span class="comment">// 等待获取连接的累计次数；Go 1.11 新增</span>
+<span id="DBStats.WaitDuration"></span>    WaitDuration      <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a> <span class="comment">// 阻塞等待新连接的累计时间；Go 1.11 新增</span>
+<span id="DBStats.MaxIdleClosed"></span>    MaxIdleClosed     <a href="/pkg/builtin/#int64">int64</a>         <span class="comment">// 因 SetMaxIdleConns 而关闭的连接总数；Go 1.11 新增</span>
+<span id="DBStats.MaxIdleTimeClosed"></span>    MaxIdleTimeClosed <a href="/pkg/builtin/#int64">int64</a>         <span class="comment">// 因 SetConnMaxIdleTime 而关闭的连接总数；Go 1.15 新增</span>
+<span id="DBStats.MaxLifetimeClosed"></span>    MaxLifetimeClosed <a href="/pkg/builtin/#int64">int64</a>         <span class="comment">// 因 SetConnMaxLifetime 而关闭的连接总数；Go 1.11 新增</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="IsolationLevel">type <a href="/src/database/sql/sql.go?s=3284:3307#L114">IsolationLevel</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>IsolationLevel 是 <a href="#TxOptions">TxOptions</a> 中使用的事务隔离级别。<pre>type IsolationLevel <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>以下是驱动在 <a href="#DB.BeginTx">DB.BeginTx</a> 中可能支持的各种隔离级别。如果驱动不支持给定的隔离级别，可能返回错误。<p>参见 <a href="https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels">https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels</a>。<pre>const (
+    <span id="LevelDefault">LevelDefault</span> <a href="#IsolationLevel">IsolationLevel</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="LevelReadUncommitted">LevelReadUncommitted</span>
+    <span id="LevelReadCommitted">LevelReadCommitted</span>
+    <span id="LevelWriteCommitted">LevelWriteCommitted</span>
+    <span id="LevelRepeatableRead">LevelRepeatableRead</span>
+    <span id="LevelSnapshot">LevelSnapshot</span>
+    <span id="LevelSerializable">LevelSerializable</span>
+    <span id="LevelLinearizable">LevelLinearizable</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IsolationLevel.String">func (IsolationLevel) <a href="/src/database/sql/sql.go?s=3795:3834#L132">String</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (i <a href="#IsolationLevel">IsolationLevel</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回事务隔离级别的名称。<h2 id="NamedArg">type <a href="/src/database/sql/sql.go?s=2229:2594#L76">NamedArg</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>NamedArg 是一个命名实参。NamedArg 值可以作为 <a href="#DB.Query">DB.Query</a> 或 <a href="#DB.Exec">DB.Exec</a> 的实参，绑定到 SQL 语句中对应的命名参数。<p>更简洁的 NamedArg 值创建方式，见 <a href="#Named">Named</a> 函数。<pre>type NamedArg struct {
+
+<span id="NamedArg.Name"></span>    <span class="comment">// Name 是参数占位符的名称。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果为空，则使用参数在实参列表中的</span>
+    <span class="comment">// 序号位置。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Name 不应包含任何符号前缀。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="NamedArg.Value"></span>    <span class="comment">// Value 是参数的值。</span>
+    <span class="comment">// 它接受的值类型与查询</span>
+    <span class="comment">// 实参相同。</span>
+    Value <a href="/pkg/builtin/#any">any</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Named">func <a href="/src/database/sql/sql.go?s=2898:2941#L105">Named</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func Named(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#any">any</a>) <a href="#NamedArg">NamedArg</a></pre>
+				<p>Named 提供了一种更简洁的 <a href="#NamedArg">NamedArg</a> 值创建方式。<p>使用示例：<pre>db.ExecContext(ctx, `
+    delete from Invoice
+    where
+        TimeCreated &lt; @end
+        and TimeCreated &gt;= @start;`,
+    sql.Named(&quot;start&quot;, startTime),
+    sql.Named(&quot;end&quot;, endTime),
+)
+</pre>
+
+				
+			
+
+			
+		
+			
+			<h2 id="Null">type <a href="/src/database/sql/sql.go?s=10613:10661#L409">Null</a>
+				
+				
+			</h2>
+			<p>Null 表示可能为 NULL 的值。Null 实现了 <a href="#Scanner">Scanner</a> 接口，因此可以用作 Scan 的目标值：<pre>var s Null[string]
+err := db.QueryRow(&quot;SELECT name FROM foo WHERE id=?&quot;, id).Scan(&amp;s)
+...
+if s.Valid {
+   // 使用 s.V
+} else {
+   // NULL 值
+}
+</pre>
+<p>T 应为 <a href="/pkg/database/sql/driver/#Value">driver.Value</a> 接受的类型之一。<pre>type Null[T <a href="/pkg/builtin/#any">any</a>] struct {
+<span id="Null.V"></span>    V     <a href="#T">T</a>
+<span id="Null.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Null.Scan">func (*Null[T]) <a href="/src/database/sql/sql.go?s=10663:10702#L414">Scan</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#Null">Null</a>[<a href="#T">T</a>]) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+				<h3 id="Null.Value">func (Null[T]) <a href="/src/database/sql/sql.go?s=10844:10890#L424">Value</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#Null">Null</a>[<a href="#T">T</a>]) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="NullBool">type <a href="/src/database/sql/sql.go?s=9110:9195#L344">NullBool</a>
+				
+				
+			</h2>
+			<p>NullBool 表示可能为 NULL 的 bool。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullBool struct {
+<span id="NullBool.Bool"></span>    Bool  <a href="/pkg/builtin/#bool">bool</a>
+<span id="NullBool.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Bool 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullBool.Scan">func (*NullBool) <a href="/src/database/sql/sql.go?s=9241:9281#L350">Scan</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#NullBool">NullBool</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullBool.Value">func (NullBool) <a href="/src/database/sql/sql.go?s=9478:9525#L361">Value</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#NullBool">NullBool</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullByte">type <a href="/src/database/sql/sql.go?s=7792:7877#L290">NullByte</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>NullByte 表示可能为 NULL 的 byte。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullByte struct {
+<span id="NullByte.Byte"></span>    Byte  <a href="/pkg/builtin/#byte">byte</a>
+<span id="NullByte.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Byte 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullByte.Scan">func (*NullByte) <a href="/src/database/sql/sql.go?s=7923:7963#L296">Scan</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (n *<a href="#NullByte">NullByte</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullByte.Value">func (NullByte) <a href="/src/database/sql/sql.go?s=8156:8203#L307">Value</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (n <a href="#NullByte">NullByte</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullFloat64">type <a href="/src/database/sql/sql.go?s=8445:8543#L317">NullFloat64</a>
+				
+				
+			</h2>
+			<p>NullFloat64 表示可能为 NULL 的 float64。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullFloat64 struct {
+<span id="NullFloat64.Float64"></span>    Float64 <a href="/pkg/builtin/#float64">float64</a>
+<span id="NullFloat64.Valid"></span>    Valid   <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Float64 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullFloat64.Scan">func (*NullFloat64) <a href="/src/database/sql/sql.go?s=8589:8632#L323">Scan</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#NullFloat64">NullFloat64</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullFloat64.Value">func (NullFloat64) <a href="/src/database/sql/sql.go?s=8831:8881#L334">Value</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#NullFloat64">NullFloat64</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullInt16">type <a href="/src/database/sql/sql.go?s=7140:7228#L263">NullInt16</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>NullInt16 表示可能为 NULL 的 int16。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullInt16 struct {
+<span id="NullInt16.Int16"></span>    Int16 <a href="/pkg/builtin/#int16">int16</a>
+<span id="NullInt16.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Int16 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullInt16.Scan">func (*NullInt16) <a href="/src/database/sql/sql.go?s=7274:7315#L269">Scan</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (n *<a href="#NullInt16">NullInt16</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullInt16.Value">func (NullInt16) <a href="/src/database/sql/sql.go?s=7510:7558#L280">Value</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (n <a href="#NullInt16">NullInt16</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullInt32">type <a href="/src/database/sql/sql.go?s=6484:6572#L236">NullInt32</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<p>NullInt32 表示可能为 NULL 的 int32。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullInt32 struct {
+<span id="NullInt32.Int32"></span>    Int32 <a href="/pkg/builtin/#int32">int32</a>
+<span id="NullInt32.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Int32 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullInt32.Scan">func (*NullInt32) <a href="/src/database/sql/sql.go?s=6618:6659#L242">Scan</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (n *<a href="#NullInt32">NullInt32</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullInt32.Value">func (NullInt32) <a href="/src/database/sql/sql.go?s=6854:6902#L253">Value</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (n <a href="#NullInt32">NullInt32</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullInt64">type <a href="/src/database/sql/sql.go?s=5835:5923#L209">NullInt64</a>
+				
+				
+			</h2>
+			<p>NullInt64 表示可能为 NULL 的 int64。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullInt64 struct {
+<span id="NullInt64.Int64"></span>    Int64 <a href="/pkg/builtin/#int64">int64</a>
+<span id="NullInt64.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Int64 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullInt64.Scan">func (*NullInt64) <a href="/src/database/sql/sql.go?s=5969:6010#L215">Scan</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#NullInt64">NullInt64</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullInt64.Value">func (NullInt64) <a href="/src/database/sql/sql.go?s=6205:6253#L226">Value</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#NullInt64">NullInt64</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullString">type <a href="/src/database/sql/sql.go?s=5167:5260#L182">NullString</a>
+				
+				
+			</h2>
+			<p>NullString 表示可能为 NULL 的 string。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以用作 Scan 的目标值：<pre>var s NullString
+err := db.QueryRow(&quot;SELECT name FROM foo WHERE id=?&quot;, id).Scan(&amp;s)
+...
+if s.Valid {
+   // 使用 s.String
+} else {
+   // NULL 值
+}
+</pre>
+
+			<pre>type NullString struct {
+<span id="NullString.String"></span>    String <a href="/pkg/builtin/#string">string</a>
+<span id="NullString.Valid"></span>    Valid  <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// String 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullString.Scan">func (*NullString) <a href="/src/database/sql/sql.go?s=5306:5349#L188">Scan</a>
+					
+					
+				</h3>
+				<pre>func (ns *<a href="#NullString">NullString</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullString.Value">func (NullString) <a href="/src/database/sql/sql.go?s=5551:5601#L199">Value</a>
+					
+					
+				</h3>
+				<pre>func (ns <a href="#NullString">NullString</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="NullTime">type <a href="/src/database/sql/sql.go?s=9758:9848#L371">NullTime</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<p>NullTime 表示可能为 NULL 的 <a href="/pkg/time/#Time">time.Time</a>。它实现了 <a href="#Scanner">Scanner</a> 接口，因此可以像 <a href="#NullString">NullString</a> 一样用作 Scan 的目标值。<pre>type NullTime struct {
+<span id="NullTime.Time"></span>    Time  <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>
+<span id="NullTime.Valid"></span>    Valid <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Time 非 NULL 时，Valid 为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NullTime.Scan">func (*NullTime) <a href="/src/database/sql/sql.go?s=9894:9934#L377">Scan</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (n *<a href="#NullTime">NullTime</a>) Scan(value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 实现 <a href="#Scanner">Scanner</a> 接口。<h3 id="NullTime.Value">func (NullTime) <a href="/src/database/sql/sql.go?s=10137:10184#L388">Value</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (n <a href="#NullTime">NullTime</a>) Value() (<a href="/pkg/database/sql/driver/">driver</a>.<a href="/pkg/database/sql/driver/#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Value 实现 <a href="/pkg/database/sql/driver/#Valuer">driver.Valuer</a> 接口。<h2 id="Out">type <a href="/src/database/sql/sql.go?s=12126:12512#L472">Out</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>Out 可用于获取存储过程的 OUTPUT 输出参数值。<p>并非所有驱动和数据库都支持 OUTPUT 输出参数。<p>使用示例：<pre>var outArg string
+_, err := db.ExecContext(ctx, &quot;ProcName&quot;, sql.Named(&quot;Arg1&quot;, sql.Out{Dest: &amp;outArg}))
+</pre>
+
+			<pre>type Out struct {
+
+<span id="Out.Dest"></span>    <span class="comment">// Dest 指向一个值，存储过程的 OUTPUT 参数结果</span>
+    <span class="comment">// 会赋给该值。</span>
+    Dest <a href="/pkg/builtin/#any">any</a>
+
+<span id="Out.In"></span>    <span class="comment">// In 表示该参数是否为 INOUT 参数。如果是，传给存储过程的</span>
+    <span class="comment">// 输入值就是 Dest 指针解引用后得到的值，随后该值会被</span>
+    <span class="comment">// 输出值替换。</span>
+    In <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RawBytes">type <a href="/src/database/sql/sql.go?s=4825:4845#L168">RawBytes</a>
+				
+				
+			</h2>
+			<p>RawBytes 是一个字节切片，它引用的内存由数据库自身拥有。通过 <a href="#Rows.Scan">Rows.Scan</a> 将数据读入 RawBytes 后，该切片只在下一次调用 <a href="#Rows.Next">Rows.Next</a>、<a href="#Rows.Scan">Rows.Scan</a> 或 <a href="#Rows.Close">Rows.Close</a> 之前有效。<pre>type RawBytes []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Result">type <a href="/src/database/sql/sql.go?s=103437:103943#L3571">Result</a>
+				
+				
+			</h2>
+			<p>Result 概括一条已执行 SQL 命令的结果。<pre>type Result interface {
+    <span class="comment">// LastInsertId 返回数据库执行命令时</span>
+    <span class="comment">// 生成的整数。通常是插入新行时</span>
+    <span class="comment">// 由“自增”列生成的值。并非所有</span>
+    <span class="comment">// 数据库都支持此功能，而且这类</span>
+    <span class="comment">// 语句的语法各不相同。</span>
+    LastInsertId() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// RowsAffected 返回更新、插入或删除</span>
+    <span class="comment">// 操作影响的行数。并非所有数据库或数据库</span>
+    <span class="comment">// 驱动都支持此功能。</span>
+    RowsAffected() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Row">type <a href="/src/database/sql/sql.go?s=101478:101595#L3514">Row</a>
+				
+				
+			</h2>
+			<p>Row 是调用 <a href="#DB.QueryRow">DB.QueryRow</a> 查询单行数据后得到的结果。<pre>type Row struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Row.Err">func (*Row) <a href="/src/database/sql/sql.go?s=103344:103369#L3566">Err</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (r *<a href="#Row">Row</a>) Err() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err 使封装此包的其他包无需调用 <a href="#Row.Scan">Row.Scan</a>，就可以检查查询错误。Err 返回执行查询时遇到的错误（如有）。如果该错误不为 nil，<a href="#Row.Scan">Row.Scan</a> 也会返回同一个错误。<h3 id="Row.Scan">func (*Row) <a href="/src/database/sql/sql.go?s=101885:101922#L3525">Scan</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Row">Row</a>) Scan(dest ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 将匹配行的各列复制到 dest 指向的值中，详情见 <a href="#Rows.Scan">Rows.Scan</a> 文档。如果查询匹配多行，Scan 使用第一行，并丢弃其余行。如果没有匹配行，则返回 <a href="#ErrNoRows">ErrNoRows</a>。<h2 id="Rows">type <a href="/src/database/sql/sql.go?s=83084:85099#L2924">Rows</a>
+				
+				
+			</h2>
+			<p>Rows 是查询的结果。其游标初始位于结果集第一行之前。使用 <a href="#Rows.Next">Rows.Next</a> 逐行向前移动。<pre>type Rows struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Rows" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	age := 27
+	rows, err := db.QueryContext(ctx, &#34;SELECT name FROM users WHERE age=?&#34;, age)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	names := make([]string, 0)
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&amp;name); err != nil {
+			log.Fatal(err)
+		}
+		names = append(names, name)
+	}
+	// 检查遍历行时产生的错误。
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf(&#34;%s are %d years old&#34;, strings.Join(names, &#34;, &#34;), age)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Rows.Close">func (*Rows) <a href="/src/database/sql/sql.go?s=100614:100643#L3472">Close</a>
+					
+					
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#Rows">Rows</a>，阻止继续遍历。如果调用 <a href="#Rows.Next">Rows.Next</a> 后返回 false，且没有更多结果集，则 <a href="#Rows">Rows</a> 会自动关闭，此时只需检查 <a href="#Rows.Err">Rows.Err</a> 的结果即可。Close 是幂等操作，不影响 <a href="#Rows.Err">Rows.Err</a> 的结果。<h3 id="Rows.ColumnTypes">func (*Rows) <a href="/src/database/sql/sql.go?s=91842:91894#L3213">ColumnTypes</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) ColumnTypes() ([]*<a href="#ColumnType">ColumnType</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ColumnTypes 返回列类型、长度、是否可为 NULL 等列信息。某些驱动可能无法提供其中部分信息。<h3 id="Rows.Columns">func (*Rows) <a href="/src/database/sql/sql.go?s=91389:91432#L3196">Columns</a>
+					
+					
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) Columns() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Columns 返回列名。如果 Rows 已关闭，Columns 返回错误。<h3 id="Rows.Err">func (*Rows) <a href="/src/database/sql/sql.go?s=90042:90069#L3149">Err</a>
+					
+					
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) Err() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err 返回遍历期间遇到的错误（如有）。可以在显式或隐式调用 <a href="#Rows.Close">Rows.Close</a> 后调用 Err。<h3 id="Rows.Next">func (*Rows) <a href="/src/database/sql/sql.go?s=86911:86938#L3030">Next</a>
+					
+					
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) Next() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Next 为下一行结果做好准备，以便通过 <a href="#Rows.Scan">Rows.Scan</a> 方法读取。成功时返回 true；如果没有下一行，或准备下一行时发生错误，则返回 false。应检查 <a href="#Rows.Err">Rows.Err</a> 以区分这两种情况。<p>每次调用 <a href="#Rows.Scan">Rows.Scan</a> 之前，包括第一次，都必须先调用 <a href="#Rows.Next">Rows.Next</a>。<h3 id="Rows.NextResultSet">func (*Rows) <a href="/src/database/sql/sql.go?s=89018:89054#L3107">NextResultSet</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) NextResultSet() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>NextResultSet 为下一个结果集做好读取准备，并报告是否还有后续结果集。如果没有后续结果集，或者推进到下一结果集时发生错误，则返回 false。应检查 <a href="#Rows.Err">Rows.Err</a> 方法以区分这两种情况。<p>调用 NextResultSet 后，在 Scan 读取之前，始终应先调用 <a href="#Rows.Next">Rows.Next</a>。即使存在后续结果集，它们也可能不包含任何行。<h3 id="Rows.Scan">func (*Rows) <a href="/src/database/sql/sql.go?s=98035:98074#L3384">Scan</a>
+					
+					
+				</h3>
+				<pre>func (rs *<a href="#Rows">Rows</a>) Scan(dest ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 将当前行的各列复制到 dest 指向的值中。dest 中值的个数必须与 <a href="#Rows">Rows</a> 中的列数相同。<p>Scan 将从数据库读取的列值转换为以下常用 Go 类型，以及 sql 包提供的特殊类型：<pre>*string
+*[]byte
+*int, *int8, *int16, *int32, *int64
+*uint, *uint8, *uint16, *uint32, *uint64
+*bool
+*float32, *float64
+*any
+*RawBytes
+*Rows (cursor value)
+*time.Time
+*uuid.UUID
+any type implementing Scanner (see Scanner docs)
+</pre>
+<p>最简单的情况是：源列值属于整数、bool 或 string 类型 T，而 dest 的类型是 *T，此时 Scan 直接通过指针赋值。<p>只要不会丢失信息，Scan 也可以在字符串和数值类型之间转换。将数据库数值列读入 *string 时，Scan 会把所有数值转换为字符串；读入数值类型时则会检查溢出。例如，值为 300 的 float64 或值为“300”的字符串可以读入 uint16，但不能读入 uint8；float64(255) 或“255”则可以读入 uint8。有一个例外：某些 float64 数值转换为字符串时可能丢失信息。通常应将浮点数列读入 *float64。<p>如果某个 dest 实参的类型为 *[]byte，Scan 会将对应数据的副本保存到该实参中。副本归调用方所有，可以修改并无限期保留。改用 <a href="#RawBytes">*RawBytes</a> 类型的实参可以避免复制；使用限制见 <a href="#RawBytes">RawBytes</a> 文档。<p>如果某个实参的类型为 *any，Scan 会直接复制底层驱动提供的值，不做转换。将 []byte 类型的源值读入 *interface{} 时，会复制该切片，结果归调用方所有。<p><a href="/pkg/time/#Time">time.Time</a> 类型的源值可以读入 *time.Time、*interface{}、*string 或 *[]byte。转换为后两种类型时，使用 <a href="/pkg/time/#RFC3339Nano">time.RFC3339Nano</a> 格式。<p>字符串和字节类型的源值可以读入 <a href="/pkg/uuid/#UUID">*uuid.UUID</a>。源值可以是 UUID 的字符串表示，也可以是包含 16 字节的 []byte。<p>bool 类型的源值可以读入 *bool、*interface{}、*string、*[]byte 或 <a href="#RawBytes">*RawBytes</a>。<p>读入 *bool 时，源值可以是 true、false、1、0，或可被 <a href="/pkg/strconv/#ParseBool">strconv.ParseBool</a> 解析的字符串。<p>Scan 还可以将查询返回的游标（例如“select cursor(select * from my_table) from dual”）转换为一个自身也可以被读取的 <a href="#Rows">*Rows</a> 值。父级 SELECT 查询的 <a href="#Rows">*Rows</a> 关闭时，也会关闭其所有游标 <a href="#Rows">*Rows</a>。<p>如果前面的某个实现了 <a href="#Scanner">Scanner</a> 的实参返回错误，该错误会被包装在最终返回的错误中。<h2 id="Scanner">type <a href="/src/database/sql/sql.go?s=11228:11843#L442">Scanner</a>
+				
+				
+			</h2>
+			<p>Scanner 是 <a href="#Rows.Scan">Rows.Scan</a> 使用的接口。<pre>type Scanner interface {
+    <span class="comment">// Scan 接收并赋入数据库驱动提供的值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// src 值属于以下类型之一：</span>
+    <span class="comment">//</span>
+    <span class="comment">//    int64</span>
+    <span class="comment">//    float64</span>
+    <span class="comment">//    bool</span>
+    <span class="comment">//    []byte</span>
+    <span class="comment">//    string</span>
+    <span class="comment">//    time.Time</span>
+    <span class="comment">//    nil - 表示 NULL 值</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果无法在不丢失信息的情况下存储该值，</span>
+    <span class="comment">// 应返回错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// []byte 等引用类型仅在下一次调用 Scan 之前有效，</span>
+    <span class="comment">// 不应保留它们。其底层内存由驱动拥有。</span>
+    <span class="comment">// 如果需要保留，应在下一次调用 Scan 之前复制它们的值。</span>
+    Scan(src <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Stmt">type <a href="/src/database/sql/sql.go?s=74008:75426#L2598">Stmt</a>
+				
+				
+			</h2>
+			<p>Stmt 是预处理语句。多个 goroutine 可以安全地并发使用同一个 Stmt。<p>如果 Stmt 是在 <a href="#Tx">Tx</a> 或 <a href="#Conn">Conn</a> 上准备的，它就会永久绑定到单个底层连接。<a href="#Tx">Tx</a> 或 <a href="#Conn">Conn</a> 关闭后，Stmt 将不可用，所有操作都会返回错误。如果 Stmt 是在 <a href="#DB">DB</a> 上准备的，它会在 <a href="#DB">DB</a> 的整个生命周期内保持可用。当需要在新的底层连接上执行时，Stmt 会自动在该新连接上重新准备语句。<pre>type Stmt struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Stmt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	// 通常在进程启动时创建一个 Stmt。
+	stmt, err := db.PrepareContext(ctx, &#34;SELECT username FROM users WHERE id = ?&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	// 之后每次需要执行查询时都复用它。
+	id := 43
+	var username string
+	err = stmt.QueryRowContext(ctx, id).Scan(&amp;username)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Fatalf(&#34;no user with id %d&#34;, id)
+	case err != nil:
+		log.Fatal(err)
+	default:
+		log.Printf(&#34;username is %s\n&#34;, username)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Stmt.Close">func (*Stmt) <a href="/src/database/sql/sql.go?s=82211:82239#L2879">Close</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭该语句。<h3 id="Stmt.Exec">func (*Stmt) <a href="/src/database/sql/sql.go?s=76205:76253#L2662">Exec</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) Exec(args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Exec 使用给定实参执行预处理语句，并返回一个 <a href="#Result">Result</a>，概括该语句产生的效果。<p>Exec 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Stmt.ExecContext">Stmt.ExecContext</a>。<h3 id="Stmt.ExecContext">func (*Stmt) <a href="/src/database/sql/sql.go?s=75565:75641#L2638">ExecContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ExecContext 使用给定实参执行预处理语句，并返回一个 <a href="#Result">Result</a>，概括该语句产生的效果。<h3 id="Stmt.Query">func (*Stmt) <a href="/src/database/sql/sql.go?s=80507:80555#L2832">Query</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) Query(args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Query 使用给定实参执行预处理查询语句，并以 *Rows 形式返回查询结果。<p>Query 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Stmt.QueryContext">Stmt.QueryContext</a>。<h3 id="Stmt.QueryContext">func (*Stmt) <a href="/src/database/sql/sql.go?s=79184:79260#L2780">QueryContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>QueryContext 使用给定实参执行预处理查询语句，并以 <a href="#Rows">*Rows</a> 形式返回查询结果。<h3 id="Stmt.QueryRow">func (*Stmt) <a href="/src/database/sql/sql.go?s=82076:82117#L2874">QueryRow</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) QueryRow(args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRow 使用给定实参执行预处理查询语句。如果执行语句时发生错误，该错误会在对返回的 <a href="#Row">*Row</a> 调用 Scan 时报告；返回的 *Row 始终非 nil。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<p>使用示例：<pre>var name string
+err := nameByUseridStmt.QueryRow(id).Scan(&amp;name)
+</pre>
+<p>QueryRow 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Stmt.QueryRowContext">Stmt.QueryRowContext</a>。<h3 id="Stmt.QueryRowContext">func (*Stmt) <a href="/src/database/sql/sql.go?s=81294:81363#L2852">QueryRowContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (s *<a href="#Stmt">Stmt</a>) QueryRowContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRowContext 使用给定实参执行预处理查询语句。如果执行语句时发生错误，该错误会在对返回的 <a href="#Row">*Row</a> 调用 Scan 时报告；返回的 *Row 始终非 nil。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<div id="example_Stmt_QueryRowContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	// 通常在进程启动时创建一个 Stmt。
+	stmt, err := db.PrepareContext(ctx, &#34;SELECT username FROM users WHERE id = ?&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	// 之后每次需要执行查询时都复用它。
+	id := 43
+	var username string
+	err = stmt.QueryRowContext(ctx, id).Scan(&amp;username)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Fatalf(&#34;no user with id %d&#34;, id)
+	case err != nil:
+		log.Fatal(err)
+	default:
+		log.Printf(&#34;username is %s\n&#34;, username)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="Tx">type <a href="/src/database/sql/sql.go?s=61069:62161#L2161">Tx</a>
+				
+				
+			</h2>
+			<p>Tx 是一个正在进行的数据库事务。<p>事务必须以调用 <a href="#Tx.Commit">Tx.Commit</a> 或 <a href="#Tx.Rollback">Tx.Rollback</a> 结束。<p>调用 <a href="#Tx.Commit">Tx.Commit</a> 或 <a href="#Tx.Rollback">Tx.Rollback</a> 后，对该事务的所有操作都会以 <a href="#ErrTxDone">ErrTxDone</a> 失败。<p>通过事务的 <a href="#Tx.Prepare">Tx.Prepare</a> 或 <a href="#Tx.Stmt">Tx.Stmt</a> 方法为该事务准备的语句，会在调用 <a href="#Tx.Commit">Tx.Commit</a> 或 <a href="#Tx.Rollback">Tx.Rollback</a> 时关闭。<pre>type Tx struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Tx.Commit">func (*Tx) <a href="/src/database/sql/sql.go?s=64546:64574#L2282">Commit</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Commit() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Commit 提交事务。<h3 id="Tx.Exec">func (*Tx) <a href="/src/database/sql/sql.go?s=70956:71017#L2519">Exec</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Exec(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Exec 执行一个不返回行的查询，例如 INSERT 或 UPDATE。<p>Exec 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Tx.ExecContext">Tx.ExecContext</a>。<h3 id="Tx.ExecContext">func (*Tx) <a href="/src/database/sql/sql.go?s=70546:70635#L2506">ExecContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ExecContext 执行一个不返回行的查询，例如 INSERT 或 UPDATE。<div id="example_Tx_ExecContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	tx, err := db.BeginTx(ctx, &amp;sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Fatal(err)
+	}
+	id := 37
+	_, execErr := tx.ExecContext(ctx, &#34;UPDATE users SET status = ? WHERE id = ?&#34;, &#34;paid&#34;, id)
+	if execErr != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Fatalf(&#34;update failed: %v, unable to rollback: %v\n&#34;, execErr, rollbackErr)
+		}
+		log.Fatalf(&#34;update failed: %v&#34;, execErr)
+	}
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Tx.Prepare">func (*Tx) <a href="/src/database/sql/sql.go?s=67514:67564#L2392">Prepare</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Prepare(query <a href="/pkg/builtin/#string">string</a>) (*<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Prepare 创建一个在事务内使用的预处理语句。<p>返回的语句在该事务内操作，并在事务提交或回滚时关闭。<p>要在此事务中使用已有的预处理语句，见 <a href="#Tx.Stmt">Tx.Stmt</a>。<p>Prepare 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Tx.PrepareContext">Tx.PrepareContext</a>。<div id="example_Tx_Prepare" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var db *sql.DB
+
+func main() {
+	projects := []struct {
+		mascot  string
+		release int
+	}{
+		{&#34;tux&#34;, 1991},
+		{&#34;duke&#34;, 1996},
+		{&#34;gopher&#34;, 2009},
+		{&#34;moby dock&#34;, 2013},
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tx.Rollback() // 如果事务在函数后续部分已经提交，此处回滚会被忽略。
+
+	stmt, err := tx.Prepare(&#34;INSERT INTO projects(id, mascot, release, category) VALUES( ?, ?, ?, ? )&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close() // 预处理语句会占用服务器资源，使用完毕后应关闭。
+
+	for id, project := range projects {
+		if _, err := stmt.Exec(id&#43;1, project.mascot, project.release, &#34;open source&#34;); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Tx.PrepareContext">func (*Tx) <a href="/src/database/sql/sql.go?s=66770:66848#L2367">PrepareContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) PrepareContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>) (*<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>PrepareContext 创建一个在事务内使用的预处理语句。<p>返回的语句在该事务内操作，并在事务提交或回滚时关闭。<p>要在此事务中使用已有的预处理语句，见 <a href="#Tx.Stmt">Tx.Stmt</a>。<p>所提供的上下文用于准备阶段，而非返回语句的执行阶段。返回的语句会在事务的上下文中运行。<h3 id="Tx.Query">func (*Tx) <a href="/src/database/sql/sql.go?s=71554:71615#L2537">Query</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Query(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Query 执行一个返回行的查询，通常是 SELECT。<p>Query 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Tx.QueryContext">Tx.QueryContext</a>。<h3 id="Tx.QueryContext">func (*Tx) <a href="/src/database/sql/sql.go?s=71156:71245#L2524">QueryContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>QueryContext 执行一个返回行的查询，通常是 SELECT。<h3 id="Tx.QueryRow">func (*Tx) <a href="/src/database/sql/sql.go?s=72649:72703#L2561">QueryRow</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) QueryRow(query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRow 执行一个预期最多返回一行的查询。QueryRow 始终返回非 nil 值，错误会推迟到调用 <a href="#Row">Row</a> 的 Scan 方法时报告。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<p>QueryRow 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Tx.QueryRowContext">Tx.QueryRowContext</a>。<h3 id="Tx.QueryRowContext">func (*Tx) <a href="/src/database/sql/sql.go?s=72033:72115#L2547">QueryRowContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) QueryRowContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Row">Row</a></pre>
+				<p>QueryRowContext 执行一个预期最多返回一行的查询。QueryRowContext 始终返回非 nil 值，错误会推迟到调用 <a href="#Row">Row</a> 的 Scan 方法时报告。如果查询没有选中任何行，<a href="#Row.Scan">*Row.Scan</a> 返回 <a href="#ErrNoRows">ErrNoRows</a>。否则，<a href="#Row.Scan">*Row.Scan</a> 读取第一条选中的行，并丢弃其余行。<h3 id="Tx.Rollback">func (*Tx) <a href="/src/database/sql/sql.go?s=66220:66250#L2353">Rollback</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Rollback() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Rollback 中止并回滚事务。<div id="example_Tx_Rollback" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;database/sql&#34;
+	&#34;log&#34;
+)
+
+var (
+	ctx context.Context
+	db  *sql.DB
+)
+
+func main() {
+	tx, err := db.BeginTx(ctx, &amp;sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Fatal(err)
+	}
+	id := 53
+	_, err = tx.ExecContext(ctx, &#34;UPDATE drivers SET status = ? WHERE id = ?;&#34;, &#34;assigned&#34;, id)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Fatalf(&#34;update drivers: unable to rollback: %v&#34;, rollbackErr)
+		}
+		log.Fatal(err)
+	}
+	_, err = tx.ExecContext(ctx, &#34;UPDATE pickups SET driver_id = $1;&#34;, id)
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Fatalf(&#34;update failed: %v, unable to back: %v&#34;, err, rollbackErr)
+		}
+		log.Fatal(err)
+	}
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Tx.Stmt">func (*Tx) <a href="/src/database/sql/sql.go?s=70357:70393#L2500">Stmt</a>
+					
+					
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) Stmt(stmt *<a href="#Stmt">Stmt</a>) *<a href="#Stmt">Stmt</a></pre>
+				<p>Stmt 根据已有语句，返回一个专用于当前事务的预处理语句。<p>示例：<pre>updateMoney, err := db.Prepare(&quot;UPDATE balance SET money=money+? WHERE id=?&quot;)
+...
+tx, err := db.Begin()
+...
+res, err := tx.Stmt(updateMoney).Exec(123.45, 98293203)
+</pre>
+<p>返回的语句在该事务内操作，并在事务提交或回滚时关闭。<p>Stmt 内部使用 <a href="/pkg/context/#Background">context.Background</a>；如需指定上下文，请使用 <a href="#Tx.StmtContext">Tx.StmtContext</a>。<h3 id="Tx.StmtContext">func (*Tx) <a href="/src/database/sql/sql.go?s=68185:68249#L2412">StmtContext</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (tx *<a href="#Tx">Tx</a>) StmtContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, stmt *<a href="#Stmt">Stmt</a>) *<a href="#Stmt">Stmt</a></pre>
+				<p>StmtContext 根据已有语句，返回一个专用于当前事务的预处理语句。<p>示例：<pre>updateMoney, err := db.Prepare(&quot;UPDATE balance SET money=money+? WHERE id=?&quot;)
+...
+tx, err := db.Begin()
+...
+res, err := tx.StmtContext(ctx, updateMoney).Exec(123.45, 98293203)
+</pre>
+<p>所提供的上下文用于语句的准备阶段，而非语句的执行阶段。<p>返回的语句在该事务内操作，并在事务提交或回滚时关闭。<h2 id="TxOptions">type <a href="/src/database/sql/sql.go?s=4421:4599#L158">TxOptions</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>TxOptions 保存供 <a href="#DB.BeginTx">DB.BeginTx</a> 使用的事务选项。<pre>type TxOptions struct {
+<span id="TxOptions.Isolation"></span>    <span class="comment">// Isolation 是事务隔离级别。</span>
+    <span class="comment">// 为零时，使用驱动或数据库的默认隔离级别。</span>
+    Isolation <a href="#IsolationLevel">IsolationLevel</a>
+<span id="TxOptions.ReadOnly"></span>    ReadOnly  <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="driver/">driver</a>
+					</td>
+				
+					<td class="pkg-synopsis">driver 包定义供 sql 包使用的数据库驱动必须实现的接口。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

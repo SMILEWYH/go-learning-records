@@ -1,0 +1,368 @@
+<!--{
+  "Title": "crypto/ed25519 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package ed25519</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/ed25519"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ed25519 包实现 Ed25519 签名算法。参见 <a href="https://ed25519.cr.yp.to/">https://ed25519.cr.yp.to/</a>。
+<p>这些函数也兼容 RFC 8032 定义的“Ed25519”函数。不过，与 RFC 8032 的表述不同，本包的私钥表示在末尾附带公钥，以提高使用同一密钥多次签名的效率。本包将 RFC 8032 中的私钥称为“种子”。
+<p>涉及私钥的操作使用常量时间算法实现。
+
+				
+
+
+<div id="example__ed25519ctx" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Ed25519ctx)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Ed25519ctx)</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+pub, priv, err := GenerateKey(nil)
+if err != nil {
+    log.Fatal(err)
+}
+
+msg := []byte(&#34;The quick brown fox jumps over the lazy dog&#34;)
+
+sig, err := priv.Sign(nil, msg, &amp;Options{
+    Context: &#34;Example_ed25519ctx&#34;,
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+if err := VerifyWithOptions(pub, msg, sig, &amp;Options{
+    Context: &#34;Example_ed25519ctx&#34;,
+}); err != nil {
+    log.Fatal(&#34;invalid signature&#34;)
+}
+</pre>
+      
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#GenerateKey">func GenerateKey(random io.Reader) (PublicKey, PrivateKey, error)</a></dd>
+			
+				<dd><a href="#Sign">func Sign(privateKey PrivateKey, message []byte) []byte</a></dd>
+			
+				<dd><a href="#Verify">func Verify(publicKey PublicKey, message, sig []byte) bool</a></dd>
+			
+				<dd><a href="#VerifyWithOptions">func VerifyWithOptions(publicKey PublicKey, message, sig []byte, opts *Options) error</a></dd>
+			
+			
+				
+				<dd><a href="#Options">type Options</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Options.HashFunc">func (o *Options) HashFunc() crypto.Hash</a></dd>
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewKeyFromSeed">func NewKeyFromSeed(seed []byte) PrivateKey</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Equal">func (priv PrivateKey) Equal(x crypto.PrivateKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Public">func (priv PrivateKey) Public() crypto.PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Seed">func (priv PrivateKey) Seed() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Sign">func (priv PrivateKey) Sign(rand io.Reader, message []byte, opts crypto.SignerOpts) (signature []byte, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Equal">func (pub PublicKey) Equal(x crypto.PublicKey) bool</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__ed25519ctx">包 (Ed25519ctx)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/ed25519/ed25519.go">ed25519.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// PublicKeySize 是本包所用公钥的大小，以字节为单位。</span>
+    <span id="PublicKeySize">PublicKeySize</span> = 32
+    <span class="comment">// PrivateKeySize 是本包所用私钥的大小，以字节为单位。</span>
+    <span id="PrivateKeySize">PrivateKeySize</span> = 64
+    <span class="comment">// SignatureSize 是本包生成和验证的签名的大小，以字节为单位。</span>
+    <span id="SignatureSize">SignatureSize</span> = 64
+    <span class="comment">// SeedSize 是私钥种子的大小，以字节为单位。它们对应 RFC 8032 使用的私钥表示。</span>
+    <span id="SeedSize">SeedSize</span> = 32
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="GenerateKey">func <a href="/src/crypto/ed25519/ed25519.go?s=5510:5575#L141">GenerateKey</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func GenerateKey(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="#PublicKey">PublicKey</a>, <a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>GenerateKey 使用 random 提供的熵生成一对公钥和私钥。
+<p>如果 random 为 nil，则使用安全的随机源。（在 Go 1.26 之前，如果应用程序设置了自定义 <a href="/pkg/crypto/rand/#Reader">crypto/rand.Reader</a>，就会使用它。可以通过 GODEBUG=cryptocustomrand=1 恢复该行为。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。）
+<p>此函数的输出是确定性的，等价于从 random 读取 <a href="#SeedSize">SeedSize</a> 个字节，再将它们传给 <a href="#NewKeyFromSeed">NewKeyFromSeed</a>。
+
+			
+		
+			
+			<h2 id="Sign">func <a href="/src/crypto/ed25519/ed25519.go?s=7319:7374#L198">Sign</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Sign(privateKey <a href="#PrivateKey">PrivateKey</a>, message []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sign 使用 privateKey 对 message 签名，并返回签名。如果 len(privateKey) 不等于 <a href="#PrivateKeySize">PrivateKeySize</a>，则触发 panic。
+
+			
+		
+			
+			<h2 id="Verify">func <a href="/src/crypto/ed25519/ed25519.go?s=8285:8343#L224">Verify</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Verify(publicKey <a href="#PublicKey">PublicKey</a>, message, sig []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Verify 报告 sig 是否是 publicKey 对 message 的有效签名。如果 len(publicKey) 不等于 <a href="#PublicKeySize">PublicKeySize</a>，则触发 panic。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+		
+			
+			<h2 id="VerifyWithOptions">func <a href="/src/crypto/ed25519/ed25519.go?s=9069:9154#L239">VerifyWithOptions</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func VerifyWithOptions(publicKey <a href="#PublicKey">PublicKey</a>, message, sig []<a href="/pkg/builtin/#byte">byte</a>, opts *<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>VerifyWithOptions 报告 sig 是否是 publicKey 对 message 的有效签名。返回 nil 错误表示签名有效。如果 len(publicKey) 不等于 <a href="#PublicKeySize">PublicKeySize</a>，则触发 panic。
+<p>如果 opts.Hash 为 <a href="/pkg/crypto/#SHA512">crypto.SHA512</a>，则使用预先哈希的变体 Ed25519ph，并要求 message 为 SHA-512 哈希值。否则，opts.Hash 必须为 <a href="/pkg/crypto/#Hash">crypto.Hash</a>(0)，且消息不得预先哈希，因为 Ed25519 会对待签名消息处理两遍。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+		
+		
+			
+			<h2 id="Options">type <a href="/src/crypto/ed25519/ed25519.go?s=4554:4821#L118">Options</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>Options 可与 <a href="#PrivateKey.Sign">PrivateKey.Sign</a> 或 <a href="#VerifyWithOptions">VerifyWithOptions</a> 一起使用，以选择 Ed25519 的变体。
+
+			<pre>type Options struct {
+<span id="Options.Hash"></span>    <span class="comment">// Hash 为零时使用普通 Ed25519，为 crypto.SHA512 时使用 Ed25519ph。</span>
+    Hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>
+
+<span id="Options.Context"></span>    <span class="comment">// Context 非空时，选择 Ed25519ctx 或为 Ed25519ph 提供</span>
+    <span class="comment">// 上下文字符串。长度最多为 255 字节。</span>
+    Context <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Options.HashFunc">func (*Options) <a href="/src/crypto/ed25519/ed25519.go?s=4851:4891#L128">HashFunc</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (o *<a href="#Options">Options</a>) HashFunc() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a></pre>
+				<p>HashFunc 返回 o.Hash。
+
+				
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/ed25519/ed25519.go?s=1941:1963#L49">PrivateKey</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<p>PrivateKey 是 Ed25519 私钥的类型，实现了 <a href="/pkg/crypto/#Signer">crypto.Signer</a>。
+
+			<pre>type PrivateKey []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewKeyFromSeed">func <a href="/src/crypto/ed25519/ed25519.go?s=6674:6717#L180">NewKeyFromSeed</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func NewKeyFromSeed(seed []<a href="/pkg/builtin/#byte">byte</a>) <a href="#PrivateKey">PrivateKey</a></pre>
+				<p>NewKeyFromSeed 根据种子计算私钥。如果 len(seed) 不等于 <a href="#SeedSize">SeedSize</a>，则触发 panic。此函数用于与 RFC 8032 互操作。RFC 8032 中的私钥对应本包中的种子。
+
+				
+			
+
+			
+				<h3 id="PrivateKey.Equal">func (PrivateKey) <a href="/src/crypto/ed25519/ed25519.go?s=2232:2286#L59">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (priv <a href="#PrivateKey">PrivateKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 priv 和 x 是否具有相同的值。
+
+				
+			
+				<h3 id="PrivateKey.Public">func (PrivateKey) <a href="/src/crypto/ed25519/ed25519.go?s=2022:2070#L52">Public</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (priv <a href="#PrivateKey">PrivateKey</a>) Public() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a></pre>
+				<p>Public 返回 priv 对应的 <a href="#PublicKey">PublicKey</a>。
+
+				
+			
+				<h3 id="PrivateKey.Seed">func (PrivateKey) <a href="/src/crypto/ed25519/ed25519.go?s=2574:2610#L70">Seed</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (priv <a href="#PrivateKey">PrivateKey</a>) Seed() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Seed 返回 priv 对应的私钥种子，用于与 RFC 8032 互操作。RFC 8032 中的私钥对应本包中的种子。
+
+				
+			
+				<h3 id="PrivateKey.Sign">func (PrivateKey) <a href="/src/crypto/ed25519/ed25519.go?s=3408:3521#L87">Sign</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (priv <a href="#PrivateKey">PrivateKey</a>) Sign(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, message []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Sign 使用 priv 对给定消息签名。rand 被忽略，可以为 nil。
+<p>如果 opts.HashFunc() 为 <a href="/pkg/crypto/#SHA512">crypto.SHA512</a>，则使用预先哈希的变体 Ed25519ph，并要求 message 为 SHA-512 哈希值。否则，opts.HashFunc() 必须为 <a href="/pkg/crypto/#Hash">crypto.Hash</a>(0)，且消息不得预先哈希，因为 Ed25519 会对待签名消息处理两遍。
+<p>可以将 <a href="#Options">Options</a> 类型的值用作 opts，也可以直接使用 crypto.Hash(0) 或 crypto.SHA512，分别选择普通 Ed25519 或 Ed25519ph。
+
+				
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/ed25519/ed25519.go?s=1467:1488#L34">PublicKey</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<p>PublicKey 是 Ed25519 公钥的类型。
+
+			<pre>type PublicKey []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PublicKey.Equal">func (PublicKey) <a href="/src/crypto/ed25519/ed25519.go?s=1700:1751#L40">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (pub <a href="#PublicKey">PublicKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 pub 和 x 是否具有相同的值。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

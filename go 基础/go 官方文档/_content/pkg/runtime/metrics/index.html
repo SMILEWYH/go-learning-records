@@ -1,0 +1,827 @@
+<!--{
+  "Title": "runtime/metrics 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>runtime/metrics 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime/metrics"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>metrics 包提供稳定接口，用于访问 Go 运行时导出的、由实现定义的指标。本包与 <a href="/pkg/runtime/#ReadMemStats">runtime.ReadMemStats</a> 和 <a href="/pkg/runtime/debug/#ReadGCStats">runtime/debug.ReadGCStats</a> 等现有函数类似，但通用性高得多。<p>本包定义的指标集合可能随运行时的发展而变化，也允许不同 Go 实现之间存在差异，各实现的相关指标集合甚至可能没有交集。<h3 id="hdr-Interface">接口</h3>
+<p>指标使用字符串键指定，而不是使用结构体字段名之类的方式。<a href="#All">All</a> 返回的 Description 切片始终提供受支持指标的完整列表。每个 <a href="#Description">Description</a> 还包含该指标的有用信息。<p>因此，建议此 API 的使用者根据 All 返回切片所定义的受支持指标进行采样，以保持跨 Go 版本兼容。当然，有些场景必须读取特定指标。对于这些情况，建议使用构建标签。虽然指标可能被弃用和移除，但使用者应将其视为罕见的例外事件，它通常伴随某个 Go 实现中的重大变更。<p>每个指标键还具有一个“种类”（参见 <a href="#ValueKind">ValueKind</a>），用于描述指标值的格式。为避免破坏本包使用者的代码，保证给定指标的“种类”不会改变。如果必须改变，就会引入具有新键和新“种类”的新指标。<h3 id="hdr-Metric_key_format">指标键的格式</h3>
+<p>如前所述，指标键是字符串。其格式简单且定义明确，兼顾人类和机器的可读性。它分为两个组成部分，以冒号分隔：绝对路径和单位。将单位包含在键中是出于兼容性考虑：如果指标单位改变，其语义很可能也发生了变化，因此应引入新键。<p>有关指标键的路径和单位格式的精确定义，请参阅 Description 结构体的 Name 字段文档。<h3 id="hdr-A_note_about_floats">关于浮点数的说明</h3>
+<p>本包支持以浮点数表示值的指标。为了便于使用，本包保证永不产生以下浮点值：NaN 和无穷大。<h3 id="hdr-Supported_metrics">支持的指标</h3>
+<p>下面是按字典序排列的所有受支持指标的完整列表。<pre>/cgo/go-to-c-calls:calls
+	当前进程从 Go 调用 C 的次数。
+
+/cpu/classes/gc/mark/assist:cpu-seconds
+	goroutine 为协助 GC、避免其进度落后于应用程序而执行 GC 任务所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/gc/mark/dedicated:cpu-seconds
+	在专门执行 GC 任务的处理器（由 GOMAXPROCS 定义）上执行这些任务所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/gc/mark/idle:cpu-seconds
+	利用 Go 调度器无法找到其他用途的空闲 CPU 资源执行 GC 任务所花费的估计 CPU 总时间。应从 GC CPU 总时间中减去此值，以衡量必须投入的 GC CPU 时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/gc/pause:cpu-seconds
+	应用程序因 GC 而暂停期间消耗的估计 CPU 总时间。即使暂停期间只有一个线程运行，该值也按 GOMAXPROCS 乘以暂停时长计算，因为此时不能执行其他工作。如果将 /sched/pauses/total/gc:seconds 中的每个样本乘以采样时的 GOMAXPROCS，此指标就精确等于这些样本之和。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/gc/total:cpu-seconds
+	执行 GC 任务所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。它是 /cpu/classes/gc 下所有指标的总和。
+
+/cpu/classes/idle:cpu-seconds
+	未用于执行任何 Go 代码或 Go 运行时代码的估计可用 CPU 总时间。换句话说，它是 /cpu/classes/total:cpu-seconds 中未使用的部分。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/scavenge/assist:cpu-seconds
+	为及时响应内存压力，将未使用的内存归还给底层平台所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/scavenge/background:cpu-seconds
+	执行后台任务、将未使用的内存归还给底层平台所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/cpu/classes/scavenge/total:cpu-seconds
+	执行将未使用内存归还给底层平台的任务所花费的估计 CPU 总时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。它是 /cpu/classes/scavenge 下所有指标的总和。
+
+/cpu/classes/total:cpu-seconds
+	由 GOMAXPROCS 定义的、用户 Go 代码或 Go 运行时可使用的估计 CPU 总时间。换句话说，它是 GOMAXPROCS 在该进程已执行的实际时钟时间上的积分。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。它是 /cpu/classes 下所有指标的总和。
+
+/cpu/classes/user:cpu-seconds
+	运行用户 Go 代码所花费的估计 CPU 总时间。也可能包含在 Go 运行时中花费的少量时间。此指标是高估值，不能直接与系统 CPU 时间测量值比较，只应与其他 /cpu/classes 指标比较。
+
+/gc/cleanups/executed:cleanups
+	运行时已执行的清理函数（由 runtime.AddCleanup 创建）的近似累计数量。减去 /gc/cleanups/queued:cleanups 可估算清理队列长度。可用于发现清理函数过慢而阻塞队列的问题。
+
+/gc/cleanups/queued:cleanups
+	运行时已加入执行队列的清理函数（由 runtime.AddCleanup 创建）的近似累计数量。从 /gc/cleanups/executed:cleanups 中减去此值可估算清理队列长度。可用于发现清理函数过慢而阻塞队列的问题。
+
+/gc/cycles/automatic:gc-cycles
+	由 Go 运行时触发且已完成的 GC 周期数。
+
+/gc/cycles/forced:gc-cycles
+	由应用程序强制触发且已完成的 GC 周期数。
+
+/gc/cycles/total:gc-cycles
+	所有已完成的 GC 周期数。
+
+/gc/finalizers/executed:finalizers
+	运行时已执行的终结器函数（由 runtime.SetFinalizer 创建）的累计数量。减去 /gc/finalizers/queued:finalizers 可估算终结器队列长度。可用于发现因终结器过慢或数量过多而使队列不堪重负的问题。
+
+/gc/finalizers/queued:finalizers
+	运行时创建并已加入执行队列的终结器函数（由 runtime.SetFinalizer 创建）的累计数量。从 /gc/finalizers/executed:finalizers 中减去此值可估算终结器队列长度。可用于发现终结器过慢而阻塞队列的问题。
+
+/gc/gogc:percent
+	用户配置的堆大小目标百分比，未配置时为 100。此值由 GOGC 环境变量及 runtime/debug.SetGCPercent 函数设置。
+
+/gc/gomemlimit:bytes
+	用户配置的 Go 运行时内存限制，未配置时为 math.MaxInt64。此值由 GOMEMLIMIT 环境变量及 runtime/debug.SetMemoryLimit 函数设置。
+
+/gc/heap/allocs-by-size:bytes
+	按近似大小划分的堆分配分布。桶计数单调递增。注意，这不包含 /gc/heap/tiny/allocs:objects 所定义的微小对象，只包含微小分配块。
+
+/gc/heap/allocs:bytes
+	应用程序在堆上分配内存的累计总量。
+
+/gc/heap/allocs:objects
+	应用程序触发的堆分配累计次数。注意，这不包含 /gc/heap/tiny/allocs:objects 所定义的微小对象，只包含微小分配块。
+
+/gc/heap/frees-by-size:bytes
+	按近似大小划分的已释放堆分配分布。桶计数单调递增。注意，这不包含 /gc/heap/tiny/allocs:objects 所定义的微小对象，只包含微小分配块。
+
+/gc/heap/frees:bytes
+	垃圾回收器释放的堆内存累计总量。
+
+/gc/heap/frees:objects
+	存储空间已被垃圾回收器释放的堆分配累计次数。注意，这不包含 /gc/heap/tiny/allocs:objects 所定义的微小对象，只包含微小分配块。
+
+/gc/heap/goal:bytes
+	GC 周期结束时的目标堆大小。
+
+/gc/heap/live:bytes
+	上一次 GC 标记的存活对象所占用的堆内存。
+
+/gc/heap/objects:objects
+	占用堆内存的对象数量，包括存活对象和未清扫对象。
+
+/gc/heap/tiny/allocs:objects
+	合并打包到块中的小型分配的数量。这些分配与其他分配分开计数，因为运行时不会跟踪每次单独的分配，只跟踪它们所在的块。每个块都已计入 allocs-by-size 和 frees-by-size。
+
+/gc/limiter/last-enabled:gc-cycle
+	最近一次启用 GC CPU 限制器时的 GC 周期编号。此指标有助于诊断内存不足错误的根本原因，因为当 GC 消耗的 CPU 时间过高时，限制器会用内存换取 CPU 时间。使用 SetMemoryLimit 时最可能发生这种情况。第一个 GC 周期编号为 1，因此 0 表示从未启用过限制器。
+
+/gc/pauses:seconds
+	已弃用。请优先使用含义相同的 /sched/pauses/total/gc:seconds。
+
+/gc/scan/globals:bytes
+	可扫描的全局变量空间总量。
+
+/gc/scan/heap:bytes
+	可扫描的堆空间总量。
+
+/gc/scan/stack:bytes
+	上一个 GC 周期扫描的栈字节数。
+
+/gc/scan/total:bytes
+	可扫描的空间总量。它是 /gc/scan 下所有指标的总和。
+
+/gc/stack/starting-size:bytes
+	新 goroutine 的栈大小。
+
+/godebug/non-default-behavior/allowmultiplevcs:events
+	cmd/go 包因采用非默认的 GODEBUG=allowmultiplevcs=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/containermaxprocs:events
+	runtime 包因采用非默认的 GODEBUG=containermaxprocs=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/cryptocustomrand:events
+	crypto 包因采用非默认的 GODEBUG=cryptocustomrand=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/embedfollowsymlinks:events
+	cmd/go 包因采用非默认的 GODEBUG=embedfollowsymlinks=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/execerrdot:events
+	os/exec 包因采用非默认的 GODEBUG=execerrdot=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/fips140ems:events
+	crypto/tls 包因采用非默认的 GODEBUG=fips140ems=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/gocachehash:events
+	cmd/go 包因采用非默认的 GODEBUG=gocachehash=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/gocachetest:events
+	cmd/go 包因采用非默认的 GODEBUG=gocachetest=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/gocacheverify:events
+	cmd/go 包因采用非默认的 GODEBUG=gocacheverify=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/gotestjsonbuildtext:events
+	cmd/go 包因采用非默认的 GODEBUG=gotestjsonbuildtext=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/htmlmetacontenturlescape:events
+	html/template 包因采用非默认的 GODEBUG=htmlmetacontenturlescape=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/http2client:events
+	net/http 包因采用非默认的 GODEBUG=http2client=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/http2server:events
+	net/http 包因采用非默认的 GODEBUG=http2server=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/httpcookiemaxnum:events
+	net/http 包因采用非默认的 GODEBUG=httpcookiemaxnum=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/httplaxcontentlength:events
+	net/http 包因采用非默认的 GODEBUG=httplaxcontentlength=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/httpmuxgo121:events
+	net/http 包因采用非默认的 GODEBUG=httpmuxgo121=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/httpservecontentkeepheaders:events
+	net/http 包因采用非默认的 GODEBUG=httpservecontentkeepheaders=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/installgoroot:events
+	go/build 包因采用非默认的 GODEBUG=installgoroot=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/multipartmaxheaders:events
+	mime/multipart 包因采用非默认的 GODEBUG=multipartmaxheaders=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/multipartmaxparts:events
+	mime/multipart 包因采用非默认的 GODEBUG=multipartmaxparts=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/multipathtcp:events
+	net 包因采用非默认的 GODEBUG=multipathtcp=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/netedns0:events
+	net 包因采用非默认的 GODEBUG=netedns0=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/panicnil:events
+	runtime 包因采用非默认的 GODEBUG=panicnil=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/randautoseed:events
+	math/rand 包因采用非默认的 GODEBUG=randautoseed=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/randseednop:events
+	math/rand 包因采用非默认的 GODEBUG=randseednop=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/rsa1024min:events
+	crypto/rsa 包因采用非默认的 GODEBUG=rsa1024min=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/tarinsecurepath:events
+	archive/tar 包因采用非默认的 GODEBUG=tarinsecurepath=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/tlsmaxrsasize:events
+	crypto/tls 包因采用非默认的 GODEBUG=tlsmaxrsasize=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/tlssha1:events
+	crypto/tls 包因采用非默认的 GODEBUG=tlssha1=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/updatemaxprocs:events
+	runtime 包因采用非默认的 GODEBUG=updatemaxprocs=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/urlmaxqueryparams:events
+	net/url 包因采用非默认的 GODEBUG=urlmaxqueryparams=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/urlstrictcolons:events
+	net/url 包因采用非默认的 GODEBUG=urlstrictcolons=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/winreadlinkvolume:events
+	os 包因采用非默认的 GODEBUG=winreadlinkvolume=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/winsymlink:events
+	os 包因采用非默认的 GODEBUG=winsymlink=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509negativeserial:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509negativeserial=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509rsacrt:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509rsacrt=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509sha256skid:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509sha256skid=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509sslcertoverrideplatform:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509sslcertoverrideplatform=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509usefallbackroots:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509usefallbackroots=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/x509usepolicies:events
+	crypto/x509 包因采用非默认的 GODEBUG=x509usepolicies=... 设置而执行非默认行为的次数。
+
+/godebug/non-default-behavior/zipinsecurepath:events
+	archive/zip 包因采用非默认的 GODEBUG=zipinsecurepath=... 设置而执行非默认行为的次数。
+
+/memory/classes/heap/free:bytes
+	完全空闲、可以归还给底层系统但尚未归还的内存。此指标是运行时对有物理内存支撑的空闲地址空间的估算。
+
+/memory/classes/heap/objects:bytes
+	存活对象以及垃圾回收器尚未标记为空闲的死亡对象所占用的内存。
+
+/memory/classes/heap/released:bytes
+	完全空闲且已归还给底层系统的内存。此指标是运行时对仍映射在进程中、但不再由物理内存支撑的空闲地址空间的估算。
+
+/memory/classes/heap/stacks:bytes
+	从堆中分配、预留作栈空间的内存，无论当前是否正在使用。目前，它表示所有 goroutine 栈内存，也包括非 cgo 程序中的所有操作系统线程栈。注意，将来可能采用不同的栈分配方式，这一点也可能改变。
+
+/memory/classes/heap/unused:bytes
+	为堆对象预留、但当前未用于存放堆对象的内存。
+
+/memory/classes/metadata/mcache/free:bytes
+	为运行时 mcache 结构预留但尚未使用的内存。
+
+/memory/classes/metadata/mcache/inuse:bytes
+	当前正在使用的运行时 mcache 结构所占用的内存。
+
+/memory/classes/metadata/mspan/free:bytes
+	为运行时 mspan 结构预留但尚未使用的内存。
+
+/memory/classes/metadata/mspan/inuse:bytes
+	当前正在使用的运行时 mspan 结构所占用的内存。
+
+/memory/classes/metadata/other:bytes
+	为运行时元数据预留或用于存放运行时元数据的内存。
+
+/memory/classes/os-stacks:bytes
+	由底层操作系统分配的栈内存。在非 cgo 程序中，此指标当前为零，将来可能改变。在 cgo 程序中，此指标包括直接从操作系统分配的操作系统线程栈。目前，它仅在 c-shared 和 c-archive 构建模式下统计一个栈，未测量来自操作系统的其他栈来源；这也可能在将来改变。
+
+/memory/classes/other:bytes
+	执行跟踪缓冲区、用于调试运行时的结构、终结器和性能剖析器的特殊记录等所使用的内存。
+
+/memory/classes/profiling/buckets:bytes
+	用于性能剖析的栈轨迹哈希映射所使用的内存。
+
+/memory/classes/total:bytes
+	Go 运行时映射到当前进程中的所有可读写内存。注意，这不包括通过 cgo 调用的代码或通过 syscall 包映射的内存。它是 /memory/classes 下所有指标的总和。
+
+/sched/gomaxprocs:threads
+	当前 runtime.GOMAXPROCS 设置，即能够同时执行用户级 Go 代码的操作系统线程数量。
+
+/sched/goroutines-created:goroutines
+	自程序启动以来创建的 goroutine 数量。
+
+/sched/goroutines/not-in-go:goroutines
+	正在系统调用或 cgo 调用中运行或阻塞的 goroutine 的近似数量。不保证它与其他 goroutine 指标相加后等于 /sched/goroutines:goroutines。
+
+/sched/goroutines/runnable:goroutines
+	已准备好执行但尚未执行的 goroutine 的近似数量。不保证它与其他 goroutine 指标相加后等于 /sched/goroutines:goroutines。
+
+/sched/goroutines/running:goroutines
+	正在执行的 goroutine 的近似数量。始终小于或等于 /sched/gomaxprocs:threads。不保证它与其他 goroutine 指标相加后等于 /sched/goroutines:goroutines。
+
+/sched/goroutines/waiting:goroutines
+	等待资源（I/O 或同步原语）的 goroutine 的近似数量。不保证它与其他 goroutine 指标相加后等于 /sched/goroutines:goroutines。
+
+/sched/goroutines:goroutines
+	存活的 goroutine 数量。
+
+/sched/latencies:seconds
+	goroutine 在真正运行之前，以可运行状态等待在调度器中的时间分布。桶计数单调递增。
+
+/sched/pauses/stopping/gc:seconds
+	各次 GC 相关的全局暂停（stop-the-world）中停止阶段的延迟分布，即从决定暂停所有执行到所有 P 都停止所需的时间。它是 GC 相关全局暂停总时间（/sched/pauses/total/gc:seconds）的一部分。在此期间，某些线程可能仍在执行。桶计数单调递增。
+
+/sched/pauses/stopping/other:seconds
+	各次非 GC 相关的全局暂停（stop-the-world）中停止阶段的延迟分布，即从决定暂停所有执行到所有 P 都停止所需的时间。它是非 GC 相关全局暂停总时间（/sched/pauses/total/other:seconds）的一部分。在此期间，某些线程可能仍在执行。桶计数单调递增。
+
+/sched/pauses/total/gc:seconds
+	各次 GC 相关的全局暂停（stop-the-world）的暂停延迟分布，即从决定暂停所有执行到重新开始执行的时间。其中一部分时间用于让所有线程停止（由 /sched/pauses/stopping/gc:seconds 直接测量），在此期间某些线程可能仍在运行。桶计数单调递增。
+
+/sched/pauses/total/other:seconds
+	各次非 GC 相关的全局暂停（stop-the-world）的暂停延迟分布，即从决定暂停所有执行到重新开始执行的时间。其中一部分时间用于让所有线程停止（由 /sched/pauses/stopping/other:seconds 直接测量）。桶计数单调递增。
+
+/sched/threads/total:threads
+	当前由 Go 运行时拥有的存活线程数量。
+
+/sync/mutex/wait/total:seconds
+	goroutine 阻塞在 sync.Mutex、sync.RWMutex 或运行时内部锁上的近似累计时间。此指标有助于识别锁争用的整体变化。要获得更详细的争用数据，请使用 runtime/pprof 包采集互斥锁或阻塞剖析数据。
+
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Read">func Read(m []Sample)</a></dd>
+			
+			
+				
+				<dd><a href="#Description">type Description</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#All">func All() []Description</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Float64Histogram">type Float64Histogram</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Sample">type Sample</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Float64">func (v Value) Float64() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Float64Histogram">func (v Value) Float64Histogram() *Float64Histogram</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Kind">func (v Value) Kind() ValueKind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Uint64">func (v Value) Uint64() uint64</a></dd>
+				
+			
+				
+				<dd><a href="#ValueKind">type ValueKind</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Read_readingAllMetrics">Read (ReadingAllMetrics)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Read_readingOneMetric">Read (ReadingOneMetric)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/metrics/description.go">description.go</a>
+			
+				<a href="/src/runtime/metrics/doc.go">doc.go</a>
+			
+				<a href="/src/runtime/metrics/histogram.go">histogram.go</a>
+			
+				<a href="/src/runtime/metrics/sample.go">sample.go</a>
+			
+				<a href="/src/runtime/metrics/value.go">value.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Read">func <a href="/src/runtime/metrics/sample.go?s=1653:1674#L35">Read</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func Read(m []<a href="#Sample">Sample</a>)</pre>
+			<p>Read 填充给定指标样本切片中每个样本的 <a href="#Value">Value</a> 字段。<p>切片中应包含所需指标，并设置适当的名称。为了提高效率，建议此 API 的使用者在不同调用之间复用同一个切片，但并非必须如此。<p>注意，复用有一些限制。特别是，当包含某个 Value 的 Read 调用尚未完成时，不应读取或操作该 Value，否则会发生数据竞争。这也适用于指针类型的 Value（例如 <a href="#Float64Histogram">Float64Histogram</a>），因为 Read 会尽可能复用其底层存储。要在并发环境中安全地使用此类值，必须深拷贝全部数据。<p>可以安全地并发执行多个 Read 调用，但各调用的参数不能共享任何底层内存。如果不确定，应从头创建一个新的 []Sample；这种方式始终安全，但可能效率较低。<p>对于名称未出现在 <a href="#All">All</a> 中的样本，其 Value 会填充为 KindBad，以表示名称未知。<div id="example_Read_readingAllMetrics" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ReadingAllMetrics)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ReadingAllMetrics)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;runtime/metrics&#34;
+)
+
+func main() {
+	// 获取所有受支持指标的描述。
+	descs := metrics.All()
+
+	// 为每个指标创建一个样本。
+	samples := make([]metrics.Sample, len(descs))
+	for i := range samples {
+		samples[i].Name = descs[i].Name
+	}
+
+	// 采样这些指标。尽可能复用 samples 切片！
+	metrics.Read(samples)
+
+	// 遍历所有结果。
+	for _, sample := range samples {
+		// 取出名称和值。
+		name, value := sample.Name, sample.Value
+
+		// 处理每个样本。
+		switch value.Kind() {
+		case metrics.KindUint64:
+			fmt.Printf(&#34;%s: %d\n&#34;, name, value.Uint64())
+		case metrics.KindFloat64:
+			fmt.Printf(&#34;%s: %f\n&#34;, name, value.Float64())
+		case metrics.KindFloat64Histogram:
+			// 直方图可能相当大，因此本示例
+			// 只取一个中位数的粗略估计值。
+			fmt.Printf(&#34;%s: %f\n&#34;, name, medianBucket(value.Float64Histogram()))
+		case metrics.KindBad:
+			// 这种情况永远不应发生，因为按构造方式，所有指标
+			// 都受支持。
+			panic(&#34;bug in runtime/metrics package!&#34;)
+		default:
+			// 添加新指标时可能发生这种情况。
+			//
+			// 这里最稳妥的做法是将其记录下来，
+			// 作为待调查事项，目前先忽略。
+			// 最坏的情况是暂时遗漏某个新指标。
+			fmt.Printf(&#34;%s: unexpected metric Kind: %v\n&#34;, name, value.Kind())
+		}
+	}
+}
+
+func medianBucket(h *metrics.Float64Histogram) float64 {
+	total := uint64(0)
+	for _, count := range h.Counts {
+		total &#43;= count
+	}
+	thresh := total / 2
+	total = 0
+	for i, count := range h.Counts {
+		total &#43;= count
+		if total &gt;= thresh {
+			return h.Buckets[i]
+		}
+	}
+	panic(&#34;should not happen&#34;)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Read_readingOneMetric" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ReadingOneMetric)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ReadingOneMetric)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;runtime/metrics&#34;
+)
+
+func main() {
+	// 要读取的指标名称。
+	const myMetric = &#34;/memory/classes/heap/free:bytes&#34;
+
+	// 为该指标创建样本。
+	sample := make([]metrics.Sample, 1)
+	sample[0].Name = myMetric
+
+	// 采样该指标。
+	metrics.Read(sample)
+
+	// 检查该指标是否确实受支持。
+	// 如果不受支持，结果值的种类
+	// 始终为 KindBad。
+	if sample[0].Value.Kind() == metrics.KindBad {
+		panic(fmt.Sprintf(&#34;metric %q no longer supported&#34;, myMetric))
+	}
+
+	// 处理结果。
+	//
+	// 可以假定某个指标具有特定 Kind；
+	// 保证指标的 Kind 不会改变。
+	freeBytes := sample[0].Value.Uint64()
+
+	fmt.Printf(&#34;free but not released memory: %d\n&#34;, freeBytes)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Description">type <a href="/src/runtime/metrics/description.go?s=248:2232#L1">Description</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Description 描述一个运行时指标。<pre>type Description struct {
+<span id="Description.Name"></span>    <span class="comment">// Name 是指标的完整名称，包含单位。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 指标名称的格式可以用以下正则表达式描述。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	^(?P&lt;name&gt;/[^:]+):(?P&lt;unit&gt;[^:*/]+(?:[*/][^:*/]+)*)$</span>
+    <span class="comment">//</span>
+    <span class="comment">// 该格式将名称分为两个部分，以冒号分隔：始终以 / 开头的路径，</span>
+    <span class="comment">// 以及机器可解析的单位。名称中各个 / 之间可以包含任意有效的 Unicode</span>
+    <span class="comment">// 码点，但按照惯例，会尽量只使用小写</span>
+    <span class="comment">// 字符和连字符。例如，路径可以是 "/memory/heap/free"。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 按照惯例，单位由一系列不带前缀的小写英文单位名（单数或复数）</span>
+    <span class="comment">// 组成，以 '*' 或 '/' 分隔。单位名可以包含不是分隔符的任意有效 Unicode</span>
+    <span class="comment">// 码点。</span>
+    <span class="comment">// 单位示例有 "seconds"、"bytes"、"bytes/second"、"cpu-seconds"、</span>
+    <span class="comment">// "byte*cpu-seconds" 和 "bytes/second/second"。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于直方图，可能涉及多种单位，例如桶的单位和</span>
+    <span class="comment">// 计数的单位。按照惯例，直方图计数的单位始终为 "samples"，</span>
+    <span class="comment">// 样本的类型可从指标名称中看出，而名称中的单位</span>
+    <span class="comment">// 则指定桶的单位。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 完整名称的示例为 "/memory/heap/free:bytes"。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="Description.Description"></span>    <span class="comment">// Description 是描述该指标的英文句子。</span>
+    Description <a href="/pkg/builtin/#string">string</a>
+
+<span id="Description.Kind"></span>    <span class="comment">// Kind 是此指标值的种类。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 此字段用于让使用者过滤掉那些值的类型</span>
+    <span class="comment">// 可能无法被其应用程序理解的指标。</span>
+    Kind <a href="#ValueKind">ValueKind</a>
+
+<span id="Description.Cumulative"></span>    <span class="comment">// Cumulative 表示指标是否为累计值。如果累计指标只是</span>
+    <span class="comment">// 单个数字，它会单调递增。如果指标是分布，</span>
+    <span class="comment">// 则每个桶的计数都会单调递增。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 因此，此标志表示根据该值计算变化速率是否有意义。</span>
+    Cumulative <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="All">func <a href="/src/runtime/metrics/description.go?s=23030:23054#L529">All</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func All() []<a href="#Description">Description</a></pre>
+				<p>All 返回包含所有受支持指标描述的切片。<h2 id="Float64Histogram">type <a href="/src/runtime/metrics/histogram.go?s=242:1364#L1">Float64Histogram</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Float64Histogram 表示 float64 值的分布。<pre>type Float64Histogram struct {
+<span id="Float64Histogram.Counts"></span>    <span class="comment">// Counts 包含各个直方图桶的权重。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 给定 N 个桶，Count[n] 是区间</span>
+    <span class="comment">// [bucket[n], bucket[n+1]) 的权重，其中 0 &lt;= n &lt; N。</span>
+    Counts []<a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="Float64Histogram.Buckets"></span>    <span class="comment">// Buckets 包含按递增顺序排列的直方图桶边界。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Buckets[0] 是最小桶的包含式下界，</span>
+    <span class="comment">// Buckets[len(Buckets)-1] 是最大桶的不包含式上界。</span>
+    <span class="comment">// 因此，共有 len(Buckets)-1 个计数。此外，始终有 len(Buckets) != 1，</span>
+    <span class="comment">// 因为描述一个桶至少需要两个边界（而 0 个</span>
+    <span class="comment">// 边界用来描述 0 个桶）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Buckets[0] 可以为 -Inf，Buckets[len(Buckets)-1] 可以</span>
+    <span class="comment">// 为 Inf。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于给定的指标名称，保证 Buckets 的值在不同调用</span>
+    <span class="comment">// 之间不发生变化，直至程序退出。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 此切片可以与其他 Float64Histogram 的 Buckets</span>
+    <span class="comment">// 字段共享底层存储，因此其中的值只能读取。如果需要</span>
+    <span class="comment">// 修改，使用者必须先复制。</span>
+    Buckets []<a href="/pkg/builtin/#float64">float64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Sample">type <a href="/src/runtime/metrics/sample.go?s=307:537#L3">Sample</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Sample 记录单个指标样本。<pre>type Sample struct {
+<span id="Sample.Name"></span>    <span class="comment">// Name 是所采样指标的名称。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它必须对应 All 返回的某个指标描述</span>
+    <span class="comment">// 中的名称。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="Sample.Value"></span>    <span class="comment">// Value 是指标样本的值。</span>
+    Value <a href="#Value">Value</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/runtime/metrics/value.go?s=734:897#L20">Value</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Value 表示运行时返回的指标值。<pre>type Value struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Value.Float64">func (Value) <a href="/src/runtime/metrics/value.go?s=1379:1411#L44">Float64</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Float64() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>Float64 返回该指标内部的 float64 值。<p>如果 v.Kind() != KindFloat64，此方法会引发 panic。<h3 id="Value.Float64Histogram">func (Value) <a href="/src/runtime/metrics/value.go?s=1685:1736#L54">Float64Histogram</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Float64Histogram() *<a href="#Float64Histogram">Float64Histogram</a></pre>
+				<p>Float64Histogram 返回该指标内部的 *Float64Histogram 值。<p>如果 v.Kind() != KindFloat64Histogram，此方法会引发 panic。<h3 id="Value.Kind">func (Value) <a href="/src/runtime/metrics/value.go?s=963:994#L27">Kind</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Kind() <a href="#ValueKind">ValueKind</a></pre>
+				<p>Kind 返回表示该值种类的标签。<h3 id="Value.Uint64">func (Value) <a href="/src/runtime/metrics/value.go?s=1128:1158#L34">Uint64</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 返回该指标内部的 uint64 值。<p>如果 v.Kind() != KindUint64，此方法会引发 panic。<h2 id="ValueKind">type <a href="/src/runtime/metrics/value.go?s=276:294#L3">ValueKind</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>ValueKind 是指标 <a href="#Value">Value</a> 的标签，用于指示其类型。<pre>type ValueKind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// KindBad 表示 Value 没有类型，不应使用。</span>
+    <span id="KindBad">KindBad</span> <a href="#ValueKind">ValueKind</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// KindUint64 表示 Value 的类型为 uint64。</span>
+    <span id="KindUint64">KindUint64</span>
+
+    <span class="comment">// KindFloat64 表示 Value 的类型为 float64。</span>
+    <span id="KindFloat64">KindFloat64</span>
+
+    <span class="comment">// KindFloat64Histogram 表示 Value 的类型为 *Float64Histogram。</span>
+    <span id="KindFloat64Histogram">KindFloat64Histogram</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,124 @@
+<!--{
+  "Title": "go/importer 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/importer 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/importer"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>importer 包提供对导出数据导入器的访问。<p>这些函数大多已弃用，它们早于 Go 1.11 引入模块的时间。除仅依赖标准库的小程序测试用例外，不应再依赖它们。若需要可靠且支持模块的类型信息加载，请使用 golang.org/x/tools/go/packages 中的 packages.Load 函数。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Default">func Default() types.Importer</a></dd>
+			
+				<dd><a href="#For">func For(compiler string, lookup Lookup) types.Importer</a></dd>
+			
+				<dd><a href="#ForCompiler">func ForCompiler(fset *token.FileSet, compiler string, lookup Lookup) types.Importer</a></dd>
+			
+			
+				
+				<dd><a href="#Lookup">type Lookup</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/importer/importer.go">importer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Default">func <a href="/src/go/importer/importer.go?s=3482:3511#L88">Default</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Default() <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>Default 返回适用于构建当前运行二进制文件的编译器的 Importer。如果支持，返回值会实现 <a href="/pkg/go/types/#ImporterFrom">types.ImporterFrom</a>。<p>Default 在最简单的场景中可能很方便，但大多数调用方应改用 <a href="#ForCompiler">ForCompiler</a>，它接受调用方提供的 <a href="/pkg/go/token/#FileSet">token.FileSet</a>；没有 FileSet，通过 Importer 得到的所有位置信息都会不正确，并产生误导。另见包文档。<h2 id="For">func <a href="/src/go/importer/importer.go?s=2912:2967#L76">For</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func For(compiler <a href="/pkg/builtin/#string">string</a>, lookup <a href="#Lookup">Lookup</a>) <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>For 使用新的 FileSet 调用 <a href="#ForCompiler">ForCompiler</a>。<p>已弃用：请使用 <a href="#ForCompiler">ForCompiler</a>，它会将导入器创建的对象的位置填入 FileSet。<h2 id="ForCompiler">func <a href="/src/go/importer/importer.go?s=1971:2055#L38">ForCompiler</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<pre>func ForCompiler(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, compiler <a href="/pkg/builtin/#string">string</a>, lookup <a href="#Lookup">Lookup</a>) <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>ForCompiler 返回一个 Importer：对于“gc”和“gccgo”编译器，从已安装的包导入；如果 compiler 参数为“source”，则直接从源代码导入。后一种情况下，如果导出的 API 并非完全由纯 Go 源代码定义，导入可能失败；例如，包 API 依赖 cgo 定义的实体时，类型检查器无法访问这些实体。<p>每当返回的导入器需要解析导入路径时，都会调用 lookup 函数。在这种模式下，只能使用规范导入路径（不能使用相对路径或绝对路径）调用导入器；假定调用方已经完成向规范导入路径的转换。<p>要正确支持模块，必须提供 lookup 函数。将 lookup 设为 nil 的做法已弃用，但为保持向后兼容，此时导入器会尝试在 $GOPATH 工作区中解析导入。<h2 id="Lookup">type <a href="/src/go/importer/importer.go?s=903:955#L18">Lookup</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Lookup 函数返回一个读取器，用于访问给定导入路径对应的包数据；如果找不到匹配的包，则返回错误。<pre>type Lookup func(path <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

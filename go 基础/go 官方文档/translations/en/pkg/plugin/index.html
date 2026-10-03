@@ -1,0 +1,243 @@
+<!--{
+  "Title": "plugin package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package plugin</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "plugin"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package plugin implements loading and symbol resolution of Go plugins.
+<p>A plugin is a Go main package with exported functions and variables that
+has been built with:
+<pre>go build -buildmode=plugin
+</pre>
+<p>When a plugin is first opened, the init functions of all packages not
+already part of the program are called. The main function is not run.
+A plugin is only initialized once, and cannot be closed.
+<h3 id="hdr-Warnings">Warnings</h3>
+<p>The ability to dynamically load parts of an application during
+execution, perhaps based on user-defined configuration, may be a
+useful building block in some designs. In particular, because
+applications and dynamically loaded functions can share data
+structures directly, plugins may enable very high-performance
+integration of separate parts.
+<p>However, the plugin mechanism has many significant drawbacks that
+should be considered carefully during the design. For example:
+<ul>
+<li><p>Plugins are currently supported only on Linux, FreeBSD, and
+macOS, making them unsuitable for applications intended to be
+portable.
+<li><p>Plugins are poorly supported by the Go race detector. Even simple
+race conditions may not be automatically detected. See
+<a href="/issue/24245">https://go.dev/issue/24245</a> for more information.
+<li><p>Applications that use plugins may require careful configuration
+to ensure that the various parts of the program be made available
+in the correct location in the file system (or container image).
+By contrast, deploying an application consisting of a single static
+executable is straightforward.
+<li><p>Reasoning about program initialization is more difficult when
+some packages may not be initialized until long after the
+application has started running.
+<li><p>Bugs in applications that load plugins could be exploited by
+an attacker to load dangerous or untrusted libraries.
+<li><p>Runtime crashes are likely to occur unless all parts of the
+program (the application and all its plugins) are compiled
+using exactly the same version of the toolchain, the same build
+tags, and the same values of certain flags and environment
+variables.
+<li><p>Similar crashing problems are likely to arise unless all common
+dependencies of the application and its plugins are built from
+exactly the same source code.
+<li><p>Together, these restrictions mean that, in practice, the
+application and its plugins must all be built together by a
+single person or component of a system. In that case, it may
+be simpler for that person or component to generate Go source
+files that blank-import the desired set of plugins and then
+compile a static executable in the usual way.
+</ul>
+<p>For these reasons, many users decide that traditional interprocess
+communication (IPC) mechanisms such as sockets, pipes, remote
+procedure call (RPC), shared memory mappings, or file system
+operations may be more suitable despite the performance overheads.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Plugin">type Plugin</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(path string) (*Plugin, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Plugin.Lookup">func (p *Plugin) Lookup(symName string) (Symbol, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Symbol">type Symbol</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/plugin/plugin.go">plugin.go</a>
+			
+				<a href="/src/plugin/plugin_dlopen.go">plugin_dlopen.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Plugin">type <a href="/src/plugin/plugin.go?s=3274:3448#L63">Plugin</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Plugin is a loaded Go plugin.
+
+			<pre>type Plugin struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Open">func <a href="/src/plugin/plugin.go?s=3613:3652#L73">Open</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func Open(path <a href="/pkg/builtin/#string">string</a>) (*<a href="#Plugin">Plugin</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open opens a Go plugin.
+If a path has already been opened, then the existing *<a href="#Plugin">Plugin</a> is returned.
+It is safe for concurrent use by multiple goroutines.
+
+				
+			
+
+			
+				<h3 id="Plugin.Lookup">func (*Plugin) <a href="/src/plugin/plugin.go?s=3894:3949#L81">Lookup</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (p *<a href="#Plugin">Plugin</a>) Lookup(symName <a href="/pkg/builtin/#string">string</a>) (<a href="#Symbol">Symbol</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lookup searches for a symbol named symName in plugin p.
+A symbol is any exported variable or function.
+It reports an error if the symbol is not found.
+It is safe for concurrent use by multiple goroutines.
+
+				
+			
+		
+			
+			<h2 id="Symbol">type <a href="/src/plugin/plugin.go?s=4570:4585#L114">Symbol</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>A Symbol is a pointer to a variable or function.
+<p>For example, a plugin defined as
+<pre>package main
+
+import &quot;fmt&quot;
+
+var V int
+
+func F() { fmt.Printf(&quot;Hello, number %d\n&quot;, V) }
+</pre>
+<p>may be loaded with the <a href="#Open">Open</a> function and then the exported package
+symbols V and F can be accessed
+<pre>p, err := plugin.Open(&quot;plugin_name.so&quot;)
+if err != nil {
+	panic(err)
+}
+v, err := p.Lookup(&quot;V&quot;)
+if err != nil {
+	panic(err)
+}
+f, err := p.Lookup(&quot;F&quot;)
+if err != nil {
+	panic(err)
+}
+*v.(*int) = 7
+f.(func())() // prints &quot;Hello, number 7&quot;
+</pre>
+
+			<pre>type Symbol <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

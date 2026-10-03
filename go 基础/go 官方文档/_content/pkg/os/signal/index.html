@@ -1,0 +1,311 @@
+<!--{
+  "Title": "os/signal 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>os/signal 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "os/signal"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>signal 包提供接收传入信号的功能。<p>信号主要用于类 Unix 系统。本包在 Windows 和 Plan 9 上的用法见下文。<h3 id="hdr-Types_of_signals">信号的类型</h3>
+<p>程序无法捕获 SIGKILL 和 SIGSTOP 信号，因此本包也无法影响它们。<p>同步信号是由程序执行错误触发的信号：SIGBUS、SIGFPE 和 SIGSEGV。只有由程序执行引发时，它们才被视为同步信号；通过 <a href="/pkg/os/#Process.Kill">os.Process.Kill</a>、kill 程序或类似机制发送时则不是。一般来说，除下文讨论的情况外，Go 程序会将同步信号转换为运行时 panic。<p>其余信号是异步信号。它们不是由程序错误触发，而是由内核或其他程序发送。<p>在异步信号中，程序失去其控制终端时会收到 SIGHUP。用户在控制终端按下中断字符时会发送 SIGINT，中断字符默认为 ^C（Control-C）。用户在控制终端按下退出字符时会发送 SIGQUIT，退出字符默认为 ^\（Control-反斜杠）。通常，按 ^C 可使程序直接退出，按 ^\ 可使程序输出栈转储后退出。<h3 id="hdr-Default_behavior_of_signals_in_Go_programs">Go 程序中信号的默认行为</h3>
+<p>默认情况下，同步信号会转换为运行时 panic。SIGHUP、SIGINT 或 SIGTERM 会导致程序退出。SIGQUIT、SIGILL、SIGTRAP、SIGABRT、SIGSTKFLT、SIGEMT 或 SIGSYS 会导致程序输出栈转储后退出。SIGTSTP、SIGTTIN 或 SIGTTOU 会采用系统默认行为（shell 使用这些信号进行作业控制）。SIGPROF 由 Go 运行时直接处理，用于实现 runtime.CPUProfile。其他信号会被捕获，但不会执行任何操作。<p>如果 Go 程序启动时 SIGHUP 或 SIGINT 已被忽略（信号处理函数设置为 SIG_IGN），它们将继续被忽略。<p>如果 Go 程序启动时信号屏蔽集非空，通常会遵循该设置。不过，一些信号会被显式解除屏蔽：同步信号、SIGILL、SIGTRAP、SIGSTKFLT、SIGCHLD、SIGPROF，以及 Linux 上的信号 32（SIGCANCEL）和 33（SIGSETXID）（SIGCANCEL 和 SIGSETXID 由 glibc 在内部使用）。通过 <a href="/pkg/os/#Exec">os.Exec</a> 或 <a href="/pkg/os/exec/">os/exec</a> 启动的子进程会继承修改后的信号屏蔽集。<h3 id="hdr-Changing_the_behavior_of_signals_in_Go_programs">改变 Go 程序中的信号行为</h3>
+<p>本包中的函数允许程序改变 Go 程序处理信号的方式。<p>Notify 会禁用指定异步信号集合的默认行为，改为通过一个或多个已注册的通道传递这些信号。具体而言，它适用于 SIGHUP、SIGINT、SIGQUIT、SIGABRT 和 SIGTERM，也适用于作业控制信号 SIGTSTP、SIGTTIN 和 SIGTTOU；此时不会发生系统默认行为。它还适用于一些原本不会执行任何操作的信号：SIGUSR1、SIGUSR2、SIGPIPE、SIGALRM、SIGCHLD、SIGCONT、SIGURG、SIGXCPU、SIGXFSZ、SIGVTALRM、SIGWINCH、SIGIO、SIGPWR、SIGINFO、SIGTHR、SIGWAITING、SIGLWP、SIGFREEZE、SIGTHAW、SIGLOST、SIGXRES、SIGJVM1、SIGJVM2，以及系统中使用的所有实时信号。注意，并非所有系统都支持全部这些信号。<p>如果程序启动时 SIGHUP 或 SIGINT 已被忽略，随后对其中某个信号调用 <a href="#Notify">Notify</a>，就会为该信号安装处理函数，不再忽略它。如果之后对该信号调用 <a href="#Reset">Reset</a> 或 <a href="#Ignore">Ignore</a>，或者对为该信号传入 Notify 的所有通道调用 <a href="#Stop">Stop</a>，该信号将再次被忽略。Reset 会恢复信号的系统默认行为，而 Ignore 会让系统完全忽略该信号。<p>如果程序启动时信号屏蔽集非空，某些信号会按前文所述被显式解除屏蔽。如果对被屏蔽的信号调用 Notify，该信号将解除屏蔽。如果之后对该信号调用 Reset，或者对为该信号传入 Notify 的所有通道调用 Stop，该信号将再次被屏蔽。<h3 id="hdr-SIGPIPE">SIGPIPE</h3>
+<p>当 Go 程序向断开的管道写入时，内核会引发 SIGPIPE 信号。<p>如果程序未调用 Notify 来接收 SIGPIPE 信号，行为取决于文件描述符编号。向文件描述符 1 或 2（标准输出或标准错误）上的断开管道写入，会导致程序因 SIGPIPE 信号而退出。向其他文件描述符上的断开管道写入，不会对 SIGPIPE 信号采取任何操作，写入会失败并返回 <a href="/pkg/syscall/#EPIPE">syscall.EPIPE</a> 错误。<p>如果程序已调用 Notify 接收 SIGPIPE 信号，文件描述符编号就无关紧要。SIGPIPE 会被发送到 Notify 通道，写入会失败并返回 <a href="/pkg/syscall/#EPIPE">syscall.EPIPE</a> 错误。<p>这意味着默认情况下，命令行程序的行为与典型 Unix 命令行程序一致，而其他程序向已关闭的网络连接写入时，不会因 SIGPIPE 而崩溃。<h3 id="hdr-Go_programs_that_use_cgo_or_SWIG">使用 cgo 或 SWIG 的 Go 程序</h3>
+<p>在包含非 Go 代码（通常是通过 cgo 或 SWIG 访问的 C/C++ 代码）的 Go 程序中，Go 的启动代码通常先执行。它会在非 Go 启动代码运行前，按 Go 运行时的要求配置信号处理函数。如果非 Go 启动代码要安装自己的信号处理函数，必须采取一些措施，确保 Go 正常工作。本节说明这些措施，以及非 Go 代码修改信号处理设置对 Go 程序可能产生的整体影响。极少数情况下，非 Go 代码可能先于 Go 代码运行，此时下一节也适用。<p>如果 Go 程序调用的非 Go 代码没有更改任何信号处理函数或屏蔽集，行为就与纯 Go 程序相同。<p>如果非 Go 代码安装了任何信号处理函数，必须在调用 sigaction 时使用 SA_ONSTACK 标志。否则，收到信号时很可能导致程序崩溃。Go 程序通常使用受限的栈，因此会设置备用信号栈。<p>如果非 Go 代码为任一同步信号（SIGBUS、SIGFPE、SIGSEGV）安装处理函数，应保存现有的 Go 信号处理函数。如果这些信号在执行 Go 代码时发生，就应调用 Go 信号处理函数（可通过检查传入信号处理函数的 PC 来判断信号是否发生在执行 Go 代码期间）。否则，某些 Go 运行时 panic 将无法按预期发生。<p>如果非 Go 代码为任一异步信号安装处理函数，可以自行决定是否调用 Go 信号处理函数。当然，如果不调用 Go 信号处理函数，前文所述的 Go 行为就不会发生。这对 SIGPROF 信号尤其可能造成问题。<p>非 Go 代码不应更改 Go 运行时创建的任何线程的信号屏蔽集。如果非 Go 代码自行启动新线程，这些线程可以按需设置信号屏蔽集。<p>如果非 Go 代码启动新线程、更改信号屏蔽集，然后在该线程中调用 Go 函数，Go 运行时会自动解除以下信号的屏蔽：同步信号、SIGILL、SIGTRAP、SIGSTKFLT、SIGCHLD、SIGPROF、SIGCANCEL 和 SIGSETXID。Go 函数返回后，会恢复非 Go 代码的信号屏蔽集。<p>如果 Go 信号处理函数在未运行 Go 代码的非 Go 线程上被调用，它通常按以下方式将信号转发给非 Go 代码。如果信号是 SIGPROF，Go 处理函数不执行任何操作。否则，Go 处理函数会移除自身、解除该信号的屏蔽，并重新引发该信号，以调用非 Go 处理函数或系统默认处理函数。如果程序没有退出，Go 处理函数会重新安装自身，然后继续执行程序。<p>如果在 Go 线程上收到 SIGPIPE 信号，Go 程序会采用前文所述的特殊处理方式。如果在非 Go 线程上收到 SIGPIPE，有非 Go 处理函数时会将信号转发给它；如果没有，系统默认处理函数会导致程序终止。<h3 id="hdr-Non_Go_programs_that_call_Go_code">调用 Go 代码的非 Go 程序</h3>
+<p>使用 -buildmode=c-shared 等选项构建的 Go 代码会作为现有非 Go 程序的一部分运行。Go 代码启动时，非 Go 代码可能已经安装了信号处理函数（使用 cgo 或 SWIG 的少数特殊情况也可能如此；这时本节同样适用）。对于 -buildmode=c-archive，Go 运行时会在执行全局构造函数时初始化信号。对于 -buildmode=c-shared，Go 运行时会在加载共享库时初始化信号。<p>如果 Go 运行时发现 SIGCANCEL 或 SIGSETXID（仅在 Linux 使用）已有信号处理函数，会开启 SA_ONSTACK 标志，其他方面则保留该处理函数。<p>对于同步信号和 SIGPIPE，Go 运行时会安装信号处理函数，并保存任何已有的信号处理函数。如果同步信号在执行非 Go 代码时到达，Go 运行时会调用原有的处理函数，而非 Go 信号处理函数。<p>使用 -buildmode=c-archive 或 -buildmode=c-shared 构建的 Go 代码默认不会安装其他信号处理函数。如果已有信号处理函数，Go 运行时会开启 SA_ONSTACK 标志，其他方面保留该函数。如果对某个异步信号调用 Notify，就会为该信号安装 Go 信号处理函数。如果之后对该信号调用 Reset，就会重新安装原来的处理方式，恢复原有的非 Go 信号处理函数（如果存在）。<p>未使用 -buildmode=c-archive 或 -buildmode=c-shared 构建的 Go 代码会为前文列出的异步信号安装处理函数，并保存任何已有的处理函数。如果信号被传递给非 Go 线程，行为与前文所述相同，但如果存在原有的非 Go 信号处理函数，会先安装该函数，再重新引发信号。<h3 id="hdr-Windows">Windows</h3>
+<p>在 Windows 上，^C（Control-C）或 ^BREAK（Control-Break）通常会导致程序退出。如果对 <a href="/pkg/os/#Interrupt">os.Interrupt</a> 调用 Notify，^C 或 ^BREAK 会使 <a href="/pkg/os/#Interrupt">os.Interrupt</a> 被发送到通道，程序不会退出。<a href="/pkg/os/#Interrupt">os.Interrupt</a> 是 Windows 上唯一可用的信号。如果调用 Reset，或者对传入 Notify 的所有通道调用 Stop，就会恢复默认行为。<p>此外，如果已调用 Notify，而 Windows 向进程发送 CTRL_CLOSE_EVENT、CTRL_LOGOFF_EVENT 或 CTRL_SHUTDOWN_EVENT，Notify 会返回 syscall.SIGTERM。与 Control-C 和 Control-Break 不同，Notify 不会改变进程收到 CTRL_CLOSE_EVENT、CTRL_LOGOFF_EVENT 或 CTRL_SHUTDOWN_EVENT 时的行为：如果进程没有自行退出，仍然会被终止。不过，收到 syscall.SIGTERM 能让进程有机会在终止前进行清理。<h3 id="hdr-Plan_9">Plan 9</h3>
+<p>在 Plan 9 上，信号的类型为 syscall.Note，它是字符串。使用 syscall.Note 调用 Notify 后，当该字符串作为 note 被发送时，就会将该值发送到通道。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Ignore">func Ignore(sig ...os.Signal)</a></dd>
+			
+				<dd><a href="#Ignored">func Ignored(sig os.Signal) bool</a></dd>
+			
+				<dd><a href="#Notify">func Notify(c chan&lt;- os.Signal, sig ...os.Signal)</a></dd>
+			
+				<dd><a href="#NotifyContext">func NotifyContext(parent context.Context, signals ...os.Signal) (ctx context.Context, stop context.CancelFunc)</a></dd>
+			
+				<dd><a href="#Reset">func Reset(sig ...os.Signal)</a></dd>
+			
+				<dd><a href="#Stop">func Stop(c chan&lt;- os.Signal)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Notify">Notify</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NotifyContext">NotifyContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Notify_allSignals">Notify (AllSignals)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/os/signal/doc.go">doc.go</a>
+			
+				<a href="/src/os/signal/signal.go">signal.go</a>
+			
+				<a href="/src/os/signal/signal_unix.go">signal_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Ignore">func <a href="/src/os/signal/signal.go?s=2113:2142#L81">Ignore</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Ignore(sig ...<a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>)</pre>
+			<p>Ignore 使指定信号被忽略。程序收到这些信号时不会发生任何事情。Ignore 会撤销此前针对这些信号调用 <a href="#Notify">Notify</a> 的效果。如果未指定信号，则忽略所有传入信号。<h2 id="Ignored">func <a href="/src/os/signal/signal.go?s=2228:2260#L86">Ignored</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func Ignored(sig <a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Ignored 报告当前是否忽略 sig。<h2 id="Notify">func <a href="/src/os/signal/signal.go?s=3403:3452#L116">Notify</a>
+				
+				
+			</h2>
+			<pre>func Notify(c chan&lt;- <a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>, sig ...<a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>)</pre>
+			<p>Notify 使 signal 包将传入信号转发到 c。如果未指定信号，所有传入信号都会被转发到 c；否则只转发指定的信号。<p>signal 包向 c 发送时不会阻塞：调用方必须确保 c 有足够的缓冲空间，以跟上预期的信号到达速率。对于只用于通知一个信号值的通道，大小为 1 的缓冲区就足够了。<p>可以对同一通道多次调用 Notify：每次调用都会扩大向该通道发送的信号集合。要从该集合中移除信号，只能调用 <a href="#Stop">Stop</a>。<p>可以使用不同通道和相同信号多次调用 Notify：各通道会独立接收传入信号的副本。<div id="example_Notify" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+)
+
+func main() {
+	// 创建用于发送信号通知的通道。
+	// 必须使用带缓冲的通道，否则如果信号发送时
+	// 尚未准备好接收，就可能丢失信号。
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	// 阻塞，直到收到信号。
+	s := &lt;-c
+	fmt.Println(&#34;Got signal:&#34;, s)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Notify_allSignals" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (AllSignals)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (AllSignals)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+)
+
+func main() {
+	// 创建用于发送信号通知的通道。
+	// 必须使用带缓冲的通道，否则如果信号发送时
+	// 尚未准备好接收，就可能丢失信号。
+	c := make(chan os.Signal, 1)
+
+	// 调用 Notify 时不指定信号，表示
+	// 将所有信号发送到该通道。
+	signal.Notify(c)
+
+	// 阻塞，直到收到任意信号。
+	s := &lt;-c
+	fmt.Println(&#34;Got signal:&#34;, s)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="NotifyContext">func <a href="/src/os/signal/signal.go?s=7576:7687#L283">NotifyContext</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func NotifyContext(parent <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, signals ...<a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>) (ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, stop <a href="/pkg/context/">context</a>.<a href="/pkg/context/#CancelFunc">CancelFunc</a>)</pre>
+			<p>NotifyContext 返回父 context 的副本；当任一指定信号到达、调用返回的 stop 函数，或父 context 的 Done 通道关闭时，以最先发生者为准，该副本会被标记为完成（其 Done 通道关闭）。<p>stop 函数会注销信号行为，与 <a href="#Reset">signal.Reset</a> 一样，这可能恢复某个信号的默认行为。例如，Go 程序收到 <a href="/pkg/os/#Interrupt">os.Interrupt</a> 时的默认行为是退出。调用 NotifyContext(parent, os.Interrupt) 会将此行为改为取消返回的 context。在调用返回的 stop 函数之前，后续收到的中断都不会触发默认的退出行为。<p>如果某个信号导致返回的 context 被取消，对它调用 <a href="/pkg/context/#Cause">context.Cause</a> 会返回描述该信号的错误。<p>stop 函数会释放相关资源，因此在此 Context 中运行的操作完成、且不再需要将信号转交给该 context 后，代码应尽快调用 stop。<div id="example_NotifyContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例传递一个关联了信号的 context，以通知阻塞函数在收到信号后放弃当前工作。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">//go:build unix
+
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+)
+
+var neverReady = make(chan struct{}) // 永不关闭
+
+// 此示例传递一个关联了信号的 context，以通知阻塞函数
+// 在收到信号后放弃当前工作。
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	p, err := os.FindProcess(os.Getpid())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 在类 Unix 系统上，按下键盘上的 Ctrl+C 会向
+	// 正在执行的程序进程发送 SIGINT 信号。
+	//
+	// 此示例通过向自身发送 SIGINT 信号来模拟这一过程。
+	if err := p.Signal(os.Interrupt); err != nil {
+		log.Fatal(err)
+	}
+
+	select {
+	case &lt;-neverReady:
+		fmt.Println(&#34;ready&#34;)
+	case &lt;-ctx.Done():
+		fmt.Println(ctx.Err()) // 输出 "context canceled"
+		stop()                 // 尽快停止接收信号通知。
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>context canceled
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Reset">func <a href="/src/os/signal/signal.go?s=4557:4585#L176">Reset</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Reset(sig ...<a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>)</pre>
+			<p>Reset 撤销此前针对指定信号调用 <a href="#Notify">Notify</a> 的效果。如果未指定信号，则重置所有信号处理函数。<h2 id="Stop">func <a href="/src/os/signal/signal.go?s=4829:4858#L183">Stop</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Stop(c chan&lt;- <a href="/pkg/os/">os</a>.<a href="/pkg/os/#Signal">Signal</a>)</pre>
+			<p>Stop 使 signal 包停止将传入信号转发到 c。它会撤销此前所有使用 c 调用 <a href="#Notify">Notify</a> 的效果。Stop 返回时，保证 c 不再收到任何信号。</article>

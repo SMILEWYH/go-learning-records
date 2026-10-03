@@ -1,0 +1,205 @@
+<!--{
+  "Title": "testing/slogtest package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package slogtest</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/slogtest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package slogtest implements support for testing implementations of log/slog.Handler.
+
+				
+
+
+<div id="example__parsing" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Parsing)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Parsing)</span></p>
+    <p>This example demonstrates one technique for testing a handler with this
+package. The handler is given a [bytes.Buffer] to write to, and each line
+of the resulting output is parsed.
+For JSON output, [encoding/json.Unmarshal] produces a result in the desired
+format when given a pointer to a map[string]any.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/json&#34;
+	&#34;log&#34;
+	&#34;log/slog&#34;
+	&#34;testing/slogtest&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	h := slog.NewJSONHandler(&amp;buf, nil)
+
+	results := func() []map[string]any {
+		var ms []map[string]any
+		for line := range bytes.SplitSeq(buf.Bytes(), []byte{&#39;\n&#39;}) {
+			if len(line) == 0 {
+				continue
+			}
+			var m map[string]any
+			if err := json.Unmarshal(line, &amp;m); err != nil {
+				panic(err) // In a real test, use t.Fatal.
+			}
+			ms = append(ms, m)
+		}
+		return ms
+	}
+	err := slogtest.TestHandler(h, results)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Run">func Run(t *testing.T, newHandler func(*testing.T) slog.Handler, result func(*testing.T) map[string]any)</a></dd>
+			
+				<dd><a href="#TestHandler">func TestHandler(h slog.Handler, results func() []map[string]any) error</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__parsing">Package (Parsing)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/slogtest/slogtest.go">slogtest.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Run">func <a href="/src/testing/slogtest/slogtest.go?s=8625:8729#L289">Run</a>
+				
+				<span title="自 Go 1.22 起提供">1.22</span>
+			</h2>
+			<pre>func Run(t *<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>, newHandler func(*<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>) <a href="/pkg/log/slog/">slog</a>.<a href="/pkg/log/slog/#Handler">Handler</a>, result func(*<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>) map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Run exercises a <a href="/pkg/log/slog/#Handler">slog.Handler</a> on the same test cases as <a href="#TestHandler">TestHandler</a>, but
+runs each case in a subtest. For each test case, it first calls newHandler to
+get an instance of the handler under test, then runs the test case, then
+calls result to get the result. If the test case fails, it calls t.Error.
+
+			
+		
+			
+			<h2 id="TestHandler">func <a href="/src/testing/slogtest/slogtest.go?s=7671:7742#L257">TestHandler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func TestHandler(h <a href="/pkg/log/slog/">slog</a>.<a href="/pkg/log/slog/#Handler">Handler</a>, results func() []map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>TestHandler tests a <a href="/pkg/log/slog/#Handler">slog.Handler</a>.
+If TestHandler finds any misbehaviors, it returns an error for each,
+combined into a single error with <a href="/pkg/errors/#Join">errors.Join</a>.
+<p>TestHandler installs the given Handler in a <a href="/pkg/log/slog/#Logger">slog.Logger</a> and
+makes several calls to the Logger&apos;s output methods.
+The Handler should be enabled for levels Info and above.
+<p>The results function is invoked after all such calls.
+It should return a slice of map[string]any, one for each call to a Logger output method.
+The keys and values of the map should correspond to the keys and values of the Handler&apos;s
+output. Each group in the output should be represented as its own nested map[string]any.
+The standard keys <a href="/pkg/log/slog/#TimeKey">slog.TimeKey</a>, <a href="/pkg/log/slog/#LevelKey">slog.LevelKey</a> and <a href="/pkg/log/slog/#MessageKey">slog.MessageKey</a> should be used.
+<p>If the Handler outputs JSON, then calling <a href="/pkg/encoding/json/#Unmarshal">encoding/json.Unmarshal</a> with a `map[string]any`
+will create the right data structure.
+<p>If a Handler intentionally drops an attribute that is checked by a test,
+then the results function should check for its absence and add it to the map it returns.
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

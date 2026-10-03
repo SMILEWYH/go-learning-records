@@ -1,0 +1,2249 @@
+<!--{
+  "Title": "encoding/json/v2 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package json</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/json/v2"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>json 包实现了 RFC 8259 规定的 JSON 语义处理。JSON 是一种简单的数据交换格式，可以表示布尔值、字符串和数值等基本数据类型，以及对象和数组等结构化数据类型。
+<p>本包的入门介绍见<a href="/doc/tutorial/json">使用 JSON</a> 教程。
+<p><a href="#Marshal">Marshal</a> 和 <a href="#Unmarshal">Unmarshal</a> 在 Go 值与 []byte 中的 JSON 文本之间进行编码和解码。<a href="#MarshalWrite">MarshalWrite</a> 和 <a href="#UnmarshalRead">UnmarshalRead</a> 通过向 <a href="/pkg/io/#Writer">io.Writer</a> 写入或从 <a href="/pkg/io/#Reader">io.Reader</a> 读取来处理 JSON 文本。<a href="#MarshalEncode">MarshalEncode</a> 和 <a href="#UnmarshalDecode">UnmarshalDecode</a> 通过向 <a href="/pkg/encoding/json/jsontext/#Encoder">jsontext.Encoder</a> 编码或从 <a href="/pkg/encoding/json/jsontext/#Decoder">jsontext.Decoder</a> 解码来处理 JSON 文本。可以向各个序列化或反序列化函数传入 <a href="#Options">Options</a>，配置序列化和反序列化的语义行为（即改变如何将 JSON 数据理解为 Go 数据，以及反向的解释方式）。还可以传入 <a href="/pkg/encoding/json/jsontext/#Options">jsontext.Options</a>，配置编码或解码的语法行为。
+<p>JSON 与 Go 的数据类型之间，按照两个类型系统中逻辑上最接近的对应关系进行映射。例如，JSON 布尔值对应 Go bool，JSON 字符串对应 Go string，JSON 数值对应 Go int、uint 或 float，JSON 数组对应 Go 切片或数组，JSON 对象对应 Go 结构体或映射。JSON 和 Go 类型系统之间完整的对应关系列表，见 <a href="#Marshal">Marshal</a> 和 <a href="#Unmarshal">Unmarshal</a> 文档。
+<p>任意 Go 类型都可以通过实现 <a href="#Marshaler">Marshaler</a>、<a href="#MarshalerTo">MarshalerTo</a>、<a href="#Unmarshaler">Unmarshaler</a> 或 <a href="#UnmarshalerFrom">UnmarshalerFrom</a> 来定制自身的 JSON 表示。这使 Go 类型的作者能够控制其类型如何序列化为 JSON。另一种方式是实现与 <a href="#MarshalFunc">MarshalFunc</a>、<a href="#MarshalToFunc">MarshalToFunc</a>、<a href="#UnmarshalFunc">UnmarshalFunc</a> 或 <a href="#UnmarshalFromFunc">UnmarshalFromFunc</a> 匹配的函数，为任意类型指定 JSON 表示。这使 JSON 功能的调用者能够控制任意类型如何序列化为 JSON。
+<h3 id="hdr-JSON_Representation_of_Go_structs">Go 结构体的 JSON 表示</h3>
+<p>Go 结构体自然地表示为 JSON 对象，每个 Go 结构体字段对应一个 JSON 对象成员。序列化时，除被忽略或省略的字段外，所有 Go 结构体字段都按深度优先顺序递归编码为 JSON 对象成员。反序列化时，JSON 对象成员递归解码到对应的 Go 结构体字段。不匹配任何结构体字段的对象成员又称“未知成员”，默认会被忽略；如果指定 <a href="#RejectUnknownMembers">RejectUnknownMembers</a>，则会被拒绝。
+<p>每个结构体字段的表示都可以通过“json”结构体字段标签定制，标签是一组以逗号分隔的选项。特殊情况下，如果整个标签为 `json:"-"`，则在 JSON 表示中忽略该字段。某些选项也有由调用者指定的 <a href="#Options">Options</a> 控制的等价行为。字段指定的选项优先于调用者指定的选项。
+<p>第一个选项覆盖 Go 结构体字段对应的 JSON 对象成员名称。如果未指定名称，则使用 Go 结构体字段名。默认情况下，反序列化采用区分大小写的匹配方式，确定与 JSON 对象成员名称关联的 Go 结构体字段。
+<p>名称之后支持以下标签选项：
+<ul>
+<li><p>omitzero：序列化时，“omitzero”指定在字段值为零值时省略该结构体字段。如果存在“IsZero() bool”方法，则由该方法判断；否则根据字段是否为 Go 零值判断。此选项不影响反序列化。
+<li><p>omitempty：序列化时，“omitempty”指定在字段值将被编码为 JSON null、空字符串、空对象或空数组时，省略该结构体字段。此选项不影响反序列化。
+<li><p>string：“string”选项指定在序列化或反序列化结构体字段值时设置 <a href="#StringifyNumbers">StringifyNumbers</a>。这使通常编码为 JSON 数值的类型改为编码成 JSON 字符串中带引号的 JSON 数值，并从包含 JSON 数值、且数值前后不带空白的 JSON 字符串解码。“string”选项仅作用于 Go 结构体字段值的顶层。对任何不编码为 JSON 数值的类型应用此选项都会出错。注意，数组、切片、结构体和映射等复合类型不编码为 JSON 数值，因此应用此选项会导致错误，而不会作用于这些类型内部的 JSON 数值。由于许多 JSON 解析器无法精确表示 64 位整数，这一额外编码层级通常是必要的。
+<li><p>case：反序列化时，“case”选项指定 JSON 对象成员名称如何匹配 Go 结构体字段的 JSON 名称。该选项是“case:value”形式的键值对，值必须为 'ignore' 或 'strict'。'ignore' 指定不区分大小写，并忽略连字符和下划线。如果有多个字段匹配，则选择名称完全匹配的字段；否则因无法确定应反序列化到哪个字段而报告错误。'strict' 指定区分大小写。此选项优先于 <a href="#MatchCaseInsensitiveNames">MatchCaseInsensitiveNames</a>。
+<li><p>embed：“embed”选项指定将此字段类型中可由 JSON 表示的内容提升，视为直接声明于父结构体中。这相当于 Go 结构体嵌入在 JSON 中的对应机制。除非显式指定 JSON 名称，Go 嵌入字段会隐式进行 JSON 嵌入。嵌入字段必须是 Go 结构体（不能实现任何 JSON 方法）、<a href="/pkg/encoding/json/jsontext/#Value">jsontext.Value</a>、map[~string]T，或指向这些类型的未命名指针。序列化时，如果指针类型的嵌入字段为 nil，则将其省略。类型为 <a href="/pkg/encoding/json/jsontext/#Value">jsontext.Value</a> 和 map[~string]T 的嵌入字段称为“嵌入兜底字段”，因为它们可以表示父结构体未直接处理的所有可能的 JSON 对象成员。一个结构体只能指定一个嵌入兜底字段，但可以指定多个非兜底字段。此选项不能与任何其他选项（包括 JSON 名称）同时指定。
+</ul>
+<p>“omitzero”和“omitempty”选项的行为相似。前者根据 Go 类型系统定义，后者根据 JSON 类型系统定义，因此在某些情况下行为不同。例如，“omitzero”仅省略 nil 切片或映射；“omitempty”则会省略空切片或映射，无论它们是否为 nil。“omitzero”适用于零值定义明确的类型（例如 <a href="/pkg/net/netip/#Addr">net/netip.Addr</a>），或具有 IsZero 方法的类型（例如 <a href="/pkg/time/#Time.IsZero">time.Time.IsZero</a>）。
+<p>每个 Go 结构体都对应一个可由 JSON 表示的字段列表。该列表通过对所有结构体字段进行广度优先搜索构建（排除未导出或被忽略的字段），并递归进入嵌入结构体。结构体的非嵌入字段必须具有唯一的 JSON 名称。如果多个字段具有相同的 JSON 名称，则深度最浅的字段优先，更深层的其他字段从可由 JSON 表示的字段列表中排除。如果最浅层有多个同名字段，但只有一个字段通过标签显式指定了 JSON 名称，则该字段优先，其他字段全部排除。这类似于 Go 在含嵌入结构体类型时选择字段的可见性规则。
+<p>对非空但没有任何可由 JSON 表示字段的结构体进行序列化或反序列化，会产生 <a href="#SemanticError">SemanticError</a>；但如果该 Go 结构体有字段带有显式 `json` 标签，则例外，因为这表示该类型具有有效的 JSON 表示（即使为空）。未导出字段除 `json:"-"` 外，不得带有任何 `json` 标签。
+<h3 id="hdr-Security_Considerations">安全性注意事项</h3>
+<p>JSON 经常用作数据交换格式，用于不同系统之间通信，这些系统可能使用不同语言实现。出于互操作性和安全考虑，各实现必须对数据的语义含义达成一致。
+<p><a href="https://www.youtube.com/watch?v=avilmOcHKHE&amp;t=1057s">例如，假设有两个微服务。</a>第一个服务负责对 JSON 请求进行身份认证，第二个服务在假定请求已通过认证的前提下负责执行它。如果攻击者能恶意构造 JSON 请求，使两个服务认为同一个请求分别来自不同用户，就可能使用某用户的有效凭据通过认证，却以另一个用户的身份恶意执行操作。
+<p>遗憾的是，按照 RFC 8259，许多 JSON 文本在语法上有效，但在语义上存在歧义。例如，标准没有定义如何解释对象中的重复名称。
+<p>v1 <a href="/pkg/encoding/json/">encoding/json</a> 和 <a href="/pkg/encoding/json/v2/">encoding/json/v2</a> 包对某些输入采用不同解释，具体包括：
+<ul>
+<li><p>标准规定 JSON 必须使用 UTF-8 编码。默认情况下，v1 将 JSON 字符串中的无效 UTF-8 字节替换为 Unicode 替换字符，而 v2 拒绝含有无效 UTF-8 的输入。若要更改默认行为，请指定 <a href="/pkg/encoding/json/jsontext/#AllowInvalidUTF8">jsontext.AllowInvalidUTF8</a> 选项。替换无效 UTF-8 是一种数据损坏，会改变字符串的精确含义。
+<li><p>标准没有规定遇到 JSON 对象中的重复名称时应采取何种行为，因此不同实现可能表现不同。默认情况下，v1 允许重复名称，v2 则拒绝重复名称。若要更改默认行为，请指定 <a href="/pkg/encoding/json/jsontext/#AllowDuplicateNames">jsontext.AllowDuplicateNames</a> 选项。如果允许重复名称，对象成员按出现顺序处理，这意味着后面的值会替换先前值，或合并到先前值中，具体取决于 Go 值的类型。
+<li><p>标准将 JSON 对象定义为无序的名称/值对集合。虽然可以通过底层 <a href="/pkg/encoding/json/jsontext/">jsontext</a> API 观察顺序，但 v1 和 v2 通常都避免暴露该顺序。任何应用都不应在语义上依赖对象成员的顺序。允许重复名称会提供一种途径，使成员顺序被意外观察并形成依赖。
+<li><p>标准建议通常根据 Unicode 码点序列是否相等来比较 JSON 对象成员名称，这意味着名称比较通常区分大小写。将 JSON 对象反序列化到 Go 结构体时，默认情况下，v1 使用（宽松的）不区分大小写匹配，而 v2 使用（严格的）区分大小写匹配。若要更改默认行为，请指定 <a href="#MatchCaseInsensitiveNames">MatchCaseInsensitiveNames</a> 选项。不区分大小写的匹配提供了另一种出现重复名称的途径。允许不区分大小写匹配，意味着 v1 或 v2 对 JSON 对象的解释可能不同于大多数其他 JSON 实现（它们通常采用区分大小写匹配）。
+<li><p>标准没有规定遇到 JSON 对象中的未知名称时应采取何种行为。将 JSON 对象反序列化到 Go 结构体时，v1 和 v2 默认都忽略未知名称及其对应值。若要更改默认行为，请指定 <a href="#RejectUnknownMembers">RejectUnknownMembers</a> 选项。
+<li><p>标准建议实现可以使用 float64 表示 JSON 数值。因此，将较大的 JSON 整数存为浮点类型时可能丢失精度。序列化和反序列化具体整数类型时，v1 和 v2 都能正确保留精度。但即使它们保留了具体类型的精度，其他 JSON 实现也可能无法保留 v1 或 v2 输出中的精度。可以使用 `string` 标签选项，将整数类型放入 JSON 字符串并加上引号，以避免精度损失。此外，反序列化到 any 接口值时，v1 和 v2 仍可能丢失精度，因为此时默认使用 float64 表示 JSON 数值。若要更改默认行为，请通过 <a href="#WithUnmarshalers">WithUnmarshalers</a> 选项提供自定义反序列化器，用能够保留精度的具体 Go 类型预先填充接口值。
+</ul>
+<p>RFC 8785 为 JSON 文本规定了一种规范形式，明确了 RFC 8259 留作未定义的具体行为。理论上，如果文本可以成功执行 <a href="/pkg/encoding/json/jsontext/#Value.Canonicalize">jsontext.Value.Canonicalize</a>，且不改变数据语义，就能更有把握地认为该数据具有更好的安全性和互操作性。
+<p>v2 API 通常选择比 v1 更安全的默认值，但仍需谨慎处理大整数和未知成员。
+
+				
+
+
+<div id="example__caseSensitivity" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (CaseSensitivity)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (CaseSensitivity)</span></p>
+    <p>Unmarshal 使用区分大小写的匹配，将 JSON 对象成员名称与 Go 结构体字段对应起来，但可以通过“case:ignore”选项配置为不区分大小写。这允许反序列化使用 camelCase、snake_case 或 kebab-case 等命名约定的输入。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+
+	"encoding/json/v2"
+)
+
+func main() {
+	// 使用各种命名约定的 JSON 输入。
+	const input = `[
+		{"firstname": true},
+		{"firstName": true},
+		{"FirstName": true},
+		{"FIRSTNAME": true},
+		{"first_name": true},
+		{"FIRST_NAME": true},
+		{"first-name": true},
+		{"FIRST-NAME": true},
+		{"unknown": true}
+	]`
+
+	// 不使用 "case:ignore" 时，Unmarshal 查找完全匹配的名称。
+	var caseStrict []struct {
+		X bool `json:"firstName"`
+	}
+	if err := json.Unmarshal([]byte(input), &amp;caseStrict); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(caseStrict) // 恰好找到 1 个匹配项
+
+	// 使用 "case:ignore" 时，Unmarshal 先查找完全匹配，
+	// 找不到时再进行不区分大小写的匹配。
+	var caseIgnore []struct {
+		X bool `json:"firstName,case:ignore"`
+	}
+	if err := json.Unmarshal([]byte(input), &amp;caseIgnore); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(caseIgnore) // 找到 8 个匹配项
+
+}
+</textarea></div>
+        <div class="output"><pre>[{false} {true} {false} {false} {false} {false} {false} {false} {false}]
+[{true} {true} {true} {true} {true} {true} {true} {true} {false}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__embeddedFields" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (EmbeddedFields)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (EmbeddedFields)</span></p>
+    <p>JSON 对象可以嵌入父对象中，类似于 Go 结构体嵌入父结构体。JSON 嵌入规则与 Go 嵌入规则相似，但作用于 JSON 命名空间。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	// Base 嵌入在 Container 中。
+	type Base struct {
+		// ID 被提升到 Container 的 JSON 对象中。
+		ID string
+		// 由于存在 Container.Type，Type 被忽略。
+		Type string
+		// Time 与 Container.Embed.Time 相互抵消。
+		Time time.Time
+	}
+	// Other 嵌入在 Container 中。
+	type Other struct{ Cost float64 }
+	// Container 嵌入 Base 和 Other。
+	type Container struct {
+		// Base 是嵌入结构体，因此会隐式进行 JSON 嵌入。
+		Base
+		// Type 优先于 Base.Type。
+		Type int
+		// Embed 是具名的 Go 字段，但显式指定了 JSON 嵌入。
+		Embed struct {
+			// User 被提升到 Container 的 JSON 对象中。
+			User string
+			// Time 与 Base.Time 相互抵消。
+			Time string
+		} `json:",embed"`
+		// ID 与 Base.ID 不冲突，因为 JSON 名称不同。
+		ID string `json:"uuid"`
+		// Other 指定了显式 JSON 名称，因此不会进行 JSON 嵌入。
+		Other `json:"other"`
+	}
+
+	// 格式化一个空 Container，展示哪些字段可以序列化为 JSON。
+	var input Container
+	b, err := json.Marshal(&amp;input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println(string(v))
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;ID&#34;: &#34;&#34;,
+	&#34;Type&#34;: 0,
+	&#34;User&#34;: &#34;&#34;,
+	&#34;uuid&#34;: &#34;&#34;,
+	&#34;other&#34;: {
+		&#34;Cost&#34;: 0
+	}
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__fieldNames" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (FieldNames)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (FieldNames)</span></p>
+    <p>默认情况下，Go 结构体字段的 JSON 对象成员名称来自 Go 字段名，也可以通过 `json` 标签指定。由于 JSON 源自 JavaScript，JSON 对象成员名称最常使用 camelCase 命名约定。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	var value struct {
+		// 此字段通过特殊名称 "-" 显式忽略。
+		Ignored any `json:"-"`
+		// 未提供 JSON 名称，因此使用 Go 字段名。
+		GoName any
+		// 提供了不含特殊字符的 JSON 名称。
+		JSONName any `json:"jsonName"`
+		// 未提供 JSON 名称，因此使用 Go 字段名。
+		Option any `json:",case:ignore"`
+		// 未导出字段始终被忽略。
+		unexported any
+	}
+
+	b, err := json.Marshal(value)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println(string(v))
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;GoName&#34;: null,
+	&#34;jsonName&#34;: null,
+	&#34;Option&#34;: null
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__omitFields" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (OmitFields)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (OmitFields)</span></p>
+    <p>Go 结构体字段可以根据输入的 Go 值，或该值输出的 JSON 编码，从输出中省略。如果字段是 Go 零值，或实现的“IsZero() bool”方法返回 true，“omitzero”选项会省略该字段。如果字段编码为空 JSON 值，“omitempty”选项会省略它；这里的空 JSON 值指 JSON null，或空的 JSON 字符串、对象或数组。许多情况下，“omitzero”和“omitempty”的行为相同。如果两者都能满足需求，优先使用“omitzero”。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"net/netip"
+	"time"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	type MyStruct struct {
+		Foo string `json:",omitzero"`
+		Bar []int  `json:",omitempty"`
+		// 可以同时指定 "omitzero" 和 "omitempty"，
+		// 此时只要任一选项生效，就会省略字段。
+		// 当 Baz 字段为 nil 指针，或编码结果
+		// 会是空 JSON 对象时，这会省略该字段。
+		Baz *MyStruct `json:",omitzero,omitempty"`
+	}
+
+	// 演示 "omitzero" 的行为。
+	b, err := json.Marshal(struct {
+		Bool         bool        `json:",omitzero"`
+		Int          int         `json:",omitzero"`
+		String       string      `json:",omitzero"`
+		Time         time.Time   `json:",omitzero"`
+		Addr         netip.Addr  `json:",omitzero"`
+		Struct       MyStruct    `json:",omitzero"`
+		SliceNil     []int       `json:",omitzero"`
+		Slice        []int       `json:",omitzero"`
+		MapNil       map[int]int `json:",omitzero"`
+		Map          map[int]int `json:",omitzero"`
+		PointerNil   *string     `json:",omitzero"`
+		Pointer      *string     `json:",omitzero"`
+		InterfaceNil any         `json:",omitzero"`
+		Interface    any         `json:",omitzero"`
+	}{
+		// Bool 被省略，因为 false 是 Go bool 的零值。
+		Bool: false,
+		// Int 被省略，因为 0 是 Go int 的零值。
+		Int: 0,
+		// String 被省略，因为 "" 是 Go string 的零值。
+		String: "",
+		// Time 被省略，因为 time.Time.IsZero 返回 true。
+		Time: time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
+		// Addr 被省略，因为 netip.Addr{} 是该 Go 结构体的零值。
+		Addr: netip.Addr{},
+		// Struct 不会被省略，因为它不是该 Go 结构体的零值。
+		Struct: MyStruct{Bar: []int{}, Baz: new(MyStruct)},
+		// SliceNil 被省略，因为 nil 是 Go 切片的零值。
+		SliceNil: nil,
+		// Slice 不会被省略，因为 []int{} 不是 Go 切片的零值。
+		Slice: []int{},
+		// MapNil 被省略，因为 nil 是 Go 映射的零值。
+		MapNil: nil,
+		// Map 不会被省略，因为 map[int]int{} 不是 Go 映射的零值。
+		Map: map[int]int{},
+		// PointerNil 被省略，因为 nil 是 Go 指针的零值。
+		PointerNil: nil,
+		// Pointer 不会被省略，因为 new(string) 不是 Go 指针的零值。
+		Pointer: new(string),
+		// InterfaceNil 被省略，因为 nil 是 Go 接口的零值。
+		InterfaceNil: nil,
+		// Interface 不会被省略，因为 (*string)(nil) 不是 Go 接口的零值。
+		Interface: (*string)(nil),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println("OmitZero:", string(v)) // 输出 "Struct"、"Slice"、"Map"、"Pointer" 和 "Interface"
+
+	// 演示 "omitempty" 的行为。
+	b, err = json.Marshal(struct {
+		Bool         bool        `json:",omitempty"`
+		Int          int         `json:",omitempty"`
+		String       string      `json:",omitempty"`
+		Time         time.Time   `json:",omitempty"`
+		Addr         netip.Addr  `json:",omitempty"`
+		Struct       MyStruct    `json:",omitempty"`
+		Slice        []int       `json:",omitempty"`
+		Map          map[int]int `json:",omitempty"`
+		PointerNil   *string     `json:",omitempty"`
+		Pointer      *string     `json:",omitempty"`
+		InterfaceNil any         `json:",omitempty"`
+		Interface    any         `json:",omitempty"`
+	}{
+		// Bool 不会被省略，因为 false 不是空 JSON 值。
+		Bool: false,
+		// Int 不会被省略，因为 0 不是空 JSON 值。
+		Int: 0,
+		// String 被省略，因为 "" 是空 JSON 字符串。
+		String: "",
+		// Time 不会被省略，因为它编码为非空 JSON 字符串。
+		Time: time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
+		// Addr 被省略，因为它编码为空 JSON 字符串。
+		Addr: netip.Addr{},
+		// Struct 被省略，因为 {} 是空 JSON 对象。
+		Struct: MyStruct{Bar: []int{}, Baz: new(MyStruct)},
+		// Slice 被省略，因为 [] 是空 JSON 数组。
+		Slice: []int{},
+		// Map 被省略，因为 {} 是空 JSON 对象。
+		Map: map[int]int{},
+		// PointerNil 被省略，因为 null 是空 JSON 值。
+		PointerNil: nil,
+		// Pointer 被省略，因为 "" 是空 JSON 字符串。
+		Pointer: new(string),
+		// InterfaceNil 被省略，因为 null 是空 JSON 值。
+		InterfaceNil: nil,
+		// Interface 被省略，因为 null 是空 JSON 值。
+		Interface: (*string)(nil),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	// 缩进输出以便阅读。
+	v = jsontext.Value(b)
+	v.Indent()
+	fmt.Println("OmitEmpty:", string(v)) // 输出 "Bool"、"Int" 和 "Time"
+
+}
+</textarea></div>
+        <div class="output"><pre>OmitZero: {
+	&#34;Struct&#34;: {},
+	&#34;Slice&#34;: [],
+	&#34;Map&#34;: {},
+	&#34;Pointer&#34;: &#34;&#34;,
+	&#34;Interface&#34;: null
+}
+OmitEmpty: {
+	&#34;Bool&#34;: false,
+	&#34;Int&#34;: 0,
+	&#34;Time&#34;: &#34;0001-01-01T00:00:00Z&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__orderedObject" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (OrderedObject)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (OrderedObject)</span></p>
+    <p>通过实现 [MarshalerTo] 和 [UnmarshalerFrom] 的专用类型，可以保留 JSON 对象的确切顺序。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">//go:build goexperiment.jsonv2
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"reflect"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+// OrderedObject 是 JSON 对象中按顺序排列的名称/值成员序列。
+//
+// RFC 8259 将对象定义为“无序集合”。
+// JSON 实现不必向应用暴露“对象成员的顺序”；
+// 如果“对象中的名称不唯一”，不同实现对对象的
+// 语义含义也不一定一致。为获得最佳兼容性，
+// 应用应避免依赖对象名称的顺序或重复情况。
+type OrderedObject[V any] []ObjectMember[V]
+
+// ObjectMember 是一个 JSON 对象成员。
+type ObjectMember[V any] struct {
+	Name  string
+	Value V
+}
+
+// MarshalJSONTo 将 obj 作为 JSON 对象编码到 enc。
+func (obj *OrderedObject[V]) MarshalJSONTo(enc *jsontext.Encoder) error {
+	if err := enc.WriteToken(jsontext.BeginObject); err != nil {
+		return err
+	}
+	for i := range *obj {
+		member := &amp;(*obj)[i]
+		if err := json.MarshalEncode(enc, &amp;member.Name); err != nil {
+			return err
+		}
+		if err := json.MarshalEncode(enc, &amp;member.Value); err != nil {
+			return err
+		}
+	}
+	if err := enc.WriteToken(jsontext.EndObject); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnmarshalJSONFrom 从 dec 解码一个 JSON 对象并存入 obj。
+func (obj *OrderedObject[V]) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+	if k := dec.PeekKind(); k != '{' {
+		// [json] 包会自动填充 [json.SemanticError] 中
+		// 相关的字段，以提供额外上下文。
+		return &amp;json.SemanticError{JSONKind: k}
+	}
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+	for dec.PeekKind() != '}' {
+		*obj = append(*obj, ObjectMember[V]{})
+		member := &amp;(*obj)[len(*obj)-1]
+		if err := json.UnmarshalDecode(dec, &amp;member.Name); err != nil {
+			return err
+		}
+		if err := json.UnmarshalDecode(dec, &amp;member.Value); err != nil {
+			return err
+		}
+	}
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 通过实现 [MarshalerTo] 和 [UnmarshalerFrom] 的
+// 专用类型，可以保留 JSON 对象的确切顺序。
+func main() {
+	// 对有序对象进行一次序列化与反序列化往返。
+	// 我们期望保留 JSON 对象成员的顺序和重复情况。
+	// 指定 jsontext.AllowDuplicateNames，因为该对象两次包含 "fizz"。
+	want := OrderedObject[string]{
+		{"fizz", "buzz"},
+		{"hello", "world"},
+		{"fizz", "wuzz"},
+	}
+	b, err := json.Marshal(&amp;want, jsontext.AllowDuplicateNames(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+	var got OrderedObject[string]
+	err = json.Unmarshal(b, &amp;got, jsontext.AllowDuplicateNames(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 合理性检查。
+	if !reflect.DeepEqual(got, want) {
+		log.Fatalf("roundtrip mismatch: got %v, want %v", got, want)
+	}
+
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println(string(v))
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;fizz&#34;: &#34;buzz&#34;,
+	&#34;hello&#34;: &#34;world&#34;,
+	&#34;fizz&#34;: &#34;wuzz&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__protoJSON" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ProtoJSON)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ProtoJSON)</span></p>
+    <p>某些 Go 类型具有自定义 JSON 表示，且实现委托给外部包。因此，“json”包不知道如何使用该外部实现。例如，[google.golang.org/protobuf/encoding/protojson] 包为所有 [google.golang.org/protobuf/proto.Message] 类型实现 JSON 处理。可以使用 [WithMarshalers] 和 [WithUnmarshalers]，配置“json”与“protojson”协同工作。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+
+	"encoding/json/v2"
+)
+
+func main() {
+	// 假设 protoMessage 表示 "google.golang.org/protobuf/proto".Message。
+	type protoMessage interface{ ProtoReflect() }
+	// 假设 foopbMyMessage 是 proto.Message 的具体实现。
+	type foopbMyMessage struct{ protoMessage }
+	// 假设 protojson 表示导入的 "google.golang.org/protobuf/encoding/protojson"。
+	var protojson struct {
+		Marshal   func(protoMessage) ([]byte, error)
+		Unmarshal func([]byte, protoMessage) error
+	}
+
+	// 此值混合了非 proto.Message 类型和 proto.Message 类型。
+	// 对非 proto.Message 类型应使用 "json" 包，
+	// 对 proto.Message 类型应使用 "protojson" 包。
+	var value struct {
+		// GoStruct 未实现 proto.Message，
+		// 应采用 "json" 包的默认行为。
+		GoStruct struct {
+			Name string
+			Age  int
+		}
+
+		// ProtoMessage 实现了 proto.Message，
+		// 应使用 protojson.Marshal 处理。
+		ProtoMessage *foopbMyMessage
+	}
+
+	// 对 proto.Message 类型使用 protojson.Marshal 序列化。
+	b, err := json.Marshal(&amp;value,
+		// 将 protojson.Marshal 用作类型专用的序列化器。
+		json.WithMarshalers(json.MarshalFunc(protojson.Marshal)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 对 proto.Message 类型使用 protojson.Unmarshal 反序列化。
+	err = json.Unmarshal(b, &amp;value,
+		// 将 protojson.Unmarshal 用作类型专用的反序列化器。
+		json.WithUnmarshalers(json.UnmarshalFunc(protojson.Unmarshal)))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__serveHTTP" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ServeHTTP)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ServeHTTP)</span></p>
+    <p>实现 HTTP 端点时，经常需要操作 [io.Reader] 和 [io.Writer]。[MarshalWrite] 和 [UnmarshalRead] 函数有助于处理这类输入输出。[UnmarshalRead] 会读取整个 [io.Reader]，确保最终遇到 [io.EOF]，且顶层 JSON 值之后没有任何意外字节。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"net/http"
+	"sync/atomic"
+
+	"encoding/json/v2"
+)
+
+func main() {
+	// 服务器维护的一些全局状态。
+	var n int64
+
+	// "add" 端点接受一个 POST 请求，其 JSON 对象
+	// 包含一个要原子地加到服务器全局计数器上的数值。
+	// 它返回更新后的计数器值。
+	http.HandleFunc("/api/add", func(w http.ResponseWriter, r *http.Request) {
+		// 反序列化客户端的请求。
+		var val struct{ N int64 }
+		if err := json.UnmarshalRead(r.Body, &amp;val); err != nil {
+			// 无法反序列化输入，通常说明客户端存在问题。
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// 序列化服务器的响应。
+		val.N = atomic.AddInt64(&amp;n, val.N)
+		if err := json.MarshalWrite(w, &amp;val); err != nil {
+			// 无法序列化输出，通常说明服务器存在问题。
+			// 客户端不一定能观察到该错误，因为
+			// json.MarshalWrite 可能已向输出写入了数据。
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__textMarshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TextMarshal)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TextMarshal)</span></p>
+    <p>如果某个类型实现了 [encoding.TextMarshaler] 和/或 [encoding.TextUnmarshaler]，则会使用 MarshalText 和 UnmarshalText 方法，在该值与 JSON 字符串之间进行编码和解码。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"net/netip"
+	"reflect"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	// 对主机名映射进行一次序列化与反序列化往返，其中 netip.Addr 类型
+	// 同时实现 encoding.TextMarshaler 和 encoding.TextUnmarshaler。
+	want := map[netip.Addr]string{
+		netip.MustParseAddr("192.168.0.100"): "carbonite",
+		netip.MustParseAddr("192.168.0.101"): "obsidian",
+		netip.MustParseAddr("192.168.0.102"): "diamond",
+	}
+	b, err := json.Marshal(&amp;want, json.Deterministic(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+	var got map[netip.Addr]string
+	err = json.Unmarshal(b, &amp;got)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 合理性检查。
+	if !reflect.DeepEqual(got, want) {
+		log.Fatalf("roundtrip mismatch: got %v, want %v", got, want)
+	}
+
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println(string(v))
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;192.168.0.100&#34;: &#34;carbonite&#34;,
+	&#34;192.168.0.101&#34;: &#34;obsidian&#34;,
+	&#34;192.168.0.102&#34;: &#34;diamond&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#GetOption">func GetOption[T any](opts Options, setter func(T) Options) (T, bool)</a></dd>
+			
+				<dd><a href="#Marshal">func Marshal(in any, opts ...Options) (out []byte, err error)</a></dd>
+			
+				<dd><a href="#MarshalEncode">func MarshalEncode(out *jsontext.Encoder, in any, opts ...Options) (err error)</a></dd>
+			
+				<dd><a href="#MarshalWrite">func MarshalWrite(out io.Writer, in any, opts ...Options) (err error)</a></dd>
+			
+				<dd><a href="#Unmarshal">func Unmarshal(in []byte, out any, opts ...Options) (err error)</a></dd>
+			
+				<dd><a href="#UnmarshalDecode">func UnmarshalDecode(in *jsontext.Decoder, out any, opts ...Options) (err error)</a></dd>
+			
+				<dd><a href="#UnmarshalRead">func UnmarshalRead(in io.Reader, out any, opts ...Options) (err error)</a></dd>
+			
+			
+				
+				<dd><a href="#Marshaler">type Marshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#MarshalerTo">type MarshalerTo</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Marshalers">type Marshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JoinMarshalers">func JoinMarshalers(ms ...*Marshalers) *Marshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MarshalFunc">func MarshalFunc[T any](fn func(T) ([]byte, error)) *Marshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MarshalToFunc">func MarshalToFunc[T any](fn func(*jsontext.Encoder, T) error) *Marshalers</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Options">type Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DefaultOptionsV2">func DefaultOptionsV2() Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Deterministic">func Deterministic(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatNilMapAsNull">func FormatNilMapAsNull(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatNilSliceAsNull">func FormatNilSliceAsNull(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JoinOptions">func JoinOptions(srcs ...Options) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MatchCaseInsensitiveNames">func MatchCaseInsensitiveNames(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OmitZeroStructFields">func OmitZeroStructFields(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RejectUnknownMembers">func RejectUnknownMembers(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringifyNumbers">func StringifyNumbers(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithMarshalers">func WithMarshalers(v *Marshalers) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithUnmarshalers">func WithUnmarshalers(v *Unmarshalers) Options</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SemanticError">type SemanticError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SemanticError.Error">func (e *SemanticError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SemanticError.Unwrap">func (e *SemanticError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#Unmarshaler">type Unmarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnmarshalerFrom">type UnmarshalerFrom</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Unmarshalers">type Unmarshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JoinUnmarshalers">func JoinUnmarshalers(us ...*Unmarshalers) *Unmarshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalFromFunc">func UnmarshalFromFunc[T any](fn func(*jsontext.Decoder, T) error) *Unmarshalers</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalFunc">func UnmarshalFunc[T any](fn func([]byte, T) error) *Unmarshalers</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Marshal_multiline">Marshal (Multiline)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MarshalerTo">MarshalerTo</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnmarshalDecode_stream">UnmarshalDecode (Stream)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnmarshalerFrom">UnmarshalerFrom</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithMarshalers_errors">WithMarshalers (Errors)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithUnmarshalers_rawNumber">WithUnmarshalers (RawNumber)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithUnmarshalers_recordOffsets">WithUnmarshalers (RecordOffsets)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__caseSensitivity">包 (CaseSensitivity)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__embeddedFields">包 (EmbeddedFields)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__fieldNames">包 (FieldNames)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__omitFields">包 (OmitFields)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__orderedObject">包 (OrderedObject)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__protoJSON">包 (ProtoJSON)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__serveHTTP">包 (ServeHTTP)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__textMarshal">包 (TextMarshal)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/json/v2/arshal.go">arshal.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_any.go">arshal_any.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_default.go">arshal_default.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_embedded.go">arshal_embedded.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_funcs.go">arshal_funcs.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_methods.go">arshal_methods.go</a>
+			
+				<a href="/src/encoding/json/v2/arshal_time.go">arshal_time.go</a>
+			
+				<a href="/src/encoding/json/v2/doc.go">doc.go</a>
+			
+				<a href="/src/encoding/json/v2/errors.go">errors.go</a>
+			
+				<a href="/src/encoding/json/v2/fields.go">fields.go</a>
+			
+				<a href="/src/encoding/json/v2/fold.go">fold.go</a>
+			
+				<a href="/src/encoding/json/v2/intern.go">intern.go</a>
+			
+				<a href="/src/encoding/json/v2/options.go">options.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrUnknownName 表示某个 JSON 对象成员无法反序列化，因为目标 Go 结构体不认识该名称。此错误产生时会被直接包装在 <a href="#SemanticError">SemanticError</a> 中。
+<p>未知 JSON 对象成员的名称可按以下方式提取：
+<pre>err := ...
+serr, ok := errors.AsType[*json.SemanticError](err)
+if ok &amp;&amp; serr.Err == json.ErrUnknownName {
+	ptr := serr.JSONPointer // 指向未知名称的 JSON 指针
+	name := ptr.LastToken() // 未知名称本身
+	...
+}
+</pre>
+<p>仅在 <a href="#RejectUnknownMembers">RejectUnknownMembers</a> 为 true 时返回此错误。
+
+				<pre>var <span id="ErrUnknownName">ErrUnknownName</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;unknown object member name&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="GetOption">func <a href="/src/encoding/json/v2/options.go?s=3292:3361#L85">GetOption</a>
+				
+				
+			</h2>
+			<pre>func GetOption[T <a href="/pkg/builtin/#any">any</a>](opts <a href="#Options">Options</a>, setter func(<a href="#T">T</a>) <a href="#Options">Options</a>) (<a href="#T">T</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>GetOption 返回 opts 中通过给定设置函数存储的值，并报告该值是否存在。如果不存在，返回类型 T 的零值。
+<p>用法示例：
+<pre>v, ok := json.GetOption(opts, json.Deterministic)
+</pre>
+<p>检查选项最常见的用途，是调整 <a href="#MarshalerTo.MarshalJSONTo">MarshalerTo.MarshalJSONTo</a> 和 <a href="#UnmarshalerFrom.UnmarshalJSONFrom">UnmarshalerFrom.UnmarshalJSONFrom</a> 方法，以及 <a href="#MarshalToFunc">MarshalToFunc</a> 和 <a href="#UnmarshalFromFunc">UnmarshalFromFunc</a> 函数的 JSON 表示。在这些情况下，通常应忽略表示值是否存在的布尔返回值。
+
+			
+		
+			
+			<h2 id="Marshal">func <a href="/src/encoding/json/v2/arshal.go?s=7348:7409#L153">Marshal</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func Marshal(in <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (out []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Marshal 按给定的序列化和编码选项，将 Go 值序列化为 []byte（忽略反序列化或解码选项）。它不会在输出末尾添加换行符。
+<p>针对特定类型的序列化函数和方法优先于值的默认表示。操作 *T 的函数或方法，仅在编码 T 类型的值（通过取地址）或非 nil 的 *T 值时调用。Marshal 确保值始终可寻址（必要时复制该值），以便一致地调用这些函数和方法。出于性能考虑，建议向 Marshal 传入指向该值的非 nil 指针。
+<p>输入值按以下规则编码为 JSON：
+<ul>
+<li><p>如果 <a href="#WithMarshalers">WithMarshalers</a> 选项中的类型专用函数与该值类型匹配，则调用这些函数编码该值。如果所有适用函数都返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则编码该值。
+<li><p>如果值的类型实现了 <a href="#MarshalerTo">MarshalerTo</a>，则调用 MarshalJSONTo 方法编码该值。如果该方法返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则编码输入。
+<li><p>如果值的类型实现了 <a href="#Marshaler">Marshaler</a>，则调用 MarshalJSON 方法编码该值。
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a>，则调用 AppendText 方法编码该值，再将其结果编码为 JSON 字符串。
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>，则调用 MarshalText 方法编码该值，再将其结果编码为 JSON 字符串。
+<li><p>否则，根据该值的类型编码，详细规则如下。
+</ul>
+<p>多数 Go 类型具有如下默认 JSON 表示：
+<ul>
+<li><p>Go 布尔值编码为 JSON 布尔值（例如 true 或 false）。
+<li><p>Go 字符串编码为 JSON 字符串。
+<li><p>Go []byte 或 [N]byte 编码为 JSON 字符串，其中的二进制值采用 RFC 4648 第 4 节规定的 Base64 编码。
+<li><p>Go 整数编码为不带小数部分或指数的 JSON 数值。如果指定了 <a href="#StringifyNumbers">StringifyNumbers</a>，或正在编码 JSON 对象成员名称，则将 JSON 数值编码在 JSON 字符串中。
+<li><p>Go 浮点数编码为 JSON 数值。如果指定了 <a href="#StringifyNumbers">StringifyNumbers</a>，或正在编码 JSON 对象成员名称，则将 JSON 数值编码在 JSON 字符串中。编码 NaN 或 ±Inf 会产生 <a href="#SemanticError">SemanticError</a>。
+<li><p>Go 映射编码为 JSON 对象，每个 Go 映射的键和值递归编码为 JSON 对象中的名称/值对。Go 映射键必须编码为 JSON 字符串，否则会产生 <a href="#SemanticError">SemanticError</a>。Go 映射按不确定的顺序遍历。若需要确定性编码，请考虑 <a href="#Deterministic">Deterministic</a> 选项。默认情况下，nil 映射编码为空 JSON 对象，除非指定 <a href="#FormatNilMapAsNull">FormatNilMapAsNull</a> 选项。
+<li><p>Go 结构体编码为 JSON 对象。详情见包级文档中的“Go 结构体的 JSON 表示”一节。
+<li><p>Go 切片编码为 JSON 数组，其中每个 Go 切片元素递归编码为 JSON 数组元素。默认情况下，nil 切片编码为空 JSON 数组，除非指定 <a href="#FormatNilSliceAsNull">FormatNilSliceAsNull</a> 选项。
+<li><p>Go 数组编码为 JSON 数组，其中每个 Go 数组元素递归编码为 JSON 数组元素。JSON 数组长度始终与 Go 数组长度相同。
+<li><p>Go 指针为 nil 时编码为 JSON null，否则递归编码其指向值的 JSON 表示。
+<li><p>Go 接口为 nil 时编码为 JSON null，否则递归编码其底层值的 JSON 表示。
+<li><p>Go <a href="/pkg/time/#Time">time.Time</a> 编码为 JSON 字符串，其中包含按 RFC 3339 格式表示、精确到纳秒的时间戳。
+<li><p>Go <a href="/pkg/time/#Duration">time.Duration</a> 目前没有默认表示，会产生 <a href="#SemanticError">SemanticError</a>；但如果指定了 <a href="/pkg/encoding/json/#FormatDurationAsNano">encoding/json.FormatDurationAsNano</a> 选项，则编码为不带小数部分或指数的 JSON 数值，以纳秒表示时长。
+<li><p>其他所有 Go 类型（例如复数、通道和函数）都没有默认表示，会产生 <a href="#SemanticError">SemanticError</a>。
+</ul>
+<p>JSON 无法表示循环数据结构，Marshal 也不处理此类结构。
+
+			
+
+
+<div id="example_Marshal_multiline" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Multiline)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Multiline)</span></p>
+    <p>使用 [jsontext.Multiline] 可创建多行缩进输出，使其更便于人类阅读。
+
+其他定制多行输出的选项见 [jsontext.Multiline]。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+
+	&#34;encoding/json/jsontext&#34;
+	&#34;encoding/json/v2&#34;
+)
+
+func main() {
+	type Pet struct {
+		Name    string
+		Species string
+		Breed   string
+	}
+
+	p := Pet{
+		Name:    &#34;Oliver&#34;,
+		Species: &#34;Dog&#34;,
+		Breed:   &#34;Goldendoodle&#34;,
+	}
+
+	b, err := json.Marshal(p, jsontext.Multiline(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(b))
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;Name&#34;: &#34;Oliver&#34;,
+	&#34;Species&#34;: &#34;Dog&#34;,
+	&#34;Breed&#34;: &#34;Goldendoodle&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="MarshalEncode">func <a href="/src/encoding/json/v2/arshal.go?s=8884:8962#L187">MarshalEncode</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func MarshalEncode(out *<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Encoder">Encoder</a>, in <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MarshalEncode 按给定的序列化或编码选项，将 Go 值序列化到 <a href="/pkg/encoding/json/jsontext/#Encoder">jsontext.Encoder</a>（忽略反序列化或解码选项）。所提供的选项优先于已经应用到 <a href="/pkg/encoding/json/jsontext/#Encoder">jsontext.Encoder</a> 的选项，且仅在此次序列化调用期间生效。
+<p>Go 值转换为 JSON 的详细规则见 <a href="#Marshal">Marshal</a>。
+
+			
+		
+			
+			<h2 id="MarshalWrite">func <a href="/src/encoding/json/v2/arshal.go?s=8067:8136#L169">MarshalWrite</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func MarshalWrite(out <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, in <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MarshalWrite 按给定的序列化和编码选项，将 Go 值序列化到 <a href="/pkg/io/#Writer">io.Writer</a>（忽略反序列化或解码选项）。它不会在输出末尾添加换行符。Go 值转换为 JSON 的详细规则见 <a href="#Marshal">Marshal</a>。
+
+			
+		
+			
+			<h2 id="Unmarshal">func <a href="/src/encoding/json/v2/arshal.go?s=17999:18062#L376">Unmarshal</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func Unmarshal(in []<a href="/pkg/builtin/#byte">byte</a>, out <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Unmarshal 按给定的反序列化和解码选项，将 []byte 输入解码到 Go 值中（忽略序列化或编码选项）。输入必须是单个 JSON 值，其间可包含空白。输出必须为非 nil 指针。
+<p>针对特定类型的反序列化函数和方法优先于值的默认表示。操作 *T 的函数或方法，仅在解码 T 类型的值（通过取地址）或非 nil 的 *T 值时调用。Unmarshal 确保值始终可寻址（必要时复制该值），以便一致地调用这些函数和方法。如果必须浅复制某个值，才能调用指针接收者的 <a href="#Unmarshaler">Unmarshaler</a>、<a href="#UnmarshalerFrom">UnmarshalerFrom</a> 或 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> 方法，则该方法所做的所有修改会通过浅复制写回目标值。
+<p>输入按以下规则解码到输出中：
+<ul>
+<li><p>如果 <a href="#WithUnmarshalers">WithUnmarshalers</a> 选项中的类型专用函数与该值类型匹配，则调用这些函数解码 JSON 值。如果所有适用函数都返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则解码输入。
+<li><p>如果值的类型实现了 <a href="#UnmarshalerFrom">UnmarshalerFrom</a>，则调用 UnmarshalJSONFrom 方法解码 JSON 值。如果该方法返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则解码输入。
+<li><p>如果值的类型实现了 <a href="#Unmarshaler">Unmarshaler</a>，则调用 UnmarshalJSON 方法解码 JSON 值。
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>，则将输入解码为 JSON 字符串，并以解码后的字符串值调用 UnmarshalText 方法。如果输入不是 JSON 字符串，则以 <a href="#SemanticError">SemanticError</a> 失败。
+<li><p>否则，根据值的类型解码 JSON 值，详细规则如下。
+</ul>
+<p>多数 Go 类型具有默认的 JSON 表示。JSON null 可以解码到每一种受支持的 Go 值中，等价于存储该 Go 值的零值。如果当前 Go 值类型无法处理输入 JSON 的种类，则以 <a href="#SemanticError">SemanticError</a> 失败。除非另有说明，解码后的值会替换已有值。
+<p>各类型的表示如下：
+<ul>
+<li><p>Go 布尔值从 JSON 布尔值（例如 true 或 false）解码。
+<li><p>Go 字符串从 JSON 字符串解码。
+<li><p>Go []byte 或 [N]byte 从 JSON 字符串解码，其中的二进制值采用 RFC 4648 第 4 节规定的 Base64 编码。解码到非 nil 的 []byte 时，先将切片长度重置为零，再追加解码后的输入。解码到 [N]byte 时，输入必须恰好解码出 N 个字节，否则以 <a href="#SemanticError">SemanticError</a> 失败。
+<li><p>Go 整数从 JSON 数值解码。如果指定了 <a href="#StringifyNumbers">StringifyNumbers</a>，或正在解码 JSON 对象成员名称，则必须从包含 JSON 数值的 JSON 字符串解码。如果 JSON 数值包含小数部分或指数，则以 <a href="#SemanticError">SemanticError</a> 失败。如果数值超出 Go 整数类型的表示范围，也会失败。
+<li><p>Go 浮点数从 JSON 数值解码。如果指定了 <a href="#StringifyNumbers">StringifyNumbers</a>，或正在解码 JSON 对象成员名称，则必须从包含 JSON 数值的 JSON 字符串解码。如果数值超出 Go 浮点类型的表示范围，则失败。由于 JSON 没有 NaN 或 ±Inf 的原生表示，解码结果不可能是这些值。
+<li><p>Go 映射从 JSON 对象解码，每个 JSON 对象名称/值对递归解码为 Go 映射的键和值。映射不会被清空。如果 Go 映射为 nil，则分配新映射用于解码。如果解码后的键匹配现有 Go 映射条目，则复用该条目的值，将 JSON 对象值解码到其中。
+<li><p>Go 结构体从 JSON 对象解码。详情见包级文档中的“Go 结构体的 JSON 表示”一节。
+<li><p>Go 切片从 JSON 数组解码，每个 JSON 元素递归解码后追加到 Go 切片。追加之前，如果 Go 切片为 nil，则分配新切片；否则将切片长度重置为零。
+<li><p>Go 数组从 JSON 数组解码，每个 JSON 数组元素递归解码到对应的 Go 数组元素。解码到每个 Go 数组元素之前，都会将其清零。如果 JSON 数组的元素数量与 Go 数组不完全相同，则以 <a href="#SemanticError">SemanticError</a> 失败。
+<li><p>Go 指针根据 JSON 种类和底层 Go 类型解码。如果输入为 JSON null，则存储 nil 指针。否则，如果指针为 nil，则分配新的底层值，再将 JSON 递归解码到该底层值中。
+<li><p>Go 接口根据 JSON 种类和底层 Go 类型解码。如果输入为 JSON null，则存储 nil 接口值。否则，对于空接口类型的 nil 接口值，会根据输入是 JSON 布尔值、字符串、数值、对象还是数组，分别使用 Go bool、string、float64、map[string]any 或 []any 的零值初始化。如果接口值此时仍为 nil，则以 <a href="#SemanticError">SemanticError</a> 失败，因为无法确定适当的 Go 目标类型。例如，反序列化到 nil io.Reader 会失败，因为没有可以填充接口值的具体类型。否则，底层值已存在，JSON 输入会递归解码到该值中。
+<li><p>Go <a href="/pkg/time/#Time">time.Time</a> 从 JSON 字符串解码，其中包含按 RFC 3339 格式表示、精确到纳秒的时间。
+<li><p>Go <a href="/pkg/time/#Duration">time.Duration</a> 目前没有默认表示，会产生 <a href="#SemanticError">SemanticError</a>；但如果指定了 <a href="/pkg/encoding/json/#FormatDurationAsNano">encoding/json.FormatDurationAsNano</a> 选项，则从不带小数部分或指数的 JSON 数值解码，以纳秒表示时长。
+<li><p>其他所有 Go 类型（例如复数、通道和函数）都没有默认表示，会产生 <a href="#SemanticError">SemanticError</a>。
+</ul>
+<p>一般来说，反序列化遵循合并语义（类似 RFC 7396）：对于对象之外的任何 JSON 种类，解码后的 Go 值都会替换目标值。对于 JSON 对象，输入对象会合并到目标值中，匹配的对象成员递归应用合并语义。
+
+			
+		
+			
+			<h2 id="UnmarshalDecode">func <a href="/src/encoding/json/v2/arshal.go?s=19869:19949#L414">UnmarshalDecode</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func UnmarshalDecode(in *<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Decoder">Decoder</a>, out <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>UnmarshalDecode 按给定的反序列化或解码选项，从 <a href="/pkg/encoding/json/jsontext/#Decoder">jsontext.Decoder</a> 反序列化 Go 值（忽略序列化或编码选项）。所提供的选项优先于已经应用到 <a href="/pkg/encoding/json/jsontext/#Decoder">jsontext.Decoder</a> 的选项，且仅在此次反序列化调用期间生效。
+<p>输入可以是包含零个或多个 JSON 值的数据流。UnmarshalDecode 仅反序列化流中的下一个 JSON 值。如果没有更多顶层 JSON 值，则报告 <a href="/pkg/io/#EOF">io.EOF</a>。输出必须为非 nil 指针。JSON 转换为 Go 值的详细规则见 <a href="#Unmarshal">Unmarshal</a>。
+
+			
+
+
+<div id="example_UnmarshalDecode_stream" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Stream)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Stream)</span></p>
+    <p>UnmarshalDecode 可用于反序列化以空白分隔的 JSON 值数据流。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json/jsontext&#34;
+	&#34;encoding/json/v2&#34;
+)
+
+func main() {
+	const jsonStream = `
+	{&#34;Name&#34;: &#34;Platypus&#34;, &#34;Order&#34;: &#34;Monotremata&#34;}
+	{&#34;Name&#34;: &#34;Quoll&#34;,    &#34;Order&#34;: &#34;Dasyuromorphia&#34;}
+	{&#34;Name&#34;: &#34;Gopher&#34;,   &#34;Order&#34;: &#34;Rodentia&#34;}
+`
+	type Animal struct {
+		Name  string
+		Order string
+	}
+	dec := jsontext.NewDecoder(strings.NewReader(jsonStream))
+	for {
+		var a Animal
+		if err := json.UnmarshalDecode(dec, &amp;a); err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(&#34;%s: %s\n&#34;, a.Name, a.Order)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Platypus: Monotremata
+Quoll: Dasyuromorphia
+Gopher: Rodentia
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="UnmarshalRead">func <a href="/src/encoding/json/v2/arshal.go?s=18845:18915#L393">UnmarshalRead</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func UnmarshalRead(in <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, out <a href="/pkg/builtin/#any">any</a>, opts ...<a href="#Options">Options</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>UnmarshalRead 按给定的反序列化和解码选项，从 <a href="/pkg/io/#Reader">io.Reader</a> 反序列化 Go 值（忽略序列化或编码选项）。输入必须是单个 JSON 值，其间可包含空白。它会消耗整个 <a href="/pkg/io/#Reader">io.Reader</a>，直到遇到 <a href="/pkg/io/#EOF">io.EOF</a>，但不会因 EOF 报错。输出必须为非 nil 指针。JSON 转换为 Go 值的详细规则见 <a href="#Unmarshal">Unmarshal</a>。
+
+			
+		
+		
+			
+			<h2 id="Marshaler">type <a href="/src/encoding/json/v2/arshal_methods.go?s=1961:2020#L44">Marshaler</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Marshaler 由能够序列化自身的类型实现。除非实现希望避免直接依赖“jsontext”包，否则建议实现 <a href="#MarshalerTo">MarshalerTo</a>。
+<p>实现应返回一个缓冲区，允许调用者安全地保留并可能修改它。
+<p>实现不得返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>。
+<p>如果返回的错误是 <a href="#SemanticError">SemanticError</a>，<a href="#">json</a> 可能会用额外上下文填充其中尚未设置的字段。其他类型的错误会被包装在 <a href="#SemanticError">SemanticError</a> 中。
+<p>实现应假定 <a href="#Deterministic">Deterministic</a> 为 true，并返回确定性输出。
+
+			<pre>type Marshaler interface {
+    MarshalJSON() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="MarshalerTo">type <a href="/src/encoding/json/v2/arshal_methods.go?s=4192:4262#L89">MarshalerTo</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>MarshalerTo 由能够序列化自身的类型实现。建议实现 MarshalerTo 而非 <a href="#Marshaler">Marshaler</a>，因为它性能更好，也更灵活。如果某类型同时实现 Marshaler 和 MarshalerTo，则优先使用 MarshalerTo。此时，两种实现在默认序列化选项下应尽量保持等价行为。
+<p>实现必须恰好向 Encoder 写入一个 JSON 值。另一种选择是在不修改 Encoder 的情况下返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>。调用此方法的“json”包将采用接收者类型的下一种可用 JSON 表示，具体见 <a href="#Marshal">Marshal</a>。实现不得保留指向 <a href="/pkg/encoding/json/jsontext/#Encoder">jsontext.Encoder</a> 的指针。
+<p>如果返回的错误是 <a href="#SemanticError">SemanticError</a>，<a href="#">json</a> 可能会用额外上下文填充其中尚未设置的字段。其他类型的错误会被包装在 <a href="#SemanticError">SemanticError</a> 中，但 I/O 错误除外。
+<p>不应直接调用 MarshalJSONTo 方法，因为它可能返回需要特殊处理的哨兵错误。使用者应改为调用 <a href="#MarshalEncode">MarshalEncode</a>，它会处理这些情况。
+<p>实现应通过 <a href="/pkg/encoding/json/jsontext/#Encoder.Options">jsontext.Encoder.Options</a> 检查序列化选项，并按需调整行为以遵守这些选项。
+<p>以下选项可能与 MarshalerTo 实现有关：
+<p>- <a href="#Deterministic">Deterministic</a>：如果实现可能产生不确定的输出
+- <a href="#StringifyNumbers">StringifyNumbers</a>：如果该类型表示为 JSON 数值
+<p>某些选项（例如 <a href="#FormatNilSliceAsNull">FormatNilSliceAsNull</a>）仅适用于原生 Go 类型，因此通常与 MarshalerTo 的实现没有直接关系。但表示复合类型的类型应使用 <a href="#MarshalEncode">MarshalEncode</a> 序列化其中包含的类型，以确保这些选项作用于它们。同样，<a href="#WithMarshalers">WithMarshalers</a> 也可能影响复合类型内部任意类型的序列化。
+<p>其他所有选项都由 MarshalerTo 实现之外的代码自动处理，因此与具体实现无关。
+
+			<pre>type MarshalerTo interface {
+    MarshalJSONTo(*<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Encoder">Encoder</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_MarshalerTo" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>自定义类型可以通过 [MarshalerTo] 定义自定义序列化行为。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"maps"
+	"slices"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+// IntSet 是使用映射实现的简单数值集合。
+type IntSet map[int]struct{}
+
+// MarshalJSONTo 将 s 作为 JSON 数组编码到 enc。
+func (s *IntSet) MarshalJSONTo(enc *jsontext.Encoder) error {
+
+	if err := enc.WriteToken(jsontext.BeginArray); err != nil {
+		return err
+	}
+
+	keys := maps.Keys(*s)
+
+	deterministic, _ := json.GetOption(enc.Options(), json.Deterministic)
+	if deterministic {
+		keys = slices.Values(slices.Sorted(keys))
+	}
+
+	for k := range keys {
+
+		if err := json.MarshalEncode(enc, k); err != nil {
+			return err
+		}
+	}
+
+	if err := enc.WriteToken(jsontext.EndArray); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnmarshalJSONFrom 从 dec 解码一个 JSON 数组并存入 s。
+func (s *IntSet) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+
+	if k := dec.PeekKind(); k != '[' {
+
+		return &amp;json.SemanticError{JSONKind: k}
+	}
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+
+	for dec.PeekKind() != ']' {
+		var v int
+
+		if err := json.UnmarshalDecode(dec, &amp;v); err != nil {
+			return err
+		}
+		if *s == nil {
+			*s = IntSet{}
+		}
+		(*s)[v] = struct{}{}
+	}
+
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func main() {
+	set := IntSet{
+		1: {},
+		2: {},
+		3: {},
+	}
+
+	b, err := json.Marshal(&amp;set, json.Deterministic(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 缩进输出以便阅读。
+	v := jsontext.Value(b)
+	v.Indent()
+	fmt.Println(string(v))
+
+}
+</textarea></div>
+        <div class="output"><pre>[
+	1,
+	2,
+	3
+]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="Marshalers">type <a href="/src/encoding/json/v2/arshal_funcs.go?s=857:890#L20">Marshalers</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Marshalers 是一组函数，可覆盖特定类型的序列化行为。通过设置 <a href="#WithMarshalers">WithMarshalers</a>，可以将其用于 <a href="#Marshal">Marshal</a>、<a href="#MarshalWrite">MarshalWrite</a> 或 <a href="#MarshalEncode">MarshalEncode</a>。nil *Marshalers 等价于空列表。Marshalers 没有导出的字段或方法。
+
+			<pre>type Marshalers = typedMarshalers</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="JoinMarshalers">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=1445:1495#L34">JoinMarshalers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func JoinMarshalers(ms ...*<a href="#Marshalers">Marshalers</a>) *<a href="#Marshalers">Marshalers</a></pre>
+				<p>JoinMarshalers 将序列化函数合并为一个扁平列表。如果列表中多个函数都适用于给定类型的值，则靠前的函数优先。如果某函数返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则调用下一个适用函数；没有可用函数时，使用默认序列化行为。
+<p>例如：
+<pre>m1 := JoinMarshalers(f1, f2)
+m2 := JoinMarshalers(f0, m1, f3)     // 等价于 m3
+m3 := JoinMarshalers(f0, f1, f2, f3) // 等价于 m2
+</pre>
+
+				
+			
+				<h3 id="MarshalFunc">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=5852:5915#L158">MarshalFunc</a>
+					
+					
+				</h3>
+				<pre>func MarshalFunc[T <a href="/pkg/builtin/#any">any</a>](fn func(<a href="#T">T</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)) *<a href="#Marshalers">Marshalers</a></pre>
+				<p>MarshalFunc 构造一个类型专用的序列化器，指定如何序列化类型 T 的值。T 可以是除命名指针类型之外的任意类型。如果 T 是接口或指针类型，传给函数的始终是非 nil 指针值。
+<p>实现必须遵守 <a href="#Marshaler">Marshaler</a> 的要求。
+<p>实现不得保留 T 的值。
+
+				
+			
+				<h3 id="MarshalToFunc">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=7413:7487#L199">MarshalToFunc</a>
+					
+					
+				</h3>
+				<pre>func MarshalToFunc[T <a href="/pkg/builtin/#any">any</a>](fn func(*<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Encoder">Encoder</a>, <a href="#T">T</a>) <a href="/pkg/builtin/#error">error</a>) *<a href="#Marshalers">Marshalers</a></pre>
+				<p>MarshalToFunc 构造一个类型专用的序列化器，指定如何序列化类型 T 的值。T 可以是除命名指针类型之外的任意类型。如果 T 是接口或指针类型，传给函数的始终是非 nil 指针值。
+<p>实现必须遵守 <a href="#MarshalerTo">MarshalerTo</a> 的要求。
+<p>实现不得保留指向 <a href="/pkg/encoding/json/jsontext/#Encoder">jsontext.Encoder</a> 的指针或 T 的值。
+
+				
+			
+
+			
+		
+			
+			<h2 id="Options">type <a href="/src/encoding/json/v2/options.go?s=2451:2482#L63">Options</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Options 为 <a href="#Marshal">Marshal</a>、<a href="#MarshalWrite">MarshalWrite</a>、<a href="#MarshalEncode">MarshalEncode</a>、<a href="#Unmarshal">Unmarshal</a>、<a href="#UnmarshalRead">UnmarshalRead</a> 和 <a href="#UnmarshalDecode">UnmarshalDecode</a> 配置特定功能。每个函数都接受可变长度的选项列表，后面的选项所设置的属性会覆盖之前设置的属性值。
+<p>Options 类型与 <a href="/pkg/encoding/json/#Options">encoding/json.Options</a> 和 <a href="/pkg/encoding/json/jsontext/#Options">encoding/json/jsontext.Options</a> 完全相同。其他包的选项可以与本包功能互换使用。
+<p>一个 Options 值表示单个选项或一组选项。可以将它理解为保存选项属性的 Go 映射（尽管底层实现出于性能考虑避免使用 Go 映射）。
+<p>构造函数（例如 <a href="#Deterministic">Deterministic</a>）返回单个选项的值：
+<pre>opt := Deterministic(true)
+</pre>
+<p>这类似于创建只有一个条目的映射：
+<pre>opt := Options{&quot;Deterministic&quot;: true}
+</pre>
+<p><a href="#JoinOptions">JoinOptions</a> 将多个选项值组合起来：
+<pre>out := JoinOptions(opts...)
+</pre>
+<p>这类似于创建一个新映射，并将选项复制进去：
+<pre>out := make(Options)
+for _, m := range opts {
+	for k, v := range m {
+		out[k] = v
+	}
+}
+</pre>
+<p><a href="#GetOption">GetOption</a> 查询某个选项参数的值：
+<pre>v, ok := GetOption(opts, Deterministic)
+</pre>
+<p>这类似于 Go 映射查询：
+<pre>v, ok := Options[&quot;Deterministic&quot;]
+</pre>
+<p>序列化和反序列化共用同一个 Options 类型。有些选项影响两种操作，有些只影响其中一种：
+<ul>
+<li><a href="#StringifyNumbers">StringifyNumbers</a> 影响序列化和反序列化
+<li><a href="#Deterministic">Deterministic</a> 仅影响序列化
+<li><a href="#FormatNilSliceAsNull">FormatNilSliceAsNull</a> 仅影响序列化
+<li><a href="#FormatNilMapAsNull">FormatNilMapAsNull</a> 仅影响序列化
+<li><a href="#OmitZeroStructFields">OmitZeroStructFields</a> 仅影响序列化
+<li><a href="#MatchCaseInsensitiveNames">MatchCaseInsensitiveNames</a> 影响序列化和反序列化
+<li><a href="#RejectUnknownMembers">RejectUnknownMembers</a> 仅影响反序列化
+<li><a href="#WithMarshalers">WithMarshalers</a> 仅影响序列化
+<li><a href="#WithUnmarshalers">WithUnmarshalers</a> 仅影响反序列化
+</ul>
+<p>不影响某项操作的选项会被忽略。
+
+			<pre>type Options = <a href="/pkg/encoding/json/internal/jsonopts/">jsonopts</a>.<a href="/pkg/encoding/json/internal/jsonopts/#Options">Options</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DefaultOptionsV2">func <a href="/src/encoding/json/v2/options.go?s=3625:3656#L92">DefaultOptionsV2</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func DefaultOptionsV2() <a href="#Options">Options</a></pre>
+				<p>DefaultOptionsV2 是定义 v2 语义的完整选项集合。它等价于将 <a href="/pkg/encoding/json/#DefaultOptionsV1">encoding/json.DefaultOptionsV1</a> 中的所有选项都设为 false。其他选项均未设置。
+
+				
+			
+				<h3 id="Deterministic">func <a href="/src/encoding/json/v2/options.go?s=5910:5944#L145">Deterministic</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Deterministic(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>Deterministic 指定：对相同输入值进行序列化时，始终生成相同的输出字节。
+<p>例如，Go 映射会按键排序后序列化。
+<p>对于原生 Go 类型，相同二进制文件的不同运行实例之间保证确定性；但程序的不同构建之间不作此保证，例如源码或工具链版本、GOOS/GOARCH、构建标志等不同的情况。
+<p>带自定义序列化器的 Go 类型也应遵守 Deterministic 选项，在其为 true 时进行确定性序列化。
+<p>此选项仅影响序列化，反序列化时会被忽略。
+
+				
+			
+				<h3 id="FormatNilMapAsNull">func <a href="/src/encoding/json/v2/options.go?s=6686:6725#L170">FormatNilMapAsNull</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func FormatNilMapAsNull(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>FormatNilMapAsNull 指定将 nil Go 映射序列化为 JSON null，而不是默认的空 JSON 对象。
+<p>此选项仅影响序列化，反序列化时会被忽略。
+
+				
+			
+				<h3 id="FormatNilSliceAsNull">func <a href="/src/encoding/json/v2/options.go?s=6315:6356#L158">FormatNilSliceAsNull</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func FormatNilSliceAsNull(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>FormatNilSliceAsNull 指定将 nil Go 切片序列化为 JSON null，而不是默认的空 JSON 数组（对于 ~[]byte，则为默认的空 JSON 字符串）。
+<p>此选项仅影响序列化，反序列化时会被忽略。
+
+				
+			
+				<h3 id="JoinOptions">func <a href="/src/encoding/json/v2/options.go?s=2645:2686#L67">JoinOptions</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func JoinOptions(srcs ...<a href="#Options">Options</a>) <a href="#Options">Options</a></pre>
+				<p>JoinOptions 将给定选项列表合并为一个 Options。后面的选项所设置的属性会覆盖之前设置的属性值。
+
+				
+			
+				<h3 id="MatchCaseInsensitiveNames">func <a href="/src/encoding/json/v2/options.go?s=8666:8712#L215">MatchCaseInsensitiveNames</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MatchCaseInsensitiveNames(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>MatchCaseInsensitiveNames 指定使用不区分大小写的名称匹配，将 JSON 对象成员与 Go 结构体字段对应起来。如果某名称匹配多个字段，则选择名称完全匹配的字段；如果没有完全匹配的字段，则报告错误。无论此选项取何值，显式标记 `case:strict` 或 `case:ignore` 的 Go 结构体字段始终采用相应的区分大小写或不区分大小写名称匹配。
+<p>此选项影响序列化和反序列化。
+<p>不区分大小写的名称匹配也会影响重复名称检测（假定 <a href="/pkg/encoding/json/jsontext/#AllowDuplicateNames">jsontext.AllowDuplicateNames</a> 为 false），因为同一名称的不同写法可能匹配同一个 Go 结构体字段。例如，反序列化时，“foo”和“Foo”可能都匹配同一个字段，因此被视为重复名称。序列化时，通常不会有两个 Go 结构体字段序列化后又反序列化到同一个字段，因为它们都有唯一的精确名称。但嵌入兜底字段中可能包含与某个 Go 结构体字段名称也匹配的名称，从而产生重复名称错误。
+
+				
+			
+				<h3 id="OmitZeroStructFields">func <a href="/src/encoding/json/v2/options.go?s=7284:7325#L186">OmitZeroStructFields</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func OmitZeroStructFields(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>OmitZeroStructFields 指定从序列化输出中省略 Go 结构体的零值字段。如果值的类型具有“IsZero() bool”方法且返回 true，或者没有该方法且值为 Go 零值，则认为该值为零。此选项等价于为 Go 结构体每个字段指定 `omitzero` 标签选项。
+<p>此选项仅影响序列化，反序列化时会被忽略。
+
+				
+			
+				<h3 id="RejectUnknownMembers">func <a href="/src/encoding/json/v2/options.go?s=9016:9057#L227">RejectUnknownMembers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func RejectUnknownMembers(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>RejectUnknownMembers 指定在反序列化 JSON 对象时拒绝未知成员。
+<p>此选项仅影响反序列化，序列化时会被忽略。
+
+				
+			
+				<h3 id="StringifyNumbers">func <a href="/src/encoding/json/v2/options.go?s=5139:5176#L123">StringifyNumbers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func StringifyNumbers(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>StringifyNumbers 指定将通常编码为 JSON 数值的类型，改为编码为包含等价 JSON 数值的 JSON 字符串。反序列化时，从包含 JSON 数值且数值前后不带空白的 JSON 字符串解析该值。
+<p>为 Go 结构体字段指定 `string` 标签选项，会将此选项应用于该字段的顶层 JSON 值。通过 `string` 标签选项应用时，StringifyNumbers 不会递归作用于 JSON 对象或数组内部嵌套的 JSON 数值。
+<p>与所有选项一样，在调用 <a href="#Marshal">Marshal</a>、<a href="#Unmarshal">Unmarshal</a> 等函数时显式指定此选项，会递归应用它。
+<p>具有自定义序列化/反序列化行为、且表示 JSON 数值的 Go 类型应遵守 StringifyNumbers 选项：如果指定了该选项，应将 JSON 数值序列化在 JSON 字符串中。自定义序列化/反序列化应使用 <a href="#MarshalEncode">MarshalEncode</a>/<a href="#UnmarshalDecode">UnmarshalDecode</a> 处理嵌套的 JSON 对象，它们会自动应用 `string` 标签选项的非递归行为。
+<p>根据 RFC 8259 第 6 节，JSON 实现可以选择将 JSON 数值的表示限制为 IEEE 754 binary64 值。这可能导致解码器对 int64 和 uint64 类型丢失精度。将 JSON 数值加引号作为 JSON 字符串保存，可以保留精确值。
+<p>此选项影响序列化和反序列化。
+
+				
+			
+				<h3 id="WithMarshalers">func <a href="/src/encoding/json/v2/options.go?s=9409:9451#L240">WithMarshalers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func WithMarshalers(v *<a href="#Marshalers">Marshalers</a>) <a href="#Options">Options</a></pre>
+				<p>WithMarshalers 指定一组类型专用的序列化器，可以覆盖特定类型值的默认序列化行为。
+<p>此选项仅影响序列化，反序列化时会被忽略。
+
+				
+
+
+<div id="example_WithMarshalers_errors" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Errors)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Errors)</span></p>
+    <p>许多错误类型无法序列化，因为它们通常是没有任何导出字段的 Go 结构体（例如通过 [errors.New] 构造的错误）。某些应用可能希望将错误序列化为 JSON 字符串，即使这些错误无法被反序列化。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	// 待序列化的响应，包含一些遇到的 Go 错误。
+	response := []struct {
+		Result string `json:",omitzero"`
+		Error  error  `json:",omitzero"`
+	}{
+		{Result: "Oranges are a good source of Vitamin C."},
+		{Error: &amp;strconv.NumError{Func: "ParseUint", Num: "-1234", Err: strconv.ErrSyntax}},
+		{Error: &amp;os.PathError{Op: "ReadFile", Path: "/path/to/secret/file", Err: os.ErrPermission}},
+	}
+
+	b, err := json.Marshal(&amp;response,
+		// 拦截每次序列化 error 类型的尝试。
+		json.WithMarshalers(json.JoinMarshalers(
+			// 假设我们认为 strconv.NumError 可以安全地序列化：
+			// 此类型专用的序列化函数拦截该类型，
+			// 并将错误消息编码为 JSON 字符串。
+			json.MarshalToFunc(func(enc *jsontext.Encoder, err *strconv.NumError) error {
+				return enc.WriteToken(jsontext.String(err.Error()))
+			}),
+			// 错误消息可能包含不适合序列化的
+			// 敏感信息。对于上面未处理的所有错误，
+			// 返回通用的错误消息。
+			json.MarshalFunc(func(error) ([]byte, error) {
+				return []byte(`"internal server error"`), nil
+			}),
+		)),
+		jsontext.Multiline(true)) // 展开以便阅读
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>[
+	{
+		&#34;Result&#34;: &#34;Oranges are a good source of Vitamin C.&#34;
+	},
+	{
+		&#34;Error&#34;: &#34;strconv.ParseUint: parsing \&#34;-1234\&#34;: invalid syntax&#34;
+	},
+	{
+		&#34;Error&#34;: &#34;internal server error&#34;
+	}
+]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="WithUnmarshalers">func <a href="/src/encoding/json/v2/options.go?s=9731:9777#L249">WithUnmarshalers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func WithUnmarshalers(v *<a href="#Unmarshalers">Unmarshalers</a>) <a href="#Options">Options</a></pre>
+				<p>WithUnmarshalers 指定一组类型专用的反序列化器，可以覆盖特定类型值的默认反序列化行为。
+<p>此选项仅影响反序列化，序列化时会被忽略。
+
+				
+
+
+<div id="example_WithUnmarshalers_rawNumber" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (RawNumber)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (RawNumber)</span></p>
+    <p>某些应用需要在反序列化时保留 JSON 数值的精确值。可以用类型专用的反序列化函数拦截所有 any 类型，并用 [jsontext.Value] 预先填充接口值；该类型能够精确表示 JSON 数值。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"reflect"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	// 输入中的 JSON 数值超出了 float64 的表示能力。
+	const input = `[false, 1e-1000, 3.141592653589793238462643383279, 1e+1000, true]`
+
+	var value any
+	err := json.Unmarshal([]byte(input), &amp;value,
+		// 拦截每次反序列化到 any 类型的尝试。
+		json.WithUnmarshalers(
+			json.UnmarshalFromFunc(func(dec *jsontext.Decoder, val *any) error {
+				// 如果下一个待解码值是 JSON 数值，
+				// 则提供一个具体的 Go 类型作为反序列化目标。
+				if dec.PeekKind() == '0' {
+					*val = jsontext.Value(nil)
+				}
+				// 返回 ErrUnsupported 以回退到默认反序列化行为。
+				return errors.ErrUnsupported
+			}),
+		))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(value)
+
+	// 合理性检查。
+	want := []any{false, jsontext.Value("1e-1000"), jsontext.Value("3.141592653589793238462643383279"), jsontext.Value("1e+1000"), true}
+	if !reflect.DeepEqual(value, want) {
+		log.Fatalf("value mismatch:\ngot  %v\nwant %v", value, want)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>[false 1e-1000 3.141592653589793238462643383279 1e+1000 true]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_WithUnmarshalers_recordOffsets" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (RecordOffsets)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (RecordOffsets)</span></p>
+    <p>使用 JSON 解析配置文件时，解析逻辑经常需要在错误中报告行号和列号，指出输入中发生错误的位置。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"log"
+	"net/netip"
+	"strings"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+func main() {
+	// 假设的配置文件。
+	const input = `[
+		{"Source": "192.168.0.100:1234", "Destination": "192.168.0.1:80"},
+		{"Source": "192.168.0.251:4004"},
+		{"Source": "192.168.0.165:8080", "Destination": "0.0.0.0:80"}
+	]`
+	type Tunnel struct {
+		Source      netip.AddrPort
+		Destination netip.AddrPort
+
+		// 反序列化时，ByteOffset 会填充为此 Go 结构体
+		// 对应的 JSON 对象在输入中的字节偏移量。
+		ByteOffset int64 `json:"-"` // JSON 序列化时忽略的元数据
+	}
+
+	var tunnels []Tunnel
+	err := json.Unmarshal([]byte(input), &amp;tunnels,
+		// 拦截每次反序列化到 Tunnel 类型的尝试。
+		json.WithUnmarshalers(
+			json.UnmarshalFromFunc(func(dec *jsontext.Decoder, tunnel *Tunnel) error {
+				// Decoder.InputOffset 返回上一个 token 之后的偏移量，
+				// 但我们希望记录下一个 token 之前的偏移量。
+				//
+				// 调用 Decoder.PeekKind，缓冲足够的数据直到下一个 token。
+				// 加上前导空白、逗号和冒号的数量，
+				// 定位下一个 token 的起始位置。
+				dec.PeekKind()
+				unread := dec.UnreadBuffer()
+				n := len(unread) - len(bytes.TrimLeft(unread, " \n\r\t,:"))
+				tunnel.ByteOffset = dec.InputOffset() + int64(n)
+
+				// 返回 ErrUnsupported 以回退到默认反序列化行为。
+				return errors.ErrUnsupported
+			}),
+		))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// lineColumn 将字节偏移量转换为从 1 开始计数的行号和列号。
+	// 偏移量必须在输入范围内。
+	lineColumn := func(input string, offset int) (line, column int) {
+		line = 1 + strings.Count(input[:offset], "\n")
+		column = 1 + offset - (strings.LastIndex(input[:offset], "\n") + len("\n"))
+		return line, column
+	}
+
+	// 验证配置文件是否有效。
+	for _, tunnel := range tunnels {
+		if !tunnel.Source.IsValid() || !tunnel.Destination.IsValid() {
+			line, column := lineColumn(input, int(tunnel.ByteOffset))
+			fmt.Printf("%d:%d: source and destination must both be specified", line, column)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>3:3: source and destination must both be specified
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="SemanticError">type <a href="/src/encoding/json/v2/errors.go?s=2360:3189#L66">SemanticError</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>SemanticError 描述在确定 JSON 数据对应的 Go 数据含义，或反向确定其含义时发生的错误。
+<p>如果 <a href="#Marshaler">Marshaler</a>、<a href="#MarshalerTo">MarshalerTo</a>、<a href="#Unmarshaler">Unmarshaler</a> 或 <a href="#UnmarshalerFrom">UnmarshalerFrom</a> 方法被 <a href="#">json</a> 包调用时返回 SemanticError，则 ByteOffset、JSONPointer 和 GoType 字段如果为零值，会由调用上下文自动填充。
+<p>本包生成的此类错误的内容可能随时间变化。
+
+			<pre>type SemanticError struct {
+
+<span id="SemanticError.ByteOffset"></span>    <span class="comment">// ByteOffset 表示错误发生在此字节偏移量处或其后。</span>
+    ByteOffset <a href="/pkg/builtin/#int64">int64</a>
+<span id="SemanticError.JSONPointer"></span>    <span class="comment">// JSONPointer 用 JSON Pointer 表示法（见 RFC 6901）</span>
+    <span class="comment">// 指出错误发生在哪个 JSON 值内部。</span>
+    JSONPointer <a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Pointer">Pointer</a>
+
+<span id="SemanticError.JSONKind"></span>    <span class="comment">// JSONKind 是无法处理的 JSON 种类。</span>
+    JSONKind <a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Kind">Kind</a> <span class="comment">// 未知时可以为零</span>
+<span id="SemanticError.JSONValue"></span>    <span class="comment">// JSONValue 是无法反序列化的 JSON 数值或字符串。</span>
+    <span class="comment">// 序列化时不会填充此字段。</span>
+    JSONValue <a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Value">Value</a> <span class="comment">// 不相关或未知时可以为 nil</span>
+<span id="SemanticError.GoType"></span>    <span class="comment">// GoType 是无法处理的 Go 类型。</span>
+    GoType <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a> <span class="comment">// 未知时可以为 nil</span>
+
+<span id="SemanticError.Err"></span>    <span class="comment">// Err 是底层错误。</span>
+    Err <a href="/pkg/builtin/#error">error</a> <span class="comment">// 可以为 nil</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SemanticError.Error">func (*SemanticError) <a href="/src/encoding/json/v2/errors.go?s=12981:13019#L325">Error</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#SemanticError">SemanticError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="SemanticError.Unwrap">func (*SemanticError) <a href="/src/encoding/json/v2/errors.go?s=15877:15915#L433">Unwrap</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#SemanticError">SemanticError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Unmarshaler">type <a href="/src/encoding/json/v2/arshal_methods.go?s=5096:5155#L109">Unmarshaler</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Unmarshaler 由能够反序列化自身的类型实现。除非实现希望避免直接依赖“jsontext”包，否则建议实现 <a href="#UnmarshalerFrom">UnmarshalerFrom</a>。
+<p>如果由本包的反序列化功能调用，可以假定输入是一个有效 JSON 值的编码。建议 UnmarshalJSON 在反序列化到预先填充值时实现 <a href="#Unmarshal">Unmarshal</a> 所述的合并语义。
+<p>实现不得保留或修改输入 []byte。
+<p>实现不得返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>。
+<p>如果返回的错误是 <a href="#SemanticError">SemanticError</a>，<a href="#">json</a> 可能会用额外上下文填充其中尚未设置的字段。其他类型的错误会被包装在 <a href="#SemanticError">SemanticError</a> 中。
+
+			<pre>type Unmarshaler interface {
+    UnmarshalJSON([]<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnmarshalerFrom">type <a href="/src/encoding/json/v2/arshal_methods.go?s=7450:7528#L154">UnmarshalerFrom</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>UnmarshalerFrom 由能够反序列化自身的类型实现。建议实现 UnmarshalerFrom 而非 <a href="#Unmarshaler">Unmarshaler</a>，因为它性能更好，也更灵活。如果某类型同时实现 Unmarshaler 和 UnmarshalerFrom，则优先使用 UnmarshalerFrom。此时，两种实现在默认反序列化选项下应尽量保持等价行为。
+<p>实现必须恰好从 Decoder 读取一个 JSON 值。建议 UnmarshalJSONFrom 在反序列化到预先填充值时实现 <a href="#Unmarshal">Unmarshal</a> 所述的合并语义。另一种选择是在不修改 Decoder 的情况下返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>。调用此方法的“json”包将采用接收者类型的下一种可用 JSON 表示。实现不得保留指向 <a href="/pkg/encoding/json/jsontext/#Decoder">jsontext.Decoder</a> 的指针。
+<p>如果返回的错误是 <a href="#SemanticError">SemanticError</a>，<a href="#">json</a> 可能会用额外上下文填充其中尚未设置的字段。其他类型的错误会被包装在 <a href="#SemanticError">SemanticError</a> 中，但 [jsontext.SyntacticError] 和 I/O 错误除外。
+<p>不应直接调用 UnmarshalJSONFrom 方法，因为它可能返回需要特殊处理的哨兵错误。使用者应改为调用 <a href="#UnmarshalDecode">UnmarshalDecode</a>，它会处理这些情况。
+<p>实现应通过 <a href="/pkg/encoding/json/jsontext/#Decoder.Options">jsontext.Decoder.Options</a> 检查反序列化选项，并按需调整行为以遵守这些选项。
+<p>以下选项可能与 UnmarshalerFrom 实现有关：
+<p>- <a href="#StringifyNumbers">StringifyNumbers</a>：如果该类型表示为 JSON 数值
+<p>某些选项（例如 <a href="#FormatNilSliceAsNull">FormatNilSliceAsNull</a>）仅适用于原生 Go 类型，因此通常与 UnmarshalerFrom 的实现没有直接关系。但表示复合类型的类型应使用 <a href="#UnmarshalDecode">UnmarshalDecode</a> 反序列化其中包含的类型，以确保这些选项作用于它们。同样，<a href="#WithUnmarshalers">WithUnmarshalers</a> 也可能影响复合类型内部任意类型的反序列化。
+<p>其他所有选项都由 UnmarshalerFrom 实现之外的代码自动处理，因此与具体实现无关。
+
+			<pre>type UnmarshalerFrom interface {
+    UnmarshalJSONFrom(*<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Decoder">Decoder</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_UnmarshalerFrom" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>自定义类型可以通过 [UnmarshalerFrom] 定义自定义反序列化行为。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"maps"
+	"slices"
+
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
+// IntSet 是使用映射实现的简单数值集合。
+type IntSet map[int]struct{}
+
+// MarshalJSONTo 将 s 作为 JSON 数组编码到 enc。
+func (s *IntSet) MarshalJSONTo(enc *jsontext.Encoder) error {
+
+	if err := enc.WriteToken(jsontext.BeginArray); err != nil {
+		return err
+	}
+
+	keys := maps.Keys(*s)
+
+	deterministic, _ := json.GetOption(enc.Options(), json.Deterministic)
+	if deterministic {
+		keys = slices.Values(slices.Sorted(keys))
+	}
+
+	for k := range keys {
+
+		if err := json.MarshalEncode(enc, k); err != nil {
+			return err
+		}
+	}
+
+	if err := enc.WriteToken(jsontext.EndArray); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UnmarshalJSONFrom 从 dec 解码一个 JSON 数组并存入 s。
+func (s *IntSet) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+
+	if k := dec.PeekKind(); k != '[' {
+
+		return &amp;json.SemanticError{JSONKind: k}
+	}
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+
+	for dec.PeekKind() != ']' {
+		var v int
+
+		if err := json.UnmarshalDecode(dec, &amp;v); err != nil {
+			return err
+		}
+		if *s == nil {
+			*s = IntSet{}
+		}
+		(*s)[v] = struct{}{}
+	}
+
+	if _, err := dec.ReadToken(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func main() {
+	s := "[1,2,3]"
+
+	var set IntSet
+	err := json.Unmarshal([]byte(s), &amp;set)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(set)
+
+}
+</textarea></div>
+        <div class="output"><pre>map[1:{} 2:{} 3:{}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="Unmarshalers">type <a href="/src/encoding/json/v2/arshal_funcs.go?s=1845:1882#L43">Unmarshalers</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Unmarshalers 是一组函数，可覆盖特定类型的反序列化行为。通过设置 <a href="#WithUnmarshalers">WithUnmarshalers</a>，可以将其用于 <a href="#Unmarshal">Unmarshal</a>、<a href="#UnmarshalRead">UnmarshalRead</a> 或 <a href="#UnmarshalDecode">UnmarshalDecode</a>。nil *Unmarshalers 等价于空列表。Unmarshalers 没有导出的字段或方法。
+
+			<pre>type Unmarshalers = typedUnmarshalers</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="JoinUnmarshalers">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=2449:2505#L57">JoinUnmarshalers</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func JoinUnmarshalers(us ...*<a href="#Unmarshalers">Unmarshalers</a>) *<a href="#Unmarshalers">Unmarshalers</a></pre>
+				<p>JoinUnmarshalers 将反序列化函数合并为一个扁平列表。如果列表中多个函数都适用于给定类型的值，则靠前的函数优先。如果某函数返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则调用下一个适用函数；没有可用函数时，使用默认反序列化行为。
+<p>例如：
+<pre>u1 := JoinUnmarshalers(f1, f2)
+u2 := JoinUnmarshalers(f0, u1, f3)     // 等价于 u3
+u3 := JoinUnmarshalers(f0, f1, f2, f3) // 等价于 u2
+</pre>
+
+				
+			
+				<h3 id="UnmarshalFromFunc">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=10354:10434#L280">UnmarshalFromFunc</a>
+					
+					
+				</h3>
+				<pre>func UnmarshalFromFunc[T <a href="/pkg/builtin/#any">any</a>](fn func(*<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Decoder">Decoder</a>, <a href="#T">T</a>) <a href="/pkg/builtin/#error">error</a>) *<a href="#Unmarshalers">Unmarshalers</a></pre>
+				<p>UnmarshalFromFunc 构造一个类型专用的反序列化器，指定如何反序列化类型 T 的值。T 必须是未命名的指针类型或接口类型。传给函数的始终是非 nil 指针值。
+<p>实现必须遵守 <a href="#UnmarshalerFrom">UnmarshalerFrom</a> 的要求。
+<p>实现不得保留指向 <a href="/pkg/encoding/json/jsontext/#Decoder">jsontext.Decoder</a> 的指针或 T 的值。
+
+				
+			
+				<h3 id="UnmarshalFunc">func <a href="/src/encoding/json/v2/arshal_funcs.go?s=9105:9170#L245">UnmarshalFunc</a>
+					
+					
+				</h3>
+				<pre>func UnmarshalFunc[T <a href="/pkg/builtin/#any">any</a>](fn func([]<a href="/pkg/builtin/#byte">byte</a>, <a href="#T">T</a>) <a href="/pkg/builtin/#error">error</a>) *<a href="#Unmarshalers">Unmarshalers</a></pre>
+				<p>UnmarshalFunc 构造一个类型专用的反序列化器，指定如何反序列化类型 T 的值。T 必须是未命名的指针类型或接口类型。传给函数的始终是非 nil 指针值。
+<p>实现必须遵守 <a href="#Unmarshaler">Unmarshaler</a> 的要求。
+<p>实现不得保留 T 的值。
+
+				
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

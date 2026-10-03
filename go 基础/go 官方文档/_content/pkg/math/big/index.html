@@ -1,0 +1,2303 @@
+<!--{
+  "Title": "math/big 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>math/big 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "math/big"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>big 包实现任意精度算术（大数运算），支持以下数值类型：<pre>Int    带符号整数
+Rat    有理数
+Float  浮点数
+</pre>
+<p><a href="#Int">Int</a>、<a href="#Rat">Rat</a> 或 <a href="#Float">Float</a> 的零值都表示 0。因此，可按通常的方式声明新值，无须进一步初始化即可表示 0：<pre>var x Int        // &amp;x 是值为 0 的 *Int
+var r = &amp;Rat{}   // r 是值为 0 的 *Rat
+y := new(Float)  // y 是值为 0 的 *Float
+</pre>
+<p>也可以使用以下形式的工厂函数分配并初始化新值：<pre>func NewT(v V) *T
+</pre>
+<p>例如，<a href="#NewInt">NewInt</a>(x) 返回设为 int64 参数 x 的值的 *<a href="#Int">Int</a>；<a href="#NewRat">NewRat</a>(a, b) 返回设为分数 a/b 的 *<a href="#Rat">Rat</a>，其中 a 和 b 都是 int64；<a href="#NewFloat">NewFloat</a>(f) 返回用 float64 参数 f 初始化的 *<a href="#Float">Float</a>。显式设置方法提供了更大的灵活性，例如：<pre>var z1 Int
+z1.SetUint64(123)                 // z1 := 123
+z2 := new(Rat).SetFloat64(1.25)   // z2 := 5/4
+z3 := new(Float).SetInt(z1)       // z3 := 123.0
+</pre>
+<p>设置方法、数值运算和谓词用以下形式的方法表示：<pre>func (z *T) SetV(v V) *T          // z = v
+func (z *T) Unary(x *T) *T        // z = 对 x 执行一元运算
+func (z *T) Binary(x, y *T) *T    // z = 对 x 和 y 执行二元运算
+func (x *T) Pred() P              // p = pred(x)
+</pre>
+<p>其中 T 是 <a href="#Int">Int</a>、<a href="#Rat">Rat</a> 或 <a href="#Float">Float</a> 之一。对于一元和二元运算，接收者保存结果（此时通常命名为 z，见下文）；如果接收者也是操作数 x 或 y 之一，可以安全地覆盖它（并复用其内存）。<p>算术表达式通常写成一系列独立的方法调用，每次调用对应一次运算。接收者表示结果，方法参数是运算的操作数。例如，给定三个 *Int 值 a、b 和 c，调用<pre>c.Add(a, b)
+</pre>
+<p>会计算 a + b 的和，并将结果存入 c，覆盖 c 原先保存的值。除非另有说明，运算允许参数指向同一个值，因此可以放心地写成<pre>sum.Add(sum, x)
+</pre>
+<p>将各个 x 累加到 sum 中。<p>（始终通过接收者传入结果值，可以更好地控制内存使用。运算无须为每个结果分配新内存，而是可以复用为结果值分配的空间，并在计算过程中用新结果覆盖原值。）<p>命名约定：API 对传入的方法参数（包括接收者）采用一致的命名，以明确其用途。传入的操作数通常命名为 x、y、a、b 等，但绝不用 z。用于指定结果的参数命名为 z（通常就是接收者）。<p>例如，(*Int).Add 的参数命名为 x 和 y，而接收者指定结果的存放位置，因此命名为 z：<pre>func (z *Int) Add(x, y *Int) *Int
+</pre>
+<p>这类方法通常还返回传入的接收者，以便进行简单的链式调用。<p>不需要传入结果值的方法（例如 <a href="#Int.Sign">Int.Sign</a>）直接返回结果。此时，接收者通常是第一个操作数，命名为 x：<pre>func (x *Int) Sign() int
+</pre>
+<p>多种方法支持字符串与对应数值之间的双向转换：*<a href="#Int">Int</a>、*<a href="#Rat">Rat</a> 和 *<a href="#Float">Float</a> 实现了 Stringer 接口，用于生成值的默认字符串表示；它们还提供 SetString 方法，支持从多种格式的字符串初始化值（参见相应 SetString 的文档）。<p>最后，*<a href="#Int">Int</a>、*<a href="#Rat">Rat</a> 和 *<a href="#Float">Float</a> 都满足用于扫描输入的 <a href="/pkg/fmt/#Scanner">fmt.Scanner</a> 接口；除 *<a href="#Rat">Rat</a> 外，它们还满足用于格式化输出的 Formatter 接口。<div id="example__eConvergents" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (EConvergents)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (EConvergents)</span></p>
+    <p>本例演示如何使用 big.Rat 计算常数 e（自然对数的底）的连分数收敛分数序列的前 15 项。<p>译注：示例原注释提到 big.Rat 实现 fmt.Formatter；实际上此处由 String 方法提供字符串表示，Rat 并未实现 Formatter 接口。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+// 使用 e 的经典连分数展开
+//
+//	e = [1; 0, 1, 1, 2, 1, 1, ... 2n, 1, 1, ...]
+//
+// 即对于第 n 项，使用
+//
+//	   1          当 n mod 3 != 1 时
+//	(n-1)/3 * 2   当 n mod 3 == 1 时
+func recur(n, lim int64) *big.Rat {
+	term := new(big.Rat)
+	if n%3 != 1 {
+		term.SetInt64(1)
+	} else {
+		term.SetInt64((n - 1) / 3 * 2)
+	}
+
+	if n &gt; lim {
+		return term
+	}
+
+	// 直接将 frac 初始化为 recur 返回结果的
+	// 倒数。
+	frac := new(big.Rat).Inv(recur(n&#43;1, lim))
+
+	return term.Add(term, frac)
+}
+
+// 本例演示如何使用 big.Rat 计算
+// 常数 e（自然对数的底）的连分数收敛分数序列
+// 的前 15 项。
+func main() {
+	for i := 1; i &lt;= 15; i&#43;&#43; {
+		r := recur(0, int64(i))
+
+		// 将 r 分别以分数和浮点数形式输出。
+		// big.Rat 实现了 fmt.Formatter，因此可以使用 %-13s
+		// 可以得到左对齐的分数字符串表示。
+		fmt.Printf(&#34;%-13s = %s\n&#34;, r, r.FloatString(8))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>2/1           = 2.00000000
+3/1           = 3.00000000
+8/3           = 2.66666667
+11/4          = 2.75000000
+19/7          = 2.71428571
+87/32         = 2.71875000
+106/39        = 2.71794872
+193/71        = 2.71830986
+1264/465      = 2.71827957
+1457/536      = 2.71828358
+2721/1001     = 2.71828172
+23225/8544    = 2.71828184
+25946/9545    = 2.71828182
+49171/18089   = 2.71828183
+517656/190435 = 2.71828183
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__fibonacci" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Fibonacci)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Fibonacci)</span></p>
+    <p>本例演示如何使用 big.Int 计算最小的 100 位十进制斐波那契数，并检验它是否为素数。<p>译注：示例原注释写作 a 小于 1e100，实际循环条件是 a 小于 limit，即 10^99。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 用序列的前两个数初始化两个大整数。
+	a := big.NewInt(0)
+	b := big.NewInt(1)
+
+	// 将 limit 初始化为 10^99，即最小的 100 位整数。
+	var limit big.Int
+	limit.Exp(big.NewInt(10), big.NewInt(99), nil)
+
+	// 当 a 小于 1e100 时继续循环。
+	for a.Cmp(&amp;limit) &lt; 0 {
+		// 计算下一个斐波那契数，并存入 a。
+		a.Add(a, b)
+		// 交换 a 和 b，使 b 成为序列中的下一个数。
+		a, b = b, a
+	}
+	fmt.Println(a) // 100 位斐波那契数
+
+	// 检验 a 是否为素数。
+	// （ProbablyPrime 的参数指定要执行的 Miller-Rabin
+	// 检验轮数；20 是一个合适的值。）
+	fmt.Println(a.ProbablyPrime(20))
+
+}
+</textarea></div>
+        <div class="output"><pre>1344719667586153181419716641724567886890850696275767987106294472017884974410332069524504824747437757
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__sqrt2" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Sqrt2)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Sqrt2)</span></p>
+    <p>本例演示如何使用 big.Float 以 200 位二进制精度计算 2 的平方根，并以十进制形式输出结果。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 使用 200 位二进制尾数精度进行计算。
+	const prec = 200
+
+	// 使用牛顿法计算 2 的平方根。先给定 sqrt(2)
+	// 的初始估计值，然后迭代：
+	//     x_{n&#43;1} = 1/2 * ( x_n &#43; (2.0 / x_n) )
+
+	// 牛顿法每次迭代会使正确位数翻倍，
+	// 因此至少需要 log_2(prec) 步。
+	steps := int(math.Log2(prec))
+
+	// 初始化计算所需的值。
+	two := new(big.Float).SetPrec(prec).SetInt64(2)
+	half := new(big.Float).SetPrec(prec).SetFloat64(0.5)
+
+	// 用 1 作为初始估计值。
+	x := new(big.Float).SetPrec(prec).SetInt64(1)
+
+	// 用 t 作为临时变量，无须设置其精度。
+	// 精度未设置（为 0）的 big.Float 值在作为
+	// big.Float 运算的结果（接收者）时，会自动采用
+	// 各参数中的最大精度。
+	t := new(big.Float)
+
+	// 进行迭代。
+	for i := 0; i &lt;= steps; i&#43;&#43; {
+		t.Quo(two, x)  // t = 2.0 / x_n
+		t.Add(x, t)    // t = x_n &#43; (2.0 / x_n)
+		x.Mul(half, t) // x_{n&#43;1} = 0.5 * t
+	}
+
+	// big.Float 实现了 fmt.Formatter，因此可以使用常规 fmt.Printf 格式动词。
+	fmt.Printf(&#34;sqrt(2) = %.50f\n&#34;, x)
+
+	// 输出 2 与 x*x 之间的误差。
+	t.Mul(x, x) // t = x*x
+	fmt.Printf(&#34;error = %e\n&#34;, t.Sub(two, t))
+
+}
+</textarea></div>
+        <div class="output"><pre>sqrt(2) = 1.41421356237309504880168872420969807856967187537695
+error = 0.000000e+00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#Jacobi">func Jacobi(x, y *Int) int</a></dd>
+			
+			
+				
+				<dd><a href="#Accuracy">type Accuracy</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Accuracy.String">func (i Accuracy) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#ErrNaN">type ErrNaN</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrNaN.Error">func (err ErrNaN) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Float">type Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFloat">func NewFloat(x float64) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseFloat">func ParseFloat(s string, base int, prec uint, mode RoundingMode) (f *Float, b int, err error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Abs">func (z *Float) Abs(x *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Acc">func (x *Float) Acc() Accuracy</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Add">func (z *Float) Add(x, y *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Append">func (x *Float) Append(buf []byte, fmt byte, prec int) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.AppendText">func (x *Float) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Cmp">func (x *Float) Cmp(y *Float) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Copy">func (z *Float) Copy(x *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Float32">func (x *Float) Float32() (float32, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Float64">func (x *Float) Float64() (float64, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Format">func (x *Float) Format(s fmt.State, format rune)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.GobDecode">func (z *Float) GobDecode(buf []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.GobEncode">func (x *Float) GobEncode() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Int">func (x *Float) Int(z *Int) (*Int, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Int64">func (x *Float) Int64() (int64, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.IsInf">func (x *Float) IsInf() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.IsInt">func (x *Float) IsInt() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.MantExp">func (x *Float) MantExp(mant *Float) (exp int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.MarshalText">func (x *Float) MarshalText() (text []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.MinPrec">func (x *Float) MinPrec() uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Mode">func (x *Float) Mode() RoundingMode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Mul">func (z *Float) Mul(x, y *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Neg">func (z *Float) Neg(x *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Parse">func (z *Float) Parse(s string, base int) (f *Float, b int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Prec">func (x *Float) Prec() uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Quo">func (z *Float) Quo(x, y *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Rat">func (x *Float) Rat(z *Rat) (*Rat, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Scan">func (z *Float) Scan(s fmt.ScanState, ch rune) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Set">func (z *Float) Set(x *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetFloat64">func (z *Float) SetFloat64(x float64) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetInf">func (z *Float) SetInf(signbit bool) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetInt">func (z *Float) SetInt(x *Int) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetInt64">func (z *Float) SetInt64(x int64) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetMantExp">func (z *Float) SetMantExp(mant *Float, exp int) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetMode">func (z *Float) SetMode(mode RoundingMode) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetPrec">func (z *Float) SetPrec(prec uint) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetRat">func (z *Float) SetRat(x *Rat) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetString">func (z *Float) SetString(s string) (*Float, bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.SetUint64">func (z *Float) SetUint64(x uint64) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Sign">func (x *Float) Sign() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Signbit">func (x *Float) Signbit() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Sqrt">func (z *Float) Sqrt(x *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.String">func (x *Float) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Sub">func (z *Float) Sub(x, y *Float) *Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Text">func (x *Float) Text(format byte, prec int) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Uint64">func (x *Float) Uint64() (uint64, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.UnmarshalText">func (z *Float) UnmarshalText(text []byte) error</a></dd>
+				
+			
+				
+				<dd><a href="#Int">type Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewInt">func NewInt(x int64) *Int</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Abs">func (z *Int) Abs(x *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Add">func (z *Int) Add(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.And">func (z *Int) And(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.AndNot">func (z *Int) AndNot(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Append">func (x *Int) Append(buf []byte, base int) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.AppendText">func (x *Int) AppendText(b []byte) (text []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Binomial">func (z *Int) Binomial(n, k int64) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Bit">func (x *Int) Bit(i int) uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.BitLen">func (x *Int) BitLen() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Bits">func (x *Int) Bits() []Word</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Bytes">func (x *Int) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Cmp">func (x *Int) Cmp(y *Int) (r int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.CmpAbs">func (x *Int) CmpAbs(y *Int) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Div">func (z *Int) Div(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.DivMod">func (z *Int) DivMod(x, y, m *Int) (*Int, *Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Divide">func (z *Int) Divide(x, y, r *Int, mode RoundingMode) (*Int, *Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Exp">func (z *Int) Exp(x, y, m *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.FillBytes">func (x *Int) FillBytes(buf []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Float64">func (x *Int) Float64() (float64, Accuracy)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Format">func (x *Int) Format(s fmt.State, ch rune)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.GCD">func (z *Int) GCD(x, y, a, b *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.GobDecode">func (z *Int) GobDecode(buf []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.GobEncode">func (x *Int) GobEncode() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Int64">func (x *Int) Int64() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.IsInt64">func (x *Int) IsInt64() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.IsUint64">func (x *Int) IsUint64() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Lsh">func (z *Int) Lsh(x *Int, n uint) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.MarshalJSON">func (x *Int) MarshalJSON() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.MarshalText">func (x *Int) MarshalText() (text []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Mod">func (z *Int) Mod(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.ModInverse">func (z *Int) ModInverse(g, n *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.ModSqrt">func (z *Int) ModSqrt(x, p *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Mul">func (z *Int) Mul(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.MulRange">func (z *Int) MulRange(a, b int64) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Neg">func (z *Int) Neg(x *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Not">func (z *Int) Not(x *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Or">func (z *Int) Or(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.ProbablyPrime">func (x *Int) ProbablyPrime(n int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Quo">func (z *Int) Quo(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.QuoRem">func (z *Int) QuoRem(x, y, r *Int) (*Int, *Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Rand">func (z *Int) Rand(rnd *rand.Rand, n *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Rem">func (z *Int) Rem(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Rsh">func (z *Int) Rsh(x *Int, n uint) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Scan">func (z *Int) Scan(s fmt.ScanState, ch rune) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Set">func (z *Int) Set(x *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetBit">func (z *Int) SetBit(x *Int, i int, b uint) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetBits">func (z *Int) SetBits(abs []Word) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetBytes">func (z *Int) SetBytes(buf []byte) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetInt64">func (z *Int) SetInt64(x int64) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetString">func (z *Int) SetString(s string, base int) (*Int, bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.SetUint64">func (z *Int) SetUint64(x uint64) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Sign">func (x *Int) Sign() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Sqrt">func (z *Int) Sqrt(x *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.String">func (x *Int) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Sub">func (z *Int) Sub(x, y *Int) *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Text">func (x *Int) Text(base int) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.TrailingZeroBits">func (x *Int) TrailingZeroBits() uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Uint64">func (x *Int) Uint64() uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.UnmarshalJSON">func (z *Int) UnmarshalJSON(text []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.UnmarshalText">func (z *Int) UnmarshalText(text []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Xor">func (z *Int) Xor(x, y *Int) *Int</a></dd>
+				
+			
+				
+				<dd><a href="#Rat">type Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRat">func NewRat(a, b int64) *Rat</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Abs">func (z *Rat) Abs(x *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Add">func (z *Rat) Add(x, y *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.AppendText">func (x *Rat) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Cmp">func (x *Rat) Cmp(y *Rat) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Denom">func (x *Rat) Denom() *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Float32">func (x *Rat) Float32() (f float32, exact bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Float64">func (x *Rat) Float64() (f float64, exact bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.FloatPrec">func (x *Rat) FloatPrec() (n int, exact bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.FloatString">func (x *Rat) FloatString(prec int) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.GobDecode">func (z *Rat) GobDecode(buf []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.GobEncode">func (x *Rat) GobEncode() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Inv">func (z *Rat) Inv(x *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.IsInt">func (x *Rat) IsInt() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.MarshalText">func (x *Rat) MarshalText() (text []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Mul">func (z *Rat) Mul(x, y *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Neg">func (z *Rat) Neg(x *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Num">func (x *Rat) Num() *Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Quo">func (z *Rat) Quo(x, y *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.RatString">func (x *Rat) RatString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Scan">func (z *Rat) Scan(s fmt.ScanState, ch rune) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Set">func (z *Rat) Set(x *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetFloat64">func (z *Rat) SetFloat64(f float64) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetFrac">func (z *Rat) SetFrac(a, b *Int) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetFrac64">func (z *Rat) SetFrac64(a, b int64) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetInt">func (z *Rat) SetInt(x *Int) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetInt64">func (z *Rat) SetInt64(x int64) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetString">func (z *Rat) SetString(s string) (*Rat, bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.SetUint64">func (z *Rat) SetUint64(x uint64) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Sign">func (x *Rat) Sign() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.String">func (x *Rat) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.Sub">func (z *Rat) Sub(x, y *Rat) *Rat</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rat.UnmarshalText">func (z *Rat) UnmarshalText(text []byte) error</a></dd>
+				
+			
+				
+				<dd><a href="#RoundingMode">type RoundingMode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RoundingMode.String">func (i RoundingMode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Word">type Word</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Float_Add">Float.Add</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float_Cmp">Float.Cmp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float_Copy">Float.Copy</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float_Scan">Float.Scan</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float_SetString">Float.SetString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float_shift">Float (Shift)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Int_Scan">Int.Scan</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Int_SetString">Int.SetString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Rat_Scan">Rat.Scan</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Rat_SetString">Rat.SetString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RoundingMode">RoundingMode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__eConvergents">包 (EConvergents)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__fibonacci">包 (Fibonacci)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__sqrt2">包 (Sqrt2)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/math/big/accuracy_string.go">accuracy_string.go</a>
+			
+				<a href="/src/math/big/arith.go">arith.go</a>
+			
+				<a href="/src/math/big/arith_amd64.go">arith_amd64.go</a>
+			
+				<a href="/src/math/big/arith_decl.go">arith_decl.go</a>
+			
+				<a href="/src/math/big/decimal.go">decimal.go</a>
+			
+				<a href="/src/math/big/doc.go">doc.go</a>
+			
+				<a href="/src/math/big/float.go">float.go</a>
+			
+				<a href="/src/math/big/floatconv.go">floatconv.go</a>
+			
+				<a href="/src/math/big/floatmarsh.go">floatmarsh.go</a>
+			
+				<a href="/src/math/big/ftoa.go">ftoa.go</a>
+			
+				<a href="/src/math/big/int.go">int.go</a>
+			
+				<a href="/src/math/big/intconv.go">intconv.go</a>
+			
+				<a href="/src/math/big/intmarsh.go">intmarsh.go</a>
+			
+				<a href="/src/math/big/nat.go">nat.go</a>
+			
+				<a href="/src/math/big/natconv.go">natconv.go</a>
+			
+				<a href="/src/math/big/natdiv.go">natdiv.go</a>
+			
+				<a href="/src/math/big/natmul.go">natmul.go</a>
+			
+				<a href="/src/math/big/prime.go">prime.go</a>
+			
+				<a href="/src/math/big/rat.go">rat.go</a>
+			
+				<a href="/src/math/big/ratconv.go">ratconv.go</a>
+			
+				<a href="/src/math/big/ratmarsh.go">ratmarsh.go</a>
+			
+				<a href="/src/math/big/roundingmode_string.go">roundingmode_string.go</a>
+			
+				<a href="/src/math/big/sqrt.go">sqrt.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>指数和精度的限制。<pre>const (
+    <span id="MaxExp">MaxExp</span>  = <a href="/pkg/math/">math</a>.<a href="/pkg/math/#MaxInt32">MaxInt32</a>  <span class="comment">// 支持的最大指数</span>
+    <span id="MinExp">MinExp</span>  = <a href="/pkg/math/">math</a>.<a href="/pkg/math/#MinInt32">MinInt32</a>  <span class="comment">// 支持的最小指数</span>
+    <span id="MaxPrec">MaxPrec</span> = <a href="/pkg/math/">math</a>.<a href="/pkg/math/#MaxUint32">MaxUint32</a> <span class="comment">// 理论上支持的最大精度；实际可能受内存限制</span>
+)</pre>
+			
+				<p>这些舍入模式决定整数除法中如何调整整数商。详见 Daan Leijen 的论文《Division and Modulus for Computer Scientists》。<pre>const (
+    <span id="Trunc">Trunc</span> = <a href="#ToZero">ToZero</a>        <span class="comment">// 向零截断的除法（与 Go 除法相同）</span>
+    <span id="Floor">Floor</span> = <a href="#ToNegativeInf">ToNegativeInf</a> <span class="comment">// 向负无穷舍入的除法</span>
+    <span id="Round">Round</span> = <a href="#ToNearestEven">ToNearestEven</a> <span class="comment">// 舍入到最近值的除法</span>
+    <span id="Ceil">Ceil</span>  = <a href="#ToPositiveInf">ToPositiveInf</a> <span class="comment">// 向正无穷舍入的除法</span>
+)</pre>
+			
+				<p>MaxBase 是字符串转换所接受的最大进制。<pre>const <span id="MaxBase">MaxBase</span> = 10 + (&#39;z&#39; - &#39;a&#39; + 1) + (&#39;Z&#39; - &#39;A&#39; + 1)</pre>
+			
+		
+		
+		
+			
+			<h2 id="Jacobi">func <a href="/src/math/big/int.go?s=27062:27088#L998">Jacobi</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Jacobi(x, y *<a href="#Int">Int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Jacobi 返回雅可比符号 (x/y)，取值为 +1、-1 或 0。参数 y 必须是奇整数。<h2 id="Accuracy">type <a href="/src/math/big/float.go?s=5932:5950#L140">Accuracy</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Accuracy 描述最近一次生成 <a href="#Float">Float</a> 值的运算所产生的舍入误差，表示结果与精确值之间的关系。<pre>type Accuracy <a href="/pkg/builtin/#int8">int8</a></pre>
+
+			
+				<p>这些常量描述 <a href="#Float">Float</a> 的 <a href="#Accuracy">Accuracy</a>。<pre>const (
+    <span id="Below">Below</span> <a href="#Accuracy">Accuracy</a> = -1
+    <span id="Exact">Exact</span> <a href="#Accuracy">Accuracy</a> = 0
+    <span id="Above">Above</span> <a href="#Accuracy">Accuracy</a> = +1
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Accuracy.String">func (Accuracy) <a href="/src/math/big/accuracy_string.go?s=416:449#L10">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (i <a href="#Accuracy">Accuracy</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ErrNaN">type <a href="/src/math/big/float.go?s=3270:3304#L67">ErrNaN</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>如果 <a href="#Float">Float</a> 运算按照 IEEE 754 规则会产生 NaN，则会引发 ErrNaN panic。ErrNaN 实现了 error 接口。<pre>type ErrNaN struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ErrNaN.Error">func (ErrNaN) <a href="/src/math/big/float.go?s=3330:3362#L73">Error</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (err <a href="#ErrNaN">ErrNaN</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Float">type <a href="/src/math/big/float.go?s=3012:3124#L55">Float</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>非零的有限 Float 表示如下形式的多精度浮点数：<pre>sign × mantissa × 2**exponent
+</pre>
+<p>其中 0.5 &lt;= mantissa &lt; 1.0，且 MinExp &lt;= exponent &lt;= MaxExp。Float 也可以是零（+0、-0）或无穷大（+Inf、-Inf）。所有 Float 都可以比较大小，两个 Float 值 x 和 y 的顺序由 x.Cmp(y) 定义。<p>每个 Float 值还具有精度、舍入模式和准确度。精度是可用于表示该值的尾数二进制位的最大数量。舍入模式指定如何对结果舍入，使其适合这些尾数位；准确度描述结果与精确结果之间的舍入误差。<p>除非另有说明，所有用 *Float 变量指定结果的运算（包括设置方法）都按照结果变量的精度和舍入模式对数值结果进行舍入。结果通常通过接收者指定，<a href="#Float.MantExp">Float.MantExp</a> 除外。<p>如果传入的结果精度为 0（见下文），则在进行任何舍入前，将其设为各参数中最大的精度，舍入模式保持不变。因此，作为结果参数传入的未初始化 Float，其精度会被设为由操作数决定的合理值，而舍入模式则为 RoundingMode 的零值 ToNearestEven。<p>将所需精度设为 24 或 53，并采用相匹配的舍入模式（通常为 <a href="#ToNearestEven">ToNearestEven</a>）时，对于对应于正规（即非次正规）float32 或 float64 数的操作数，Float 运算会得到与相应 IEEE 754 float32 或 float64 算术相同的结果。由于 Float 的指数范围大得多，指数下溢和上溢产生 0 或无穷大的临界值与 IEEE 754 不同。<p>Float 的零值（未初始化的值）可直接使用，精确表示 +0.0，精度为 0，舍入模式为 <a href="#ToNearestEven">ToNearestEven</a>。<p>运算始终使用指针参数 *Float，而不是 Float 值；每个独立的 Float 值都需要自己的 *Float 指针。要“复制” Float 值，必须使用 <a href="#Float.Set">Float.Set</a> 方法为已有或新分配的 Float 设置新值；不支持 Float 的浅拷贝，浅拷贝可能导致错误。<pre>type Float struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Float_shift" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Shift)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Shift)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 通过直接修改二进制指数来实现 Float 的“移位”。
+	for s := -5; s &lt;= 5; s&#43;&#43; {
+		x := big.NewFloat(0.5)
+		x.SetMantExp(x, x.MantExp(nil)&#43;s) // 将 x 移位 s 位
+		fmt.Println(x)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>0.015625
+0.03125
+0.0625
+0.125
+0.25
+0.5
+1
+2
+4
+8
+16
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewFloat">func <a href="/src/math/big/float.go?s=3546:3577#L80">NewFloat</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewFloat(x <a href="/pkg/builtin/#float64">float64</a>) *<a href="#Float">Float</a></pre>
+				<p>NewFloat 分配并返回一个值为 x 的新 <a href="#Float">Float</a>，精度为 53，舍入模式为 <a href="#ToNearestEven">ToNearestEven</a>。如果 x 是 NaN，NewFloat 会引发 <a href="#ErrNaN">ErrNaN</a> panic。<h3 id="ParseFloat">func <a href="/src/math/big/floatconv.go?s=7915:8009#L277">ParseFloat</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func ParseFloat(s <a href="/pkg/builtin/#string">string</a>, base <a href="/pkg/builtin/#int">int</a>, prec <a href="/pkg/builtin/#uint">uint</a>, mode <a href="#RoundingMode">RoundingMode</a>) (f *<a href="#Float">Float</a>, b <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseFloat 类似于 f.Parse(s, base)，其中 f 使用给定的精度和舍入模式。<h3 id="Float.Abs">func (*Float) <a href="/src/math/big/float.go?s=32225:32261#L1172">Abs</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Abs(x *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Abs 将 z 设为 |x|（x 的绝对值，可能经过舍入），并返回 z。<h3 id="Float.Acc">func (*Float) <a href="/src/math/big/float.go?s=7931:7961#L222">Acc</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Acc() <a href="#Accuracy">Accuracy</a></pre>
+				<p>Acc 返回 x 最近一次运算产生的准确度，除非该运算的文档明确另有说明。<h3 id="Float.Add">func (*Float) <a href="/src/math/big/float.go?s=40062:40101#L1441">Add</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Add(x, y *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Add 将 z 设为 x+y 舍入后的和，并返回 z。如果 z 的精度为 0，则在运算前将其改为 x 和 y 两者中较大的精度。舍入遵循 z 的精度和舍入模式；z 的准确度报告结果相对于精确（未经舍入）结果的误差。如果 x 和 y 是符号相反的无穷大，Add 会引发 <a href="#ErrNaN">ErrNaN</a> panic，此时 z 的值未定义。<div id="example_Float_Add" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 对不同精度的数进行运算。
+	var x, y, z big.Float
+	x.SetInt64(1000)          // x 自动采用 64 位二进制精度
+	y.SetFloat64(2.718281828) // y 自动采用 53 位二进制精度
+	z.SetPrec(32)
+	z.Add(&amp;x, &amp;y)
+	fmt.Printf(&#34;x = %.10g (%s, prec = %d, acc = %s)\n&#34;, &amp;x, x.Text(&#39;p&#39;, 0), x.Prec(), x.Acc())
+	fmt.Printf(&#34;y = %.10g (%s, prec = %d, acc = %s)\n&#34;, &amp;y, y.Text(&#39;p&#39;, 0), y.Prec(), y.Acc())
+	fmt.Printf(&#34;z = %.10g (%s, prec = %d, acc = %s)\n&#34;, &amp;z, z.Text(&#39;p&#39;, 0), z.Prec(), z.Acc())
+}
+</textarea></div>
+        <div class="output"><pre>x = 1000 (0x.fap+10, prec = 64, acc = Exact)
+y = 2.718281828 (0x.adf85458248cd8p+2, prec = 53, acc = Exact)
+z = 1002.718282 (0x.faadf854p+10, prec = 32, acc = Below)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Float.Append">func (*Float) <a href="/src/math/big/ftoa.go?s=2743:2804#L57">Append</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Append(buf []<a href="/pkg/builtin/#byte">byte</a>, fmt <a href="/pkg/builtin/#byte">byte</a>, prec <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Append 将浮点数 x 的字符串形式追加到 buf 中，并返回扩展后的缓冲区；字符串形式由 x.Text 生成。<h3 id="Float.AppendText">func (*Float) <a href="/src/math/big/floatmarsh.go?s=3073:3125#L102">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a> 接口。仅以完整精度序列化 <a href="#Float">Float</a> 的数值，忽略精度、准确度等其他属性。<h3 id="Float.Cmp">func (*Float) <a href="/src/math/big/float.go?s=44966:44999#L1672">Cmp</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Cmp(y *<a href="#Float">Float</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Cmp 比较 x 和 y，返回：<ul>
+<li>x &lt; y 时为 -1；<li>x == y 时为 0（包括 -0 == 0、-Inf == -Inf 和 +Inf == +Inf）；<li>x &gt; y 时为 +1。</ul>
+
+				
+
+
+<div id="example_Float_Cmp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	inf := math.Inf(1)
+	zero := 0.0
+
+	operands := []float64{-inf, -1.2, -zero, 0, &#43;1.2, &#43;inf}
+
+	fmt.Println(&#34;   x     y  cmp&#34;)
+	fmt.Println(&#34;---------------&#34;)
+	for _, x64 := range operands {
+		x := big.NewFloat(x64)
+		for _, y64 := range operands {
+			y := big.NewFloat(y64)
+			fmt.Printf(&#34;%4g  %4g  %3d\n&#34;, x, y, x.Cmp(y))
+		}
+		fmt.Println()
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>   x     y  cmp
+---------------
+-Inf  -Inf    0
+-Inf  -1.2   -1
+-Inf    -0   -1
+-Inf     0   -1
+-Inf   1.2   -1
+-Inf  +Inf   -1
+
+-1.2  -Inf    1
+-1.2  -1.2    0
+-1.2    -0   -1
+-1.2     0   -1
+-1.2   1.2   -1
+-1.2  +Inf   -1
+
+  -0  -Inf    1
+  -0  -1.2    1
+  -0    -0    0
+  -0     0    0
+  -0   1.2   -1
+  -0  +Inf   -1
+
+   0  -Inf    1
+   0  -1.2    1
+   0    -0    0
+   0     0    0
+   0   1.2   -1
+   0  +Inf   -1
+
+ 1.2  -Inf    1
+ 1.2  -1.2    1
+ 1.2    -0    1
+ 1.2     0    1
+ 1.2   1.2    0
+ 1.2  +Inf   -1
+
++Inf  -Inf    1
++Inf  -1.2    1
++Inf    -0    1
++Inf     0    1
++Inf   1.2    1
++Inf  +Inf    0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Float.Copy">func (*Float) <a href="/src/math/big/float.go?s=19127:19164#L668">Copy</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Copy(x *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Copy 将 z 设为 x，并采用与 x 相同的精度、舍入模式和准确度。Copy 返回 z。如果 x 和 z 是同一个值，则不执行任何操作。<div id="example_Float_Copy" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	var x, z big.Float
+
+	x.SetFloat64(1.23)
+	r := z.Copy(&amp;x)
+	fmt.Printf(&#34;a) r = %g, z = %g, x = %g, r == z = %v\n&#34;, r, &amp;z, &amp;x, r == &amp;z)
+
+	// z 和 r 是同一个值，因此修改 z 也会改变 r
+	z.SetInt64(42)
+	fmt.Printf(&#34;b) r = %g, z = %g, r == z = %v\n&#34;, r, &amp;z, r == &amp;z)
+
+	x.SetPrec(1)
+	z.Copy(&amp;x)
+	fmt.Printf(&#34;c) z = %g, x = %g, z == x = %v\n&#34;, &amp;z, &amp;x, &amp;z == &amp;x)
+
+}
+</textarea></div>
+        <div class="output"><pre>a) r = 1.23, z = 1.23, x = 1.23, r == z = true
+b) r = 42, z = 42, r == z = true
+c) z = 1, x = 1, z == x = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Float.Float32">func (*Float) <a href="/src/math/big/float.go?s=22581:22626#L831">Float32</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Float32() (<a href="/pkg/builtin/#float32">float32</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Float32 返回最接近 x 的 float32 值。如果 x 太小而无法用 float32 表示（|x| &lt; <a href="/pkg/math/#SmallestNonzeroFloat32">math.SmallestNonzeroFloat32</a>），则根据 x 的符号，分别返回 (0, <a href="#Below">Below</a>) 或 (-0, <a href="#Above">Above</a>)。如果 x 太大而无法用 float32 表示（|x| &gt; <a href="/pkg/math/#MaxFloat32">math.MaxFloat32</a>），则根据 x 的符号返回 (+Inf, <a href="#Above">Above</a>) 或 (-Inf, <a href="#Below">Below</a>)。<h3 id="Float.Float64">func (*Float) <a href="/src/math/big/float.go?s=26446:26491#L951">Float64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Float64() (<a href="/pkg/builtin/#float64">float64</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Float64 返回最接近 x 的 float64 值。如果 x 太小而无法用 float64 表示（|x| &lt; <a href="/pkg/math/#SmallestNonzeroFloat64">math.SmallestNonzeroFloat64</a>），则根据 x 的符号，分别返回 (0, <a href="#Below">Below</a>) 或 (-0, <a href="#Above">Above</a>)。如果 x 太大而无法用 float64 表示（|x| &gt; <a href="/pkg/math/#MaxFloat64">math.MaxFloat64</a>），则根据 x 的符号返回 (+Inf, <a href="#Above">Above</a>) 或 (-Inf, <a href="#Below">Below</a>)。<h3 id="Float.Format">func (*Float) <a href="/src/math/big/ftoa.go?s=12811:12859#L454">Format</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Format(s <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#State">State</a>, format <a href="/pkg/builtin/#rune">rune</a>)</pre>
+				<p>Format 实现 <a href="/pkg/fmt/#Formatter">fmt.Formatter</a>。它接受所有常规浮点格式（&apos;b&apos;、&apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;F&apos;、&apos;g&apos;、&apos;G&apos;、&apos;x&apos;），还接受 &apos;p&apos; 和 &apos;v&apos;。&apos;p&apos; 的含义见 (*Float).Text；&apos;v&apos; 按 &apos;g&apos; 处理。Format 还支持指定最小数字精度、输出字段宽度，以及用于控制符号的 &apos;+&apos; 和空格标志、用于选择空格或零填充的 &apos;0&apos;、用于控制左对齐或右对齐的 &apos;-&apos;。详见 fmt 包。<h3 id="Float.GobDecode">func (*Float) <a href="/src/math/big/floatmarsh.go?s=1952:1995#L55">GobDecode</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) GobDecode(buf []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>GobDecode 实现 <a href="/pkg/encoding/gob/#GobDecoder">encoding/gob.GobDecoder</a> 接口。结果按照 z 的精度和舍入模式舍入；如果 z 的精度为 0，则将 z 精确地设为解码值。<h3 id="Float.GobEncode">func (*Float) <a href="/src/math/big/floatmarsh.go?s=549:592#L11">GobEncode</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) GobEncode() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GobEncode 实现 <a href="/pkg/encoding/gob/#GobEncoder">encoding/gob.GobEncoder</a> 接口。它序列化 <a href="#Float">Float</a> 的数值及其所有属性（精度、舍入模式、准确度）。<h3 id="Float.Int">func (*Float) <a href="/src/math/big/float.go?s=30184:30228#L1072">Int</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Int(z *<a href="#Int">Int</a>) (*<a href="#Int">Int</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Int 返回将 x 向零截断后的结果；如果 x 为无穷大，则返回 nil。如果 x.IsInt() 为真，准确度为 <a href="#Exact">Exact</a>；否则，x &gt; 0 时为 <a href="#Below">Below</a>，x &lt; 0 时为 <a href="#Above">Above</a>。如果提供了非 nil 的 *<a href="#Int">Int</a> 参数 z，<a href="#Int">Int</a> 将结果存入 z，而不分配新的 <a href="#Int">Int</a>。<h3 id="Float.Int64">func (*Float) <a href="/src/math/big/float.go?s=21300:21341#L776">Int64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Int64() (<a href="/pkg/builtin/#int64">int64</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Int64 返回将 x 向零截断得到的整数。如果 <a href="/pkg/math/#MinInt64">math.MinInt64</a> &lt;= x &lt;= <a href="/pkg/math/#MaxInt64">math.MaxInt64</a>，则 x 为整数时准确度为 <a href="#Exact">Exact</a>；否则 x &lt; 0 时为 <a href="#Above">Above</a>，x &gt; 0 时为 <a href="#Below">Below</a>。当 x &lt; <a href="/pkg/math/#MinInt64">math.MinInt64</a> 时，返回 (<a href="/pkg/math/#MinInt64">math.MinInt64</a>, <a href="#Above">Above</a>)；当 x &gt; <a href="/pkg/math/#MaxInt64">math.MaxInt64</a> 时，返回 (<a href="/pkg/math/#MaxInt64">math.MaxInt64</a>, <a href="#Below">Below</a>)。<h3 id="Float.IsInf">func (*Float) <a href="/src/math/big/float.go?s=10283:10311#L331">IsInf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) IsInf() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsInf 报告 x 是否为 +Inf 或 -Inf。<h3 id="Float.IsInt">func (*Float) <a href="/src/math/big/float.go?s=10415:10443#L337">IsInt</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) IsInt() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsInt 报告 x 是否为整数。±Inf 不是整数。<h3 id="Float.MantExp">func (*Float) <a href="/src/math/big/float.go?s=8810:8856#L258">MantExp</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) MantExp(mant *<a href="#Float">Float</a>) (exp <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>MantExp 将 x 拆分为尾数和指数，并返回指数。如果提供了非 nil 的 mant 参数，则将其设为 x 的尾数，精度和舍入模式与 x 相同。两部分满足 x == mant × 2**exp，且 0.5 &lt;= |mant| &lt; 1.0。以 nil 参数调用 MantExp 可以高效地获取接收者的指数。<p>特殊情况如下：<pre>(  ±0).MantExp(mant) = 0, with mant set to   ±0
+(±Inf).MantExp(mant) = 0, with mant set to ±Inf
+</pre>
+<p>x 和 mant 可以相同，此时 x 被设为其尾数值。<h3 id="Float.MarshalText">func (*Float) <a href="/src/math/big/floatmarsh.go?s=3408:3462#L112">MarshalText</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) MarshalText() (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 接口。仅以完整精度序列化 <a href="#Float">Float</a> 的数值，忽略精度、准确度等其他属性。<h3 id="Float.MinPrec">func (*Float) <a href="/src/math/big/float.go?s=7569:7599#L207">MinPrec</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) MinPrec() <a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>MinPrec 返回精确表示 x 所需的最小精度（即在 x.SetPrec(prec) 开始对 x 舍入之前，prec 可以取的最小值）。当 |x| == 0 或 |x| == Inf 时，结果为 0。<h3 id="Float.Mode">func (*Float) <a href="/src/math/big/float.go?s=7739:7774#L215">Mode</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Mode() <a href="#RoundingMode">RoundingMode</a></pre>
+				<p>Mode 返回 x 的舍入模式。<h3 id="Float.Mul">func (*Float) <a href="/src/math/big/float.go?s=43194:43233#L1582">Mul</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Mul(x, y *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Mul 将 z 设为 x*y 舍入后的积，并返回 z。精度、舍入及准确度报告方式与 <a href="#Float.Add">Float.Add</a> 相同。如果一个操作数为零而另一个为无穷大，Mul 会引发 <a href="#ErrNaN">ErrNaN</a> panic，此时 z 的值未定义。<h3 id="Float.Neg">func (*Float) <a href="/src/math/big/float.go?s=32394:32430#L1180">Neg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Neg(x *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Neg 将 z 设为 x 取相反数后的值（可能经过舍入），并返回 z。<h3 id="Float.Parse">func (*Float) <a href="/src/math/big/floatconv.go?s=7219:7289#L249">Parse</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Parse(s <a href="/pkg/builtin/#string">string</a>, base <a href="/pkg/builtin/#int">int</a>) (f *<a href="#Float">Float</a>, b <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 解析 s。s 必须是一个浮点数的文本表示，尾数使用给定的转换进制（指数始终为十进制），或者是表示无穷大的字符串。<p>当 base 为 0 时，进制前缀与相邻数字之间以及连续数字之间可以出现下划线“_”；下划线不改变数值或返回的数字个数。如果不存在其他错误，下划线位置不正确会作为错误报告。当 base != 0 时，不识别下划线，它与其他既不是有效小数点又不是有效数字的字符一样，会终止扫描。<p>Parse 将 z 设为相应浮点数的值（可能经过舍入），并返回 z、实际进制 b，以及错误 err（如有）。只有消耗整个字符串，而不只是其前缀，才算成功。如果 z 的精度为 0，则在舍入前将其设为 64。数字必须具有如下形式：<pre>number    = [ sign ] ( float | &quot;inf&quot; | &quot;Inf&quot; ) .
+sign      = &quot;+&quot; | &quot;-&quot; .
+float     = ( mantissa | prefix pmantissa ) [ exponent ] .
+prefix    = &quot;0&quot; [ &quot;b&quot; | &quot;B&quot; | &quot;o&quot; | &quot;O&quot; | &quot;x&quot; | &quot;X&quot; ] .
+mantissa  = digits &quot;.&quot; [ digits ] | digits | &quot;.&quot; digits .
+pmantissa = [ &quot;_&quot; ] digits &quot;.&quot; [ digits ] | [ &quot;_&quot; ] digits | &quot;.&quot; digits .
+exponent  = ( &quot;e&quot; | &quot;E&quot; | &quot;p&quot; | &quot;P&quot; ) [ sign ] digits .
+digits    = digit { [ &quot;_&quot; ] digit } .
+digit     = &quot;0&quot; ... &quot;9&quot; | &quot;a&quot; ... &quot;z&quot; | &quot;A&quot; ... &quot;Z&quot; .
+</pre>
+<p>base 参数必须为 0、2、8、10 或 16。无效的 base 参数会引发运行时 panic。<p>当 base 为 0 时，由数字前缀决定实际进制：“0b”或“0B”表示二进制，“0o”或“0O”表示八进制，“0x”或“0X”表示十六进制。否则实际进制为十进制，且不接受前缀。不支持八进制前缀“0”（开头的“0”仅作为普通数字 0）。<p>指数标记“p”或“P”表示以 2 为底（而非以 10 为底）的指数；例如在 base 为 0 时，“0x1.fffffffffffffp1023”表示最大的 float64 值。对于十六进制尾数，如果有指数，其标记必须是 &apos;p&apos; 或 &apos;P&apos;（因为无法区分指数标记“e”或“E”与尾数中的数字）。<p>如果报告错误，返回的 *Float f 为 nil，z 的值仍有效但未定义。<h3 id="Float.Prec">func (*Float) <a href="/src/math/big/float.go?s=7318:7345#L200">Prec</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Prec() <a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>Prec 返回 x 的尾数精度，以二进制位数计。当 |x| == 0 或 |x| == Inf 时，结果可能为 0。<h3 id="Float.Quo">func (*Float) <a href="/src/math/big/float.go?s=44122:44161#L1627">Quo</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Quo(x, y *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Quo 将 z 设为 x/y 舍入后的商，并返回 z。精度、舍入及准确度报告方式与 <a href="#Float.Add">Float.Add</a> 相同。如果两个操作数均为零或均为无穷大，Quo 会引发 <a href="#ErrNaN">ErrNaN</a> panic，此时 z 的值未定义。<h3 id="Float.Rat">func (*Float) <a href="/src/math/big/float.go?s=31291:31335#L1128">Rat</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Rat(z *<a href="#Rat">Rat</a>) (*<a href="#Rat">Rat</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Rat 返回与 x 对应的有理数；如果 x 为无穷大，则返回 nil。x 不是无穷大时，准确度为 <a href="#Exact">Exact</a>。如果提供了非 nil 的 *<a href="#Rat">Rat</a> 参数 z，<a href="#Rat">Rat</a> 将结果存入 z，而不分配新的 <a href="#Rat">Rat</a>。<h3 id="Float.Scan">func (*Float) <a href="/src/math/big/floatconv.go?s=8426:8478#L288">Scan</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Scan(s <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#ScanState">ScanState</a>, ch <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 是支持 <a href="/pkg/fmt/#Scanner">fmt.Scanner</a> 的例程；它将 z 设为扫描到的数值。它接受 <a href="/pkg/fmt/#Scan">fmt.Scan</a> 为浮点数支持的格式动词：&apos;b&apos;（二进制）、&apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;F&apos;、&apos;g&apos; 和 &apos;G&apos;。Scan 不处理 ±Inf。<div id="example_Float_Scan" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 通常不会直接调用 Scan 函数；
+	// fmt 包会将其识别为 fmt.Scanner 的实现。
+	f := new(big.Float)
+	_, err := fmt.Sscan(&#34;1.19282e99&#34;, f)
+	if err != nil {
+		log.Println(&#34;error scanning value:&#34;, err)
+	} else {
+		fmt.Println(f)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>1.19282e+99
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Float.Set">func (*Float) <a href="/src/math/big/float.go?s=18671:18707#L645">Set</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Set(x *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Set 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则在设置前将其改为 x 的精度（此时舍入不会影响结果）。舍入遵循 z 的精度和舍入模式；z 的准确度报告结果相对于精确（未经舍入）结果的误差。<h3 id="Float.SetFloat64">func (*Float) <a href="/src/math/big/float.go?s=16038:16082#L543">SetFloat64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetFloat64(x <a href="/pkg/builtin/#float64">float64</a>) *<a href="#Float">Float</a></pre>
+				<p>SetFloat64 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则将其改为 53（此时舍入不会影响结果）。如果 x 为 NaN，SetFloat64 会引发 <a href="#ErrNaN">ErrNaN</a> panic。<h3 id="Float.SetInf">func (*Float) <a href="/src/math/big/float.go?s=18219:18262#L632">SetInf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetInf(signbit <a href="/pkg/builtin/#bool">bool</a>) *<a href="#Float">Float</a></pre>
+				<p>SetInf 在 signbit 为 true 时将 z 设为负无穷大 -Inf，否则设为正无穷大 +Inf，并返回 z。z 的精度不变，结果始终为 <a href="#Exact">Exact</a>。<h3 id="Float.SetInt">func (*Float) <a href="/src/math/big/float.go?s=17214:17251#L591">SetInt</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetInt(x *<a href="#Int">Int</a>) *<a href="#Float">Float</a></pre>
+				<p>SetInt 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则将其改为 x.BitLen() 与 64 中较大的值（此时舍入不会影响结果）。<h3 id="Float.SetInt64">func (*Float) <a href="/src/math/big/float.go?s=15598:15638#L530">SetInt64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetInt64(x <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Float">Float</a></pre>
+				<p>SetInt64 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则将其改为 64（此时舍入不会影响结果）。<h3 id="Float.SetMantExp">func (*Float) <a href="/src/math/big/float.go?s=9895:9950#L311">SetMantExp</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetMantExp(mant *<a href="#Float">Float</a>, exp <a href="/pkg/builtin/#int">int</a>) *<a href="#Float">Float</a></pre>
+				<p>SetMantExp 将 z 设为 mant × 2**exp，并返回 z。结果 z 的精度和舍入模式与 mant 相同。SetMantExp 是 <a href="#Float.MantExp">Float.MantExp</a> 的逆操作，但不要求 0.5 &lt;= |mant| &lt; 1.0。具体而言，对于给定的 *<a href="#Float">Float</a> 类型的 x，SetMantExp 与 <a href="#Float.MantExp">Float.MantExp</a> 的关系如下：<pre>mant := new(Float)
+new(Float).SetMantExp(mant, x.MantExp(mant)).Cmp(x) == 0
+</pre>
+<p>特殊情况如下：<pre>z.SetMantExp(  ±0, exp) =   ±0
+z.SetMantExp(±Inf, exp) = ±Inf
+</pre>
+<p>z 和 mant 可以相同，此时将 z 的指数设为 exp。<h3 id="Float.SetMode">func (*Float) <a href="/src/math/big/float.go?s=7118:7167#L192">SetMode</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetMode(mode <a href="#RoundingMode">RoundingMode</a>) *<a href="#Float">Float</a></pre>
+				<p>SetMode 将 z 的舍入模式设为 mode，并返回准确度为 Exact 的 z，z 的其他属性不变。z.SetMode(z.Mode()) 是将 z 的准确度设为 <a href="#Exact">Exact</a> 的低开销方式。<h3 id="Float.SetPrec">func (*Float) <a href="/src/math/big/float.go?s=6460:6501#L156">SetPrec</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetPrec(prec <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Float">Float</a></pre>
+				<p>SetPrec 将 z 的精度设为 prec，并返回可能经过舍入的 z。如果无法在不损失精度的情况下用 prec 位表示尾数，则按照 z 的舍入模式舍入。SetPrec(0) 将所有有限值映射为 ±0，无穷大保持不变。如果 prec &gt; <a href="#MaxPrec">MaxPrec</a>，则将其设为 <a href="#MaxPrec">MaxPrec</a>。<h3 id="Float.SetRat">func (*Float) <a href="/src/math/big/float.go?s=17816:17853#L615">SetRat</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetRat(x *<a href="#Rat">Rat</a>) *<a href="#Float">Float</a></pre>
+				<p>SetRat 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则将其改为 a.BitLen()、b.BitLen() 和 64 中的最大值，其中 x = a/b。<h3 id="Float.SetString">func (*Float) <a href="/src/math/big/floatconv.go?s=645:695#L12">SetString</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetString(s <a href="/pkg/builtin/#string">string</a>) (*<a href="#Float">Float</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>SetString 将 z 设为 s 表示的值，并返回 z 和一个表示是否成功的布尔值。s 必须是 <a href="#Float.Parse">Float.Parse</a> 在 base 参数为 0 时所接受格式的浮点数。只有整个字符串有效，而不只是前缀有效，才算成功。如果操作失败，z 的值未定义，返回的指针为 nil。<div id="example_Float_SetString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	f := new(big.Float)
+	f.SetString(&#34;3.14159&#34;)
+	fmt.Println(f)
+}
+</textarea></div>
+        <div class="output"><pre>3.14159
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Float.SetUint64">func (*Float) <a href="/src/math/big/float.go?s=15364:15406#L523">SetUint64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) SetUint64(x <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Float">Float</a></pre>
+				<p>SetUint64 将 z 设为 x 的值（可能经过舍入），并返回 z。如果 z 的精度为 0，则将其改为 64（此时舍入不会影响结果）。<h3 id="Float.Sign">func (*Float) <a href="/src/math/big/float.go?s=8060:8086#L230">Sign</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Sign() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Sign 返回：<ul>
+<li>x &lt; 0 时为 -1；<li>x 为 ±0 时为 0；<li>x &gt; 0 时为 +1。</ul>
+
+				
+			
+				<h3 id="Float.Signbit">func (*Float) <a href="/src/math/big/float.go?s=10189:10219#L326">Signbit</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Signbit() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Signbit 报告 x 是否为负数或负零。<h3 id="Float.Sqrt">func (*Float) <a href="/src/math/big/sqrt.go?s=738:775#L23">Sqrt</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Sqrt(x *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Sqrt 将 z 设为 x 舍入后的平方根，并返回 z。<p>如果 z 的精度为 0，则在运算前将其改为 x 的精度。舍入遵循 z 的精度和舍入模式，但不计算 z 的准确度。具体而言，z.Acc() 的结果未定义。<p>当 z &lt; 0 时，此函数会引发 panic，此时 z 的值未定义。（译注：上游此处写作 z；实际检查的是输入 x 是否为负数。）<h3 id="Float.String">func (*Float) <a href="/src/math/big/ftoa.go?s=2549:2580#L51">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 按 x.Text(&apos;g&apos;, 10) 的方式格式化 x。（必须显式调用 String，<a href="#Float.Format">Float.Format</a> 不支持 %s 动词。）<h3 id="Float.Sub">func (*Float) <a href="/src/math/big/float.go?s=41786:41825#L1515">Sub</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) Sub(x, y *<a href="#Float">Float</a>) *<a href="#Float">Float</a></pre>
+				<p>Sub 将 z 设为 x-y 舍入后的差，并返回 z。精度、舍入及准确度报告方式与 <a href="#Float.Add">Float.Add</a> 相同。如果 x 和 y 是符号相同的无穷大，Sub 会引发 <a href="#ErrNaN">ErrNaN</a> panic，此时 z 的值未定义。<h3 id="Float.Text">func (*Float) <a href="/src/math/big/ftoa.go?s=2219:2269#L41">Text</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Text(format <a href="/pkg/builtin/#byte">byte</a>, prec <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Text 按给定格式和精度 prec 将浮点数 x 转换为字符串。format 可以是以下之一：<pre>'e'	-d.dddde±dd，十进制指数，指数至少两位（可以为 0）
+'E'	-d.ddddE±dd，十进制指数，指数至少两位（可以为 0）
+'f'	-ddddd.dddd，不带指数
+'g'	指数较大时类似 'e'，其他情况类似 'f'
+'G'	指数较大时类似 'E'，其他情况类似 'f'
+'x'	-0xd.dddddp±dd，十六进制尾数，以十进制写出的 2 的幂指数
+'p'	-0x.dddp±dd，十六进制尾数，以十进制写出的 2 的幂指数（非标准）
+'b'	-ddddddp±dd，十进制尾数，以十进制写出的 2 的幂指数（非标准）
+</pre>
+<p>对于以 2 的幂表示指数的格式，尾数以规范化形式输出：<pre>'x'	位于 [1, 2) 区间内的十六进制尾数，或 0
+'p'	位于 [½, 1) 区间内的十六进制尾数，或 0
+'b'	使用 x.Prec() 个二进制位的十进制整数尾数，或 0
+</pre>
+<p>注意，&apos;x&apos; 是大多数其他语言和库采用的形式。<p>如果 format 是其他字符，Text 返回“%”后接这个无法识别的格式字符。<p>精度 prec 控制 &apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;g&apos;、&apos;G&apos; 和 &apos;x&apos; 格式输出的数字个数（不包括指数）。对于 &apos;e&apos;、&apos;E&apos;、&apos;f&apos; 和 &apos;x&apos;，它表示小数点后的位数；对于 &apos;g&apos; 和 &apos;G&apos;，它表示数字总位数。负精度会选择在 x.Prec() 个尾数二进制位下唯一确定 x 所需的最少十进制位数。&apos;b&apos; 和 &apos;p&apos; 格式忽略 prec。<p>注意，如果传给 strconv.FormatFloat 的对应 float32 或 float64 数为次正规数，则 Text 在对应参数下的结果可能与 strconv.FormatFloat 不同。<h3 id="Float.Uint64">func (*Float) <a href="/src/math/big/float.go?s=20338:20381#L731">Uint64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (x *<a href="#Float">Float</a>) Uint64() (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Uint64 返回将 x 向零截断得到的无符号整数。如果 0 &lt;= x &lt;= <a href="/pkg/math/#MaxUint64">math.MaxUint64</a>，则 x 为整数时准确度为 <a href="#Exact">Exact</a>，否则为 <a href="#Below">Below</a>。当 x &lt; 0 时，返回 (0, <a href="#Above">Above</a>)；当 x &gt; <a href="/pkg/math/#MaxUint64">math.MaxUint64</a> 时，返回 (<a href="/pkg/math/#MaxUint64">math.MaxUint64</a>, <a href="#Below">Below</a>)。<h3 id="Float.UnmarshalText">func (*Float) <a href="/src/math/big/floatmarsh.go?s=3710:3758#L120">UnmarshalText</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (z *<a href="#Float">Float</a>) UnmarshalText(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> 接口。结果按照 z 的精度和舍入模式舍入。如果 z 的精度为 0，则在舍入前将其改为 64。<h2 id="Int">type <a href="/src/math/big/int.go?s=1197:1277#L23">Int</a>
+				
+				
+			</h2>
+			<p>Int 表示带符号的多精度整数。Int 的零值表示数值 0。<p>运算始终使用指针参数 *Int，而不是 Int 值；每个独立的 Int 值都需要自己的 *Int 指针。要“复制” Int 值，必须使用 <a href="#Int.Set">Int.Set</a> 方法为已有或新分配的 Int 设置新值；不支持 Int 的浅拷贝，浅拷贝可能导致错误。<p>注意，这些方法可能通过计时侧信道泄露 Int 的值。考虑到这一点，以及实现的范围和复杂性，Int 不适合用于实现密码学运算。标准库避免让非简单的 Int 方法处理由攻击者控制的输入；math/big 中的缺陷是否被视为安全漏洞，可能取决于它对标准库的影响。<pre>type Int struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewInt">func <a href="/src/math/big/int.go?s=2070:2095#L67">NewInt</a>
+					
+					
+				</h3>
+				<pre>func NewInt(x <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Int">Int</a></pre>
+				<p>NewInt 分配并返回一个值为 x 的新 <a href="#Int">Int</a>。<h3 id="Int.Abs">func (*Int) <a href="/src/math/big/int.go?s=3633:3663#L117">Abs</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Abs(x *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Abs 将 z 设为 |x|（x 的绝对值），并返回 z。<h3 id="Int.Add">func (*Int) <a href="/src/math/big/int.go?s=3890:3923#L131">Add</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Add(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Add 将 z 设为 x+y 的和，并返回 z。<h3 id="Int.And">func (*Int) <a href="/src/math/big/int.go?s=32855:32888#L1237">And</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) And(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>And 将 z 设为 x &amp; y，并返回 z。<h3 id="Int.AndNot">func (*Int) <a href="/src/math/big/int.go?s=33536:33572#L1267">AndNot</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) AndNot(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>AndNot 将 z 设为 x &amp;^ y，并返回 z。<h3 id="Int.Append">func (*Int) <a href="/src/math/big/intconv.go?s=864:913#L20">Append</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Append(buf []<a href="/pkg/builtin/#byte">byte</a>, base <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Append 将 x.Text(base) 生成的 x 的字符串表示追加到 buf 中，并返回扩展后的缓冲区。<h3 id="Int.AppendText">func (*Int) <a href="/src/math/big/intmarsh.go?s=1208:1267#L39">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a> 接口。<h3 id="Int.Binomial">func (*Int) <a href="/src/math/big/int.go?s=6007:6046#L219">Binomial</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Binomial(n, k <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Int">Int</a></pre>
+				<p>Binomial 将 z 设为二项式系数 C(n, k)，并返回 z。<h3 id="Int.Bit">func (*Int) <a href="/src/math/big/int.go?s=31950:31979#L1196">Bit</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Bit(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>Bit 返回 x 的第 i 个二进制位的值，即 (x&gt;&gt;i)&amp;1。位索引 i 必须 &gt;= 0。<h3 id="Int.BitLen">func (*Int) <a href="/src/math/big/int.go?s=16872:16898#L621">BitLen</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) BitLen() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>BitLen 返回 x 的绝对值的二进制位长度。0 的位长度为 0。<h3 id="Int.Bits">func (*Int) <a href="/src/math/big/int.go?s=2882:2909#L98">Bits</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Bits() []<a href="#Word">Word</a></pre>
+				<p>Bits 将 x 的绝对值作为小端序的 <a href="#Word">Word</a> 切片返回，从而提供对 x 的原始访问（不做检查，但速度快）。结果与 x 共享同一个底层数组。Bits 用于支持在本包之外实现缺少的底层 <a href="#Int">Int</a> 功能；其他情况下应避免使用。<h3 id="Int.Bytes">func (*Int) <a href="/src/math/big/int.go?s=16170:16198#L600">Bytes</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes 以大端序字节切片返回 x 的绝对值。<p>要使用固定长度或预先分配的切片，请使用 <a href="#Int.FillBytes">Int.FillBytes</a>。<h3 id="Int.Cmp">func (*Int) <a href="/src/math/big/int.go?s=11971:12004#L451">Cmp</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Cmp(y *<a href="#Int">Int</a>) (r <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Cmp 比较 x 和 y，返回：<ul>
+<li>x &lt; y 时为 -1；<li>x == y 时为 0；<li>x &gt; y 时为 +1。</ul>
+
+				
+			
+				<h3 id="Int.CmpAbs">func (*Int) <a href="/src/math/big/int.go?s=12406:12438#L476">CmpAbs</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) CmpAbs(y *<a href="#Int">Int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>CmpAbs 比较 x 和 y 的绝对值，返回：<ul>
+<li>|x| &lt; |y| 时为 -1；<li>|x| == |y| 时为 0；<li>|x| &gt; |y| 时为 +1。</ul>
+
+				
+			
+				<h3 id="Int.Div">func (*Int) <a href="/src/math/big/int.go?s=8401:8434#L298">Div</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Div(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>当 y != 0 时，Div 将 z 设为商 x/y，并返回 z。当 y == 0 时，会引发除零的运行时 panic。Div 实现欧几里得除法（与 Go 不同），详见 <a href="#Int.DivMod">Int.DivMod</a>。<h3 id="Int.DivMod">func (*Int) <a href="/src/math/big/int.go?s=9617:9664#L346">DivMod</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) DivMod(x, y, m *<a href="#Int">Int</a>) (*<a href="#Int">Int</a>, *<a href="#Int">Int</a>)</pre>
+				<p>当 y != 0 时，DivMod 将 z 设为商 x div y，将 m 设为模 x mod y，并返回 (z, m)。当 y == 0 时，会引发除零的运行时 panic。<p>DivMod 实现欧几里得除法和取模（与 Go 不同）：<pre>q = x div y  such that
+m = x - y*q  with 0 &lt;= m &lt; |y|
+</pre>
+<p>（参见 Raymond T. Boute 的论文《The Euclidean definition of the functions div and mod》，ACM Transactions on Programming Languages and Systems (TOPLAS)，14(2):127-144，美国纽约，1992 年 4 月，ACM 出版社。）向零截断的除法与取余（与 Go 相同）参见 <a href="#Int.QuoRem">Int.QuoRem</a>。<h3 id="Int.Divide">func (*Int) <a href="/src/math/big/int.go?s=10625:10691#L383">Divide</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Divide(x, y, r *<a href="#Int">Int</a>, mode <a href="#RoundingMode">RoundingMode</a>) (*<a href="#Int">Int</a>, *<a href="#Int">Int</a>)</pre>
+				<p>Divide 计算整数商 q 和余数 r，使它们满足：<pre>q = f(x/y)
+r = x - y*q
+</pre>
+<p>其中 f 由舍入模式决定，模式必须是 <a href="#Trunc">Trunc</a>、<a href="#Floor">Floor</a>、<a href="#Round">Round</a> 或 <a href="#Ceil">Ceil</a> 之一。如果 z != nil，Divide 将 z 设为 q；如果 r != nil，则更新 r；当 y != 0 时返回 (z, r)。当 y == 0 时，会引发除零的运行时 panic。<h3 id="Int.Exp">func (*Int) <a href="/src/math/big/int.go?s=17639:17675#L640">Exp</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Exp(x, y, m *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Exp 将 z 设为 x**y mod |m|（即忽略 m 的符号），并返回 z。如果 m == nil 或 m == 0，则 z = x**y，但 y &lt;= 0 时 z = 1。如果 m != 0、y &lt; 0，且 x 与 m 不互素，则 z 保持不变，返回 nil。<p>对于给定大小的输入，模幂运算并不满足密码学中的恒定时间要求。<h3 id="Int.FillBytes">func (*Int) <a href="/src/math/big/int.go?s=16664:16706#L612">FillBytes</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) FillBytes(buf []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>FillBytes 将 x 的绝对值以高位补零的大端序字节切片形式存入 buf，并返回 buf。<p>如果 buf 放不下 x 的绝对值，FillBytes 会引发 panic。<h3 id="Int.Float64">func (*Int) <a href="/src/math/big/int.go?s=13630:13673#L532">Float64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Float64() (<a href="/pkg/builtin/#float64">float64</a>, <a href="#Accuracy">Accuracy</a>)</pre>
+				<p>Float64 返回最接近 x 的 float64 值，并返回一个表示舍入情况的准确度值。<h3 id="Int.Format">func (*Int) <a href="/src/math/big/intconv.go?s=2243:2285#L71">Format</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Format(s <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#State">State</a>, ch <a href="/pkg/builtin/#rune">rune</a>)</pre>
+				<p>Format 实现 <a href="/pkg/fmt/#Formatter">fmt.Formatter</a>。它接受 &apos;b&apos;（二进制）、&apos;o&apos;（带 0 前缀的八进制）、&apos;O&apos;（带 0o 前缀的八进制）、&apos;d&apos;（十进制）、&apos;x&apos;（小写十六进制）和 &apos;X&apos;（大写十六进制）格式。它还支持 fmt 包针对整数类型的全部格式标志，包括用于控制符号的 &apos;+&apos; 和空格；&apos;#&apos; 为八进制添加前导零，为“%#x”和“%#X”分别添加“0x”和“0X”前缀；还可指定最小数字精度、输出字段宽度、空格或零填充，以及用 &apos;-&apos; 控制左对齐或右对齐。<h3 id="Int.GCD">func (*Int) <a href="/src/math/big/int.go?s=19076:19115#L694">GCD</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) GCD(x, y, a, b *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>GCD 将 z 设为 a 和 b 的最大公约数，并返回 z。如果 x 或 y 不为 nil，则将它们设为满足 z = a*x + b*y 的值。<p>a 和 b 可以为正数、零或负数。（Go 1.14 之前，两者都必须 &gt; 0。）无论 a 和 b 的符号如何，z 始终 &gt;= 0。<p>如果 a == b == 0，GCD 将 z = x = y = 0。<p>如果 a == 0 且 b != 0，GCD 将 z = |b|、x = 0、y = sign(b) * 1。<p>如果 a != 0 且 b == 0，GCD 将 z = |a|、x = sign(a) * 1、y = 0。<h3 id="Int.GobDecode">func (*Int) <a href="/src/math/big/intmarsh.go?s=818:859#L23">GobDecode</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) GobDecode(buf []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>GobDecode 实现 <a href="/pkg/encoding/gob/#GobDecoder">encoding/gob.GobDecoder</a> 接口。<h3 id="Int.GobEncode">func (*Int) <a href="/src/math/big/intmarsh.go?s=423:464#L8">GobEncode</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) GobEncode() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GobEncode 实现 <a href="/pkg/encoding/gob/#GobEncoder">encoding/gob.GobEncoder</a> 接口。<h3 id="Int.Int64">func (*Int) <a href="/src/math/big/int.go?s=12927:12954#L502">Int64</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Int64() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int64 返回 x 的 int64 表示。如果 x 无法用 int64 表示，则结果未定义。<h3 id="Int.IsInt64">func (*Int) <a href="/src/math/big/int.go?s=13255:13283#L517">IsInt64</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) IsInt64() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsInt64 报告 x 是否可用 int64 表示。<h3 id="Int.IsUint64">func (*Int) <a href="/src/math/big/int.go?s=13457:13486#L526">IsUint64</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) IsUint64() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsUint64 报告 x 是否可用 uint64 表示。<h3 id="Int.Lsh">func (*Int) <a href="/src/math/big/int.go?s=31348:31386#L1172">Lsh</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Lsh(x *<a href="#Int">Int</a>, n <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Int">Int</a></pre>
+				<p>Lsh 将 z 设为 x &lt;&lt; n，并返回 z。<h3 id="Int.MarshalJSON">func (*Int) <a href="/src/math/big/intmarsh.go?s=1969:2012#L61">MarshalJSON</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) MarshalJSON() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalJSON 实现 <a href="/pkg/encoding/json/#Marshaler">encoding/json.Marshaler</a> 接口。<h3 id="Int.MarshalText">func (*Int) <a href="/src/math/big/intmarsh.go?s=1368:1420#L44">MarshalText</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) MarshalText() (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 接口。<h3 id="Int.Mod">func (*Int) <a href="/src/math/big/int.go?s=8806:8839#L315">Mod</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Mod(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>当 y != 0 时，Mod 将 z 设为模 x%y，并返回 z。当 y == 0 时，会引发除零的运行时 panic。Mod 实现欧几里得取模（与 Go 不同），详见 <a href="#Int.DivMod">Int.DivMod</a>。<h3 id="Int.ModInverse">func (*Int) <a href="/src/math/big/int.go?s=26252:26292#L963">ModInverse</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) ModInverse(g, n *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>ModInverse 将 z 设为环 ℤ/nℤ 中 g 的乘法逆元，并返回 z。如果 g 和 n 不互素，则 g 在环 ℤ/nℤ 中不存在乘法逆元，此时 z 保持不变，返回 nil。如果 n == 0，会引发除零的运行时 panic。<h3 id="Int.ModSqrt">func (*Int) <a href="/src/math/big/int.go?s=30703:30740#L1145">ModSqrt</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) ModSqrt(x, p *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>如果 x 模 p 的平方根存在，ModSqrt 将 z 设为其中一个平方根，并返回 z。模数 p 必须为奇素数。如果 x 不是模 p 的平方剩余，则 z 保持不变，返回 nil。p 不是奇整数时，此函数会引发 panic；p 是奇数但不是素数时，行为未定义。<h3 id="Int.Mul">func (*Int) <a href="/src/math/big/int.go?s=4841:4874#L173">Mul</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Mul(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Mul 将 z 设为 x*y 的积，并返回 z。<h3 id="Int.MulRange">func (*Int) <a href="/src/math/big/int.go?s=5588:5627#L198">MulRange</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) MulRange(a, b <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Int">Int</a></pre>
+				<p>MulRange 将 z 设为闭区间 [a, b] 中所有整数的乘积，并返回 z。如果 a &gt; b（空区间），结果为 1。<h3 id="Int.Neg">func (*Int) <a href="/src/math/big/int.go?s=3739:3769#L124">Neg</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Neg(x *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Neg 将 z 设为 -x，并返回 z。<h3 id="Int.Not">func (*Int) <a href="/src/math/big/int.go?s=35797:35827#L1360">Not</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Not(x *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Not 将 z 设为 ^x，并返回 z。<h3 id="Int.Or">func (*Int) <a href="/src/math/big/int.go?s=34350:34382#L1300">Or</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Or(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Or 将 z 设为 x | y，并返回 z。<h3 id="Int.ProbablyPrime">func (*Int) <a href="/src/math/big/prime.go?s=1085:1124#L16">ProbablyPrime</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) ProbablyPrime(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>ProbablyPrime 报告 x 是否可能为素数。它使用 n 个伪随机选择的底数进行 Miller-Rabin 检验，并执行一次 Baillie-PSW 检验。<p>如果 x 是素数，ProbablyPrime 返回 true。如果 x 是随机选择的非素数，ProbablyPrime 很可能返回 false。对于随机选择的非素数，返回 true 的概率至多为 ¼ⁿ。<p>对于小于 2⁶⁴ 的输入，ProbablyPrime 的结果完全准确。有关错误概率的进一步讨论，参见 Menezes 等人的《Handbook of Applied Cryptography》（1997 年，第 145—149 页）以及 FIPS 186-4 附录 F。<p>ProbablyPrime 不适合判断可能由攻击者特意构造、用来欺骗检验的数是否为素数。<p>从 Go 1.8 起，允许调用 ProbablyPrime(0)，此时仅执行 Baillie-PSW 检验。Go 1.8 之前，ProbablyPrime 只执行 Miller-Rabin 检验，ProbablyPrime(0) 会引发 panic。<h3 id="Int.Quo">func (*Int) <a href="/src/math/big/int.go?s=7054:7087#L263">Quo</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Quo(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>当 y != 0 时，Quo 将 z 设为商 x/y，并返回 z。当 y == 0 时，会引发除零的运行时 panic。Quo 实现向零截断的除法（与 Go 相同），详见 <a href="#Int.QuoRem">Int.QuoRem</a>。<h3 id="Int.QuoRem">func (*Int) <a href="/src/math/big/int.go?s=7991:8038#L289">QuoRem</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) QuoRem(x, y, r *<a href="#Int">Int</a>) (*<a href="#Int">Int</a>, *<a href="#Int">Int</a>)</pre>
+				<p>当 y != 0 时，QuoRem 将 z 设为商 x/y，将 r 设为余数 x%y，并返回 (z, r)。当 y == 0 时，会引发除零的运行时 panic。<p>QuoRem 实现向零截断的除法和取余（与 Go 相同）：<pre>q = x/y      with the result truncated to zero
+r = x - y*q
+</pre>
+<p>（参见 Daan Leijen 的论文《Division and Modulus for Computer Scientists》。）欧几里得除法和取模（与 Go 不同）参见 <a href="#Int.DivMod">Int.DivMod</a>。<h3 id="Int.Rand">func (*Int) <a href="/src/math/big/int.go?s=25669:25716#L947">Rand</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Rand(rnd *<a href="/pkg/math/rand/">rand</a>.<a href="/pkg/math/rand/#Rand">Rand</a>, n *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Rand 将 z 设为 [0, n) 区间中的伪随机数，并返回 z。<p>由于使用了 <a href="/pkg/math/rand/">math/rand</a> 包，此方法不得用于安全敏感的场景。请改用 <a href="/pkg/crypto/rand/#Int">crypto/rand.Int</a>。<h3 id="Int.Rem">func (*Int) <a href="/src/math/big/int.go?s=7407:7440#L272">Rem</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Rem(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>当 y != 0 时，Rem 将 z 设为余数 x%y，并返回 z。当 y == 0 时，会引发除零的运行时 panic。Rem 实现向零截断除法所对应的取余（与 Go 相同），详见 <a href="#Int.QuoRem">Int.QuoRem</a>。<h3 id="Int.Rsh">func (*Int) <a href="/src/math/big/int.go?s=31484:31522#L1179">Rsh</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Rsh(x *<a href="#Int">Int</a>, n <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Int">Int</a></pre>
+				<p>Rsh 将 z 设为 x &gt;&gt; n，并返回 z。<h3 id="Int.Scan">func (*Int) <a href="/src/math/big/intconv.go?s=6712:6762#L241">Scan</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Scan(s <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#ScanState">ScanState</a>, ch <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 是支持 <a href="/pkg/fmt/#Scanner">fmt.Scanner</a> 的例程；它将 z 设为扫描到的数值。它接受 &apos;b&apos;（二进制）、&apos;o&apos;（八进制）、&apos;d&apos;（十进制）、&apos;x&apos;（小写十六进制）和 &apos;X&apos;（大写十六进制）格式。<div id="example_Int_Scan" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 通常不会直接调用 Scan 函数；
+	// fmt 包会将其识别为 fmt.Scanner 的实现。
+	i := new(big.Int)
+	_, err := fmt.Sscan(&#34;18446744073709551617&#34;, i)
+	if err != nil {
+		log.Println(&#34;error scanning value:&#34;, err)
+	} else {
+		fmt.Println(i)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>18446744073709551617
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Int.Set">func (*Int) <a href="/src/math/big/int.go?s=2458:2488#L85">Set</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Set(x *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Set 将 z 设为 x，并返回 z。<h3 id="Int.SetBit">func (*Int) <a href="/src/math/big/int.go?s=32511:32559#L1220">SetBit</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetBit(x *<a href="#Int">Int</a>, i <a href="/pkg/builtin/#int">int</a>, b <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Int">Int</a></pre>
+				<p>SetBit 将 z 设为 x 的值，并将其第 i 个二进制位设为 b（0 或 1）。也就是说：<ul>
+<li>b 为 1 时，SetBit 将 z = x | (1 &lt;&lt; i)；<li>b 为 0 时，SetBit 将 z = x &amp;^ (1 &lt;&lt; i)；<li>b 既不是 0 也不是 1 时，SetBit 会引发 panic。</ul>
+
+				
+			
+				<h3 id="Int.SetBits">func (*Int) <a href="/src/math/big/int.go?s=3477:3515#L110">SetBits</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetBits(abs []<a href="#Word">Word</a>) *<a href="#Int">Int</a></pre>
+				<p>SetBits 将 abs 解释为小端序的 <a href="#Word">Word</a> 切片并赋给 z，返回 z，从而提供对 z 的原始访问（不做检查，但速度快）。结果与 abs 共享同一个底层数组。SetBits 用于支持在本包之外实现缺少的底层 <a href="#Int">Int</a> 功能；其他情况下应避免使用。<h3 id="Int.SetBytes">func (*Int) <a href="/src/math/big/int.go?s=15923:15962#L591">SetBytes</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetBytes(buf []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#Int">Int</a></pre>
+				<p>SetBytes 将 buf 解释为大端序无符号整数的字节，将 z 设为该值，并返回 z。<h3 id="Int.SetInt64">func (*Int) <a href="/src/math/big/int.go?s=1727:1763#L48">SetInt64</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetInt64(x <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Int">Int</a></pre>
+				<p>SetInt64 将 z 设为 x，并返回 z。<h3 id="Int.SetString">func (*Int) <a href="/src/math/big/int.go?s=15260:15316#L572">SetString</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetString(s <a href="/pkg/builtin/#string">string</a>, base <a href="/pkg/builtin/#int">int</a>) (*<a href="#Int">Int</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>SetString 按给定进制解释 s，将 z 设为相应数值，并返回 z 和一个表示是否成功的布尔值。只有整个字符串有效，而不只是前缀有效，才算成功。如果 SetString 失败，z 的值未定义，返回的指针为 nil。<p>base 参数必须为 0 或 2 到 <a href="#MaxBase">MaxBase</a> 之间的值。当 base 为 0 时，由数字前缀决定实际进制：“0b”或“0B”表示二进制，“0”、“0o”或“0O”表示八进制，“0x”或“0X”表示十六进制。否则选择十进制，且不接受前缀。<p>对于不大于 36 的进制，不区分字母大小写：&apos;a&apos; 到 &apos;z&apos; 与 &apos;A&apos; 到 &apos;Z&apos; 均表示 10 到 35。对于大于 36 的进制，大写字母 &apos;A&apos; 到 &apos;Z&apos; 表示 36 到 61。<p>当 base 为 0 时，进制前缀与相邻数字之间以及连续数字之间可以出现下划线“_”；下划线不改变数值。如果不存在其他错误，下划线位置不正确会作为错误报告。当 base != 0 时，不识别下划线，它与其他无效数字字符一样处理。<div id="example_Int_SetString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	i := new(big.Int)
+	i.SetString(&#34;644&#34;, 8) // 八进制
+	fmt.Println(i)
+}
+</textarea></div>
+        <div class="output"><pre>420
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Int.SetUint64">func (*Int) <a href="/src/math/big/int.go?s=1919:1957#L60">SetUint64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) SetUint64(x <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Int">Int</a></pre>
+				<p>SetUint64 将 z 设为 x，并返回 z。<h3 id="Int.Sign">func (*Int) <a href="/src/math/big/int.go?s=1390:1414#L34">Sign</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Sign() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Sign 返回：<ul>
+<li>x &lt; 0 时为 -1；<li>x == 0 时为 0；<li>x &gt; 0 时为 +1。</ul>
+
+				
+			
+				<h3 id="Int.Sqrt">func (*Int) <a href="/src/math/big/int.go?s=36179:36210#L1376">Sqrt</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Sqrt(x *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Sqrt 将 z 设为 ⌊√x⌋，即满足 z² ≤ x 的最大整数，并返回 z。如果 x 为负数，会引发 panic。<h3 id="Int.String">func (*Int) <a href="/src/math/big/intconv.go?s=1099:1128#L29">String</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回由 x.Text(10) 生成的 x 的十进制表示。<h3 id="Int.Sub">func (*Int) <a href="/src/math/big/int.go?s=4367:4400#L152">Sub</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Sub(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Sub 将 z 设为 x-y 的差，并返回 z。<h3 id="Int.Text">func (*Int) <a href="/src/math/big/intconv.go?s=625:660#L11">Text</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Text(base <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Text 返回 x 在给定进制下的字符串表示。进制必须在 2 到 62 之间（包含端点）。结果用小写字母 &apos;a&apos; 到 &apos;z&apos; 表示 10 到 35，用大写字母 &apos;A&apos; 到 &apos;Z&apos; 表示 36 到 61。字符串不会添加“0x”等前缀。如果 x 为 nil 指针，则返回“&lt;nil&gt;”。<h3 id="Int.TrailingZeroBits">func (*Int) <a href="/src/math/big/int.go?s=17215:17252#L630">TrailingZeroBits</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) TrailingZeroBits() <a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>TrailingZeroBits 返回 |x| 最低位起连续的零位个数。<h3 id="Int.Uint64">func (*Int) <a href="/src/math/big/int.go?s=13138:13167#L512">Uint64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (x *<a href="#Int">Int</a>) Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 返回 x 的 uint64 表示。如果 x 无法用 uint64 表示，则结果未定义。<h3 id="Int.UnmarshalJSON">func (*Int) <a href="/src/math/big/intmarsh.go?s=2171:2217#L69">UnmarshalJSON</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) UnmarshalJSON(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalJSON 实现 <a href="/pkg/encoding/json/#Unmarshaler">encoding/json.Unmarshaler</a> 接口。<h3 id="Int.UnmarshalText">func (*Int) <a href="/src/math/big/intmarsh.go?s=1522:1568#L49">UnmarshalText</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) UnmarshalText(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> 接口。<h3 id="Int.Xor">func (*Int) <a href="/src/math/big/int.go?s=35120:35153#L1330">Xor</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Int">Int</a>) Xor(x, y *<a href="#Int">Int</a>) *<a href="#Int">Int</a></pre>
+				<p>Xor 将 z 设为 x ^ y，并返回 z。<h2 id="Rat">type <a href="/src/math/big/rat.go?s=707:1030#L13">Rat</a>
+				
+				
+			</h2>
+			<p>Rat 表示任意精度的商 a/b。Rat 的零值表示数值 0。<p>运算始终使用指针参数 *Rat，而不是 Rat 值；每个独立的 Rat 值都需要自己的 *Rat 指针。要“复制” Rat 值，必须使用 <a href="#Rat.Set">Rat.Set</a> 方法为已有或新分配的 Rat 设置新值；不支持 Rat 的浅拷贝，浅拷贝可能导致错误。<pre>type Rat struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewRat">func <a href="/src/math/big/rat.go?s=1098:1126#L23">NewRat</a>
+					
+					
+				</h3>
+				<pre>func NewRat(a, b <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Rat">Rat</a></pre>
+				<p>NewRat 创建分子为 a、分母为 b 的新 <a href="#Rat">Rat</a>。<h3 id="Rat.Abs">func (*Rat) <a href="/src/math/big/rat.go?s=9683:9713#L360">Abs</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Abs(x *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Abs 将 z 设为 |x|（x 的绝对值），并返回 z。<h3 id="Rat.Add">func (*Rat) <a href="/src/math/big/rat.go?s=12871:12904#L488">Add</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Add(x, y *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Add 将 z 设为 x+y 的和，并返回 z。<h3 id="Rat.AppendText">func (*Rat) <a href="/src/math/big/ratmarsh.go?s=1838:1888#L62">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a> 接口。<h3 id="Rat.Cmp">func (*Rat) <a href="/src/math/big/rat.go?s=12655:12684#L478">Cmp</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Cmp(y *<a href="#Rat">Rat</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Cmp 比较 x 和 y，返回：<ul>
+<li>x &lt; y 时为 -1；<li>x == y 时为 0；<li>x &gt; y 时为 +1。</ul>
+
+				
+			
+				<h3 id="Rat.Denom">func (*Rat) <a href="/src/math/big/rat.go?s=11051:11077#L412">Denom</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Denom() *<a href="#Int">Int</a></pre>
+				<p>Denom 返回 x 的分母，它始终 &gt; 0。结果是对 x 分母的引用；但如果 x 是未初始化（零值）的 <a href="#Rat">Rat</a>，结果就是一个值为 1 的新 <a href="#Int">Int</a>。（任何设置 x 的操作都可以初始化 x，包括 x.Set(x)。）如果结果是对 x 分母的引用，则给 x 赋新值时它可能改变，反之亦然。<h3 id="Rat.Float32">func (*Rat) <a href="/src/math/big/rat.go?s=7620:7667#L263">Float32</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Float32() (f <a href="/pkg/builtin/#float32">float32</a>, exact <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Float32 返回最接近 x 的 float32 值 f，以及一个表示 f 是否精确表示 x 的布尔值。如果 x 的绝对值太大而无法用 float32 表示，则 f 为无穷大，exact 为 false。即使 f == 0，f 的符号也始终与 x 相同。<h3 id="Rat.Float64">func (*Rat) <a href="/src/math/big/rat.go?s=8113:8160#L281">Float64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Float64() (f <a href="/pkg/builtin/#float64">float64</a>, exact <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Float64 返回最接近 x 的 float64 值 f，以及一个表示 f 是否精确表示 x 的布尔值。如果 x 的绝对值太大而无法用 float64 表示，则 f 为无穷大，exact 为 false。即使 f == 0，f 的符号也始终与 x 相同。<h3 id="Rat.FloatPrec">func (*Rat) <a href="/src/math/big/ratconv.go?s=10963:11008#L395">FloatPrec</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) FloatPrec() (n <a href="/pkg/builtin/#int">int</a>, exact <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>FloatPrec 返回 x 的十进制表示中，小数点后紧接着的非循环数字的个数 n。布尔返回值表示保留这么多小数位的十进制表示是精确值，还是经过了舍入。<p>例如：<pre>x      n    exact    保留 n 位小数的十进制表示
+0      0    true     0
+1      0    true     1
+1/2    1    true     0.5
+1/3    0    false    0       （0.333... 舍入后）
+1/4    2    true     0.25
+1/6    1    false    0.2     （0.166... 舍入后）
+</pre>
+
+				
+			
+				<h3 id="Rat.FloatString">func (*Rat) <a href="/src/math/big/ratconv.go?s=9253:9295#L324">FloatString</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) FloatString(prec <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>FloatString 返回 x 的十进制字符串表示，小数点后保留 prec 位。最后一位舍入到最近值，恰好处于中点时向远离零的方向舍入。<h3 id="Rat.GobDecode">func (*Rat) <a href="/src/math/big/ratmarsh.go?s=1086:1127#L33">GobDecode</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) GobDecode(buf []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>GobDecode 实现 <a href="/pkg/encoding/gob/#GobDecoder">encoding/gob.GobDecoder</a> 接口。<h3 id="Rat.GobEncode">func (*Rat) <a href="/src/math/big/ratmarsh.go?s=454:495#L10">GobEncode</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) GobEncode() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GobEncode 实现 <a href="/pkg/encoding/gob/#GobEncoder">encoding/gob.GobEncoder</a> 接口。<h3 id="Rat.Inv">func (*Rat) <a href="/src/math/big/rat.go?s=9966:9996#L375">Inv</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Inv(x *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Inv 将 z 设为 1/x，并返回 z。如果 x == 0，Inv 会引发 panic。<h3 id="Rat.IsInt">func (*Rat) <a href="/src/math/big/rat.go?s=10292:10318#L393">IsInt</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) IsInt() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsInt 报告 x 的分母是否为 1。<h3 id="Rat.MarshalText">func (*Rat) <a href="/src/math/big/ratmarsh.go?s=2032:2084#L70">MarshalText</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) MarshalText() (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 接口。<h3 id="Rat.Mul">func (*Rat) <a href="/src/math/big/rat.go?s=13472:13505#L514">Mul</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Mul(x, y *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Mul 将 z 设为 x*y 的积，并返回 z。<h3 id="Rat.Neg">func (*Rat) <a href="/src/math/big/rat.go?s=9791:9821#L367">Neg</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Neg(x *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Neg 将 z 设为 -x，并返回 z。<h3 id="Rat.Num">func (*Rat) <a href="/src/math/big/rat.go?s=10601:10625#L401">Num</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Num() *<a href="#Int">Int</a></pre>
+				<p>Num 返回 x 的分子，它可以 &lt;= 0。结果是对 x 分子的引用；给 x 赋新值时它可能改变，反之亦然。分子的符号与 x 相同。<h3 id="Rat.Quo">func (*Rat) <a href="/src/math/big/rat.go?s=13991:14024#L537">Quo</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Quo(x, y *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Quo 将 z 设为商 x/y，并返回 z。如果 y == 0，Quo 会引发 panic。<h3 id="Rat.RatString">func (*Rat) <a href="/src/math/big/ratconv.go?s=8954:8986#L314">RatString</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) RatString() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>RatString 在 b != 1 时返回“a/b”形式的 x 的字符串表示，在 b == 1 时返回“a”形式。<h3 id="Rat.Scan">func (*Rat) <a href="/src/math/big/ratconv.go?s=595:645#L16">Scan</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Scan(s <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#ScanState">ScanState</a>, ch <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Scan 是支持 fmt.Scanner 的例程。它接受 &apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;F&apos;、&apos;g&apos;、&apos;G&apos; 和 &apos;v&apos; 格式，所有格式等价。<div id="example_Rat_Scan" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// 通常不会直接调用 Scan 函数；
+	// fmt 包会将其识别为 fmt.Scanner 的实现。
+	r := new(big.Rat)
+	_, err := fmt.Sscan(&#34;1.5000&#34;, r)
+	if err != nil {
+		log.Println(&#34;error scanning value:&#34;, err)
+	} else {
+		fmt.Println(r)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>3/2
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Rat.Set">func (*Rat) <a href="/src/math/big/rat.go?s=9469:9499#L348">Set</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Set(x *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Set 将 z 设为 x（复制 x 的值），并返回 z。<h3 id="Rat.SetFloat64">func (*Rat) <a href="/src/math/big/rat.go?s=1259:1299#L29">SetFloat64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetFloat64(f <a href="/pkg/builtin/#float64">float64</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetFloat64 将 z 精确地设为 f，并返回 z。如果 f 不是有限值，则返回 nil。（译注：原文在第二句将方法名误写为 SetFloat，此处指 SetFloat64。）<h3 id="Rat.SetFrac">func (*Rat) <a href="/src/math/big/rat.go?s=8398:8435#L297">SetFrac</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetFrac(a, b *<a href="#Int">Int</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetFrac 将 z 设为 a/b，并返回 z。如果 b == 0，SetFrac 会引发 panic。<h3 id="Rat.SetFrac64">func (*Rat) <a href="/src/math/big/rat.go?s=8770:8810#L313">SetFrac64</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetFrac64(a, b <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetFrac64 将 z 设为 a/b，并返回 z。如果 b == 0，SetFrac64 会引发 panic。<h3 id="Rat.SetInt">func (*Rat) <a href="/src/math/big/rat.go?s=9040:9073#L327">SetInt</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetInt(x *<a href="#Int">Int</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetInt 将 z 设为 x（复制 x 的值），并返回 z。<h3 id="Rat.SetInt64">func (*Rat) <a href="/src/math/big/rat.go?s=9170:9206#L334">SetInt64</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetInt64(x <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetInt64 将 z 设为 x，并返回 z。<h3 id="Rat.SetString">func (*Rat) <a href="/src/math/big/ratconv.go?s=2220:2266#L48">SetString</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetString(s <a href="/pkg/builtin/#string">string</a>) (*<a href="#Rat">Rat</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>SetString 将 z 设为 s 表示的值，并返回 z 和一个表示是否成功的布尔值。s 可以是可能带符号的分数“a/b”，也可以是可选地带有指数的浮点数。对于分数，被除数和除数都可以是十进制整数，也可以各自使用“0b”、“0”或“0o”、“0x”（或对应的大写形式）前缀，分别表示二进制、八进制或十六进制整数；除数不得带符号。对于浮点数，可以采用十进制形式，也可以使用上述除“0”以外的前缀表示非十进制尾数。开头的“0”被视为十进制的前导零，不表示八进制。还可以提供以 10 为底的“e”指数或以 2 为底的“p”指数（也可用大写形式）；但十六进制浮点数仅接受可选的“p”指数，因为无法区分“e”或“E”与尾数中的数字。如果指数的绝对值过大，操作可能失败。只有整个字符串有效，而不只是前缀有效，才算成功。如果操作失败，z 的值未定义，返回的指针为 nil。<div id="example_Rat_SetString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	r := new(big.Rat)
+	r.SetString(&#34;355/113&#34;)
+	fmt.Println(r.FloatString(3))
+}
+</textarea></div>
+        <div class="output"><pre>3.142
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Rat.SetUint64">func (*Rat) <a href="/src/math/big/rat.go?s=9309:9347#L341">SetUint64</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) SetUint64(x <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Rat">Rat</a></pre>
+				<p>SetUint64 将 z 设为 x，并返回 z。<h3 id="Rat.Sign">func (*Rat) <a href="/src/math/big/rat.go?s=10191:10215#L388">Sign</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) Sign() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Sign 返回：<ul>
+<li>x &lt; 0 时为 -1；<li>x == 0 时为 0；<li>x &gt; 0 时为 +1。</ul>
+
+				
+			
+				<h3 id="Rat.String">func (*Rat) <a href="/src/math/big/ratconv.go?s=8389:8418#L294">String</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Rat">Rat</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回“a/b”形式的 x 的字符串表示（即使 b == 1 也是如此）。<h3 id="Rat.Sub">func (*Rat) <a href="/src/math/big/rat.go?s=13173:13206#L501">Sub</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) Sub(x, y *<a href="#Rat">Rat</a>) *<a href="#Rat">Rat</a></pre>
+				<p>Sub 将 z 设为 x-y 的差，并返回 z。<h3 id="Rat.UnmarshalText">func (*Rat) <a href="/src/math/big/ratmarsh.go?s=2186:2232#L75">UnmarshalText</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (z *<a href="#Rat">Rat</a>) UnmarshalText(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> 接口。<h2 id="RoundingMode">type <a href="/src/math/big/float.go?s=5230:5252#L124">RoundingMode</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>RoundingMode 决定如何将 <a href="#Float">Float</a> 值舍入到所需精度。舍入可能改变 <a href="#Float">Float</a> 的值；舍入误差由该 <a href="#Float">Float</a> 的 <a href="#Accuracy">Accuracy</a> 描述。<pre>type RoundingMode <a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+				<p>这些常量定义支持的舍入模式。<pre>const (
+    <span id="ToNearestEven">ToNearestEven</span> <a href="#RoundingMode">RoundingMode</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// == IEEE 754-2008 roundTiesToEven</span>
+    <span id="ToNearestAway">ToNearestAway</span>                     <span class="comment">// == IEEE 754-2008 roundTiesToAway</span>
+    <span id="ToZero">ToZero</span>                            <span class="comment">// == IEEE 754-2008 roundTowardZero</span>
+    <span id="AwayFromZero">AwayFromZero</span>                      <span class="comment">// IEEE 754-2008 中没有对应模式</span>
+    <span id="ToNegativeInf">ToNegativeInf</span>                     <span class="comment">// == IEEE 754-2008 roundTowardNegative</span>
+    <span id="ToPositiveInf">ToPositiveInf</span>                     <span class="comment">// == IEEE 754-2008 roundTowardPositive</span>
+)</pre>
+			
+
+			
+
+			
+
+
+<div id="example_RoundingMode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	operands := []float64{2.6, 2.5, 2.1, -2.1, -2.5, -2.6}
+
+	fmt.Print(&#34;   x&#34;)
+	for mode := big.ToNearestEven; mode &lt;= big.ToPositiveInf; mode&#43;&#43; {
+		fmt.Printf(&#34;  %s&#34;, mode)
+	}
+	fmt.Println()
+
+	for _, f64 := range operands {
+		fmt.Printf(&#34;%4g&#34;, f64)
+		for mode := big.ToNearestEven; mode &lt;= big.ToPositiveInf; mode&#43;&#43; {
+			// 上面的示例操作数需要 2 个二进制位表示尾数
+			// 将二进制精度设为 2，以把它们舍入为整数值
+			f := new(big.Float).SetPrec(2).SetMode(mode).SetFloat64(f64)
+			fmt.Printf(&#34;  %*g&#34;, len(mode.String()), f)
+		}
+		fmt.Println()
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>   x  ToNearestEven  ToNearestAway  ToZero  AwayFromZero  ToNegativeInf  ToPositiveInf
+ 2.6              3              3       2             3              2              3
+ 2.5              2              3       2             3              2              3
+ 2.1              2              2       2             3              2              3
+-2.1             -2             -2      -2            -3             -3             -2
+-2.5             -2             -3      -2            -3             -3             -2
+-2.6             -3             -3      -2            -3             -3             -2
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="RoundingMode.String">func (RoundingMode) <a href="/src/math/big/roundingmode_string.go?s=581:618#L13">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (i <a href="#RoundingMode">RoundingMode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Word">type <a href="/src/math/big/arith.go?s=638:652#L9">Word</a>
+				
+				
+			</h2>
+			<p>Word 表示多精度无符号整数中的一个数位。<pre>type Word <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,3712 @@
+<!--{
+  "Title": "time 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>time 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "time"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>
+time 包提供测量和显示时间的功能。
+<p>
+历法计算始终采用公历，不考虑闰秒。
+<h3 id="hdr-Monotonic_Clocks">
+单调时钟
+</h3>
+<p>
+操作系统同时提供“墙上时钟”和“单调时钟”：前者会因时钟同步而调整，后者不会。一般原则是，墙上时钟用于表示当前时间，单调时钟用于测量经过的时间。本包没有为此拆分 API，而是让 <a href="#Now">time.Now</a> 返回的 Time 同时包含墙上时钟读数和单调时钟读数；之后表示时间的操作使用墙上时钟读数，而测量时间的操作，具体来说是比较和相减，则使用单调时钟读数。
+<p>
+例如，即使测量期间墙上时钟发生变化，下面的代码也总会计算出约 20 毫秒的正数耗时：
+<pre>start := time.Now()
+... operation that takes 20 milliseconds ...
+t := time.Now()
+elapsed := t.Sub(start)
+</pre>
+<p>
+其他惯用写法，如 <a href="#Since">time.Since</a>(start)、<a href="#Until">time.Until</a>(deadline) 和 time.Now().Before(deadline)，同样不会受墙上时钟重设的影响。
+<p>
+本节余下内容精确说明各类操作如何使用单调时钟，但使用本包并不要求掌握这些细节。
+<p>
+time.Now 返回的 Time 包含单调时钟读数。如果 Time t 包含单调时钟读数，t.Add 会为墙上时钟读数和单调时钟读数加上相同的时长，得到结果。t.AddDate(y, m, d)、t.Round(d) 和 t.Truncate(d) 是基于墙上时间的计算，因此总会从结果中去掉单调时钟读数。t.In、t.Local 和 t.UTC 用于改变墙上时间的解释方式，也会去掉结果中的单调时钟读数。去除单调时钟读数的标准写法是 t = t.Round(0)。
+<p>
+如果 Time 值 t 和 u 都包含单调时钟读数，t.After(u)、t.Before(u)、t.Equal(u)、t.Compare(u) 和 t.Sub(u) 只使用单调时钟读数，忽略墙上时钟读数。如果 t 或 u 有一个不包含单调时钟读数，这些操作就退回到使用墙上时钟读数。
+<p>
+在某些系统上，计算机休眠时单调时钟会停止。在这样的系统上，t.Sub(u) 可能无法准确反映 t 和 u 之间实际经过的时间。其他涉及时间相减的函数和方法也一样，例如 <a href="#Since">Since</a>、<a href="#Until">Until</a>、<a href="#Time.Before">Time.Before</a>、<a href="#Time.After">Time.After</a>、<a href="#Time.Add">Time.Add</a>、<a href="#Time.Equal">Time.Equal</a> 和 <a href="#Time.Compare">Time.Compare</a>。某些情况下，需要去掉单调时钟读数才能得到准确结果。
+<p>
+单调时钟读数在当前进程之外没有意义，因此 t.GobEncode、t.MarshalBinary、t.MarshalJSON 和 t.MarshalText 生成的序列化形式都省略它，t.Format 也不提供表示它的格式。同样，构造函数 <a href="#Date">time.Date</a>、<a href="#Parse">time.Parse</a>、<a href="#ParseInLocation">time.ParseInLocation</a> 和 <a href="#Unix">time.Unix</a>，以及反序列化方法 t.GobDecode、t.UnmarshalBinary、t.UnmarshalJSON 和 t.UnmarshalText，创建的时间都不包含单调时钟读数。
+<p>
+单调时钟读数只存在于 <a href="#Time">Time</a> 值中，不属于 <a href="#Duration">Duration</a> 值，也不属于 t.Unix 等方法返回的 Unix 时间。
+<p>
+注意，Go 的 == 运算符不仅比较时间点，还会比较 <a href="#Location">Location</a> 和单调时钟读数。关于 Time 值的相等性判断，请参阅 Time 类型的文档。
+<p>
+为了便于调试，如果存在单调时钟读数，t.String 的结果会包含它。如果 t != u 是因为单调时钟读数不同，打印 t.String() 和 u.String() 就能看到该差异。
+<h3 id="hdr-Timer_Resolution">
+定时器分辨率
+</h3>
+<p>
+<a href="#Timer">Timer</a> 的分辨率取决于 Go 运行时、操作系统和底层硬件。在 Unix 上约为 1 毫秒；在 Windows 1803 及更新版本上约为 0.5 毫秒。较早的 Windows 版本默认约为 16 毫秒，但可以通过 <a href="/pkg/golang.org/x/sys/windows/#TimeBeginPeriod">golang.org/x/sys/windows.TimeBeginPeriod</a> 请求更高的分辨率。
+</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#After">func After(d Duration) &lt;-chan Time</a></dd>
+			
+				<dd><a href="#Sleep">func Sleep(d Duration)</a></dd>
+			
+				<dd><a href="#Tick">func Tick(d Duration) &lt;-chan Time</a></dd>
+			
+			
+				
+				<dd><a href="#Duration">type Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseDuration">func ParseDuration(s string) (Duration, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Since">func Since(t Time) Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Until">func Until(t Time) Duration</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Abs">func (d Duration) Abs() Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Hours">func (d Duration) Hours() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Microseconds">func (d Duration) Microseconds() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Milliseconds">func (d Duration) Milliseconds() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Minutes">func (d Duration) Minutes() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Nanoseconds">func (d Duration) Nanoseconds() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Round">func (d Duration) Round(m Duration) Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Seconds">func (d Duration) Seconds() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.String">func (d Duration) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration.Truncate">func (d Duration) Truncate(m Duration) Duration</a></dd>
+				
+			
+				
+				<dd><a href="#Location">type Location</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FixedZone">func FixedZone(name string, offset int) *Location</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadLocation">func LoadLocation(name string) (*Location, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadLocationFromTZData">func LoadLocationFromTZData(name string, data []byte) (*Location, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Location.String">func (l *Location) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Month">type Month</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Month.String">func (m Month) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#ParseError">type ParseError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseError.Error">func (e *ParseError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Ticker">type Ticker</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTicker">func NewTicker(d Duration) *Ticker</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Ticker.Reset">func (t *Ticker) Reset(d Duration)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ticker.Stop">func (t *Ticker) Stop()</a></dd>
+				
+			
+				
+				<dd><a href="#Time">type Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Date">func Date(year int, month Month, day, hour, min, sec, nsec int, loc *Location) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Now">func Now() Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parse">func Parse(layout, value string) (Time, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseInLocation">func ParseInLocation(layout, value string, loc *Location) (Time, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Unix">func Unix(sec int64, nsec int64) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnixMicro">func UnixMicro(usec int64) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnixMilli">func UnixMilli(msec int64) Time</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Add">func (t Time) Add(d Duration) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.AddDate">func (t Time) AddDate(years int, months int, days int) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.After">func (t Time) After(u Time) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.AppendBinary">func (t Time) AppendBinary(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.AppendFormat">func (t Time) AppendFormat(b []byte, layout string) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.AppendText">func (t Time) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Before">func (t Time) Before(u Time) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Clock">func (t Time) Clock() (hour, min, sec int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Compare">func (t Time) Compare(u Time) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Date">func (t Time) Date() (year int, month Month, day int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Day">func (t Time) Day() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Equal">func (t Time) Equal(u Time) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Format">func (t Time) Format(layout string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.GoString">func (t Time) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.GobDecode">func (t *Time) GobDecode(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.GobEncode">func (t Time) GobEncode() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Hour">func (t Time) Hour() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.ISOWeek">func (t Time) ISOWeek() (year, week int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.In">func (t Time) In(loc *Location) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.IsDST">func (t Time) IsDST() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.IsZero">func (t Time) IsZero() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Local">func (t Time) Local() Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Location">func (t Time) Location() *Location</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.MarshalBinary">func (t Time) MarshalBinary() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.MarshalJSON">func (t Time) MarshalJSON() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.MarshalText">func (t Time) MarshalText() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Minute">func (t Time) Minute() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Month">func (t Time) Month() Month</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Nanosecond">func (t Time) Nanosecond() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Round">func (t Time) Round(d Duration) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Second">func (t Time) Second() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.String">func (t Time) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Sub">func (t Time) Sub(u Time) Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Truncate">func (t Time) Truncate(d Duration) Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UTC">func (t Time) UTC() Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Unix">func (t Time) Unix() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnixMicro">func (t Time) UnixMicro() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnixMilli">func (t Time) UnixMilli() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnixNano">func (t Time) UnixNano() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnmarshalBinary">func (t *Time) UnmarshalBinary(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnmarshalJSON">func (t *Time) UnmarshalJSON(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.UnmarshalText">func (t *Time) UnmarshalText(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Weekday">func (t Time) Weekday() Weekday</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Year">func (t Time) Year() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.YearDay">func (t Time) YearDay() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.Zone">func (t Time) Zone() (name string, offset int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time.ZoneBounds">func (t Time) ZoneBounds() (start, end Time)</a></dd>
+				
+			
+				
+				<dd><a href="#Timer">type Timer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AfterFunc">func AfterFunc(d Duration, f func()) *Timer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTimer">func NewTimer(d Duration) *Timer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Timer.Reset">func (t *Timer) Reset(d Duration) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Timer.Stop">func (t *Timer) Stop() bool</a></dd>
+				
+			
+				
+				<dd><a href="#Weekday">type Weekday</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Weekday.String">func (d Weekday) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_After">After</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Date">Date</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration">Duration</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Abs">Duration.Abs</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Hours">Duration.Hours</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Microseconds">Duration.Microseconds</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Milliseconds">Duration.Milliseconds</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Minutes">Duration.Minutes</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Nanoseconds">Duration.Nanoseconds</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Round">Duration.Round</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Seconds">Duration.Seconds</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_String">Duration.String</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Duration_Truncate">Duration.Truncate</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FixedZone">FixedZone</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LoadLocation">LoadLocation</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Location">Location</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Month">Month</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewTicker">NewTicker</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Parse">Parse</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseDuration">ParseDuration</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseInLocation">ParseInLocation</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Since">Since</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sleep">Sleep</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Tick">Tick</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Add">Time.Add</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_AddDate">Time.AddDate</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_After">Time.After</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_AppendBinary">Time.AppendBinary</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_AppendFormat">Time.AppendFormat</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_AppendText">Time.AppendText</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Before">Time.Before</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Date">Time.Date</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Day">Time.Day</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Equal">Time.Equal</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Format">Time.Format</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Format_pad">Time.Format (Pad)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_GoString">Time.GoString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Round">Time.Round</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_String">Time.String</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Sub">Time.Sub</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Truncate">Time.Truncate</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Time_Unix">Time.Unix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unix">Unix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnixMicro">UnixMicro</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnixMilli">UnixMilli</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Until">Until</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/time/format.go">format.go</a>
+			
+				<a href="/src/time/format_rfc3339.go">format_rfc3339.go</a>
+			
+				<a href="/src/time/sleep.go">sleep.go</a>
+			
+				<a href="/src/time/sys_unix.go">sys_unix.go</a>
+			
+				<a href="/src/time/tick.go">tick.go</a>
+			
+				<a href="/src/time/time.go">time.go</a>
+			
+				<a href="/src/time/zoneinfo.go">zoneinfo.go</a>
+			
+				<a href="/src/time/zoneinfo_goroot.go">zoneinfo_goroot.go</a>
+			
+				<a href="/src/time/zoneinfo_read.go">zoneinfo_read.go</a>
+			
+				<a href="/src/time/zoneinfo_unix.go">zoneinfo_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>
+这些是供 <a href="#Time.Format">Time.Format</a> 和 <a href="#Parse">time.Parse</a> 使用的预定义布局。布局中使用的参考时间是下面这个特定时间戳：
+<pre>01/02 03:04:05PM &apos;06 -0700
+</pre>
+<p>
+即 2006 年 1 月 2 日 15:04:05，所在时区比 GMT 晚七小时。这个值保存在下面列出的 <a href="#Layout">Layout</a> 常量中。对应的 Unix 时间为 1136239445。由于 MST 是 GMT-0700，Unix 的 date 命令会将该参考时间打印为：
+<pre>Mon Jan 2 15:04:05 MST 2006
+</pre>
+<p>
+日期采用美国习惯，将数字月份放在日期之前，这是一个令人遗憾的历史设计问题。
+<p>
+Time.Format 的示例详细展示了布局字符串的工作方式，是很好的参考。
+<p>
+注意，<a href="#RFC822">RFC822</a>、<a href="#RFC850">RFC850</a> 和 <a href="#RFC1123">RFC1123</a> 格式只应应用于本地时间。用于 UTC 时间时，时区缩写会是 &quot;UTC&quot;，但严格来说，这些 RFC 要求此时使用 &quot;GMT&quot;。使用 <a href="#RFC1123">RFC1123</a> 或 <a href="#RFC1123Z">RFC1123Z</a> 格式解析时，要注意它们为月内日期定义了前导零，而 RFC 1123 严格来说不允许这样做；因此解析每月前 9 天的某些日期字符串时会出错。对于必须使用该格式的服务器，通常应使用 <a href="#RFC1123Z">RFC1123Z</a> 代替 <a href="#RFC1123">RFC1123</a>；新协议应优先使用 <a href="#RFC3339">RFC3339</a>。<a href="#RFC3339">RFC3339</a>、<a href="#RFC822">RFC822</a>、<a href="#RFC822Z">RFC822Z</a>、<a href="#RFC1123">RFC1123</a> 和 <a href="#RFC1123Z">RFC1123Z</a> 适合用于格式化；但用于 time.Parse 时，它们既不能接受 RFC 允许的全部时间格式，也会接受一些并未正式定义的格式。<a href="#RFC3339Nano">RFC3339Nano</a> 会删除秒的小数部分末尾的零，因此格式化后的结果未必能正确排序。
+<p>
+多数程序可以将某个预定义常量作为布局传给 Format 或 Parse。除非要创建自定义布局字符串，否则可以忽略这段说明的其余内容。
+<p>
+要定义自己的格式，请按所需格式写出参考时间的样子；示例可查看 <a href="#ANSIC">ANSIC</a>、<a href="#StampMicro">StampMicro</a> 或 <a href="#Kitchen">Kitchen</a> 等常量。其设计思路是展示参考时间的格式，让 Format 和 Parse 能将同样的转换应用于任意时间值。
+<p>
+下面概括了布局字符串的组成部分。每一项都通过示例展示参考时间某一部分的格式化方式；只有这些值会被识别。布局字符串中无法识别为参考时间一部分的文本，Format 会原样输出，Parse 则要求输入中原样出现。
+<pre>Year: &quot;2006&quot; &quot;06&quot;
+Month: &quot;Jan&quot; &quot;January&quot; &quot;01&quot; &quot;1&quot;
+Day of the week: &quot;Mon&quot; &quot;Monday&quot;
+Day of the month: &quot;2&quot; &quot;_2&quot; &quot;02&quot;
+Day of the year: &quot;__2&quot; &quot;002&quot;
+Hour: &quot;15&quot; &quot;3&quot; &quot;03&quot; (PM or AM)
+Minute: &quot;4&quot; &quot;04&quot;
+Second: &quot;5&quot; &quot;05&quot;
+AM/PM mark: &quot;PM&quot;
+</pre>
+<p>
+数字时区偏移量的格式如下：
+<pre>&quot;-0700&quot;     ±hhmm
+&quot;-07:00&quot;    ±hh:mm
+&quot;-07&quot;       ±hh
+&quot;-070000&quot;   ±hhmmss
+&quot;-07:00:00&quot; ±hh:mm:ss
+</pre>
+<p>
+将格式中的正负号替换为 Z，就会采用 ISO 8601 的行为：对于 UTC 时区，输出 Z 而不是偏移量。因此：
+<pre>&quot;Z0700&quot;      Z or ±hhmm
+&quot;Z07:00&quot;     Z or ±hh:mm
+&quot;Z07&quot;        Z or ±hh
+&quot;Z070000&quot;    Z or ±hhmmss
+&quot;Z07:00:00&quot;  Z or ±hh:mm:ss
+</pre>
+<p>
+格式字符串中，&quot;_2&quot; 和 &quot;__2&quot; 的下划线表示空格；如果后面的数字有多位，空格可能被数字替代，以兼容固定宽度的 Unix 时间格式。前导零表示用零填充。
+<p>
+__2 和 002 分别表示用空格和零填充的三字符“年内第几天”；没有不填充的年内天数格式。
+<p>
+逗号或小数点后跟一个或多个零，表示按指定小数位数输出秒的小数部分。逗号或小数点后跟一个或多个 9，也表示按指定小数位数输出，但会去掉末尾的零。例如，&quot;15:04:05,000&quot; 或 &quot;15:04:05.000&quot; 以毫秒精度格式化或解析。
+<p>
+某些有效布局对 time.Parse 来说并不是有效时间值，因为其中可能包含用于空格填充的 _ 或用于时区信息的 Z 等格式。
+<pre>const (
+    <span id="Layout">Layout</span>      = &#34;01/02 03:04:05PM &#39;06 -0700&#34; <span class="comment">// 按数值顺序排列的参考时间。</span>
+    <span id="ANSIC">ANSIC</span>       = &#34;Mon Jan _2 15:04:05 2006&#34;
+    <span id="UnixDate">UnixDate</span>    = &#34;Mon Jan _2 15:04:05 MST 2006&#34;
+    <span id="RubyDate">RubyDate</span>    = &#34;Mon Jan 02 15:04:05 -0700 2006&#34;
+    <span id="RFC822">RFC822</span>      = &#34;02 Jan 06 15:04 MST&#34;
+    <span id="RFC822Z">RFC822Z</span>     = &#34;02 Jan 06 15:04 -0700&#34; <span class="comment">// 使用数字时区偏移的 RFC822</span>
+    <span id="RFC850">RFC850</span>      = &#34;Monday, 02-Jan-06 15:04:05 MST&#34;
+    <span id="RFC1123">RFC1123</span>     = &#34;Mon, 02 Jan 2006 15:04:05 MST&#34;
+    <span id="RFC1123Z">RFC1123Z</span>    = &#34;Mon, 02 Jan 2006 15:04:05 -0700&#34; <span class="comment">// 使用数字时区偏移的 RFC1123</span>
+    <span id="RFC3339">RFC3339</span>     = &#34;2006-01-02T15:04:05Z07:00&#34;
+    <span id="RFC3339Nano">RFC3339Nano</span> = &#34;2006-01-02T15:04:05.999999999Z07:00&#34;
+    <span id="Kitchen">Kitchen</span>     = &#34;3:04PM&#34;
+    <span class="comment">// 便于使用的时间戳格式。</span>
+    <span id="Stamp">Stamp</span>      = &#34;Jan _2 15:04:05&#34;
+    <span id="StampMilli">StampMilli</span> = &#34;Jan _2 15:04:05.000&#34;
+    <span id="StampMicro">StampMicro</span> = &#34;Jan _2 15:04:05.000000&#34;
+    <span id="StampNano">StampNano</span>  = &#34;Jan _2 15:04:05.000000000&#34;
+    <span id="DateTime">DateTime</span>   = &#34;2006-01-02 15:04:05&#34;
+    <span id="DateOnly">DateOnly</span>   = &#34;2006-01-02&#34;
+    <span id="TimeOnly">TimeOnly</span>   = &#34;15:04:05&#34;
+)</pre>
+			
+				<p>
+常用时长。为避免跨越夏令时切换时产生混淆，没有定义 Day 或更大的时间单位。
+<p>
+要计算 <a href="#Duration">Duration</a> 中包含多少个某单位，请使用除法：
+<pre>second := time.Second
+fmt.Print(int64(second/time.Millisecond)) // 输出 1000
+</pre>
+<p>
+要将整数个时间单位转换为 Duration，请使用乘法：
+<pre>seconds := 10
+fmt.Print(time.Duration(seconds)*time.Second) // 输出 10s
+</pre>
+
+				<pre>const (
+    <span id="Nanosecond">Nanosecond</span>  <a href="#Duration">Duration</a> = 1
+    <span id="Microsecond">Microsecond</span>          = 1000 * <a href="#Nanosecond">Nanosecond</a>
+    <span id="Millisecond">Millisecond</span>          = 1000 * <a href="#Microsecond">Microsecond</a>
+    <span id="Second">Second</span>               = 1000 * <a href="#Millisecond">Millisecond</a>
+    <span id="Minute">Minute</span>               = 60 * <a href="#Second">Second</a>
+    <span id="Hour">Hour</span>                 = 60 * <a href="#Minute">Minute</a>
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="After">func <a href="/src/time/sleep.go?s=6774:6808#L159">After</a>
+				
+				
+			</h2>
+			<pre>func After(d <a href="#Duration">Duration</a>) &lt;-chan <a href="#Time">Time</a></pre>
+			<p>
+After 等待指定时长后，通过返回的通道发送当前时间。它等价于 <a href="#NewTimer">NewTimer</a>(d).C。
+<p>
+在 Go 1.23 之前，本文档曾提醒：底层 <a href="#Timer">Timer</a> 要等到触发后才能被垃圾回收，因此关注效率的代码应改用 NewTimer，并在不再需要时调用 <a href="#Timer.Stop">Timer.Stop</a>。从 Go 1.23 起，垃圾回收器可以回收不再被引用且尚未停止的定时器。如果 After 已经满足需求，就没有理由优先选择 NewTimer。
+<div id="example_After" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+var c chan int
+
+func handle(int) {}
+
+func main() {
+	select {
+	case m := &lt;-c:
+		handle(m)
+	case &lt;-time.After(10 * time.Second):
+		fmt.Println(&#34;timed out&#34;)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sleep">func <a href="/src/time/sleep.go?s=330:352#L3">Sleep</a>
+				
+				
+			</h2>
+			<pre>func Sleep(d <a href="#Duration">Duration</a>)</pre>
+			<p>
+Sleep 暂停当前 goroutine 至少 d 指定的时长。d 为负值或零时，Sleep 立即返回。
+<div id="example_Sleep" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;time&#34;
+)
+
+func main() {
+	time.Sleep(100 * time.Millisecond)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Tick">func <a href="/src/time/tick.go?s=3592:3625#L77">Tick</a>
+				
+				
+			</h2>
+			<pre>func Tick(d <a href="#Duration">Duration</a>) &lt;-chan <a href="#Time">Time</a></pre>
+			<p>
+Tick 是 <a href="#NewTicker">NewTicker</a> 的便捷封装，仅提供定时通知通道。与 NewTicker 不同，d &lt;= 0 时，Tick 返回 nil。
+<p>
+在 Go 1.23 之前，本文档曾提醒：底层 <a href="#Ticker">Ticker</a> 永远不会被垃圾回收，因此关注效率的代码应改用 NewTicker，并在不再需要时调用 <a href="#Ticker.Stop">Ticker.Stop</a>。从 Go 1.23 起，即使 Ticker 尚未停止，垃圾回收器也可以回收不再被引用的 Ticker。不再需要为了协助垃圾回收而调用 Stop。如果 Tick 已经满足需求，就没有理由优先选择 NewTicker。
+<div id="example_Tick" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func statusUpdate() string { return &#34;&#34; }
+
+func main() {
+	c := time.Tick(5 * time.Second)
+	for next := range c {
+		fmt.Printf(&#34;%v %s\n&#34;, next, statusUpdate())
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Duration">type <a href="/src/time/time.go?s=32947:32966#L905">Duration</a>
+				
+				
+			</h2>
+			<p>
+Duration 用 int64 类型的纳秒数表示两个时间点之间经过的时长。这种表示能容纳的最大时长约为 290 年。
+<pre>type Duration <a href="/pkg/builtin/#int64">int64</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Duration" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func expensiveCall() {}
+
+func main() {
+	t0 := time.Now()
+	expensiveCall()
+	t1 := time.Now()
+	fmt.Printf(&#34;The call took %v to run.\n&#34;, t1.Sub(t0))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="ParseDuration">func <a href="/src/time/format.go?s=48620:48666#L1624">ParseDuration</a>
+					
+					
+				</h3>
+				<pre>func ParseDuration(s <a href="/pkg/builtin/#string">string</a>) (<a href="#Duration">Duration</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ParseDuration 解析时长字符串。时长字符串由一系列十进制数字组成，可带正负号；每个数字都可以带小数部分，并须附带单位后缀，例如 &quot;300ms&quot;、&quot;-1.5h&quot; 或 &quot;2h45m&quot;。有效单位为 &quot;ns&quot;、&quot;us&quot;（或 &quot;µs&quot;）、&quot;ms&quot;、&quot;s&quot;、&quot;m&quot;、&quot;h&quot;。
+<div id="example_ParseDuration" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	hours, _ := time.ParseDuration("10h")
+	complex, _ := time.ParseDuration("1h10m10s")
+	micro, _ := time.ParseDuration("1µs")
+	// 本包也接受常见但不标准的微秒前缀 u。
+	micro2, _ := time.ParseDuration("1us")
+
+	fmt.Println(hours)
+	fmt.Println(complex)
+	fmt.Printf("There are %.0f seconds in %v.\n", complex.Seconds(), complex)
+	fmt.Printf("There are %d nanoseconds in %v.\n", micro.Nanoseconds(), micro)
+	fmt.Printf("There are %6.2e seconds in %v.\n", micro2.Seconds(), micro2)
+}
+</textarea></div>
+        <div class="output"><pre>10h0m0s
+1h10m10s
+There are 4210 seconds in 1h10m10s.
+There are 1000 nanoseconds in 1µs.
+There are 1.00e-06 seconds in 1µs.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Since">func <a href="/src/time/time.go?s=40829:40856#L1217">Since</a>
+					
+					
+				</h3>
+				<pre>func Since(t <a href="#Time">Time</a>) <a href="#Duration">Duration</a></pre>
+				<p>
+Since 返回从 t 到现在经过的时长，是 time.Now().Sub(t) 的简写。
+<div id="example_Since" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func expensiveCall() {}
+
+func main() {
+	start := time.Now()
+	expensiveCall()
+	elapsed := time.Since(start)
+	fmt.Printf(&#34;The call took %v to run.\n&#34;, elapsed)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Until">func <a href="/src/time/time.go?s=41153:41180#L1227">Until</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func Until(t <a href="#Time">Time</a>) <a href="#Duration">Duration</a></pre>
+				<p>
+Until 返回从现在到 t 的时长，是 t.Sub(time.Now()) 的简写。
+<div id="example_Until" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	futureTime := time.Now().Add(5 * time.Second)
+	durationUntil := time.Until(futureTime)
+	fmt.Printf(&#34;Duration until future time: %.0f seconds&#34;, math.Ceil(durationUntil.Seconds()))
+}
+</textarea></div>
+        <div class="output"><pre>Duration until future time: 5 seconds
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Duration.Abs">func (Duration) <a href="/src/time/time.go?s=39196:39228#L1148">Abs</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Abs() <a href="#Duration">Duration</a></pre>
+				<p>
+Abs 返回 d 的绝对值。特殊情况下，Duration(<a href="/pkg/math/#MinInt64">math.MinInt64</a>) 会转换为 Duration(<a href="/pkg/math/#MaxInt64">math.MaxInt64</a>)，其绝对大小减少 1 纳秒。
+<div id="example_Duration_Abs" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	positiveDuration := 5 * time.Second
+	negativeDuration := -3 * time.Second
+	minInt64CaseDuration := time.Duration(math.MinInt64)
+
+	absPositive := positiveDuration.Abs()
+	absNegative := negativeDuration.Abs()
+	absSpecial := minInt64CaseDuration.Abs() == time.Duration(math.MaxInt64)
+
+	fmt.Printf(&#34;Absolute value of positive duration: %v\n&#34;, absPositive)
+	fmt.Printf(&#34;Absolute value of negative duration: %v\n&#34;, absNegative)
+	fmt.Printf(&#34;Absolute value of MinInt64 equal to MaxInt64: %t\n&#34;, absSpecial)
+
+}
+</textarea></div>
+        <div class="output"><pre>Absolute value of positive duration: 5s
+Absolute value of negative duration: 3s
+Absolute value of MinInt64 equal to MaxInt64: true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Hours">func (Duration) <a href="/src/time/time.go?s=37784:37817#L1094">Hours</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Hours() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>
+Hours 以浮点小时数返回时长。
+<div id="example_Duration_Hours" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	h, _ := time.ParseDuration(&#34;4h30m&#34;)
+	fmt.Printf(&#34;I&#39;ve got %.1f hours of work left.&#34;, h.Hours())
+}
+</textarea></div>
+        <div class="output"><pre>I&#39;ve got 4.5 hours of work left.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Microseconds">func (Duration) <a href="/src/time/time.go?s=36663:36701#L1065">Microseconds</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Microseconds() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+Microseconds 以整数微秒数返回时长。
+<div id="example_Duration_Microseconds" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	u, _ := time.ParseDuration(&#34;1s&#34;)
+	fmt.Printf(&#34;One second is %d microseconds.\n&#34;, u.Microseconds())
+}
+</textarea></div>
+        <div class="output"><pre>One second is 1000000 microseconds.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Milliseconds">func (Duration) <a href="/src/time/time.go?s=36799:36837#L1068">Milliseconds</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Milliseconds() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+Milliseconds 以整数毫秒数返回时长。
+<div id="example_Duration_Milliseconds" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	u, _ := time.ParseDuration(&#34;1s&#34;)
+	fmt.Printf(&#34;One second is %d milliseconds.\n&#34;, u.Milliseconds())
+}
+</textarea></div>
+        <div class="output"><pre>One second is 1000 milliseconds.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Minutes">func (Duration) <a href="/src/time/time.go?s=37591:37626#L1087">Minutes</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Minutes() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>
+Minutes 以浮点分钟数返回时长。
+<div id="example_Duration_Minutes" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	m, _ := time.ParseDuration(&#34;1h30m&#34;)
+	fmt.Printf(&#34;The movie is %.0f minutes long.&#34;, m.Minutes())
+}
+</textarea></div>
+        <div class="output"><pre>The movie is 90 minutes long.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Nanoseconds">func (Duration) <a href="/src/time/time.go?s=36534:36571#L1062">Nanoseconds</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Nanoseconds() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+Nanoseconds 以整数纳秒数返回时长。
+<div id="example_Duration_Nanoseconds" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	u, _ := time.ParseDuration(&#34;1µs&#34;)
+	fmt.Printf(&#34;One microsecond is %d nanoseconds.\n&#34;, u.Nanoseconds())
+}
+</textarea></div>
+        <div class="output"><pre>One microsecond is 1000 nanoseconds.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Round">func (Duration) <a href="/src/time/time.go?s=38662:38706#L1121">Round</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Round(m <a href="#Duration">Duration</a>) <a href="#Duration">Duration</a></pre>
+				<p>
+Round 将 d 舍入为最接近的 m 的整数倍。恰好位于中点时，向远离零的方向舍入。如果结果超过 <a href="#Duration">Duration</a> 能保存的最大值或最小值，则返回相应极值。如果 m &lt;= 0，Round 原样返回 d。
+<div id="example_Duration_Round" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	d, err := time.ParseDuration(&#34;1h15m30.918273645s&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	round := []time.Duration{
+		time.Nanosecond,
+		time.Microsecond,
+		time.Millisecond,
+		time.Second,
+		2 * time.Second,
+		time.Minute,
+		10 * time.Minute,
+		time.Hour,
+	}
+
+	for _, r := range round {
+		fmt.Printf(&#34;d.Round(%6s) = %s\n&#34;, r, d.Round(r).String())
+	}
+}
+</textarea></div>
+        <div class="output"><pre>d.Round(   1ns) = 1h15m30.918273645s
+d.Round(   1µs) = 1h15m30.918274s
+d.Round(   1ms) = 1h15m30.918s
+d.Round(    1s) = 1h15m31s
+d.Round(    2s) = 1h15m30s
+d.Round(  1m0s) = 1h16m0s
+d.Round( 10m0s) = 1h20m0s
+d.Round(1h0m0s) = 1h0m0s
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Seconds">func (Duration) <a href="/src/time/time.go?s=37399:37434#L1080">Seconds</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Seconds() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>
+Seconds 以浮点秒数返回时长。
+<div id="example_Duration_Seconds" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	m, _ := time.ParseDuration(&#34;1m30s&#34;)
+	fmt.Printf(&#34;Take off in t-%.0f seconds.&#34;, m.Seconds())
+}
+</textarea></div>
+        <div class="output"><pre>Take off in t-90 seconds.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.String">func (Duration) <a href="/src/time/time.go?s=34030:34063#L937">String</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+String 返回 &quot;72h3m0.5s&quot; 形式的时长字符串，省略开头值为零的单位。特殊情况下，小于一秒的时长使用更小的单位（毫秒、微秒或纳秒），以确保首位数字不为零。零时长格式化为 0s。
+<div id="example_Duration_String" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	fmt.Println(1*time.Hour &#43; 2*time.Minute &#43; 300*time.Millisecond)
+	fmt.Println(300 * time.Millisecond)
+}
+</textarea></div>
+        <div class="output"><pre>1h2m0.3s
+300ms
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Duration.Truncate">func (Duration) <a href="/src/time/time.go?s=38030:38077#L1102">Truncate</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (d <a href="#Duration">Duration</a>) Truncate(m <a href="#Duration">Duration</a>) <a href="#Duration">Duration</a></pre>
+				<p>
+Truncate 向零方向将 d 截断为 m 的整数倍。如果 m &lt;= 0，Truncate 原样返回 d。
+<div id="example_Duration_Truncate" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	d, err := time.ParseDuration(&#34;1h15m30.918273645s&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	trunc := []time.Duration{
+		time.Nanosecond,
+		time.Microsecond,
+		time.Millisecond,
+		time.Second,
+		2 * time.Second,
+		time.Minute,
+		10 * time.Minute,
+		time.Hour,
+	}
+
+	for _, t := range trunc {
+		fmt.Printf(&#34;d.Truncate(%6s) = %s\n&#34;, t, d.Truncate(t).String())
+	}
+}
+</textarea></div>
+        <div class="output"><pre>d.Truncate(   1ns) = 1h15m30.918273645s
+d.Truncate(   1µs) = 1h15m30.918273s
+d.Truncate(   1ms) = 1h15m30.918s
+d.Truncate(    1s) = 1h15m30s
+d.Truncate(    2s) = 1h15m30s
+d.Truncate(  1m0s) = 1h15m0s
+d.Truncate( 10m0s) = 1h10m0s
+d.Truncate(1h0m0s) = 1h0m0s
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="Location">type <a href="/src/time/zoneinfo.go?s=781:1656#L13">Location</a>
+				
+				
+			</h2>
+			<p>
+Location 将时间点映射到当时适用的时区。通常，它表示某个地理区域使用的时区偏移量集合。许多 Location 的偏移量会根据该时间点是否处于夏令时而变化。
+<p>
+Location 用于为打印出的 Time 值提供时区，也用于处理可能跨越夏令时切换的时间间隔计算。
+<pre>type Location struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+				<p>
+Local 表示系统本地时区。在 Unix 系统上，Local 根据环境变量 TZ 确定时区。未设置 TZ 表示使用系统默认值 /etc/localtime；TZ=&quot;&quot; 表示使用 UTC；TZ=&quot;foo&quot; 表示使用系统时区目录中的文件 foo。
+<pre>var <span id="Local">Local</span> *<a href="#Location">Location</a> = &amp;localLoc</pre>
+			
+				<p>
+UTC 表示协调世界时（UTC）。
+<pre>var <span id="UTC">UTC</span> *<a href="#Location">Location</a> = &amp;utcLoc</pre>
+			
+
+			
+
+
+<div id="example_Location" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// 中国目前不实行夏令时，使用相对 UTC 固定为 8 小时的偏移。
+	secondsEastOfUTC := int((8 * time.Hour).Seconds())
+	beijing := time.FixedZone("Beijing Time", secondsEastOfUTC)
+
+	// 如果系统有时区数据库，也可以从中加载时区，
+	// 例如：
+	//    newYork, err := time.LoadLocation("America/New_York")
+
+	// 创建时间需要指定时区。常用的有 time.Local 和 time.UTC。
+	timeInUTC := time.Date(2009, 1, 1, 12, 0, 0, 0, time.UTC)
+	sameTimeInBeijing := time.Date(2009, 1, 1, 20, 0, 0, 0, beijing)
+
+	// 尽管 UTC 时钟时间为 12:00，北京时钟时间为 20:00，但北京比 UTC
+	// 早 8 小时，因此这两个日期时间实际表示同一时刻。
+	timesAreEqual := timeInUTC.Equal(sameTimeInBeijing)
+	fmt.Println(timesAreEqual)
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="FixedZone">func <a href="/src/time/zoneinfo.go?s=3574:3623#L102">FixedZone</a>
+					
+					
+				</h3>
+				<pre>func FixedZone(name <a href="/pkg/builtin/#string">string</a>, offset <a href="/pkg/builtin/#int">int</a>) *<a href="#Location">Location</a></pre>
+				<p>
+FixedZone 返回始终使用给定时区名称和偏移量的 <a href="#Location">Location</a>，偏移量以 UTC 以东的秒数表示。
+<div id="example_FixedZone" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	loc := time.FixedZone(&#34;UTC-8&#34;, -8*60*60)
+	t := time.Date(2009, time.November, 10, 23, 0, 0, 0, loc)
+	fmt.Println(&#34;The time is:&#34;, t.Format(time.RFC822))
+}
+</textarea></div>
+        <div class="output"><pre>The time is: 10 Nov 09 23:00 UTC-8
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="LoadLocation">func <a href="/src/time/zoneinfo.go?s=17488:17537#L654">LoadLocation</a>
+					
+					
+				</h3>
+				<pre>func LoadLocation(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#Location">Location</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+LoadLocation 返回具有给定名称的 <a href="#Location">Location</a>。
+<p>
+如果名称为 &quot;&quot; 或 &quot;UTC&quot;，LoadLocation 返回 <a href="#UTC">UTC</a>；如果名称为 &quot;Local&quot;，则返回 <a href="#Local">Local</a>。
+<p>
+否则，创建新的 <a href="#Location">Location</a>，将 name 解释为 IANA 时区数据库中某个文件对应的位置名称，例如 &quot;America/New_York&quot;。
+<p>
+LoadLocation 按以下顺序查找 IANA 时区数据库：
+<ul>
+<li>
+环境变量 ZONEINFO 指定的目录或未压缩的 zip 文件
+<li>
+Unix 系统上的标准系统安装位置
+<li>$GOROOT/lib/time/zoneinfo.zip
+<li>
+如果已导入 time/tzdata 包，则从该包中查找
+</ul>
+
+				
+
+
+<div id="example_LoadLocation" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	location, err := time.LoadLocation(&#34;America/Los_Angeles&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	timeInUTC := time.Date(2018, 8, 30, 12, 0, 0, 0, time.UTC)
+	fmt.Println(timeInUTC.In(location))
+}
+</textarea></div>
+        <div class="output"><pre>2018-08-30 05:00:00 -0700 PDT
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="LoadLocationFromTZData">func <a href="/src/time/zoneinfo_read.go?s=2828:2900#L108">LoadLocationFromTZData</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func LoadLocationFromTZData(name <a href="/pkg/builtin/#string">string</a>, data []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#Location">Location</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+LoadLocationFromTZData 使用 IANA 时区数据库格式的数据，初始化并返回具有给定名称的新 <a href="#Location">Location</a>。data 应采用标准 IANA 时区文件格式，例如 Unix 系统上 /etc/localtime 的内容。
+<h3 id="Location.String">func (*Location) <a href="/src/time/zoneinfo.go?s=3334:3368#L93">String</a>
+					
+					
+				</h3>
+				<pre>func (l *<a href="#Location">Location</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+String 返回时区信息的描述性名称，对应传给 <a href="#LoadLocation">LoadLocation</a> 或 <a href="#FixedZone">FixedZone</a> 的 name 参数。
+<h2 id="Month">type <a href="/src/time/time.go?s=12509:12523#L314">Month</a>
+				
+				
+			</h2>
+			<p>
+Month 表示一年中的月份，January = 1，依此类推。
+<pre>type Month <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="January">January</span> <a href="#Month">Month</a> = 1 + <a href="/pkg/builtin/#iota">iota</a>
+    <span id="February">February</span>
+    <span id="March">March</span>
+    <span id="April">April</span>
+    <span id="May">May</span>
+    <span id="June">June</span>
+    <span id="July">July</span>
+    <span id="August">August</span>
+    <span id="September">September</span>
+    <span id="October">October</span>
+    <span id="November">November</span>
+    <span id="December">December</span>
+)</pre>
+			
+
+			
+
+			
+
+
+<div id="example_Month" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	_, month, day := time.Now().Date()
+	if month == time.November &amp;&amp; day == 10 {
+		fmt.Println(&#34;Happy Go day!&#34;)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Month.String">func (Month) <a href="/src/time/time.go?s=12729:12759#L332">String</a>
+					
+					
+				</h3>
+				<pre>func (m <a href="#Month">Month</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+String 返回月份的英文名称（&quot;January&quot;、&quot;February&quot; 等）。
+<h2 id="ParseError">type <a href="/src/time/format.go?s=25760:25881#L831">ParseError</a>
+				
+				
+			</h2>
+			<p>
+ParseError 描述解析时间字符串时遇到的问题。
+<pre>type ParseError struct {
+<span id="ParseError.Layout"></span>    Layout     <a href="/pkg/builtin/#string">string</a>
+<span id="ParseError.Value"></span>    Value      <a href="/pkg/builtin/#string">string</a>
+<span id="ParseError.LayoutElem"></span>    LayoutElem <a href="/pkg/builtin/#string">string</a>
+<span id="ParseError.ValueElem"></span>    ValueElem  <a href="/pkg/builtin/#string">string</a>
+<span id="ParseError.Message"></span>    Message    <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseError.Error">func (*ParseError) <a href="/src/time/format.go?s=27560:27595#L892">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#ParseError">ParseError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+Error 返回 ParseError 的字符串表示。
+<h2 id="Ticker">type <a href="/src/time/tick.go?s=575:687#L6">Ticker</a>
+				
+				
+			</h2>
+			<p>
+Ticker 持有一个通道，按一定间隔发送时钟“滴答”通知。
+<pre>type Ticker struct {
+<span id="Ticker.C"></span>    C &lt;-chan <a href="#Time">Time</a> <span class="comment">// 发送定时信号的通道。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTicker">func <a href="/src/time/tick.go?s=1564:1598#L26">NewTicker</a>
+					
+					
+				</h3>
+				<pre>func NewTicker(d <a href="#Duration">Duration</a>) *<a href="#Ticker">Ticker</a></pre>
+				<p>
+NewTicker 返回新的 <a href="#Ticker">Ticker</a>，其中包含一个通道，每次触发时会发送当前时间。触发周期由 duration 参数指定。为适应接收缓慢的接收方，Ticker 会调整时间间隔或丢弃部分通知。时长 d 必须大于零，否则 NewTicker 会触发 panic。
+<p>
+在 Go 1.23 之前，垃圾回收器不会回收尚未到期或停止的 Ticker，因此代码通常在调用 NewTicker 后立即 defer t.Stop，以便不再需要时能够回收。从 Go 1.23 起，即使 Ticker 尚未停止，垃圾回收器也能回收不再被引用的 Ticker。无需再为了协助垃圾回收而调用 Stop；当然，代码仍然可以出于其他原因调用 Stop 来停止 Ticker。
+<div id="example_NewTicker" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	done := make(chan bool)
+	go func() {
+		time.Sleep(10 * time.Second)
+		done &lt;- true
+	}()
+	for {
+		select {
+		case &lt;-done:
+			fmt.Println(&#34;Done!&#34;)
+			return
+		case t := &lt;-ticker.C:
+			fmt.Println(&#34;Current time: &#34;, t)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Ticker.Reset">func (*Ticker) <a href="/src/time/tick.go?s=2675:2709#L56">Reset</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (t *<a href="#Ticker">Ticker</a>) Reset(d <a href="#Duration">Duration</a>)</pre>
+				<p>
+Reset 停止 Ticker，并将其周期重置为指定时长。下次通知会在新周期结束后到来。时长 d 必须大于零，否则 Reset 会触发 panic。
+<h3 id="Ticker.Stop">func (*Ticker) <a href="/src/time/tick.go?s=2191:2214#L43">Stop</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Ticker">Ticker</a>) Stop()</pre>
+				<p>
+Stop 停止 Ticker，此后不会再发送通知。Stop 不会关闭通道，以便可以调用 <a href="#Ticker.Reset">Ticker.Reset</a>，同时也避免并发读取该通道的 goroutine 误认为收到了一次通知。
+<h2 id="Time">type <a href="/src/time/time.go?s=7129:8130#L130">Time</a>
+				
+				
+			</h2>
+			<p>
+Time 表示一个精确到纳秒的时间点。
+<p>
+程序通常应以值而不是指针的形式保存和传递时间。也就是说，时间变量和结构体字段应使用 <a href="#Time">time.Time</a> 类型，而不是 *time.Time。
+<p>
+Time 值可以由多个 goroutine 同时使用，但 <a href="#Time.GobDecode">Time.GobDecode</a>、<a href="#Time.UnmarshalBinary">Time.UnmarshalBinary</a>、<a href="#Time.UnmarshalJSON">Time.UnmarshalJSON</a> 和 <a href="#Time.UnmarshalText">Time.UnmarshalText</a> 方法并发不安全。
+<p>
+可以使用 <a href="#Time.Before">Time.Before</a>、<a href="#Time.After">Time.After</a> 和 <a href="#Time.Equal">Time.Equal</a> 比较时间点。<a href="#Time.Sub">Time.Sub</a> 将两个时间点相减，得到 <a href="#Duration">Duration</a>。<a href="#Time.Add">Time.Add</a> 将 Time 与 Duration 相加，得到新的 Time。
+<p>
+Time 类型的零值是 UTC 时间公元 1 年 1 月 1 日 00:00:00.000000000。实际使用中很少遇到这一时间，因此 <a href="#Time.IsZero">Time.IsZero</a> 提供了检测时间是否尚未被显式初始化的简单方式。
+<p>
+每个时间都关联一个 <a href="#Location">Location</a>。<a href="#Time.Local">Time.Local</a>、<a href="#Time.UTC">Time.UTC</a> 和 Time.In 返回具有指定 Location 的 Time。用这些方法更改 Location，不会改变 Time 表示的实际时间点，只会更改解释它时使用的时区。
+<p>
+<a href="#Time.GobEncode">Time.GobEncode</a>、<a href="#Time.MarshalBinary">Time.MarshalBinary</a>、<a href="#Time.AppendBinary">Time.AppendBinary</a>、<a href="#Time.MarshalJSON">Time.MarshalJSON</a>、<a href="#Time.MarshalText">Time.MarshalText</a> 和 <a href="#Time.AppendText">Time.AppendText</a> 保存的 Time 表示会记录 <a href="#Time.Location">Time.Location</a> 的偏移量，但不记录位置名称，因此会丢失夏令时信息。
+<p>
+除了必需的墙上时钟读数，Time 还可以包含当前进程单调时钟的读数，为比较或相减提供额外的准确性。详情请参阅包文档中的“单调时钟”一节。
+<p>
+注意，Go 的 == 运算符不仅比较时间点，还比较 Location 和单调时钟读数。因此，将 Time 值用作映射键或数据库键之前，应先通过 UTC 或 Local 等方法确保所有值使用同一个 Location，并通过 t = t.Round(0) 去掉单调时钟读数。通常应优先使用 t.Equal(u)，而不是 t == u，因为 t.Equal 会使用可用的最准确比较方式，也能正确处理仅一个操作数包含单调时钟读数的情况。
+<pre>type Time struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Date">func <a href="/src/time/time.go?s=56798:56881#L1724">Date</a>
+					
+					
+				</h3>
+				<pre>func Date(year <a href="/pkg/builtin/#int">int</a>, month <a href="#Month">Month</a>, day, hour, min, sec, nsec <a href="/pkg/builtin/#int">int</a>, loc *<a href="#Location">Location</a>) <a href="#Time">Time</a></pre>
+				<p>
+Date 返回以下日期时间对应的 Time：
+<pre>yyyy-mm-dd hh:mm:ss + nsec nanoseconds
+</pre>
+<p>
+结果采用给定位置在该时间点适用的时区。
+<p>
+month、day、hour、min、sec 和 nsec 可以超出通常取值范围，转换时会进行规范化。例如，10 月 32 日会转换为 11 月 1 日。
+<p>
+夏令时切换会跳过或重复一些时间。例如在美国，2011 年 3 月 13 日凌晨 2:15 从未出现，而 2011 年 11 月 6 日凌晨 1:15 出现过两次。在这种情况下，时区的选择以及相应时间并没有明确定义。Date 会返回切换涉及的两个时区之一中的正确时间，但不保证选择哪一个。
+<p>
+如果 loc 为 nil，Date 会触发 panic。
+<div id="example_Date" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Printf(&#34;Go launched at %s\n&#34;, t.Local())
+}
+</textarea></div>
+        <div class="output"><pre>Go launched at 2009-11-10 15:00:00 -0800 PST
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Now">func <a href="/src/time/time.go?s=45196:45211#L1337">Now</a>
+					
+					
+				</h3>
+				<pre>func Now() <a href="#Time">Time</a></pre>
+				<p>
+Now 返回当前本地时间。
+<h3 id="Parse">func <a href="/src/time/format.go?s=31925:31971#L1016">Parse</a>
+					
+					
+				</h3>
+				<pre>func Parse(layout, value <a href="/pkg/builtin/#string">string</a>) (<a href="#Time">Time</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Parse 解析格式化字符串，返回它表示的时间值。格式的表达方式请参阅 <a href="#Layout">Layout</a> 常量的文档。第二个实参必须能按照第一个实参提供的格式字符串（layout）解析。
+<p>
+<a href="#Time.Format">Time.Format</a> 的示例详细展示了布局字符串的工作方式，是很好的参考。
+<p>
+仅在解析时，即使布局没有指定秒的小数部分，输入也可以在秒字段后紧跟小数秒。此时，会将逗号或小数点及其后尽可能长的连续数字解析为小数秒。小数秒会截断到纳秒精度。
+<p>
+布局中省略的部分默认为零；如果零无效，则默认为一。因此，解析 &quot;3:04pm&quot; 会得到公元 0 年 1 月 1 日 15:04:00 UTC；注意，由于年份为 0，该时间早于 Time 的零值。年份必须在 0000..9999 范围内。星期几只进行语法检查，其他方面会被忽略。
+<p>
+对于使用 06 表示两位数年份的布局，NN &gt;= 69 时会解释为 19NN，NN &lt; 69 时会解释为 20NN。
+<p>
+无法解析表示闰秒的时间戳（秒数为 60），因为 <a href="#Time">Time</a> 无法表示它们。
+<p>
+以下说明介绍时区的处理方式。
+<p>
+没有时区标识时，Parse 返回 UTC 时间。
+<p>
+解析带有 -0700 等时区偏移量的时间时，如果该偏移量对应当前位置（<a href="#Local">Local</a>）使用的某个时区，Parse 会在返回值中使用该位置和时区。否则，会创建一个固定使用给定偏移量的位置，并将时间记录为处于该位置。
+<p>
+解析带有 MST 等时区缩写的时间时，如果当前位置为该缩写定义了偏移量，就使用该偏移量。无论位置如何，缩写 &quot;UTC&quot; 都会被识别为 UTC。如果时区缩写未知，Parse 会创建一个具有给定缩写、偏移量为零的位置，并将时间记录为处于该位置。这样可以用相同布局无损地解析并重新格式化时间，但实际表示的时间点会与正确值相差真实的时区偏移量。为避免这类问题，应优先使用包含数字时区偏移量的布局，或使用 <a href="#ParseInLocation">ParseInLocation</a>。
+<div id="example_Parse" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// 关于如何定义解析 time.Time 值的布局字符串，
+	// 请参见 Time.Format 的示例。Parse 和 Format
+	// 使用同一种模型描述各自的输入和输出。
+
+	// longForm 通过示例展示参考时间在目标布局中
+	// 应如何表示。
+	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
+	t, _ := time.Parse(longForm, "Feb 3, 2013 at 7:54pm (PST)")
+	fmt.Println(t)
+
+	// shortForm 是参考时间在另一种目标布局中的表示，
+	// 其中不含时区。
+	// 注意：未显式指定时区时，返回 UTC 时间。
+	const shortForm = "2006-Jan-02"
+	t, _ = time.Parse(shortForm, "2013-Feb-03")
+	fmt.Println(t)
+
+	// 有些有效布局并不是有效的时间值，因为其中包含用 _ 填充空格、
+	// 用 Z 表示时区信息等格式说明符。
+	// 例如，RFC3339 布局 2006-01-02T15:04:05Z07:00
+	// 同时包含 Z 和时区偏移，以便处理以下两种有效形式：
+	// 2006-01-02T15:04:05Z
+	// 2006-01-02T15:04:05+07:00
+	t, _ = time.Parse(time.RFC3339, "2006-01-02T15:04:05Z")
+	fmt.Println(t)
+	t, _ = time.Parse(time.RFC3339, "2006-01-02T15:04:05+07:00")
+	fmt.Println(t)
+	_, err := time.Parse(time.RFC3339, time.RFC3339)
+	fmt.Println("error", err) // 因为布局本身不是有效的时间值，所以返回错误
+
+}
+</textarea></div>
+        <div class="output"><pre>2013-02-03 19:54:00 -0800 PST
+2013-02-03 00:00:00 +0000 UTC
+2006-01-02 15:04:05 +0000 UTC
+2006-01-02 15:04:05 +0700 +0700
+error parsing time &#34;2006-01-02T15:04:05Z07:00&#34;: extra text: &#34;07:00&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="ParseInLocation">func <a href="/src/time/format.go?s=32581:32652#L1031">ParseInLocation</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func ParseInLocation(layout, value <a href="/pkg/builtin/#string">string</a>, loc *<a href="#Location">Location</a>) (<a href="#Time">Time</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ParseInLocation 类似于 Parse，但有两个重要区别。第一，没有时区信息时，Parse 将时间解释为 UTC，ParseInLocation 则将其解释为给定位置的时间。第二，提供了时区偏移量或缩写时，Parse 尝试与 Local 匹配，ParseInLocation 则使用给定位置。
+<div id="example_ParseInLocation" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	loc, _ := time.LoadLocation("Europe/Berlin")
+
+	// 这会在 Europe/Berlin 时区中查找名称 CEST。
+	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
+	t, _ := time.ParseInLocation(longForm, "Jul 9, 2012 at 5:02am (CEST)", loc)
+	fmt.Println(t)
+
+	// 注意：未显式指定时区时，返回给定时区中的时间。
+	const shortForm = "2006-Jan-02"
+	t, _ = time.ParseInLocation(shortForm, "2012-Jul-09", loc)
+	fmt.Println(t)
+
+}
+</textarea></div>
+        <div class="output"><pre>2012-07-09 05:02:00 +0200 CEST
+2012-07-09 00:00:00 +0200 CEST
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Unix">func <a href="/src/time/time.go?s=54668:54705#L1645">Unix</a>
+					
+					
+				</h3>
+				<pre>func Unix(sec <a href="/pkg/builtin/#int64">int64</a>, nsec <a href="/pkg/builtin/#int64">int64</a>) <a href="#Time">Time</a></pre>
+				<p>
+Unix 返回与给定 Unix 时间对应的本地 Time，即从 1970 年 1 月 1 日 UTC 起经过 sec 秒和 nsec 纳秒的时间。nsec 可以超出 [0, 999999999] 范围。并非所有 sec 值都有对应的时间值，例如 1&lt;&lt;63-1（最大的 int64 值）就没有。
+<div id="example_Unix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	unixTime := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Println(unixTime.Unix())
+	t := time.Unix(unixTime.Unix(), 0).UTC()
+	fmt.Println(t)
+
+}
+</textarea></div>
+        <div class="output"><pre>1257894000
+2009-11-10 23:00:00 +0000 UTC
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="UnixMicro">func <a href="/src/time/time.go?s=55190:55221#L1666">UnixMicro</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func UnixMicro(usec <a href="/pkg/builtin/#int64">int64</a>) <a href="#Time">Time</a></pre>
+				<p>
+UnixMicro 返回与给定 Unix 时间对应的本地 Time，即从 1970 年 1 月 1 日 UTC 起经过 usec 微秒的时间。
+<div id="example_UnixMicro" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	umt := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Println(umt.UnixMicro())
+	t := time.UnixMicro(umt.UnixMicro()).UTC()
+	fmt.Println(t)
+
+}
+</textarea></div>
+        <div class="output"><pre>1257894000000000
+2009-11-10 23:00:00 +0000 UTC
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="UnixMilli">func <a href="/src/time/time.go?s=54992:55023#L1660">UnixMilli</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func UnixMilli(msec <a href="/pkg/builtin/#int64">int64</a>) <a href="#Time">Time</a></pre>
+				<p>
+UnixMilli 返回与给定 Unix 时间对应的本地 Time，即从 1970 年 1 月 1 日 UTC 起经过 msec 毫秒的时间。
+<div id="example_UnixMilli" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	umt := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Println(umt.UnixMilli())
+	t := time.UnixMilli(umt.UnixMilli()).UTC()
+	fmt.Println(t)
+
+}
+</textarea></div>
+        <div class="output"><pre>1257894000000
+2009-11-10 23:00:00 +0000 UTC
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Time.Add">func (Time) <a href="/src/time/time.go?s=39368:39402#L1160">Add</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Add(d <a href="#Duration">Duration</a>) <a href="#Time">Time</a></pre>
+				<p>
+Add 返回时间 t+d。
+<div id="example_Time_Add" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	start := time.Date(2009, 1, 1, 12, 0, 0, 0, time.UTC)
+	afterTenSeconds := start.Add(time.Second * 10)
+	afterTenMinutes := start.Add(time.Minute * 10)
+	afterTenHours := start.Add(time.Hour * 10)
+	afterTenDays := start.Add(time.Hour * 24 * 10)
+
+	fmt.Printf(&#34;start = %v\n&#34;, start)
+	fmt.Printf(&#34;start.Add(time.Second * 10) = %v\n&#34;, afterTenSeconds)
+	fmt.Printf(&#34;start.Add(time.Minute * 10) = %v\n&#34;, afterTenMinutes)
+	fmt.Printf(&#34;start.Add(time.Hour * 10) = %v\n&#34;, afterTenHours)
+	fmt.Printf(&#34;start.Add(time.Hour * 24 * 10) = %v\n&#34;, afterTenDays)
+
+}
+</textarea></div>
+        <div class="output"><pre>start = 2009-01-01 12:00:00 +0000 UTC
+start.Add(time.Second * 10) = 2009-01-01 12:00:10 +0000 UTC
+start.Add(time.Minute * 10) = 2009-01-01 12:10:00 +0000 UTC
+start.Add(time.Hour * 10) = 2009-01-01 22:00:00 +0000 UTC
+start.Add(time.Hour * 24 * 10) = 2009-01-11 12:00:00 +0000 UTC
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.AddDate">func (Time) <a href="/src/time/time.go?s=42353:42412#L1252">AddDate</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) AddDate(years <a href="/pkg/builtin/#int">int</a>, months <a href="/pkg/builtin/#int">int</a>, days <a href="/pkg/builtin/#int">int</a>) <a href="#Time">Time</a></pre>
+				<p>
+AddDate 返回在 t 上增加指定年数、月数和天数后的时间。例如，对 2011 年 1 月 1 日调用 AddDate(-1, 2, 3)，结果是 2010 年 3 月 4 日。
+<p>
+日期本质上与时区密切相关，“天”等历法周期并没有固定时长。AddDate 使用 Time 值的 Location 确定这些时长。因此，同样的 AddDate 参数，根据起始 Time 及其 Location，可能产生不同的绝对时间变化。例如，对 3 月 27 日 12:00 调用 AddDate(0, 0, 1)，总会得到 3 月 28 日 12:00。在某些位置和年份，这相差 24 小时；在其他情况下，由于夏令时切换，只相差 23 小时。
+<p>
+AddDate 与 Date 一样会规范化结果。例如，给 10 月 31 日增加一个月会得到 12 月 1 日，也就是 11 月 31 日规范化后的日期。
+<div id="example_Time_AddDate" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	start := time.Date(2023, 03, 25, 12, 0, 0, 0, time.UTC)
+	oneDayLater := start.AddDate(0, 0, 1)
+	dayDuration := oneDayLater.Sub(start)
+	oneMonthLater := start.AddDate(0, 1, 0)
+	oneYearLater := start.AddDate(1, 0, 0)
+
+	zurich, err := time.LoadLocation("Europe/Zurich")
+	if err != nil {
+		panic(err)
+	}
+	// 这是苏黎世切换夏令时的前一天。
+	startZurich := time.Date(2023, 03, 25, 12, 0, 0, 0, zurich)
+	oneDayLaterZurich := startZurich.AddDate(0, 0, 1)
+	dayDurationZurich := oneDayLaterZurich.Sub(startZurich)
+
+	fmt.Printf("oneDayLater: start.AddDate(0, 0, 1) = %v\n", oneDayLater)
+	fmt.Printf("oneMonthLater: start.AddDate(0, 1, 0) = %v\n", oneMonthLater)
+	fmt.Printf("oneYearLater: start.AddDate(1, 0, 0) = %v\n", oneYearLater)
+	fmt.Printf("oneDayLaterZurich: startZurich.AddDate(0, 0, 1) = %v\n", oneDayLaterZurich)
+	fmt.Printf("Day duration in UTC: %v | Day duration in Zürich: %v\n", dayDuration, dayDurationZurich)
+
+}
+</textarea></div>
+        <div class="output"><pre>oneDayLater: start.AddDate(0, 0, 1) = 2023-03-26 12:00:00 +0000 UTC
+oneMonthLater: start.AddDate(0, 1, 0) = 2023-04-25 12:00:00 +0000 UTC
+oneYearLater: start.AddDate(1, 0, 0) = 2024-03-25 12:00:00 +0000 UTC
+oneDayLaterZurich: startZurich.AddDate(0, 0, 1) = 2023-03-26 12:00:00 +0200 CEST
+Day duration in UTC: 24h0m0s | Day duration in Zürich: 23h0m0s
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.After">func (Time) <a href="/src/time/time.go?s=11105:11137#L261">After</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) After(u <a href="#Time">Time</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+After 报告时间点 t 是否晚于 u。
+<div id="example_Time_After" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	year2000 := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	year3000 := time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	isYear3000AfterYear2000 := year3000.After(year2000) // 为 true
+	isYear2000AfterYear3000 := year2000.After(year3000) // 为 false
+
+	fmt.Printf("year3000.After(year2000) = %v\n", isYear3000AfterYear2000)
+	fmt.Printf("year2000.After(year3000) = %v\n", isYear2000AfterYear3000)
+
+}
+</textarea></div>
+        <div class="output"><pre>year3000.After(year2000) = true
+year2000.After(year3000) = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.AppendBinary">func (Time) <a href="/src/time/time.go?s=49224:49276#L1460">AppendBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) AppendBinary(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+AppendBinary 实现 <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a> 接口。
+<div id="example_Time_AppendBinary" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(2025, 4, 1, 15, 30, 45, 123456789, time.UTC)
+
+	var buffer []byte
+	buffer, err := t.AppendBinary(buffer)
+	if err != nil {
+		panic(err)
+	}
+
+	var parseTime time.Time
+	err = parseTime.UnmarshalBinary(buffer[:])
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(&#34;t: %v\n&#34;, t)
+	fmt.Printf(&#34;parseTime: %v\n&#34;, parseTime)
+	fmt.Printf(&#34;equal: %v\n&#34;, parseTime.Equal(t))
+
+}
+</textarea></div>
+        <div class="output"><pre>t: 2025-04-01 15:30:45.123456789 +0000 UTC
+parseTime: 2025-04-01 15:30:45.123456789 +0000 UTC
+equal: true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.AppendFormat">func (Time) <a href="/src/time/format.go?s=21140:21198#L645">AppendFormat</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) AppendFormat(b []<a href="/pkg/builtin/#byte">byte</a>, layout <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>
+AppendFormat 类似于 <a href="#Time.Format">Time.Format</a>，但会将文本表示追加到 b，并返回扩展后的缓冲区。
+<div id="example_Time_AppendFormat" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(2017, time.November, 4, 11, 0, 0, 0, time.UTC)
+	text := []byte(&#34;Time: &#34;)
+
+	text = t.AppendFormat(text, time.Kitchen)
+	fmt.Println(string(text))
+
+}
+</textarea></div>
+        <div class="output"><pre>Time: 11:00AM
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.AppendText">func (Time) <a href="/src/time/time.go?s=53725:53775#L1620">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a> 接口。时间采用带有亚秒精度的 RFC 3339 格式。如果时间戳无法表示为合法的 RFC 3339，例如年份超出范围，则返回错误。
+<div id="example_Time_AppendText" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(2025, 4, 1, 15, 30, 45, 123456789, time.UTC)
+
+	buffer := []byte(&#34;t: &#34;)
+
+	buffer, err := t.AppendText(buffer)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, buffer)
+
+}
+</textarea></div>
+        <div class="output"><pre>t: 2025-04-01T15:30:45.123456789Z
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Before">func (Time) <a href="/src/time/time.go?s=11346:11379#L271">Before</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Before(u <a href="#Time">Time</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Before 报告时间点 t 是否早于 u。
+<div id="example_Time_Before" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	year2000 := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	year3000 := time.Date(3000, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	isYear2000BeforeYear3000 := year2000.Before(year3000) // 为 true
+	isYear3000BeforeYear2000 := year3000.Before(year2000) // 为 false
+
+	fmt.Printf("year2000.Before(year3000) = %v\n", isYear2000BeforeYear3000)
+	fmt.Printf("year3000.Before(year2000) = %v\n", isYear3000BeforeYear2000)
+
+}
+</textarea></div>
+        <div class="output"><pre>year2000.Before(year3000) = true
+year3000.Before(year2000) = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Clock">func (Time) <a href="/src/time/time.go?s=31498:31540#L860">Clock</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Clock() (hour, min, sec <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>
+Clock 返回 t 对应日期中的时、分、秒。
+<h3 id="Time.Compare">func (Time) <a href="/src/time/time.go?s=11680:11713#L282">Compare</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Compare(u <a href="#Time">Time</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Compare 比较时间点 t 和 u。t 早于 u 时返回 -1，晚于 u 时返回 +1，相同时返回 0。
+<h3 id="Time.Date">func (Time) <a href="/src/time/time.go?s=29439:29492#L802">Date</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Date() (year <a href="/pkg/builtin/#int">int</a>, month <a href="#Month">Month</a>, day <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>
+Date 返回 t 所处的年、月、日。
+<div id="example_Time_Date" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	d := time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
+	year, month, day := d.Date()
+
+	fmt.Printf(&#34;year = %v\n&#34;, year)
+	fmt.Printf(&#34;month = %v\n&#34;, month)
+	fmt.Printf(&#34;day = %v\n&#34;, day)
+
+}
+</textarea></div>
+        <div class="output"><pre>year = 2000
+month = February
+day = 1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Day">func (Time) <a href="/src/time/time.go?s=29966:29989#L821">Day</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Day() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Day 返回 t 对应的月内日期。
+<div id="example_Time_Day" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	d := time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
+	day := d.Day()
+
+	fmt.Printf(&#34;day = %v\n&#34;, day)
+
+}
+</textarea></div>
+        <div class="output"><pre>day = 1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Equal">func (Time) <a href="/src/time/time.go?s=12294:12326#L306">Equal</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Equal(u <a href="#Time">Time</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Equal 报告 t 和 u 是否表示同一个时间点。即使处于不同位置，两个时间也可能相等，例如 6:00 +0200 和 4:00 UTC 就是 Equal 的。对 Time 值使用 == 的注意事项请参阅 Time 类型的文档；多数代码应改用 Equal。
+<div id="example_Time_Equal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	secondsEastOfUTC := int((8 * time.Hour).Seconds())
+	beijing := time.FixedZone("Beijing Time", secondsEastOfUTC)
+
+	// 与相等运算符不同，Equal 能判断 d1 和 d2
+	// 虽处于不同时区，却表示同一时刻。
+	d1 := time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
+	d2 := time.Date(2000, 2, 1, 20, 30, 0, 0, beijing)
+
+	datesEqualUsingEqualOperator := d1 == d2
+	datesEqualUsingFunction := d1.Equal(d2)
+
+	fmt.Printf("datesEqualUsingEqualOperator = %v\n", datesEqualUsingEqualOperator)
+	fmt.Printf("datesEqualUsingFunction = %v\n", datesEqualUsingFunction)
+
+}
+</textarea></div>
+        <div class="output"><pre>datesEqualUsingEqualOperator = false
+datesEqualUsingFunction = true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Format">func (Time) <a href="/src/time/format.go?s=20768:20810#L629">Format</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Format(layout <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+Format 按照实参定义的布局，返回时间值的文本表示。布局格式的表达方式请参阅 <a href="#Layout">Layout</a> 常量的文档。
+<p>
+<a href="#Time.Format">Time.Format</a> 的可运行示例详细展示了布局字符串的工作方式，是很好的参考。
+<div id="example_Time_Format" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// 从采用标准 Unix 格式的字符串中解析时间值。
+	t, err := time.Parse(time.UnixDate, "Wed Feb 25 11:06:39 PST 2015")
+	if err != nil { // 即使认为不会发生错误，也应始终检查。
+		panic(err)
+	}
+
+	tz, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil { // 即使认为不会发生错误，也应始终检查。
+		panic(err)
+	}
+
+	// 不指定任何格式时，time.Time 的 Stringer 方法也很有用。
+	fmt.Println("default format:", t)
+
+	// 包中的预定义常量实现了常用布局。
+	fmt.Println("Unix format:", t.Format(time.UnixDate))
+
+	// 时间值所附带的时区会影响输出。
+	fmt.Println("Same, in UTC:", t.UTC().Format(time.UnixDate))
+
+	fmt.Println("in Shanghai with seconds:", t.In(tz).Format("2006-01-02T15:04:05 -070000"))
+
+	fmt.Println("in Shanghai with colon seconds:", t.In(tz).Format("2006-01-02T15:04:05 -07:00:00"))
+
+	// 本函数的其余部分展示格式化时使用的
+	// 布局字符串的特点。
+
+	// Parse 函数和 Format 方法使用的布局字符串，
+	// 通过示例展示参考时间应如何表示。
+	// 必须强调：布局应展示规定的参考时间如何格式化，
+	// 而不是任意自选时间。因此，每个布局字符串都应
+	// 表示以下时间戳：
+	//	Jan 2 15:04:05 2006 MST
+	// 一个简单的记忆方法是：按上述顺序排列时，
+	// 各项数值依次如下（与上面的元素对齐）：
+	//	  1 2  3  4  5    6  -7
+	// 下面还展示了一些细节。
+
+	// Format 和 Parse 大多使用固定的布局字符串，
+	// 例如本包定义的常量；但接口很灵活，
+	// 以下示例将展示这一点。
+
+	// 定义辅助函数，让示例输出更易读。
+	do := func(name, layout, want string) {
+		got := t.Format(layout)
+		if want != got {
+			fmt.Printf("error: for %q got %q; expected %q\n", layout, got, want)
+			return
+		}
+		fmt.Printf("%-16s %q gives %q\n", name, layout, got)
+	}
+
+	// 在输出中打印表头。
+	fmt.Printf("\nFormats:\n\n")
+
+	// 简单的入门示例。
+	do("Basic full date", "Mon Jan 2 15:04:05 MST 2006", "Wed Feb 25 11:06:39 PST 2015")
+	do("Basic short date", "2006/01/02", "2015/02/25")
+
+	// 参考时间中的小时为 15，也就是下午 3 点。布局可使用
+	// 任意一种形式；因为待格式化的值在上午，应看到 AM 时间。
+	// 这里在同一个格式字符串中展示两种形式，也展示小写形式。
+	do("AM/PM", "3PM==3pm==15h", "11AM==11am==11h")
+
+	// 解析时，如果秒值后面紧跟小数点和若干数字，
+	// 即使布局字符串未表示秒的小数部分，
+	// 这些内容也会按秒的小数部分处理。
+	// 此处为上面使用的时间值加上秒的小数部分。
+	t, err = time.Parse(time.UnixDate, "Wed Feb 25 11:06:39.1234 PST 2015")
+	if err != nil {
+		panic(err)
+	}
+	// 如果布局字符串不包含秒的小数部分的表示，
+	// 则输出中不会出现它。
+	do("No fraction", time.UnixDate, "Wed Feb 25 11:06:39 PST 2015")
+
+	// 在布局字符串的秒值后添加小数点和连续的 0 或 9，
+	// 即可输出秒的小数部分。
+	// 若布局中的数字是 0，秒的小数部分会使用指定宽度。
+	// 注意输出末尾保留了一个零。
+	do("0s for fraction", "15:04:05.00000", "11:06:39.12340")
+
+	// 若布局中的小数部分使用 9，则会省略末尾的零。
+	do("9s for fraction", "15:04:05.99999999", "11:06:39.1234")
+
+}
+</textarea></div>
+        <div class="output"><pre>default format: 2015-02-25 11:06:39 -0800 PST
+Unix format: Wed Feb 25 11:06:39 PST 2015
+Same, in UTC: Wed Feb 25 19:06:39 UTC 2015
+in Shanghai with seconds: 2015-02-26T03:06:39 +080000
+in Shanghai with colon seconds: 2015-02-26T03:06:39 +08:00:00
+
+Formats:
+
+Basic full date  &#34;Mon Jan 2 15:04:05 MST 2006&#34; gives &#34;Wed Feb 25 11:06:39 PST 2015&#34;
+Basic short date &#34;2006/01/02&#34; gives &#34;2015/02/25&#34;
+AM/PM            &#34;3PM==3pm==15h&#34; gives &#34;11AM==11am==11h&#34;
+No fraction      &#34;Mon Jan _2 15:04:05 MST 2006&#34; gives &#34;Wed Feb 25 11:06:39 PST 2015&#34;
+0s for fraction  &#34;15:04:05.00000&#34; gives &#34;11:06:39.12340&#34;
+9s for fraction  &#34;15:04:05.99999999&#34; gives &#34;11:06:39.1234&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Time_Format_pad" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Pad)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Pad)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// 从采用标准 Unix 格式的字符串中解析时间值。
+	t, err := time.Parse(time.UnixDate, "Sat Mar 7 11:06:39 PST 2015")
+	if err != nil { // 即使认为不会发生错误，也应始终检查。
+		panic(err)
+	}
+
+	// 定义辅助函数，让示例输出更易读。
+	do := func(name, layout, want string) {
+		got := t.Format(layout)
+		if want != got {
+			fmt.Printf("error: for %q got %q; expected %q\n", layout, got, want)
+			return
+		}
+		fmt.Printf("%-16s %q gives %q\n", name, layout, got)
+	}
+
+	// 预定义常量 Unix 使用下划线填充日期中的日。
+	do("Unix", time.UnixDate, "Sat Mar  7 11:06:39 PST 2015")
+
+	// 对于日等可能为一位或两位的值（7 与 07），若要固定宽度输出，
+	// 请在布局字符串中使用 _ 而非空格。
+	// 此处只输出日：布局字符串中的日为 2，
+	// 待格式化值中的日为 7。
+	do("No pad", "&lt;2&gt;", "&lt;7&gt;")
+
+	// 如果日只有一位，下划线表示用空格填充。
+	do("Spaces", "&lt;_2&gt;", "&lt; 7&gt;")
+
+	// "0" 表示对一位数的值用零填充。
+	do("Zeros", "&lt;02&gt;", "&lt;07&gt;")
+
+	// 如果值已经达到所需宽度，则不进行填充。
+	// 例如，此值的秒（参考时间中为 05）是 39，无需填充，
+	// 但分钟（04、06）则需要。
+	do("Suppressed pad", "04:05", "06:39")
+
+}
+</textarea></div>
+        <div class="output"><pre>Unix             &#34;Mon Jan _2 15:04:05 MST 2006&#34; gives &#34;Sat Mar  7 11:06:39 PST 2015&#34;
+No pad           &#34;&lt;2&gt;&#34; gives &#34;&lt;7&gt;&#34;
+Spaces           &#34;&lt;_2&gt;&#34; gives &#34;&lt; 7&gt;&#34;
+Zeros            &#34;&lt;02&gt;&#34; gives &#34;&lt;07&gt;&#34;
+Suppressed pad   &#34;04:05&#34; gives &#34;06:39&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.GoString">func (Time) <a href="/src/time/format.go?s=18425:18456#L567">GoString</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+GoString 实现 <a href="/pkg/fmt/#GoStringer">fmt.GoStringer</a>，将 t 格式化为可用于 Go 源码的表示。
+<div id="example_Time_GoString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Println(t.GoString())
+	t = t.Add(1 * time.Minute)
+	fmt.Println(t.GoString())
+	t = t.AddDate(0, 1, 0)
+	fmt.Println(t.GoString())
+	t, _ = time.Parse(&#34;Jan 2, 2006 at 3:04pm (MST)&#34;, &#34;Feb 3, 2013 at 7:54pm (UTC)&#34;)
+	fmt.Println(t.GoString())
+
+}
+</textarea></div>
+        <div class="output"><pre>time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+time.Date(2009, time.November, 10, 23, 1, 0, 0, time.UTC)
+time.Date(2009, time.December, 10, 23, 1, 0, 0, time.UTC)
+time.Date(2013, time.February, 3, 19, 54, 0, 0, time.UTC)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.GobDecode">func (*Time) <a href="/src/time/time.go?s=52103:52146#L1573">GobDecode</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Time">Time</a>) GobDecode(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+GobDecode 实现 gob.GobDecoder 接口。
+<h3 id="Time.GobEncode">func (Time) <a href="/src/time/time.go?s=51976:52017#L1568">GobEncode</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) GobEncode() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+GobEncode 实现 gob.GobEncoder 接口。
+<h3 id="Time.Hour">func (Time) <a href="/src/time/time.go?s=31946:31970#L875">Hour</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Hour() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Hour 返回 t 对应的小时，范围为 [0, 23]。
+<h3 id="Time.ISOWeek">func (Time) <a href="/src/time/time.go?s=30666:30706#L842">ISOWeek</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) ISOWeek() (year, week <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>
+ISOWeek 返回 t 对应的 ISO 8601 年份和周数。周数范围为 1 到 53。第 n 年的 1 月 1 日至 1 月 3 日可能属于第 n-1 年的第 52 或 53 周，12 月 29 日至 12 月 31 日可能属于第 n+1 年的第 1 周。
+<h3 id="Time.In">func (Time) <a href="/src/time/time.go?s=46168:46204#L1374">In</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) In(loc *<a href="#Location">Location</a>) <a href="#Time">Time</a></pre>
+				<p>
+In 返回 t 的副本，表示同一个时间点，但将位置信息设置为 loc，以便按该位置显示。
+<p>
+如果 loc 为 nil，In 会触发 panic。
+<h3 id="Time.IsDST">func (Time) <a href="/src/time/time.go?s=55356:55382#L1671">IsDST</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) IsDST() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+IsDST 报告该时间在所配置的位置中是否处于夏令时。
+<h3 id="Time.IsZero">func (Time) <a href="/src/time/time.go?s=10602:10629#L252">IsZero</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) IsZero() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+IsZero 报告 t 是否为时间零值，即公元 1 年 1 月 1 日 00:00:00 UTC。
+<h3 id="Time.Local">func (Time) <a href="/src/time/time.go?s=45936:45962#L1364">Local</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Local() <a href="#Time">Time</a></pre>
+				<p>
+Local 返回将位置设为本地时区的 t。
+<h3 id="Time.Location">func (Time) <a href="/src/time/time.go?s=46373:46407#L1383">Location</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Location() *<a href="#Location">Location</a></pre>
+				<p>
+Location 返回与 t 关联的时区信息。
+<h3 id="Time.MarshalBinary">func (Time) <a href="/src/time/time.go?s=50313:50358#L1507">MarshalBinary</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) MarshalBinary() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+MarshalBinary 实现 <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a> 接口。
+<h3 id="Time.MarshalJSON">func (Time) <a href="/src/time/time.go?s=52456:52499#L1581">MarshalJSON</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) MarshalJSON() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+MarshalJSON 实现 <a href="/pkg/encoding/json/#Marshaler">encoding/json.Marshaler</a> 接口。时间表示为带引号、具有亚秒精度的 RFC 3339 字符串。如果时间戳无法表示为合法的 RFC 3339，例如年份超出范围，则报告错误。
+<h3 id="Time.MarshalText">func (Time) <a href="/src/time/time.go?s=54008:54051#L1628">MarshalText</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) MarshalText() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 接口，其输出与调用 <a href="#Time.AppendText">Time.AppendText</a> 相同。
+<p>
+更多信息请参阅 <a href="#Time.AppendText">Time.AppendText</a>。
+<h3 id="Time.Minute">func (Time) <a href="/src/time/time.go?s=32121:32147#L880">Minute</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Minute() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Minute 返回 t 对应的小时内分钟数，范围为 [0, 59]。
+<h3 id="Time.Month">func (Time) <a href="/src/time/time.go?s=29774:29801#L814">Month</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Month() <a href="#Month">Month</a></pre>
+				<p>
+Month 返回 t 对应的月份。
+<h3 id="Time.Nanosecond">func (Time) <a href="/src/time/time.go?s=32488:32518#L891">Nanosecond</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Nanosecond() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Nanosecond 返回 t 对应的秒内纳秒数，范围为 [0, 999999999]。
+<h3 id="Time.Round">func (Time) <a href="/src/time/time.go?s=59144:59180#L1789">Round</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Round(d <a href="#Duration">Duration</a>) <a href="#Time">Time</a></pre>
+				<p>
+Round 将 t 自零时间起经过的时长，舍入为最接近的 d 的整数倍，并返回对应时间。恰好位于中点时向上舍入。如果 d &lt;= 0，Round 只去掉 t 的单调时钟读数，其他内容保持不变。
+<p>
+Round 操作的是自零时间起经过的绝对时长，而不是时间的显示形式。因此，根据时间的 Location，Round(Hour) 返回的时间可能具有非零分钟数。
+<div id="example_Time_Round" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	t := time.Date(0, 0, 0, 12, 15, 30, 918273645, time.UTC)
+	round := []time.Duration{
+		time.Nanosecond,
+		time.Microsecond,
+		time.Millisecond,
+		time.Second,
+		2 * time.Second,
+		time.Minute,
+		10 * time.Minute,
+		time.Hour,
+	}
+
+	for _, d := range round {
+		fmt.Printf(&#34;t.Round(%6s) = %s\n&#34;, d, t.Round(d).Format(&#34;15:04:05.999999999&#34;))
+	}
+}
+</textarea></div>
+        <div class="output"><pre>t.Round(   1ns) = 12:15:30.918273645
+t.Round(   1µs) = 12:15:30.918274
+t.Round(   1ms) = 12:15:30.918
+t.Round(    1s) = 12:15:31
+t.Round(    2s) = 12:15:30
+t.Round(  1m0s) = 12:16:00
+t.Round( 10m0s) = 12:20:00
+t.Round(1h0m0s) = 12:00:00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Second">func (Time) <a href="/src/time/time.go?s=32303:32329#L885">Second</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Second() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Second 返回 t 对应的分钟内秒数，范围为 [0, 59]。
+<h3 id="Time.String">func (Time) <a href="/src/time/format.go?s=17719:17748#L536">String</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+String 使用以下格式字符串返回时间的格式化表示：
+<pre>&quot;2006-01-02 15:04:05.999999999 -0700 MST&quot;
+</pre>
+<p>
+如果时间包含单调时钟读数，返回字符串的末尾会包含 &quot;m=±&lt;value&gt;&quot; 字段，其中 value 是以十进制秒数表示的单调时钟读数。
+<p>
+返回的字符串用于调试。如果需要稳定的序列化表示，请使用 t.MarshalText、t.MarshalBinary，或使用显式格式字符串调用 t.Format。
+<div id="example_Time_String" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	timeWithNanoseconds := time.Date(2000, 2, 1, 12, 13, 14, 15, time.UTC)
+	withNanoseconds := timeWithNanoseconds.String()
+
+	timeWithoutNanoseconds := time.Date(2000, 2, 1, 12, 13, 14, 0, time.UTC)
+	withoutNanoseconds := timeWithoutNanoseconds.String()
+
+	fmt.Printf(&#34;withNanoseconds = %v\n&#34;, withNanoseconds)
+	fmt.Printf(&#34;withoutNanoseconds = %v\n&#34;, withoutNanoseconds)
+
+}
+</textarea></div>
+        <div class="output"><pre>withNanoseconds = 2000-02-01 12:13:14.000000015 +0000 UTC
+withoutNanoseconds = 2000-02-01 12:13:14 +0000 UTC
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Sub">func (Time) <a href="/src/time/time.go?s=40093:40127#L1188">Sub</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Sub(u <a href="#Time">Time</a>) <a href="#Duration">Duration</a></pre>
+				<p>
+Sub 返回时长 t-u。如果结果超过 <a href="#Duration">Duration</a> 能保存的最大值或最小值，则返回相应极值。要计算 t 减去时长 d，请使用 t.Add(-d)。
+<div id="example_Time_Sub" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	start := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	difference := end.Sub(start)
+	fmt.Printf(&#34;difference = %v\n&#34;, difference)
+
+}
+</textarea></div>
+        <div class="output"><pre>difference = 12h0m0s
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.Truncate">func (Time) <a href="/src/time/time.go?s=58532:58571#L1772">Truncate</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Truncate(d <a href="#Duration">Duration</a>) <a href="#Time">Time</a></pre>
+				<p>
+Truncate 将 t 自零时间起经过的时长向下截断为 d 的整数倍，并返回对应时间。如果 d &lt;= 0，Truncate 只去掉 t 的单调时钟读数，其他内容保持不变。
+<p>
+Truncate 操作的是自零时间起经过的绝对时长，而不是时间的显示形式。因此，根据时间的 Location，Truncate(Hour) 返回的时间可能具有非零分钟数。
+<div id="example_Time_Truncate" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	t, _ := time.Parse("2006 Jan 02 15:04:05", "2012 Dec 07 12:15:30.918273645")
+	trunc := []time.Duration{
+		time.Nanosecond,
+		time.Microsecond,
+		time.Millisecond,
+		time.Second,
+		2 * time.Second,
+		time.Minute,
+		10 * time.Minute,
+	}
+
+	for _, d := range trunc {
+		fmt.Printf("t.Truncate(%5s) = %s\n", d, t.Truncate(d).Format("15:04:05.999999999"))
+	}
+	// 要取本地时区中最近一次午夜的时间，应创建一个新的 Date。
+	midnight := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local)
+	_ = midnight
+
+}
+</textarea></div>
+        <div class="output"><pre>t.Truncate(  1ns) = 12:15:30.918273645
+t.Truncate(  1µs) = 12:15:30.918273
+t.Truncate(  1ms) = 12:15:30.918
+t.Truncate(   1s) = 12:15:30
+t.Truncate(   2s) = 12:15:30
+t.Truncate( 1m0s) = 12:15:00
+t.Truncate(10m0s) = 12:10:00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.UTC">func (Time) <a href="/src/time/time.go?s=45821:45845#L1358">UTC</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) UTC() <a href="#Time">Time</a></pre>
+				<p>
+UTC 返回将位置设为 UTC 的 t。
+<h3 id="Time.Unix">func (Time) <a href="/src/time/time.go?s=47696:47722#L1422">Unix</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Unix() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+Unix 将 t 表示为 Unix 时间，即从 1970 年 1 月 1 日 UTC 起经过的秒数。结果不依赖 t 关联的位置。类 Unix 操作系统通常使用 32 位秒数记录时间，但这里返回的是 64 位值，因此可以表示过去或未来数十亿年的时间。
+<div id="example_Time_Unix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// Unix 时间 10 亿秒的三种表示方式。
+	fmt.Println(time.Unix(1e9, 0).UTC())     // 1e9 秒
+	fmt.Println(time.Unix(0, 1e18).UTC())    // 1e18 纳秒
+	fmt.Println(time.Unix(2e9, -1e18).UTC()) // 2e9 秒减去 1e18 纳秒
+
+	t := time.Date(2001, time.September, 9, 1, 46, 40, 0, time.UTC)
+	fmt.Println(t.Unix())     // 自 1970 年起的秒数
+	fmt.Println(t.UnixNano()) // 自 1970 年起的纳秒数
+
+}
+</textarea></div>
+        <div class="output"><pre>2001-09-09 01:46:40 +0000 UTC
+2001-09-09 01:46:40 +0000 UTC
+2001-09-09 01:46:40 +0000 UTC
+1000000000
+1000000000000000000
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Time.UnixMicro">func (Time) <a href="/src/time/time.go?s=48473:48504#L1440">UnixMicro</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) UnixMicro() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+UnixMicro 将 t 表示为 Unix 时间，即从 1970 年 1 月 1 日 UTC 起经过的微秒数。如果该微秒数无法用 int64 表示，结果未定义，这对应于早于公元 -290307 年或晚于 294246 年的日期。结果不依赖 t 关联的位置。
+<h3 id="Time.UnixMilli">func (Time) <a href="/src/time/time.go?s=48073:48104#L1431">UnixMilli</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) UnixMilli() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+UnixMilli 将 t 表示为 Unix 时间，即从 1970 年 1 月 1 日 UTC 起经过的毫秒数。如果该毫秒数无法用 int64 表示，结果未定义，这对应于 1970 年前后超过 2.92 亿年的日期。结果不依赖 t 关联的位置。
+<h3 id="Time.UnixNano">func (Time) <a href="/src/time/time.go?s=48950:48980#L1450">UnixNano</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) UnixNano() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>
+UnixNano 将 t 表示为 Unix 时间，即从 1970 年 1 月 1 日 UTC 起经过的纳秒数。如果该纳秒数无法用 int64 表示，结果未定义，这对应于早于 1678 年或晚于 2262 年的日期。因此，对 Time 零值调用 UnixNano 的结果未定义。结果不依赖 t 关联的位置。
+<h3 id="Time.UnmarshalBinary">func (*Time) <a href="/src/time/time.go?s=50538:50587#L1516">UnmarshalBinary</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (t *<a href="#Time">Time</a>) UnmarshalBinary(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+UnmarshalBinary 实现 <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> 接口。
+<h3 id="Time.UnmarshalJSON">func (*Time) <a href="/src/time/time.go?s=52858:52905#L1594">UnmarshalJSON</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Time">Time</a>) UnmarshalJSON(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+UnmarshalJSON 实现 <a href="/pkg/encoding/json/#Unmarshaler">encoding/json.Unmarshaler</a> 接口。时间必须是带引号的 RFC 3339 格式字符串。
+<h3 id="Time.UnmarshalText">func (*Time) <a href="/src/time/time.go?s=54247:54294#L1634">UnmarshalText</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (t *<a href="#Time">Time</a>) UnmarshalText(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> 接口。时间必须采用 RFC 3339 格式。
+<h3 id="Time.Weekday">func (Time) <a href="/src/time/time.go?s=30129:30160#L828">Weekday</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Weekday() <a href="#Weekday">Weekday</a></pre>
+				<p>
+Weekday 返回 t 对应的星期几。
+<h3 id="Time.Year">func (Time) <a href="/src/time/time.go?s=29575:29599#L807">Year</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Year() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Year 返回 t 所处的年份。
+<h3 id="Time.YearDay">func (Time) <a href="/src/time/time.go?s=32672:32699#L897">YearDay</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) YearDay() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+YearDay 返回 t 是一年中的第几天，平年范围为 [1,365]，闰年范围为 [1,366]。
+<h3 id="Time.Zone">func (Time) <a href="/src/time/time.go?s=46616:46662#L1393">Zone</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) Zone() (name <a href="/pkg/builtin/#string">string</a>, offset <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>
+Zone 计算时间 t 生效的时区，返回时区缩写（例如 &quot;CET&quot;），以及以 UTC 以东秒数表示的偏移量。
+<h3 id="Time.ZoneBounds">func (Time) <a href="/src/time/time.go?s=47076:47120#L1403">ZoneBounds</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (t <a href="#Time">Time</a>) ZoneBounds() (start, end <a href="#Time">Time</a>)</pre>
+				<p>
+ZoneBounds 返回时间 t 生效的时区规则的起止时间。该时区规则从 start 开始，下一个规则从 end 开始。如果该规则从时间起点就一直有效，start 为 Time 零值；如果会永久延续，end 为 Time 零值。返回时间的 Location 与 t 相同。
+<h2 id="Timer">type <a href="/src/time/sleep.go?s=2076:2136#L51">Timer</a>
+				
+				
+			</h2>
+			<p>
+Timer 类型表示一次性事件。Timer 到期时，会向 C 发送当前时间，但由 <a href="#AfterFunc">AfterFunc</a> 创建的 Timer 除外。Timer 必须通过 <a href="#NewTimer">NewTimer</a> 或 AfterFunc 创建。
+<pre>type Timer struct {
+<span id="Timer.C"></span>    C &lt;-chan <a href="#Time">Time</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AfterFunc">func <a href="/src/time/sleep.go?s=7068:7111#L167">AfterFunc</a>
+					
+					
+				</h3>
+				<pre>func AfterFunc(d <a href="#Duration">Duration</a>, f func()) *<a href="#Timer">Timer</a></pre>
+				<p>
+AfterFunc 等待指定时长后，在独立的 goroutine 中调用 f。它返回一个 <a href="#Timer">Timer</a>，可通过其 Stop 方法取消调用。返回 Timer 的 C 字段不使用，值为 nil。
+<h3 id="NewTimer">func <a href="/src/time/sleep.go?s=4234:4266#L100">NewTimer</a>
+					
+					
+				</h3>
+				<pre>func NewTimer(d <a href="#Duration">Duration</a>) *<a href="#Timer">Timer</a></pre>
+				<p>
+NewTimer 创建一个新的 Timer，至少经过时长 d 后，通过其通道发送当前时间。
+<p>
+在 Go 1.23 之前，垃圾回收器不会回收尚未到期或停止的 Timer，因此代码通常在调用 NewTimer 后立即 defer t.Stop，以便不再需要时能够回收。从 Go 1.23 起，即使 Timer 尚未到期或停止，垃圾回收器也能回收不再被引用的 Timer。无需再为了协助垃圾回收而调用 Stop；当然，代码仍然可以出于其他原因调用 Stop 来停止定时器。
+<p>
+在 Go 1.23 之前，Timer 关联的通道是异步的，也就是容量为 1 的缓冲通道，因此即使 <a href="#Timer.Stop">Timer.Stop</a> 或 <a href="#Timer.Reset">Timer.Reset</a> 已经返回，仍可能接收到过期的时间值。从 Go 1.23 起，该通道是同步的，也就是容量为 0 的无缓冲通道，消除了接收这些过期值的可能。
+<h3 id="Timer.Reset">func (*Timer) <a href="/src/time/sleep.go?s=5550:5588#L128">Reset</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (t *<a href="#Timer">Timer</a>) Reset(d <a href="#Duration">Duration</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Reset 将定时器改为在时长 d 后到期。如果定时器此前处于活动状态，则返回 true；如果此前已经到期或停止，则返回 false。
+<p>
+对于 <a href="#AfterFunc">AfterFunc</a>(d, f) 创建的函数型定时器，Reset 要么重新安排 f 的执行时间并返回 true，要么安排再次执行 f 并返回 false。返回 false 时，Reset 不会等待上一次 f 执行完成，也不保证后续执行 f 的 goroutine 不会与前一次并发运行。如果调用者需要知道前一次 f 是否完成，就必须显式与 f 协调。
+<p>
+对于 NewTimer 创建的通道型定时器，从 Go 1.23 起，Reset 返回后从 t.C 接收的值保证不会对应之前的定时器设置；如果程序尚未从 t.C 接收过值，而且定时器仍在运行，Reset 保证返回 true。在 Go 1.23 之前，安全使用 Reset 的唯一方式是先调用 <a href="#Timer.Stop">Timer.Stop</a>，并显式排空定时器通道。详情请参阅 <a href="#NewTimer">NewTimer</a> 的文档。
+<h3 id="Timer.Stop">func (*Timer) <a href="/src/time/sleep.go?s=3136:3163#L75">Stop</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Timer">Timer</a>) Stop() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Stop 阻止 <a href="#Timer">Timer</a> 触发。如果此次调用停止了定时器，返回 true；如果定时器已经到期或停止，返回 false。
+<p>
+对于 <a href="#AfterFunc">AfterFunc</a>(d, f) 创建的函数型定时器，如果 t.Stop 返回 false，说明定时器已经到期，f 已在独立 goroutine 中启动。Stop 不会等待 f 完成才返回。如果调用者需要知道 f 是否完成，就必须显式与 f 协调。
+<p>
+对于 NewTimer(d) 创建的通道型定时器，从 Go 1.23 起，Stop 返回后从 t.C 接收保证会阻塞，而不会收到 Stop 之前遗留的过期时间值；如果程序尚未从 t.C 接收过值，而且定时器仍在运行，Stop 保证返回 true。在 Go 1.23 之前，安全使用 Stop 的唯一方式是在它返回 false 时额外执行一次 &lt;-t.C，排空可能遗留的过期值。详情请参阅 <a href="#NewTimer">NewTimer</a> 的文档。
+<h2 id="Weekday">type <a href="/src/time/time.go?s=12990:13006#L342">Weekday</a>
+				
+				
+			</h2>
+			<p>
+Weekday 表示星期几，Sunday = 0，依此类推。
+<pre>type Weekday <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="Sunday">Sunday</span> <a href="#Weekday">Weekday</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="Monday">Monday</span>
+    <span id="Tuesday">Tuesday</span>
+    <span id="Wednesday">Wednesday</span>
+    <span id="Thursday">Thursday</span>
+    <span id="Friday">Friday</span>
+    <span id="Saturday">Saturday</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Weekday.String">func (Weekday) <a href="/src/time/time.go?s=13171:13203#L355">String</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Weekday">Weekday</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+String 返回星期几的英文名称（&quot;Sunday&quot;、&quot;Monday&quot; 等）。
+<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="tzdata/">tzdata</a>
+					</td>
+				
+					<td class="pkg-synopsis">tzdata 包提供时区数据库的嵌入副本。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

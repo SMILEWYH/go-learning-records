@@ -1,0 +1,2397 @@
+<!--{
+  "Title": "regexp package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package regexp</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "regexp"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package regexp implements regular expression search.
+<p>The syntax of the regular expressions accepted is the same
+general syntax used by Perl, Python, and other languages.
+More precisely, it is the syntax accepted by RE2 and described at
+<a href="/golang.org/s/re2syntax">https://golang.org/s/re2syntax</a>, except for \C.
+For an overview of the syntax, see the <a href="/pkg/regexp/syntax/">regexp/syntax</a> package.
+<p>The regexp implementation provided by this package is
+guaranteed to run in time linear in the size of the input.
+(This is a property not guaranteed by most open source
+implementations of regular expressions.) For more information
+about this property, see <a href="https://swtch.com/~rsc/regexp/regexp1.html">https://swtch.com/~rsc/regexp/regexp1.html</a>
+or any book about automata theory.
+<p>All characters are UTF-8-encoded code points.
+Following <a href="/pkg/unicode/utf8/#DecodeRune">utf8.DecodeRune</a>, each byte of an invalid UTF-8 sequence
+is treated as if it encoded utf8.RuneError (U+FFFD).
+<p>There are 24 methods of <a href="#Regexp">Regexp</a> that match a regular expression and identify
+the matched text. Their names are matched by this regular expression:
+<pre>(All|Find|FindAll)(String)?(Submatch)?(Index)?
+</pre>
+<p>The ‘All’ variants return an iterator over successive non-overlapping
+matches of the entire expression. The ‘FindAll’ variants return a slice
+of those matches instead. Empty matches abutting a preceding
+match are ignored. The ‘FindAll’ variants take an extra integer argument, n.
+If n &gt;= 0, the function returns at most n matches/submatches;
+otherwise, it returns all of them.
+<p>The ‘Find’ variants return only the first match that All or FindAll would return.
+<p>If ‘String’ is present, the argument is a string; otherwise it is a []byte.
+<p>By default, each returned match is denoted by the substring matching the
+regular expression, of type string or []byte according to the type of the argument.
+If ‘Submatch’ is present, each match is represented instead by a slice of
+the substrings matching the regular expression&apos;s parenthesized subexpressions
+(also known as capturing groups), numbered from left to right in order of opening
+parenthesis. Submatch 0 is the match of the entire expression, submatch 1 is
+the match of the first parenthesized subexpression, and so on.
+If ‘Index’ is present, each substring is instead denoted by a pair of byte indexes
+within the input string. If an index is negative or substring is nil, it means that
+the subexpression did not match any string in the input. For ‘String’ versions,
+an empty string means either no match or an empty match.
+<p>There is also a subset of the methods that can be applied to text read from
+an <a href="/pkg/io/#RuneReader">io.RuneReader</a>: <a href="#Regexp.MatchReader">Regexp.MatchReader</a>, <a href="#Regexp.FindReaderIndex">Regexp.FindReaderIndex</a>,
+<a href="#Regexp.FindReaderSubmatchIndex">Regexp.FindReaderSubmatchIndex</a>.
+Note that regular expression matches may need to
+examine text beyond the text returned by a match, so the methods that
+match text from an <a href="/pkg/io/#RuneReader">io.RuneReader</a> may read arbitrarily far into the input
+before returning.
+<p>(There are a few other methods that do not match this pattern.)
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	// Compile the expression once, usually at init time.
+	// Use raw strings to avoid having to quote the backslashes.
+	var validID = regexp.MustCompile(`^[a-z]&#43;\[[0-9]&#43;\]$`)
+
+	fmt.Println(validID.MatchString(&#34;adam[23]&#34;))
+	fmt.Println(validID.MatchString(&#34;eve[7]&#34;))
+	fmt.Println(validID.MatchString(&#34;Job[48]&#34;))
+	fmt.Println(validID.MatchString(&#34;snakey&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>true
+true
+false
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Match">func Match(pattern string, b []byte) (matched bool, err error)</a></dd>
+			
+				<dd><a href="#MatchReader">func MatchReader(pattern string, r io.RuneReader) (matched bool, err error)</a></dd>
+			
+				<dd><a href="#MatchString">func MatchString(pattern string, s string) (matched bool, err error)</a></dd>
+			
+				<dd><a href="#QuoteMeta">func QuoteMeta(s string) string</a></dd>
+			
+			
+				
+				<dd><a href="#Regexp">type Regexp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Compile">func Compile(expr string) (*Regexp, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CompilePOSIX">func CompilePOSIX(expr string) (*Regexp, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MustCompile">func MustCompile(str string) *Regexp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MustCompilePOSIX">func MustCompilePOSIX(str string) *Regexp</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.AppendText">func (re *Regexp) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Copy">func (re *Regexp) Copy() *Regexp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Expand">func (re *Regexp) Expand(dst []byte, template []byte, src []byte, match []int) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ExpandString">func (re *Regexp) ExpandString(dst []byte, template string, src string, match []int) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Find">func (re *Regexp) Find(b []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAll">func (re *Regexp) FindAll(b []byte, n int) [][]byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllIndex">func (re *Regexp) FindAllIndex(b []byte, n int) [][]int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllString">func (re *Regexp) FindAllString(s string, n int) []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllStringIndex">func (re *Regexp) FindAllStringIndex(s string, n int) [][]int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllStringSubmatch">func (re *Regexp) FindAllStringSubmatch(s string, n int) [][]string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllStringSubmatchIndex">func (re *Regexp) FindAllStringSubmatchIndex(s string, n int) [][]int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllSubmatch">func (re *Regexp) FindAllSubmatch(b []byte, n int) [][][]byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindAllSubmatchIndex">func (re *Regexp) FindAllSubmatchIndex(b []byte, n int) [][]int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindIndex">func (re *Regexp) FindIndex(b []byte) (m []int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindReaderIndex">func (re *Regexp) FindReaderIndex(r io.RuneReader) (m []int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindReaderSubmatchIndex">func (re *Regexp) FindReaderSubmatchIndex(r io.RuneReader) []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindString">func (re *Regexp) FindString(s string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindStringIndex">func (re *Regexp) FindStringIndex(s string) (m []int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindStringSubmatch">func (re *Regexp) FindStringSubmatch(s string) []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindStringSubmatchIndex">func (re *Regexp) FindStringSubmatchIndex(s string) []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindSubmatch">func (re *Regexp) FindSubmatch(b []byte) [][]byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.FindSubmatchIndex">func (re *Regexp) FindSubmatchIndex(b []byte) []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.LiteralPrefix">func (re *Regexp) LiteralPrefix() (prefix string, complete bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Longest">func (re *Regexp) Longest()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.MarshalText">func (re *Regexp) MarshalText() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Match">func (re *Regexp) Match(b []byte) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.MatchReader">func (re *Regexp) MatchReader(r io.RuneReader) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.MatchString">func (re *Regexp) MatchString(s string) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.NumSubexp">func (re *Regexp) NumSubexp() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAll">func (re *Regexp) ReplaceAll(src, repl []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAllFunc">func (re *Regexp) ReplaceAllFunc(src []byte, repl func([]byte) []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAllLiteral">func (re *Regexp) ReplaceAllLiteral(src, repl []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAllLiteralString">func (re *Regexp) ReplaceAllLiteralString(src, repl string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAllString">func (re *Regexp) ReplaceAllString(src, repl string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.ReplaceAllStringFunc">func (re *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Split">func (re *Regexp) Split(s string, n int) []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.String">func (re *Regexp) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.SubexpIndex">func (re *Regexp) SubexpIndex(name string) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.SubexpNames">func (re *Regexp) SubexpNames() []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.UnmarshalText">func (re *Regexp) UnmarshalText(text []byte) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Match">Match</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MatchString">MatchString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteMeta">QuoteMeta</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_Expand">Regexp.Expand</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_ExpandString">Regexp.ExpandString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_Find">Regexp.Find</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAll">Regexp.FindAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllIndex">Regexp.FindAllIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllString">Regexp.FindAllString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllStringSubmatch">Regexp.FindAllStringSubmatch</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllStringSubmatchIndex">Regexp.FindAllStringSubmatchIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllSubmatch">Regexp.FindAllSubmatch</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindAllSubmatchIndex">Regexp.FindAllSubmatchIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindIndex">Regexp.FindIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindString">Regexp.FindString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindStringIndex">Regexp.FindStringIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindStringSubmatch">Regexp.FindStringSubmatch</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindSubmatch">Regexp.FindSubmatch</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_FindSubmatchIndex">Regexp.FindSubmatchIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_Longest">Regexp.Longest</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_Match">Regexp.Match</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_MatchString">Regexp.MatchString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_NumSubexp">Regexp.NumSubexp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_ReplaceAll">Regexp.ReplaceAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_ReplaceAllLiteralString">Regexp.ReplaceAllLiteralString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_ReplaceAllString">Regexp.ReplaceAllString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_ReplaceAllStringFunc">Regexp.ReplaceAllStringFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_Split">Regexp.Split</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_SubexpIndex">Regexp.SubexpIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Regexp_SubexpNames">Regexp.SubexpNames</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/regexp/backtrack.go">backtrack.go</a>
+			
+				<a href="/src/regexp/exec.go">exec.go</a>
+			
+				<a href="/src/regexp/onepass.go">onepass.go</a>
+			
+				<a href="/src/regexp/regexp.go">regexp.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Match">func <a href="/src/regexp/regexp.go?s=17158:17220#L530">Match</a>
+				
+				
+			</h2>
+			<pre>func Match(pattern <a href="/pkg/builtin/#string">string</a>, b []<a href="/pkg/builtin/#byte">byte</a>) (matched <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Match reports whether the byte slice b
+contains any match of the regular expression pattern.
+More complicated queries need to use <a href="#Compile">Compile</a> and the full <a href="#Regexp">Regexp</a> interface.
+
+			
+
+
+<div id="example_Match" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	matched, err := regexp.Match(`foo.*`, []byte(`seafood`))
+	fmt.Println(matched, err)
+	matched, err = regexp.Match(`bar.*`, []byte(`seafood`))
+	fmt.Println(matched, err)
+	matched, err = regexp.Match(`a(b`, []byte(`seafood`))
+	fmt.Println(matched, err)
+
+}
+</textarea></div>
+        <div class="output"><pre>true &lt;nil&gt;
+false &lt;nil&gt;
+false error parsing regexp: missing closing ): `a(b`
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="MatchReader">func <a href="/src/regexp/regexp.go?s=16437:16512#L508">MatchReader</a>
+				
+				
+			</h2>
+			<pre>func MatchReader(pattern <a href="/pkg/builtin/#string">string</a>, r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#RuneReader">RuneReader</a>) (matched <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MatchReader reports whether the text returned by the <a href="/pkg/io/#RuneReader">io.RuneReader</a>
+contains any match of the regular expression pattern.
+More complicated queries need to use <a href="#Compile">Compile</a> and the full <a href="#Regexp">Regexp</a> interface.
+
+			
+		
+			
+			<h2 id="MatchString">func <a href="/src/regexp/regexp.go?s=16802:16870#L519">MatchString</a>
+				
+				
+			</h2>
+			<pre>func MatchString(pattern <a href="/pkg/builtin/#string">string</a>, s <a href="/pkg/builtin/#string">string</a>) (matched <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MatchString reports whether the string s
+contains any match of the regular expression pattern.
+More complicated queries need to use <a href="#Compile">Compile</a> and the full <a href="#Regexp">Regexp</a> interface.
+
+			
+
+
+<div id="example_MatchString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	matched, err := regexp.MatchString(`foo.*`, &#34;seafood&#34;)
+	fmt.Println(matched, err)
+	matched, err = regexp.MatchString(`bar.*`, &#34;seafood&#34;)
+	fmt.Println(matched, err)
+	matched, err = regexp.MatchString(`a(b`, &#34;seafood&#34;)
+	fmt.Println(matched, err)
+}
+</textarea></div>
+        <div class="output"><pre>true &lt;nil&gt;
+false &lt;nil&gt;
+false error parsing regexp: missing closing ): `a(b`
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteMeta">func <a href="/src/regexp/regexp.go?s=22332:22363#L691">QuoteMeta</a>
+				
+				
+			</h2>
+			<pre>func QuoteMeta(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteMeta returns a string that escapes all regular expression metacharacters
+inside the argument text; the returned string is a regular expression matching
+the literal text.
+
+			
+
+
+<div id="example_QuoteMeta" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	fmt.Println(regexp.QuoteMeta(`Escaping symbols like: .&#43;*?()|[]{}^$`))
+}
+</textarea></div>
+        <div class="output"><pre>Escaping symbols like: \.\+\*\?\(\)\|\[\]\{\}\^\$
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Regexp">type <a href="/src/regexp/regexp.go?s=3553:4526#L69">Regexp</a>
+				
+				
+			</h2>
+			<p>Regexp is the representation of a compiled regular expression.
+A Regexp is safe for concurrent use by multiple goroutines,
+except for configuration methods, such as <a href="#Regexp.Longest">Regexp.Longest</a>.
+
+			<pre>type Regexp struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Compile">func <a href="/src/regexp/regexp.go?s=5791:5833#L119">Compile</a>
+					
+					
+				</h3>
+				<pre>func Compile(expr <a href="/pkg/builtin/#string">string</a>) (*<a href="#Regexp">Regexp</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Compile parses a regular expression and returns, if successful,
+a <a href="#Regexp">Regexp</a> object that can be used to match against text.
+<p>When matching against text, the regexp returns a match that
+begins as early as possible in the input (leftmost), and among those
+it chooses the one that a backtracking search would have found first.
+This so-called leftmost-first matching is the same semantics
+that Perl, Python, and other implementations use, although this
+package implements it without the expense of backtracking.
+For POSIX leftmost-longest matching, see <a href="#CompilePOSIX">CompilePOSIX</a>.
+
+				
+			
+				<h3 id="CompilePOSIX">func <a href="/src/regexp/regexp.go?s=6955:7002#L142">CompilePOSIX</a>
+					
+					
+				</h3>
+				<pre>func CompilePOSIX(expr <a href="/pkg/builtin/#string">string</a>) (*<a href="#Regexp">Regexp</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CompilePOSIX is like <a href="#Compile">Compile</a> but restricts the regular expression
+to POSIX ERE (egrep) syntax and changes the match semantics to
+leftmost-longest.
+<p>That is, when matching against text, the regexp returns a match that
+begins as early as possible in the input (leftmost), and among those
+it chooses a match that is as long as possible.
+This so-called leftmost-longest matching is the same semantics
+that early regular expression implementations used and that POSIX
+specifies.
+<p>However, there can be multiple leftmost-longest matches, with different
+submatch choices, and here this package diverges from POSIX.
+Among the possible leftmost-longest matches, this package chooses
+the one that a backtracking search would have found first, while POSIX
+specifies that the match be chosen to maximize the length of the first
+subexpression, then the second, and so on from left to right.
+The POSIX rule is computationally prohibitive and not even well-defined.
+See <a href="https://swtch.com/~rsc/regexp/regexp2.html#posix">https://swtch.com/~rsc/regexp/regexp2.html#posix</a> for details.
+
+				
+			
+				<h3 id="MustCompile">func <a href="/src/regexp/regexp.go?s=10964:11000#L299">MustCompile</a>
+					
+					
+				</h3>
+				<pre>func MustCompile(str <a href="/pkg/builtin/#string">string</a>) *<a href="#Regexp">Regexp</a></pre>
+				<p>MustCompile is like <a href="#Compile">Compile</a> but panics if the expression cannot be parsed.
+It simplifies safe initialization of global variables holding compiled regular
+expressions.
+
+				
+			
+				<h3 id="MustCompilePOSIX">func <a href="/src/regexp/regexp.go?s=11321:11362#L310">MustCompilePOSIX</a>
+					
+					
+				</h3>
+				<pre>func MustCompilePOSIX(str <a href="/pkg/builtin/#string">string</a>) *<a href="#Regexp">Regexp</a></pre>
+				<p>MustCompilePOSIX is like <a href="#CompilePOSIX">CompilePOSIX</a> but panics if the expression cannot be parsed.
+It simplifies safe initialization of global variables holding compiled regular
+expressions.
+
+				
+			
+
+			
+				<h3 id="Regexp.AppendText">func (*Regexp) <a href="/src/regexp/regexp.go?s=40946:41000#L1319">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText implements <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a>. The output
+matches that of calling the <a href="#Regexp.String">Regexp.String</a> method.
+<p>Note that the output is lossy in some cases: This method does not indicate
+POSIX regular expressions (i.e. those compiled by calling <a href="#CompilePOSIX">CompilePOSIX</a>), or
+those for which the <a href="#Regexp.Longest">Regexp.Longest</a> method has been called.
+
+				
+			
+				<h3 id="Regexp.Copy">func (*Regexp) <a href="/src/regexp/regexp.go?s=5136:5168#L104">Copy</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Copy() *<a href="#Regexp">Regexp</a></pre>
+				<p>Copy returns a new <a href="#Regexp">Regexp</a> object copied from re.
+Calling <a href="#Regexp.Longest">Regexp.Longest</a> on one copy does not affect another.
+<p>Deprecated: In earlier releases, when using a <a href="#Regexp">Regexp</a> in multiple goroutines,
+giving each goroutine its own copy helped to avoid lock contention.
+As of Go 1.12, using Copy is no longer necessary to avoid lock contention.
+Copy may still be appropriate if the reason for its use is to make
+two copies with different <a href="#Regexp.Longest">Regexp.Longest</a> settings.
+
+				
+			
+				<h3 id="Regexp.Expand">func (*Regexp) <a href="/src/regexp/regexp.go?s=36740:36825#L1156">Expand</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Expand(dst []<a href="/pkg/builtin/#byte">byte</a>, template []<a href="/pkg/builtin/#byte">byte</a>, src []<a href="/pkg/builtin/#byte">byte</a>, match []<a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Expand appends template to dst and returns the result; during the
+append, Expand replaces variables in the template with corresponding
+matches drawn from src. The match slice should have been returned by
+<a href="#Regexp.FindSubmatchIndex">Regexp.FindSubmatchIndex</a>.
+<p>In the template, a variable is denoted by a substring of the form
+$name or ${name}, where name is a non-empty sequence of letters,
+digits, and underscores. A purely numeric name like $1 refers to
+the submatch with the corresponding index; other names refer to
+capturing parentheses named with the (?P&lt;name&gt;...) syntax. A
+reference to an out of range or unmatched index or a name that is not
+present in the regular expression is replaced with an empty slice.
+<p>In the $name form, name is taken to be as long as possible: $1x is
+equivalent to ${1x}, not ${1}x, and, $10 is equivalent to ${10}, not ${1}0.
+<p>To insert a literal $ in the output, use $$ in the template.
+
+				
+
+
+<div id="example_Regexp_Expand" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	content := []byte(`
+	# comment line
+	option1: value1
+	option2: value2
+
+	# another comment line
+	option3: value3
+`)
+
+	// Regex pattern captures &#34;key: value&#34; pair from the content.
+	pattern := regexp.MustCompile(`(?m)(?P&lt;key&gt;\w&#43;):\s&#43;(?P&lt;value&gt;\w&#43;)$`)
+
+	// Template to convert &#34;key: value&#34; to &#34;key=value&#34; by
+	// referencing the values captured by the regex pattern.
+	template := []byte(&#34;$key=$value\n&#34;)
+
+	result := []byte{}
+
+	// For each match of the regex in the content.
+	for _, submatches := range pattern.FindAllSubmatchIndex(content, -1) {
+		// Apply the captured submatches to the template and append the output
+		// to the result.
+		result = pattern.Expand(result, template, content, submatches)
+	}
+	fmt.Println(string(result))
+}
+</textarea></div>
+        <div class="output"><pre>option1=value1
+option2=value2
+option3=value3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.ExpandString">func (*Regexp) <a href="/src/regexp/regexp.go?s=37073:37164#L1163">ExpandString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ExpandString(dst []<a href="/pkg/builtin/#byte">byte</a>, template <a href="/pkg/builtin/#string">string</a>, src <a href="/pkg/builtin/#string">string</a>, match []<a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>ExpandString is like <a href="#Regexp.Expand">Regexp.Expand</a> but the template and source are strings.
+It appends to and returns a byte slice in order to give the calling
+code control over allocation.
+
+				
+
+
+<div id="example_Regexp_ExpandString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	content := `
+	# comment line
+	option1: value1
+	option2: value2
+
+	# another comment line
+	option3: value3
+`
+
+	// Regex pattern captures &#34;key: value&#34; pair from the content.
+	pattern := regexp.MustCompile(`(?m)(?P&lt;key&gt;\w&#43;):\s&#43;(?P&lt;value&gt;\w&#43;)$`)
+
+	// Template to convert &#34;key: value&#34; to &#34;key=value&#34; by
+	// referencing the values captured by the regex pattern.
+	template := &#34;$key=$value\n&#34;
+
+	result := []byte{}
+
+	// For each match of the regex in the content.
+	for _, submatches := range pattern.FindAllStringSubmatchIndex(content, -1) {
+		// Apply the captured submatches to the template and append the output
+		// to the result.
+		result = pattern.ExpandString(result, template, content, submatches)
+	}
+	fmt.Println(string(result))
+}
+</textarea></div>
+        <div class="output"><pre>option1=value1
+option2=value2
+option3=value3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.Find">func (*Regexp) <a href="/src/regexp/regexp.go?s=24562:24601#L797">Find</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Find(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Find returns the text of the leftmost match for re in b.
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_Find" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo.?`)
+	fmt.Printf(&#34;%q\n&#34;, re.Find([]byte(`seafood fool`)))
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;food&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAll">func (*Regexp) <a href="/src/regexp/regexp.go?s=32937:32988#L1074">FindAll</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAll(b []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>FindAll returns all the matches for re in b.
+If n &gt;= 0, FindAll returns no more than n matches.
+See [Regexp.All] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo.?`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindAll([]byte(`seafood fool`), -1))
+
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;food&#34; &#34;fool&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=33495:33550#L1088">FindAllIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllIndex(b []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindAllIndex returns the locations of all matches for re in b.
+If n &gt;= 0, FindAllIndex returns no more than n matches.
+See [Regexp.AllIndex] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	content := []byte(&#34;London&#34;)
+	re := regexp.MustCompile(`o.`)
+	fmt.Println(re.FindAllIndex(content, 1))
+	fmt.Println(re.FindAllIndex(content, -1))
+}
+</textarea></div>
+        <div class="output"><pre>[[1 3]]
+[[1 3] [4 6]]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllString">func (*Regexp) <a href="/src/regexp/regexp.go?s=33205:33262#L1081">FindAllString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllString(s <a href="/pkg/builtin/#string">string</a>, n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>FindAllString returns all the matches for re in s.
+If n &gt;= 0, FindAllString returns no more than n matches.
+See [Regexp.AllString] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a.`)
+	fmt.Println(re.FindAllString(&#34;paranormal&#34;, -1))
+	fmt.Println(re.FindAllString(&#34;paranormal&#34;, 2))
+	fmt.Println(re.FindAllString(&#34;graal&#34;, -1))
+	fmt.Println(re.FindAllString(&#34;none&#34;, -1))
+}
+</textarea></div>
+        <div class="output"><pre>[ar an al]
+[ar an]
+[aa]
+[]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllStringIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=33800:33861#L1095">FindAllStringIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllStringIndex(s <a href="/pkg/builtin/#string">string</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindAllStringIndex returns the locations of all matches for re in s.
+If n &gt;= 0, FindAllStringIndex returns no more than n matches.
+See [Regexp.AllStringIndex] for the equivalent iterator form.
+
+				
+			
+				<h3 id="Regexp.FindAllStringSubmatch">func (*Regexp) <a href="/src/regexp/regexp.go?s=34693:34760#L1115">FindAllStringSubmatch</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllStringSubmatch(s <a href="/pkg/builtin/#string">string</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#string">string</a></pre>
+				<p>FindAllStringSubmatch returns the locations of all matches for re in s,
+including submatch locations.
+In each returned match m, m[0] is the overall match,
+m[1] is the first submatch, and so on.
+If n &gt;= 0, FindAllStringSubmatch returns no more than n matches.
+See [Regexp.AllStringSubmatch] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllStringSubmatch" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindAllStringSubmatch(&#34;-ab-&#34;, -1))
+	fmt.Printf(&#34;%q\n&#34;, re.FindAllStringSubmatch(&#34;-axxb-&#34;, -1))
+	fmt.Printf(&#34;%q\n&#34;, re.FindAllStringSubmatch(&#34;-ab-axb-&#34;, -1))
+	fmt.Printf(&#34;%q\n&#34;, re.FindAllStringSubmatch(&#34;-axxb-ab-&#34;, -1))
+}
+</textarea></div>
+        <div class="output"><pre>[[&#34;ab&#34; &#34;&#34;]]
+[[&#34;axxb&#34; &#34;xx&#34;]]
+[[&#34;ab&#34; &#34;&#34;] [&#34;axb&#34; &#34;x&#34;]]
+[[&#34;axxb&#34; &#34;xx&#34;] [&#34;ab&#34; &#34;&#34;]]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllStringSubmatchIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=35664:35733#L1135">FindAllStringSubmatchIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllStringSubmatchIndex(s <a href="/pkg/builtin/#string">string</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindAllStringSubmatchIndex returns the locations of all matches for re in s,
+including submatch locations.
+In each returned match m, the overall match is s[m[0]:m[1]],
+the first submatch is s[m[2]:m[3]], and so on.
+If n &gt;= 0, FindAllStringSubmatchIndex returns no more than n matches.
+See [Regexp.AllStringSubmatchIndex] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllStringSubmatchIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	// Indices:
+	//    01234567   012345678
+	//    -ab-axb-   -axxb-ab-
+	fmt.Println(re.FindAllStringSubmatchIndex(&#34;-ab-&#34;, -1))
+	fmt.Println(re.FindAllStringSubmatchIndex(&#34;-axxb-&#34;, -1))
+	fmt.Println(re.FindAllStringSubmatchIndex(&#34;-ab-axb-&#34;, -1))
+	fmt.Println(re.FindAllStringSubmatchIndex(&#34;-axxb-ab-&#34;, -1))
+	fmt.Println(re.FindAllStringSubmatchIndex(&#34;-foo-&#34;, -1))
+}
+</textarea></div>
+        <div class="output"><pre>[[1 3 2 2]]
+[[1 5 2 4]]
+[[1 3 2 2] [4 7 5 6]]
+[[1 5 2 4] [6 8 7 7]]
+[]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllSubmatch">func (*Regexp) <a href="/src/regexp/regexp.go?s=34239:34300#L1105">FindAllSubmatch</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllSubmatch(b []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][][]<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>FindAllSubmatch returns the locations of all matches for re in b,
+including submatch locations.
+In each returned match m, the overall match is m[0],
+the first submatch is m[1], and so on.
+If n &gt;= 0, FindAllSubmatch returns no more than n matches.
+See [Regexp.AllSubmatch] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllSubmatch" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo(.?)`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindAllSubmatch([]byte(`seafood fool`), -1))
+
+}
+</textarea></div>
+        <div class="output"><pre>[[&#34;food&#34; &#34;d&#34;] [&#34;fool&#34; &#34;l&#34;]]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindAllSubmatchIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=35172:35235#L1125">FindAllSubmatchIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindAllSubmatchIndex(b []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindAllSubmatchIndex returns the locations of all matches for re in b,
+including submatch locations.
+In each returned match m, the overall match is b[m[0]:m[1]],
+the first submatch is b[m[2]:m[3]], and so on.
+If n &gt;= 0, FindAllSubmatchIndex returns no more than n matches.
+See [Regexp.AllSubmatchIndex] for the equivalent iterator form.
+
+				
+
+
+<div id="example_Regexp_FindAllSubmatchIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	content := []byte(`
+	# comment line
+	option1: value1
+	option2: value2
+`)
+	// Regex pattern captures &#34;key: value&#34; pair from the content.
+	pattern := regexp.MustCompile(`(?m)(?P&lt;key&gt;\w&#43;):\s&#43;(?P&lt;value&gt;\w&#43;)$`)
+	allIndexes := pattern.FindAllSubmatchIndex(content, -1)
+	for _, loc := range allIndexes {
+		fmt.Println(loc)
+		fmt.Println(string(content[loc[0]:loc[1]]))
+		fmt.Println(string(content[loc[2]:loc[3]]))
+		fmt.Println(string(content[loc[4]:loc[5]]))
+	}
+}
+</textarea></div>
+        <div class="output"><pre>[18 33 18 25 27 33]
+option1: value1
+option1
+value1
+[35 50 35 42 44 50]
+option2: value2
+option2
+value2
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=25287:25334#L821">FindIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindIndex(b []<a href="/pkg/builtin/#byte">byte</a>) (m []<a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FindIndex returns the location of the leftmost match for re in b.
+The match itself is at b[m[0]:m[1]].
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_FindIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	content := []byte(`
+	# comment line
+	option1: value1
+	option2: value2
+`)
+	// Regex pattern captures &#34;key: value&#34; pair from the content.
+	pattern := regexp.MustCompile(`(?m)(?P&lt;key&gt;\w&#43;):\s&#43;(?P&lt;value&gt;\w&#43;)$`)
+
+	loc := pattern.FindIndex(content)
+	fmt.Println(loc)
+	fmt.Println(string(content[loc[0]:loc[1]]))
+}
+</textarea></div>
+        <div class="output"><pre>[18 33]
+option1: value1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindReaderIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=26016:26076#L846">FindReaderIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindReaderIndex(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#RuneReader">RuneReader</a>) (m []<a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FindReaderIndex returns the location of the leftmost match for re in r.
+The match starts at byte index m[0] and ends just before byte index m[1].
+The return value is nil for no match.
+<p>FindReaderIndex may read arbitrarily far from r,
+including reading beyond the returned match.
+
+				
+			
+				<h3 id="Regexp.FindReaderSubmatchIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=28191:28255#L911">FindReaderSubmatchIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindReaderSubmatchIndex(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#RuneReader">RuneReader</a>) []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindReaderSubmatchIndex returns the first match for re in r, including submatches.
+The overall match is at byte index m[0] up to m[1],
+the first submatch is at byte index m[2] up to m[3], and so on.
+The return value is nil for no match.
+<p>FindReaderSubmatchIndex may read arbitrarily far from r,
+including reading beyond the returned match.
+
+				
+			
+				<h3 id="Regexp.FindString">func (*Regexp) <a href="/src/regexp/regexp.go?s=24971:25016#L809">FindString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>FindString returns the text of the leftmost match for re in s.
+The return value is the empty string both for an empty match and for no match.
+To distinguish those two cases, use <a href="#Regexp.FindStringIndex">Regexp.FindStringIndex</a> or <a href="#Regexp.FindStringSubmatch">Regexp.FindStringSubmatch</a>.
+
+				
+
+
+<div id="example_Regexp_FindString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo.?`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindString(&#34;seafood fool&#34;))
+	fmt.Printf(&#34;%q\n&#34;, re.FindString(&#34;meat&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>&#34;food&#34;
+&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindStringIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=25578:25631#L832">FindStringIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindStringIndex(s <a href="/pkg/builtin/#string">string</a>) (m []<a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FindStringIndex returns the location of the leftmost match for re in s.
+The match itself is at s[m[0]:m[1]].
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_FindStringIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`ab?`)
+	fmt.Println(re.FindStringIndex(&#34;tablett&#34;))
+	fmt.Println(re.FindStringIndex(&#34;foo&#34;) == nil)
+}
+</textarea></div>
+        <div class="output"><pre>[1 3]
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindStringSubmatch">func (*Regexp) <a href="/src/regexp/regexp.go?s=26857:26912#L875">FindStringSubmatch</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindStringSubmatch(s <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>FindStringSubmatch returns the first match for re in s, including submatches.
+The overall match is s[0], the first submatch is s[1], and so on.
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_FindStringSubmatch" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b(y|z)c`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindStringSubmatch(&#34;-axxxbyc-&#34;))
+	fmt.Printf(&#34;%q\n&#34;, re.FindStringSubmatch(&#34;-abzc-&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;axxxbyc&#34; &#34;xxx&#34; &#34;y&#34;]
+[&#34;abzc&#34; &#34;&#34; &#34;z&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindStringSubmatchIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=27707:27764#L900">FindStringSubmatchIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindStringSubmatchIndex(s <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindStringSubmatchIndex returns the first match for re in s, including submatches.
+The overall match is s[m[0]:m[1]], the first submatch is s[m[2]:m[3]], and so on.
+The return value is nil for no match.
+
+				
+			
+				<h3 id="Regexp.FindSubmatch">func (*Regexp) <a href="/src/regexp/regexp.go?s=26349:26398#L857">FindSubmatch</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindSubmatch(b []<a href="/pkg/builtin/#byte">byte</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>FindSubmatch returns the first match for re in b, including submatches.
+The overall match is m[0], the first submatch is m[1], and so on.
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_FindSubmatch" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo(.?)`)
+	fmt.Printf(&#34;%q\n&#34;, re.FindSubmatch([]byte(`seafood fool`)))
+
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;food&#34; &#34;d&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.FindSubmatchIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=27378:27429#L893">FindSubmatchIndex</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) FindSubmatchIndex(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>FindSubmatchIndex returns the first match for re in b, including submatches.
+The overall match is b[m[0]:m[1]], the first submatch is b[m[2]:m[3]], and so on.
+The return value is nil for no match.
+
+				
+
+
+<div id="example_Regexp_FindSubmatchIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	// Indices:
+	//    01234567   012345678
+	//    -ab-axb-   -axxb-ab-
+	fmt.Println(re.FindSubmatchIndex([]byte(&#34;-ab-&#34;)))
+	fmt.Println(re.FindSubmatchIndex([]byte(&#34;-axxb-&#34;)))
+	fmt.Println(re.FindSubmatchIndex([]byte(&#34;-ab-axb-&#34;)))
+	fmt.Println(re.FindSubmatchIndex([]byte(&#34;-axxb-ab-&#34;)))
+	fmt.Println(re.FindSubmatchIndex([]byte(&#34;-foo-&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>[1 3 2 2]
+[1 5 2 4]
+[1 3 2 2]
+[1 5 2 4]
+[]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.LiteralPrefix">func (*Regexp) <a href="/src/regexp/regexp.go?s=15559:15623#L483">LiteralPrefix</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) LiteralPrefix() (prefix <a href="/pkg/builtin/#string">string</a>, complete <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LiteralPrefix returns a literal string that must begin any match
+of the regular expression re. It returns the boolean true if the
+literal string comprises the entire regular expression.
+
+				
+			
+				<h3 id="Regexp.Longest">func (*Regexp) <a href="/src/regexp/regexp.go?s=7412:7439#L152">Longest</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Longest()</pre>
+				<p>Longest makes future searches prefer the leftmost-longest match.
+That is, when matching against text, the regexp returns a match that
+begins as early as possible in the input (leftmost), and among those
+it chooses a match that is as long as possible.
+This method modifies the <a href="#Regexp">Regexp</a> and may not be called concurrently
+with any other methods.
+
+				
+
+
+<div id="example_Regexp_Longest" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(|b)`)
+	fmt.Println(re.FindString(&#34;ab&#34;))
+	re.Longest()
+	fmt.Println(re.FindString(&#34;ab&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>a
+ab
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.MarshalText">func (*Regexp) <a href="/src/regexp/regexp.go?s=41219:41266#L1327">MarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) MarshalText() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText implements <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>. The output
+matches that of calling the <a href="#Regexp.AppendText">Regexp.AppendText</a> method.
+<p>See <a href="#Regexp.AppendText">Regexp.AppendText</a> for more information.
+
+				
+			
+				<h3 id="Regexp.Match">func (*Regexp) <a href="/src/regexp/regexp.go?s=16150:16188#L501">Match</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Match(b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Match reports whether the byte slice b
+contains any match of the regular expression re.
+
+				
+
+
+<div id="example_Regexp_Match" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`foo.?`)
+	fmt.Println(re.Match([]byte(`seafood fool`)))
+	fmt.Println(re.Match([]byte(`something else`)))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.MatchReader">func (*Regexp) <a href="/src/regexp/regexp.go?s=15790:15841#L489">MatchReader</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) MatchReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#RuneReader">RuneReader</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>MatchReader reports whether the text returned by the <a href="/pkg/io/#RuneReader">io.RuneReader</a>
+contains any match of the regular expression re.
+
+				
+			
+				<h3 id="Regexp.MatchString">func (*Regexp) <a href="/src/regexp/regexp.go?s=15974:16018#L495">MatchString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) MatchString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>MatchString reports whether the string s
+contains any match of the regular expression re.
+
+				
+
+
+<div id="example_Regexp_MatchString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`(gopher){2}`)
+	fmt.Println(re.MatchString(&#34;gopher&#34;))
+	fmt.Println(re.MatchString(&#34;gophergopher&#34;))
+	fmt.Println(re.MatchString(&#34;gophergophergopher&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>false
+true
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.NumSubexp">func (*Regexp) <a href="/src/regexp/regexp.go?s=11701:11734#L326">NumSubexp</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) NumSubexp() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumSubexp returns the number of parenthesized subexpressions in this <a href="#Regexp">Regexp</a>.
+
+				
+
+
+<div id="example_Regexp_NumSubexp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re0 := regexp.MustCompile(`a.`)
+	fmt.Printf(&#34;%d\n&#34;, re0.NumSubexp())
+
+	re := regexp.MustCompile(`(.*)((a)b)(.*)a`)
+	fmt.Println(re.NumSubexp())
+}
+</textarea></div>
+        <div class="output"><pre>0
+4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.ReplaceAll">func (*Regexp) <a href="/src/regexp/regexp.go?s=20584:20637#L640">ReplaceAll</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAll(src, repl []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>ReplaceAll returns a copy of src, replacing matches of the <a href="#Regexp">Regexp</a>
+with the replacement text repl.
+Inside repl, $ signs are interpreted as in <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+
+
+<div id="example_Regexp_ReplaceAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	fmt.Printf(&#34;%s\n&#34;, re.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;T&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, re.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;$1&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, re.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;$1W&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, re.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;${1}W&#34;)))
+
+	re2 := regexp.MustCompile(`a(?P&lt;1W&gt;x*)b`)
+	fmt.Printf(&#34;%s\n&#34;, re2.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;$1W&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, re2.ReplaceAll([]byte(&#34;-ab-axxb-&#34;), []byte(&#34;${1}W&#34;)))
+
+}
+</textarea></div>
+        <div class="output"><pre>-T-T-
+--xx-
+---
+-W-xxW-
+--xx-
+-W-xxW-
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.ReplaceAllFunc">func (*Regexp) <a href="/src/regexp/regexp.go?s=21558:21635#L668">ReplaceAllFunc</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAllFunc(src []<a href="/pkg/builtin/#byte">byte</a>, repl func([]<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>ReplaceAllFunc returns a copy of src in which all matches of the
+<a href="#Regexp">Regexp</a> have been replaced by the return value of function repl applied
+to the matched byte slice. The replacement returned by repl is substituted
+directly, without using <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+			
+				<h3 id="Regexp.ReplaceAllLiteral">func (*Regexp) <a href="/src/regexp/regexp.go?s=21119:21179#L658">ReplaceAllLiteral</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAllLiteral(src, repl []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>ReplaceAllLiteral returns a copy of src, replacing matches of the <a href="#Regexp">Regexp</a>
+with the replacement bytes repl. The replacement repl is substituted directly,
+without using <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+			
+				<h3 id="Regexp.ReplaceAllLiteralString">func (*Regexp) <a href="/src/regexp/regexp.go?s=17978:18044#L555">ReplaceAllLiteralString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAllLiteralString(src, repl <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ReplaceAllLiteralString returns a copy of src, replacing matches of the <a href="#Regexp">Regexp</a>
+with the replacement string repl. The replacement repl is substituted directly,
+without using <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+
+
+<div id="example_Regexp_ReplaceAllLiteralString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	fmt.Println(re.ReplaceAllLiteralString(&#34;-ab-axxb-&#34;, &#34;T&#34;))
+	fmt.Println(re.ReplaceAllLiteralString(&#34;-ab-axxb-&#34;, &#34;$1&#34;))
+	fmt.Println(re.ReplaceAllLiteralString(&#34;-ab-axxb-&#34;, &#34;${1}&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>-T-T-
+-$1-$1-
+-${1}-${1}-
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.ReplaceAllString">func (*Regexp) <a href="/src/regexp/regexp.go?s=17497:17556#L541">ReplaceAllString</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAllString(src, repl <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ReplaceAllString returns a copy of src, replacing matches of the <a href="#Regexp">Regexp</a>
+with the replacement string repl.
+Inside repl, $ signs are interpreted as in <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+
+
+<div id="example_Regexp_ReplaceAllString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`a(x*)b`)
+	fmt.Println(re.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;T&#34;))
+	fmt.Println(re.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;$1&#34;))
+	fmt.Println(re.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;$1W&#34;))
+	fmt.Println(re.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;${1}W&#34;))
+
+	re2 := regexp.MustCompile(`a(?P&lt;1W&gt;x*)b`)
+	fmt.Printf(&#34;%s\n&#34;, re2.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;$1W&#34;))
+	fmt.Println(re.ReplaceAllString(&#34;-ab-axxb-&#34;, &#34;${1}W&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>-T-T-
+--xx-
+---
+-W-xxW-
+--xx-
+-W-xxW-
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.ReplaceAllStringFunc">func (*Regexp) <a href="/src/regexp/regexp.go?s=18437:18520#L565">ReplaceAllStringFunc</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) ReplaceAllStringFunc(src <a href="/pkg/builtin/#string">string</a>, repl func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ReplaceAllStringFunc returns a copy of src in which all matches of the
+<a href="#Regexp">Regexp</a> have been replaced by the return value of function repl applied
+to the matched substring. The replacement returned by repl is substituted
+directly, without using <a href="#Regexp.Expand">Regexp.Expand</a>.
+
+				
+
+
+<div id="example_Regexp_ReplaceAllStringFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`[^aeiou]`)
+	fmt.Println(re.ReplaceAllStringFunc(&#34;seafood fool&#34;, strings.ToUpper))
+}
+</textarea></div>
+        <div class="output"><pre>SeaFooD FooL
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.Split">func (*Regexp) <a href="/src/regexp/regexp.go?s=40087:40136#L1281">Split</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Split(s <a href="/pkg/builtin/#string">string</a>, n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>Split slices s into substrings separated by the expression and returns a slice of
+the substrings between those expression matches.
+<p>The slice returned by this method consists of all the substrings of s
+not contained in the slice returned by <a href="#Regexp.FindAllString">Regexp.FindAllString</a>. When called on an expression
+that contains no metacharacters, it is equivalent to <a href="/pkg/strings/#SplitN">strings.SplitN</a>.
+<p>Example:
+<pre>s := regexp.MustCompile(&quot;a*&quot;).Split(&quot;abaabaccadaaae&quot;, 5)
+// s: [&quot;&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;, &quot;cadaaae&quot;]
+</pre>
+<p>The count determines the number of substrings to return:
+<ul>
+<li>n &gt; 0: at most n substrings; the last substring will be the unsplit remainder;
+<li>n == 0: the result is nil (zero substrings);
+<li>n &lt; 0: all substrings.
+</ul>
+
+				
+
+
+<div id="example_Regexp_Split" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	a := regexp.MustCompile(`a`)
+	fmt.Println(a.Split(&#34;banana&#34;, -1))
+	fmt.Println(a.Split(&#34;banana&#34;, 0))
+	fmt.Println(a.Split(&#34;banana&#34;, 1))
+	fmt.Println(a.Split(&#34;banana&#34;, 2))
+	zp := regexp.MustCompile(`z&#43;`)
+	fmt.Println(zp.Split(&#34;pizza&#34;, -1))
+	fmt.Println(zp.Split(&#34;pizza&#34;, 0))
+	fmt.Println(zp.Split(&#34;pizza&#34;, 1))
+	fmt.Println(zp.Split(&#34;pizza&#34;, 2))
+}
+</textarea></div>
+        <div class="output"><pre>[b n n ]
+[]
+[banana]
+[b nana]
+[pi a]
+[]
+[pizza]
+[pi a]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.String">func (*Regexp) <a href="/src/regexp/regexp.go?s=4602:4635#L92">String</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String returns the source text used to compile the regular expression.
+
+				
+			
+				<h3 id="Regexp.SubexpIndex">func (*Regexp) <a href="/src/regexp/regexp.go?s=12569:12615#L346">SubexpIndex</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) SubexpIndex(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>SubexpIndex returns the index of the first subexpression with the given name,
+or -1 if there is no subexpression with that name.
+<p>Note that multiple subexpressions can be written using the same name, as in
+(?P&lt;bob&gt;a+)(?P&lt;bob&gt;b+), which declares two subexpressions named &quot;bob&quot;.
+In this case, SubexpIndex returns the index of the leftmost such subexpression
+in the regular expression.
+
+				
+
+
+<div id="example_Regexp_SubexpIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`(?P&lt;first&gt;[a-zA-Z]&#43;) (?P&lt;last&gt;[a-zA-Z]&#43;)`)
+	fmt.Println(re.MatchString(&#34;Alan Turing&#34;))
+	matches := re.FindStringSubmatch(&#34;Alan Turing&#34;)
+	lastIndex := re.SubexpIndex(&#34;last&#34;)
+	fmt.Printf(&#34;last =&gt; %d\n&#34;, lastIndex)
+	fmt.Println(matches[lastIndex])
+}
+</textarea></div>
+        <div class="output"><pre>true
+last =&gt; 2
+Turing
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.SubexpNames">func (*Regexp) <a href="/src/regexp/regexp.go?s=12097:12137#L335">SubexpNames</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) SubexpNames() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>SubexpNames returns the names of the parenthesized subexpressions
+in this <a href="#Regexp">Regexp</a>. The name for the first sub-expression is names[1],
+so that if m is a match slice, the name for m[i] is SubexpNames()[i].
+Since the Regexp as a whole cannot be named, names[0] is always
+the empty string. The slice should not be modified.
+
+				
+
+
+<div id="example_Regexp_SubexpNames" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;regexp&#34;
+)
+
+func main() {
+	re := regexp.MustCompile(`(?P&lt;first&gt;[a-zA-Z]&#43;) (?P&lt;last&gt;[a-zA-Z]&#43;)`)
+	fmt.Println(re.MatchString(&#34;Alan Turing&#34;))
+	fmt.Printf(&#34;%q\n&#34;, re.SubexpNames())
+	reversed := fmt.Sprintf(&#34;${%s} ${%s}&#34;, re.SubexpNames()[2], re.SubexpNames()[1])
+	fmt.Println(reversed)
+	fmt.Println(re.ReplaceAllString(&#34;Alan Turing&#34;, reversed))
+}
+</textarea></div>
+        <div class="output"><pre>true
+[&#34;&#34; &#34;first&#34; &#34;last&#34;]
+${last} ${first}
+Turing Alan
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Regexp.UnmarshalText">func (*Regexp) <a href="/src/regexp/regexp.go?s=41400:41450#L1333">UnmarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) UnmarshalText(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText implements <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a> by calling
+<a href="#Compile">Compile</a> on the encoded value.
+
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="syntax/">syntax</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package syntax parses regular expressions into parse trees and compiles parse trees into programs.
+					</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

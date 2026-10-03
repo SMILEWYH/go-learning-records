@@ -1,0 +1,301 @@
+<!--{
+  "Title": "hash/crc32 package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package crc32</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "hash/crc32"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package crc32 implements the 32-bit cyclic redundancy check, or CRC-32,
+checksum. See <a href="https://en.wikipedia.org/wiki/Cyclic_redundancy_check">https://en.wikipedia.org/wiki/Cyclic_redundancy_check</a> for
+information.
+<p>Polynomials are represented in LSB-first form also known as reversed representation.
+<p>See <a href="https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks#Reversed_representations_and_reciprocal_polynomials">https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks#Reversed_representations_and_reciprocal_polynomials</a>
+for information.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Checksum">func Checksum(data []byte, tab *Table) uint32</a></dd>
+			
+				<dd><a href="#ChecksumIEEE">func ChecksumIEEE(data []byte) uint32</a></dd>
+			
+				<dd><a href="#New">func New(tab *Table) hash.Hash32</a></dd>
+			
+				<dd><a href="#NewIEEE">func NewIEEE() hash.Hash32</a></dd>
+			
+				<dd><a href="#Update">func Update(crc uint32, tab *Table, p []byte) uint32</a></dd>
+			
+			
+				
+				<dd><a href="#Table">type Table</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeTable">func MakeTable(poly uint32) *Table</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_MakeTable">MakeTable</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/hash/crc32/crc32.go">crc32.go</a>
+			
+				<a href="/src/hash/crc32/crc32_amd64.go">crc32_amd64.go</a>
+			
+				<a href="/src/hash/crc32/crc32_generic.go">crc32_generic.go</a>
+			
+				<a href="/src/hash/crc32/gen.go">gen.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Predefined polynomials.
+
+				<pre>const (
+    <span class="comment">// IEEE is by far and away the most common CRC-32 polynomial.</span>
+    <span class="comment">// Used by ethernet (IEEE 802.3), v.42, fddi, gzip, zip, png, ...</span>
+    <span id="IEEE">IEEE</span> = 0xedb88320
+
+    <span class="comment">// Castagnoli&#39;s polynomial, used in iSCSI.</span>
+    <span class="comment">// Has better error detection characteristics than IEEE.</span>
+    <span class="comment">// https://dx.doi.org/10.1109/26.231911</span>
+    <span id="Castagnoli">Castagnoli</span> = 0x82f63b78
+
+    <span class="comment">// Koopman&#39;s polynomial.</span>
+    <span class="comment">// Also has better error detection characteristics than IEEE.</span>
+    <span class="comment">// https://dx.doi.org/10.1109/DSN.2002.1028931</span>
+    <span id="Koopman">Koopman</span> = 0xeb31d82e
+)</pre>
+			
+				<p>The size of a CRC-32 checksum in bytes.
+
+				<pre>const <span id="Size">Size</span> = 4</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>IEEETable is the table for the <a href="#IEEE">IEEE</a> polynomial.
+
+				<pre>var <span id="IEEETable">IEEETable</span> = simpleMakeTable(<a href="#IEEE">IEEE</a>)</pre>
+			
+		
+		
+			
+			<h2 id="Checksum">func <a href="/src/hash/crc32/crc32.go?s=7305:7350#L229">Checksum</a>
+				
+				
+			</h2>
+			<pre>func Checksum(data []<a href="/pkg/builtin/#byte">byte</a>, tab *<a href="#Table">Table</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>Checksum returns the CRC-32 checksum of data
+using the polynomial represented by the <a href="#Table">Table</a>.
+
+			
+		
+			
+			<h2 id="ChecksumIEEE">func <a href="/src/hash/crc32/crc32.go?s=7468:7505#L233">ChecksumIEEE</a>
+				
+				
+			</h2>
+			<pre>func ChecksumIEEE(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>ChecksumIEEE returns the CRC-32 checksum of data
+using the <a href="#IEEE">IEEE</a> polynomial.
+
+			
+		
+			
+			<h2 id="New">func <a href="/src/hash/crc32/crc32.go?s=4678:4710#L136">New</a>
+				
+				
+			</h2>
+			<pre>func New(tab *<a href="#Table">Table</a>) <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash32">Hash32</a></pre>
+			<p>New creates a new <a href="/pkg/hash/#Hash32">hash.Hash32</a> computing the CRC-32 checksum using the
+polynomial represented by the <a href="#Table">Table</a>. Its Sum method will lay the
+value out in big-endian byte order. The returned Hash32 also
+implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a> and <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> to
+marshal and unmarshal the internal state of the hash.
+
+			
+		
+			
+			<h2 id="NewIEEE">func <a href="/src/hash/crc32/crc32.go?s=5110:5136#L148">NewIEEE</a>
+				
+				
+			</h2>
+			<pre>func NewIEEE() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash32">Hash32</a></pre>
+			<p>NewIEEE creates a new <a href="/pkg/hash/#Hash32">hash.Hash32</a> computing the CRC-32 checksum using
+the <a href="#IEEE">IEEE</a> polynomial. Its Sum method will lay the value out in
+big-endian byte order. The returned Hash32 also implements
+<a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a> and <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> to marshal
+and unmarshal the internal state of the hash.
+
+			
+		
+			
+			<h2 id="Update">func <a href="/src/hash/crc32/crc32.go?s=6564:6616#L207">Update</a>
+				
+				
+			</h2>
+			<pre>func Update(crc <a href="/pkg/builtin/#uint32">uint32</a>, tab *<a href="#Table">Table</a>, p []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>Update returns the result of adding the bytes in p to the crc.
+
+			
+		
+		
+			
+			<h2 id="Table">type <a href="/src/hash/crc32/crc32.go?s=1317:1339#L34">Table</a>
+				
+				
+			</h2>
+			<p>Table is a 256-word table representing the polynomial for efficient processing.
+
+			<pre>type Table [256]<a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MakeTable">func <a href="/src/hash/crc32/crc32.go?s=4015:4049#L112">MakeTable</a>
+					
+					
+				</h3>
+				<pre>func MakeTable(poly <a href="/pkg/builtin/#uint32">uint32</a>) *<a href="#Table">Table</a></pre>
+				<p>MakeTable returns a <a href="#Table">Table</a> constructed from the specified polynomial.
+The contents of this <a href="#Table">Table</a> must not be modified.
+
+				
+
+
+<div id="example_MakeTable" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/crc32&#34;
+)
+
+func main() {
+	// In this package, the CRC polynomial is represented in reversed notation,
+	// or LSB-first representation.
+	//
+	// LSB-first representation is a hexadecimal number with n bits, in which the
+	// most significant bit represents the coefficient of x⁰ and the least significant
+	// bit represents the coefficient of xⁿ⁻¹ (the coefficient for xⁿ is implicit).
+	//
+	// For example, CRC32-Q, as defined by the following polynomial,
+	//	x³²&#43; x³¹&#43; x²⁴&#43; x²²&#43; x¹⁶&#43; x¹⁴&#43; x⁸&#43; x⁷&#43; x⁵&#43; x³&#43; x¹&#43; x⁰
+	// has the reversed notation 0b11010101100000101000001010000001, so the value
+	// that should be passed to MakeTable is 0xD5828281.
+	crc32q := crc32.MakeTable(0xD5828281)
+	fmt.Printf(&#34;%08x\n&#34;, crc32.Checksum([]byte(&#34;Hello world&#34;), crc32q))
+}
+</textarea></div>
+        <div class="output"><pre>2964d064
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

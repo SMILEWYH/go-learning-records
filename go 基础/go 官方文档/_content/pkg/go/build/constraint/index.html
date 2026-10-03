@@ -1,0 +1,374 @@
+<!--{
+  "Title": "go/build/constraint 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/build/constraint 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/build/constraint"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>constraint 包实现构建约束行的解析与求值。构建约束本身的文档见 <a href="/golang.org/cmd/go/#hdr-Build_constraints">https://golang.org/cmd/go/#hdr-Build_constraints</a>。<p>本包同时解析原来的“// +build”语法和 Go 1.17 新增的“//go:build”语法。有关“//go:build”语法的细节，参见 <a href="/golang.org/design/draft-gobuild">https://golang.org/design/draft-gobuild</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#GoVersion">func GoVersion(x Expr) string</a></dd>
+			
+				<dd><a href="#IsGoBuild">func IsGoBuild(line string) bool</a></dd>
+			
+				<dd><a href="#IsPlusBuild">func IsPlusBuild(line string) bool</a></dd>
+			
+				<dd><a href="#PlusBuildLines">func PlusBuildLines(x Expr) ([]string, error)</a></dd>
+			
+			
+				
+				<dd><a href="#AndExpr">type AndExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#AndExpr.Eval">func (x *AndExpr) Eval(ok func(tag string) bool) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AndExpr.String">func (x *AndExpr) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Expr">type Expr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parse">func Parse(line string) (Expr, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NotExpr">type NotExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NotExpr.Eval">func (x *NotExpr) Eval(ok func(tag string) bool) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NotExpr.String">func (x *NotExpr) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#OrExpr">type OrExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#OrExpr.Eval">func (x *OrExpr) Eval(ok func(tag string) bool) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OrExpr.String">func (x *OrExpr) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#SyntaxError">type SyntaxError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntaxError.Error">func (e *SyntaxError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#TagExpr">type TagExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TagExpr.Eval">func (x *TagExpr) Eval(ok func(tag string) bool) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TagExpr.String">func (x *TagExpr) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/build/constraint/expr.go">expr.go</a>
+			
+				<a href="/src/go/build/constraint/vers.go">vers.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="GoVersion">func <a href="/src/go/build/constraint/vers.go?s=939:968#L20">GoVersion</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func GoVersion(x <a href="#Expr">Expr</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>GoVersion 返回给定构建表达式隐含要求的最低 Go 版本。如果不依赖任何 Go 版本标签也能满足该表达式，则返回空字符串。<p>例如：<pre>GoVersion(linux &amp;&amp; go1.22) = &quot;go1.22&quot;
+GoVersion((linux &amp;&amp; go1.22) || (windows &amp;&amp; go1.20)) = &quot;go1.20&quot; =&gt; go1.20
+GoVersion(linux) = &quot;&quot;
+GoVersion(linux || (windows &amp;&amp; go1.22)) = &quot;&quot;
+GoVersion(!go1.22) = &quot;&quot;
+</pre>
+<p>GoVersion 假设任何标签及其否定都可能独立为真，因此只需进行结构分析，无需解决布尔可满足性（SAT）问题。由此，“不可能成立”的子表达式也可能影响结果。<p>例如：<pre>GoVersion((linux &amp;&amp; !linux &amp;&amp; go1.20) || go1.21) = &quot;go1.20&quot;
+</pre>
+
+			
+		
+			
+			<h2 id="IsGoBuild">func <a href="/src/go/build/constraint/expr.go?s=4140:4172#L155">IsGoBuild</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func IsGoBuild(line <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsGoBuild 报告文本行是否为“//go:build”约束。它只检查文本前缀，不检查表达式本身能否解析。<h2 id="IsPlusBuild">func <a href="/src/go/build/constraint/expr.go?s=9158:9192#L350">IsPlusBuild</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func IsPlusBuild(line <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsPlusBuild 报告文本行是否为“// +build”约束。它只检查文本前缀，不检查表达式本身能否解析。<h2 id="PlusBuildLines">func <a href="/src/go/build/constraint/expr.go?s=12175:12220#L463">PlusBuildLines</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func PlusBuildLines(x <a href="#Expr">Expr</a>) ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>PlusBuildLines 返回一组“// +build”行，其求值结果与构建表达式 x 相同。如果表达式过于复杂，无法直接转换为“// +build”行，则返回错误。<h2 id="AndExpr">type <a href="/src/go/build/constraint/expr.go?s=2251:2285#L70">AndExpr</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>AndExpr 表示表达式 X &amp;&amp; Y。<pre>type AndExpr struct {
+<span id="AndExpr.X"></span>    X, Y <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AndExpr.Eval">func (*AndExpr) <a href="/src/go/build/constraint/expr.go?s=2318:2371#L76">Eval</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#AndExpr">AndExpr</a>) Eval(ok func(tag <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="AndExpr.String">func (*AndExpr) <a href="/src/go/build/constraint/expr.go?s=2499:2532#L83">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#AndExpr">AndExpr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Expr">type <a href="/src/go/build/constraint/expr.go?s=943:1463#L15">Expr</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Expr 是构建标签约束表达式。其底层具体类型为 *<a href="#AndExpr">AndExpr</a>、*<a href="#OrExpr">OrExpr</a>、*<a href="#NotExpr">NotExpr</a> 或 *<a href="#TagExpr">TagExpr</a>。<pre>type Expr interface {
+    <span class="comment">// String 返回表达式的字符串形式，</span>
+    <span class="comment">// 使用 //go:build 行中的布尔语法。</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// Eval 报告表达式的求值结果是否为 true。</span>
+    <span class="comment">// 它按需调用 ok(tag)，判断给定的构建标签</span>
+    <span class="comment">// 是否被当前构建配置满足。</span>
+    Eval(ok func(tag <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Parse">func <a href="/src/go/build/constraint/expr.go?s=3757:3794#L143">Parse</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func Parse(line <a href="/pkg/builtin/#string">string</a>) (<a href="#Expr">Expr</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 解析形如“//go:build ...”或“// +build ...”的单行构建约束，并返回对应的布尔表达式。<h2 id="NotExpr">type <a href="/src/go/build/constraint/expr.go?s=1869:1900#L48">NotExpr</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>NotExpr 表示表达式 !X，即对 X 取反。<pre>type NotExpr struct {
+<span id="NotExpr.X"></span>    X <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NotExpr.Eval">func (*NotExpr) <a href="/src/go/build/constraint/expr.go?s=1933:1986#L54">Eval</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#NotExpr">NotExpr</a>) Eval(ok func(tag <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="NotExpr.String">func (*NotExpr) <a href="/src/go/build/constraint/expr.go?s=2014:2047#L58">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#NotExpr">NotExpr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="OrExpr">type <a href="/src/go/build/constraint/expr.go?s=2794:2827#L100">OrExpr</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>OrExpr 表示表达式 X || Y。<pre>type OrExpr struct {
+<span id="OrExpr.X"></span>    X, Y <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="OrExpr.Eval">func (*OrExpr) <a href="/src/go/build/constraint/expr.go?s=2859:2911#L106">Eval</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#OrExpr">OrExpr</a>) Eval(ok func(tag <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="OrExpr.String">func (*OrExpr) <a href="/src/go/build/constraint/expr.go?s=3039:3071#L113">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#OrExpr">OrExpr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SyntaxError">type <a href="/src/go/build/constraint/expr.go?s=3352:3482#L130">SyntaxError</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>SyntaxError 报告解析构建表达式时出现的语法错误。<pre>type SyntaxError struct {
+<span id="SyntaxError.Offset"></span>    Offset <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 检测到错误的位置在输入中的字节偏移量</span>
+<span id="SyntaxError.Err"></span>    Err    <a href="/pkg/builtin/#string">string</a> <span class="comment">// 错误说明</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyntaxError.Error">func (*SyntaxError) <a href="/src/go/build/constraint/expr.go?s=3484:3520#L135">Error</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (e *<a href="#SyntaxError">SyntaxError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TagExpr">type <a href="/src/go/build/constraint/expr.go?s=1515:1591#L31">TagExpr</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>TagExpr 是表示单个标签 Tag 的 <a href="#Expr">Expr</a>。<pre>type TagExpr struct {
+<span id="TagExpr.Tag"></span>    Tag <a href="/pkg/builtin/#string">string</a> <span class="comment">// 例如“linux”或“cgo”</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TagExpr.Eval">func (*TagExpr) <a href="/src/go/build/constraint/expr.go?s=1624:1677#L37">Eval</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#TagExpr">TagExpr</a>) Eval(ok func(tag <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="TagExpr.String">func (*TagExpr) <a href="/src/go/build/constraint/expr.go?s=1701:1734#L41">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (x *<a href="#TagExpr">TagExpr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

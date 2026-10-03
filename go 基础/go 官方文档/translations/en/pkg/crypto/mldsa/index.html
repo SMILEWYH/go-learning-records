@@ -1,0 +1,543 @@
+<!--{
+  "Title": "crypto/mldsa package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package mldsa</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/mldsa"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package mldsa implements the post-quantum ML-DSA signature scheme specified
+in <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf">FIPS 204</a>.
+<p>This package is unavailable if using the <a href="/doc/security/fips140">FIPS 140-3 Go Cryptographic Module</a>
+v1.0.0, in which case <a href="#GenerateKey">GenerateKey</a>, <a href="#NewPrivateKey">NewPrivateKey</a>, <a href="#NewPublicKey">NewPublicKey</a>, and
+<a href="#Verify">Verify</a> will return an error. It is available if using v1.26.0 or later.
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/mldsa&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	// The signer generates a new ML-DSA-44 key pair.
+	sk, err := mldsa.GenerateKey(mldsa.MLDSA44())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The signer publishes the public key encoding.
+	publicKey := sk.PublicKey().Bytes()
+	fmt.Printf(&#34;public key: %d bytes\n&#34;, len(publicKey))
+
+	// The signer signs a message and publishes the signature.
+	msg := []byte(&#34;hello, world&#34;)
+	sig, err := sk.Sign(nil, msg, &amp;mldsa.Options{Context: &#34;example&#34;})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;signature: %d bytes\n&#34;, len(sig))
+
+	// The verifier reconstructs the public key and checks the signature.
+	// The context string must match the one used by the signer.
+	pk, err := mldsa.NewPublicKey(mldsa.MLDSA44(), publicKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := mldsa.Verify(pk, msg, sig, &amp;mldsa.Options{Context: &#34;example&#34;}); err != nil {
+		log.Fatal(&#34;invalid signature: &#34;, err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>public key: 1312 bytes
+signature: 2420 bytes
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#Verify">func Verify(pk *PublicKey, message []byte, signature []byte, opts *Options) error</a></dd>
+			
+			
+				
+				<dd><a href="#Options">type Options</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Options.HashFunc">func (opts *Options) HashFunc() crypto.Hash</a></dd>
+				
+			
+				
+				<dd><a href="#Parameters">type Parameters</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLDSA44">func MLDSA44() Parameters</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLDSA65">func MLDSA65() Parameters</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLDSA87">func MLDSA87() Parameters</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Parameters.PublicKeySize">func (params Parameters) PublicKeySize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parameters.SignatureSize">func (params Parameters) SignatureSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parameters.String">func (params Parameters) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GenerateKey">func GenerateKey(params Parameters) (*PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPrivateKey">func NewPrivateKey(params Parameters, seed []byte) (*PrivateKey, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Bytes">func (sk *PrivateKey) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Equal">func (sk *PrivateKey) Equal(x crypto.PrivateKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Public">func (sk *PrivateKey) Public() crypto.PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.PublicKey">func (sk *PrivateKey) PublicKey() *PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Sign">func (sk *PrivateKey) Sign(_ io.Reader, message []byte, opts crypto.SignerOpts) (signature []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.SignDeterministic">func (sk *PrivateKey) SignDeterministic(message []byte, opts crypto.SignerOpts) (signature []byte, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPublicKey">func NewPublicKey(params Parameters, encoding []byte) (*PublicKey, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Bytes">func (pk *PublicKey) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Equal">func (pk *PublicKey) Equal(x crypto.PublicKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Parameters">func (pk *PublicKey) Parameters() Parameters</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/mldsa/mldsa.go">mldsa.go</a>
+			
+				<a href="/src/crypto/mldsa/mldsa_fips140v1.26.go">mldsa_fips140v1.26.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span id="PrivateKeySize">PrivateKeySize</span> = 32
+
+    <span id="MLDSA44PublicKeySize">MLDSA44PublicKeySize</span> = 1312
+    <span id="MLDSA65PublicKeySize">MLDSA65PublicKeySize</span> = 1952
+    <span id="MLDSA87PublicKeySize">MLDSA87PublicKeySize</span> = 2592
+
+    <span id="MLDSA44SignatureSize">MLDSA44SignatureSize</span> = 2420
+    <span id="MLDSA65SignatureSize">MLDSA65SignatureSize</span> = 3309
+    <span id="MLDSA87SignatureSize">MLDSA87SignatureSize</span> = 4627
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="Verify">func <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=6021:6102#L205">Verify</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func Verify(pk *<a href="#PublicKey">PublicKey</a>, message []<a href="/pkg/builtin/#byte">byte</a>, signature []<a href="/pkg/builtin/#byte">byte</a>, opts *<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Verify reports whether signature is a valid signature of message by pk.
+If opts is nil, it&apos;s equivalent to the zero value of Options.
+
+			
+		
+		
+			
+			<h2 id="Options">type <a href="/src/crypto/mldsa/mldsa.go?s=2547:2813#L76">Options</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Options contains additional options for signing and verifying ML-DSA signatures.
+
+			<pre>type Options struct {
+<span id="Options.Context"></span>    <span class="comment">// Context can be used to distinguish signatures created for different</span>
+    <span class="comment">// purposes. It must be at most 255 bytes long, and it is empty by default.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The same context must be used when signing and verifying a signature.</span>
+    Context <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Options.HashFunc">func (*Options) <a href="/src/crypto/mldsa/mldsa.go?s=2889:2932#L85">HashFunc</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (opts *<a href="#Options">Options</a>) HashFunc() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a></pre>
+				<p>HashFunc returns zero, to implement the <a href="/pkg/crypto/#SignerOpts">crypto.SignerOpts</a> interface.
+
+				
+			
+		
+			
+			<h2 id="Parameters">type <a href="/src/crypto/mldsa/mldsa.go?s=1229:1315#L27">Parameters</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Parameters represents one of the fixed parameter sets defined in FIPS 204.
+<p>Most applications should use <a href="#MLDSA44">MLDSA44</a>.
+<p>Multiple invocations of <a href="#MLDSA44">MLDSA44</a>, <a href="#MLDSA65">MLDSA65</a>, or <a href="#MLDSA87">MLDSA87</a> will return the
+same respective value, which can be used for equality checks and switch
+statements. The returned value is safe for concurrent use.
+
+			<pre>type Parameters struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MLDSA44">func <a href="/src/crypto/mldsa/mldsa.go?s=1385:1410#L34">MLDSA44</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MLDSA44() <a href="#Parameters">Parameters</a></pre>
+				<p>MLDSA44 returns the ML-DSA-44 parameter set defined in FIPS 204.
+
+				
+			
+				<h3 id="MLDSA65">func <a href="/src/crypto/mldsa/mldsa.go?s=1615:1640#L43">MLDSA65</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MLDSA65() <a href="#Parameters">Parameters</a></pre>
+				<p>MLDSA65 returns the ML-DSA-65 parameter set defined in FIPS 204.
+
+				
+			
+				<h3 id="MLDSA87">func <a href="/src/crypto/mldsa/mldsa.go?s=1845:1870#L52">MLDSA87</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MLDSA87() <a href="#Parameters">Parameters</a></pre>
+				<p>MLDSA87 returns the ML-DSA-87 parameter set defined in FIPS 204.
+
+				
+			
+
+			
+				<h3 id="Parameters.PublicKeySize">func (Parameters) <a href="/src/crypto/mldsa/mldsa.go?s=2090:2134#L61">PublicKeySize</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (params <a href="#Parameters">Parameters</a>) PublicKeySize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>PublicKeySize returns the size of public keys for this parameter set, in bytes.
+
+				
+			
+				<h3 id="Parameters.SignatureSize">func (Parameters) <a href="/src/crypto/mldsa/mldsa.go?s=2251:2295#L66">SignatureSize</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (params <a href="#Parameters">Parameters</a>) SignatureSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>SignatureSize returns the size of signatures for this parameter set, in bytes.
+
+				
+			
+				<h3 id="Parameters.String">func (Parameters) <a href="/src/crypto/mldsa/mldsa.go?s=2397:2437#L71">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (params <a href="#Parameters">Parameters</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String returns the name of the parameter set, e.g. &quot;ML-DSA-44&quot;.
+
+				
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=458:504#L10">PrivateKey</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>PrivateKey is an in-memory ML-DSA private key. It implements <a href="/pkg/crypto/#Signer">crypto.Signer</a>
+and the informal extended <a href="/pkg/crypto/#PrivateKey">crypto.PrivateKey</a> interface.
+<p>A PrivateKey is safe for concurrent use.
+
+			<pre>type PrivateKey struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="GenerateKey">func <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=632:688#L17">GenerateKey</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func GenerateKey(params <a href="#Parameters">Parameters</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GenerateKey generates a new random ML-DSA private key.
+
+				
+			
+				<h3 id="NewPrivateKey">func <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=1097:1168#L33">NewPrivateKey</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func NewPrivateKey(params <a href="#Parameters">Parameters</a>, seed []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewPrivateKey decodes an ML-DSA private key from the given seed.
+<p>The seed must be exactly <a href="#PrivateKeySize">PrivateKeySize</a> bytes long.
+
+				
+			
+
+			
+				<h3 id="PrivateKey.Bytes">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=2437:2473#L80">Bytes</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes returns the private key seed.
+
+				
+			
+				<h3 id="PrivateKey.Equal">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=1866:1919#L63">Equal</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal reports whether sk and x are the same key (i.e. they are derived from
+the same seed).
+<p>If x is not a *PrivateKey, Equal returns false.
+
+				
+			
+				<h3 id="PrivateKey.Public">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=1638:1685#L55">Public</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) Public() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a></pre>
+				<p>Public returns the corresponding <a href="#PublicKey">PublicKey</a> for this private key.
+<p>It implements the <a href="/pkg/crypto/#Signer">crypto.Signer</a> interface.
+
+				
+			
+				<h3 id="PrivateKey.PublicKey">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=2101:2145#L72">PublicKey</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) PublicKey() *<a href="#PublicKey">PublicKey</a></pre>
+				<p>PublicKey returns the corresponding <a href="#PublicKey">PublicKey</a> for this private key.
+
+				
+			
+				<h3 id="PrivateKey.Sign">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=3087:3196#L95">Sign</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) Sign(_ <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, message []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Sign returns a signature of the given message using this private key.
+<p>If opts is nil or opts.HashFunc returns zero, the message is signed directly.
+If opts.HashFunc returns <a href="/pkg/crypto/#MLDSAMu">crypto.MLDSAMu</a>, the provided message must be a
+<a href="https://www.rfc-editor.org/rfc/rfc9881.html#externalmu">pre-hashed μ message representative</a>. opts can be of type *<a href="#Options">Options</a> if a
+context string is desired along with a directly-signed message. The io.Reader
+argument is ignored.
+
+				
+			
+				<h3 id="PrivateKey.SignDeterministic">func (*PrivateKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=3724:3833#L118">SignDeterministic</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (sk *<a href="#PrivateKey">PrivateKey</a>) SignDeterministic(message []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>SignDeterministic works like <a href="#PrivateKey.Sign">PrivateKey.Sign</a>, but the signature is
+deterministic.
+
+				
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=4450:4494#L143">PublicKey</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>PublicKey is an ML-DSA public key. It implements the informal extended
+<a href="/pkg/crypto/#PublicKey">crypto.PublicKey</a> interface.
+<p>A PublicKey is safe for concurrent use.
+
+			<pre>type PublicKey struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewPublicKey">func <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=4569:4642#L148">NewPublicKey</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func NewPublicKey(params <a href="#Parameters">Parameters</a>, encoding []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewPublicKey creates a new ML-DSA public key from the given encoding.
+
+				
+			
+
+			
+				<h3 id="PublicKey.Bytes">func (*PublicKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=5191:5226#L173">Bytes</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (pk *<a href="#PublicKey">PublicKey</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes returns the public key encoding.
+
+				
+			
+				<h3 id="PublicKey.Equal">func (*PublicKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=5396:5447#L181">Equal</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (pk *<a href="#PublicKey">PublicKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal reports whether pk and x are the same key (i.e. they have the same
+encoding).
+<p>If x is not a *PublicKey, Equal returns false.
+
+				
+			
+				<h3 id="PublicKey.Parameters">func (*PublicKey) <a href="/src/crypto/mldsa/mldsa_fips140v1.26.go?s=5625:5669#L190">Parameters</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (pk *<a href="#PublicKey">PublicKey</a>) Parameters() <a href="#Parameters">Parameters</a></pre>
+				<p>Parameters returns the parameters associated with this public key.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

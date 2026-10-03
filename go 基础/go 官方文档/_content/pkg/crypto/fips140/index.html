@@ -1,0 +1,141 @@
+<!--{
+  "Title": "crypto/fips140 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package fips140</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/fips140"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>fips140 包提供有关 FIPS 140-3 Go 密码模块及 FIPS 140-3 模式的信息。
+<p>更多细节请参阅 <a href="/doc/security/fips140">FIPS 140-3 文档</a>。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Enabled">func Enabled() bool</a></dd>
+			
+				<dd><a href="#Enforced">func Enforced() bool</a></dd>
+			
+				<dd><a href="#Version">func Version() string</a></dd>
+			
+				<dd><a href="#WithoutEnforcement">func WithoutEnforcement(f func())</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/fips140/enforcement.go">enforcement.go</a>
+			
+				<a href="/src/crypto/fips140/fips140.go">fips140.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Enabled">func <a href="/src/crypto/fips140/fips140.go?s=859:878#L16">Enabled</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Enabled() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Enabled 报告密码库是否在 FIPS 140-3 模式下运行。
+<p>可通过 GODEBUG 设置 &quot;fips140&quot; 在运行时控制此模式。设为 &quot;on&quot; 时启用 FIPS 140-3 模式。设为 &quot;only&quot; 时，未获批准的密码函数还会返回错误或触发 panic。
+<p>程序启动后不能更改此设置。
+
+			
+		
+			
+			<h2 id="Enforced">func <a href="/src/crypto/fips140/enforcement.go?s=1074:1094#L26">Enforced</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Enforced() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Enforced 表示是否启用了严格的 FIPS 140-3 强制检查。当程序以 GODEBUG=fips140=only 运行，且未通过调用 <a href="#WithoutEnforcement">WithoutEnforcement</a> 禁用强制检查时，即启用严格检查。
+
+			
+		
+			
+			<h2 id="Version">func <a href="/src/crypto/fips140/fips140.go?s=1685:1706#L34">Version</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Version() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>如果通过 GOFIPS140 使用冻结模块构建，Version 返回该模块安全策略中记载的 FIPS 140-3 Go 密码模块版本（例如 &quot;v1.0.0&quot;）。否则返回 &quot;latest&quot;。如果使用了别名（例如 &quot;inprogress&quot;），则返回实际解析得到的版本。
+<p>如果同一版本存在多份冻结模块，返回的版本可能无法唯一标识构建程序所用的冻结模块。可检查 runtime/debug.BuildInfo.Settings 中 GOFIPS140 设置的值，获取能够唯一标识模块的版本后缀。
+
+			
+		
+			
+			<h2 id="WithoutEnforcement">func <a href="/src/crypto/fips140/enforcement.go?s=666:699#L11">WithoutEnforcement</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func WithoutEnforcement(f func())</pre>
+			<p>WithoutEnforcement 在执行 f 期间禁用严格的 FIPS 140-3 强制检查。如果尚未启用严格检查（未设置 GODEBUG=fips140=only，或已经位于 WithoutEnforcement 调用内部），调用 WithoutEnforcement 不产生额外作用。
+<p>执行 f 期间启动的所有 goroutine 都会继承 WithoutEnforcement 的效果。
+<p>由于此函数会禁用强制检查，应谨慎地将其用于范围严格受限的函数。
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

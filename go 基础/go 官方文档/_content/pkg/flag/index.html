@@ -1,0 +1,1545 @@
+<!--{
+  "Title": "flag 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>flag 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "flag"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>flag 包实现命令行标志解析。
+<h3 id="hdr-Usage">用法</h3>
+<p>使用 <a href="#String">flag.String</a>、<a href="#Bool">Bool</a>、<a href="#Int">Int</a> 等函数定义标志。
+<p>下面声明了一个整数标志 -n，其值存储在指针 nFlag 指向的位置，nFlag 的类型为 *int：
+<pre>import &quot;flag&quot;
+var nFlag = flag.Int(&quot;n&quot;, 1234, &quot;help message for flag n&quot;)
+</pre>
+<p>也可以使用 Var() 系列函数将标志绑定到变量。
+<pre>var flagvar int
+func init() {
+	flag.IntVar(&amp;flagvar, &quot;flagname&quot;, 1234, &quot;help message for flagname&quot;)
+}
+</pre>
+<p>还可以创建满足 Value 接口的自定义标志（使用指针接收者），然后将其接入标志解析流程：
+<pre>flag.Var(&amp;flagVal, &quot;name&quot;, &quot;help message for flagname&quot;)
+</pre>
+<p>对于这样的标志，默认值就是变量的初始值。
+<p>定义完所有标志后，调用
+<pre>flag.Parse()
+</pre>
+<p>将命令行解析为已定义标志的值。
+<p>之后便可以直接使用这些标志。如果直接使用定义函数返回的标志，它们都是指针；如果绑定到了变量，则使用变量的值。
+<pre>fmt.Println(&quot;ip has value &quot;, *ip)
+fmt.Println(&quot;flagvar has value &quot;, flagvar)
+</pre>
+<p>解析后，标志之后的参数可以通过切片 <a href="#Args">flag.Args</a> 获取，也可以通过 <a href="#Arg">flag.Arg</a>(i) 逐个获取。参数索引从 0 到 <a href="#NArg">flag.NArg</a>-1。
+<h3 id="hdr-Command_line_flag_syntax">命令行标志语法</h3>
+<p>允许以下形式：
+<pre>-flag
+--flag   // 也允许使用两个连字符
+-flag=x
+-flag x  // 仅适用于非布尔标志
+</pre>
+<p>可以使用一个或两个连字符，两者等价。最后一种形式不适用于布尔标志，因为下面命令的含义
+<pre>cmd -x *
+</pre>
+<p>会因存在名为 0、false 等文件而改变，其中 * 是 Unix shell 通配符。必须使用 -flag=false 形式关闭布尔标志。
+<p>标志解析会在第一个非标志参数之前停止（&quot;-&quot; 是非标志参数），或者在终止符 &quot;--&quot; 之后停止。
+<p>整数标志接受 1234、0664、0x1234 等形式，也可以是负数。布尔标志可以是：
+<pre>1, 0, t, f, T, F, true, false, TRUE, FALSE, True, False
+</pre>
+<p>时长标志接受任何对 time.ParseDuration 有效的输入。
+<p>默认的命令行标志集合由包级函数管理。<a href="#FlagSet">FlagSet</a> 类型允许定义相互独立的标志集合，例如用于实现命令行界面的子命令。<a href="#FlagSet">FlagSet</a> 的方法与管理默认命令行标志集合的包级函数相对应。
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">// 这些示例演示 flag 包更复杂的用法。
+package main
+
+import (
+	"errors"
+	"flag"
+	"fmt"
+	"strings"
+	"time"
+)
+
+// 示例 1：一个名为 "species"、默认值为 "gopher" 的字符串标志。
+var species = flag.String("species", "gopher", "the species we are studying")
+
+// 示例 2：两个标志共享一个变量，以提供简写形式。
+// 初始化顺序未定义，因此要确保两者使用
+// 相同的默认值。必须在 init 函数中设置它们。
+var gopherType string
+
+func init() {
+	const (
+		defaultGopher = "pocket"
+		usage         = "the variety of gopher"
+	)
+	flag.StringVar(&amp;gopherType, "gopher_type", defaultGopher, usage)
+	flag.StringVar(&amp;gopherType, "g", defaultGopher, usage+" (shorthand)")
+}
+
+// 示例 3：自定义标志类型，即时长切片。
+type interval []time.Duration
+
+// String 用于格式化标志值，是 flag.Value 接口的一部分。
+// String 方法的输出用于诊断信息。
+func (i *interval) String() string {
+	return fmt.Sprint(*i)
+}
+
+// Set 用于设置标志值，是 flag.Value 接口的一部分。
+// Set 的参数是需要解析以设置标志的字符串。
+// 它是逗号分隔的列表，因此先进行切分。
+func (i *interval) Set(value string) error {
+	// 如果希望允许多次设置此标志，
+	// 并累积各次的值，可以删除这条 if 语句。
+	// 这样就允许如下用法：
+	//	-deltaT 10s -deltaT 15s
+	// 以及其他组合。
+	if len(*i) &gt; 0 {
+		return errors.New("interval flag already set")
+	}
+	for _, dt := range strings.Split(value, ",") {
+		duration, err := time.ParseDuration(dt)
+		if err != nil {
+			return err
+		}
+		*i = append(*i, duration)
+	}
+	return nil
+}
+
+// 定义一个用于累积时长的标志。由于它具有特殊类型，
+// 需要使用 Var 函数，因此在
+// init 中创建该标志。
+
+var intervalFlag interval
+
+func init() {
+	// 将命令行标志绑定到 intervalFlag 变量，
+	// 并设置用法信息。
+	flag.Var(&amp;intervalFlag, "deltaT", "comma-separated list of intervals to use between events")
+}
+
+func main() {
+	// 关键部分都在上面声明的变量中，但要让
+	// flag 包识别那里定义的标志，就必须
+	// 通常在 main 开头（不是 init！）执行：
+	//	flag.Parse()
+	// 这里不调用它，因为此代码所在的函数名为 "Example"，
+	// 它是本包测试套件的一部分，而测试套件已经
+	// 解析了标志。不过，在 pkg.go.dev 上查看时，此函数
+	// 会被重命名为 "main"，可以作为独立示例运行。
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Arg">func Arg(i int) string</a></dd>
+			
+				<dd><a href="#Args">func Args() []string</a></dd>
+			
+				<dd><a href="#Bool">func Bool(name string, value bool, usage string) *bool</a></dd>
+			
+				<dd><a href="#BoolFunc">func BoolFunc(name, usage string, fn func(string) error)</a></dd>
+			
+				<dd><a href="#BoolVar">func BoolVar(p *bool, name string, value bool, usage string)</a></dd>
+			
+				<dd><a href="#Duration">func Duration(name string, value time.Duration, usage string) *time.Duration</a></dd>
+			
+				<dd><a href="#DurationVar">func DurationVar(p *time.Duration, name string, value time.Duration, usage string)</a></dd>
+			
+				<dd><a href="#Float64">func Float64(name string, value float64, usage string) *float64</a></dd>
+			
+				<dd><a href="#Float64Var">func Float64Var(p *float64, name string, value float64, usage string)</a></dd>
+			
+				<dd><a href="#Func">func Func(name, usage string, fn func(string) error)</a></dd>
+			
+				<dd><a href="#Int">func Int(name string, value int, usage string) *int</a></dd>
+			
+				<dd><a href="#Int64">func Int64(name string, value int64, usage string) *int64</a></dd>
+			
+				<dd><a href="#Int64Var">func Int64Var(p *int64, name string, value int64, usage string)</a></dd>
+			
+				<dd><a href="#IntVar">func IntVar(p *int, name string, value int, usage string)</a></dd>
+			
+				<dd><a href="#NArg">func NArg() int</a></dd>
+			
+				<dd><a href="#NFlag">func NFlag() int</a></dd>
+			
+				<dd><a href="#Parse">func Parse()</a></dd>
+			
+				<dd><a href="#Parsed">func Parsed() bool</a></dd>
+			
+				<dd><a href="#PrintDefaults">func PrintDefaults()</a></dd>
+			
+				<dd><a href="#Set">func Set(name, value string) error</a></dd>
+			
+				<dd><a href="#String">func String(name string, value string, usage string) *string</a></dd>
+			
+				<dd><a href="#StringVar">func StringVar(p *string, name string, value string, usage string)</a></dd>
+			
+				<dd><a href="#TextVar">func TextVar(p encoding.TextUnmarshaler, name string, value encoding.TextMarshaler, usage string)</a></dd>
+			
+				<dd><a href="#Uint">func Uint(name string, value uint, usage string) *uint</a></dd>
+			
+				<dd><a href="#Uint64">func Uint64(name string, value uint64, usage string) *uint64</a></dd>
+			
+				<dd><a href="#Uint64Var">func Uint64Var(p *uint64, name string, value uint64, usage string)</a></dd>
+			
+				<dd><a href="#UintVar">func UintVar(p *uint, name string, value uint, usage string)</a></dd>
+			
+				<dd><a href="#UnquoteUsage">func UnquoteUsage(flag *Flag) (name string, usage string)</a></dd>
+			
+				<dd><a href="#Var">func Var(value Value, name string, usage string)</a></dd>
+			
+				<dd><a href="#Visit">func Visit(fn func(*Flag))</a></dd>
+			
+				<dd><a href="#VisitAll">func VisitAll(fn func(*Flag))</a></dd>
+			
+			
+				
+				<dd><a href="#ErrorHandling">type ErrorHandling</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Flag">type Flag</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lookup">func Lookup(name string) *Flag</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FlagSet">type FlagSet</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFlagSet">func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Arg">func (f *FlagSet) Arg(i int) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Args">func (f *FlagSet) Args() []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Bool">func (f *FlagSet) Bool(name string, value bool, usage string) *bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.BoolFunc">func (f *FlagSet) BoolFunc(name, usage string, fn func(string) error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.BoolVar">func (f *FlagSet) BoolVar(p *bool, name string, value bool, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Duration">func (f *FlagSet) Duration(name string, value time.Duration, usage string) *time.Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.DurationVar">func (f *FlagSet) DurationVar(p *time.Duration, name string, value time.Duration, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.ErrorHandling">func (f *FlagSet) ErrorHandling() ErrorHandling</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Float64">func (f *FlagSet) Float64(name string, value float64, usage string) *float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Float64Var">func (f *FlagSet) Float64Var(p *float64, name string, value float64, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Func">func (f *FlagSet) Func(name, usage string, fn func(string) error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Init">func (f *FlagSet) Init(name string, errorHandling ErrorHandling)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Int">func (f *FlagSet) Int(name string, value int, usage string) *int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Int64">func (f *FlagSet) Int64(name string, value int64, usage string) *int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Int64Var">func (f *FlagSet) Int64Var(p *int64, name string, value int64, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.IntVar">func (f *FlagSet) IntVar(p *int, name string, value int, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Lookup">func (f *FlagSet) Lookup(name string) *Flag</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.NArg">func (f *FlagSet) NArg() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.NFlag">func (f *FlagSet) NFlag() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Name">func (f *FlagSet) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Output">func (f *FlagSet) Output() io.Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Parse">func (f *FlagSet) Parse(arguments []string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Parsed">func (f *FlagSet) Parsed() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.PrintDefaults">func (f *FlagSet) PrintDefaults()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Set">func (f *FlagSet) Set(name, value string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.SetOutput">func (f *FlagSet) SetOutput(output io.Writer)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.String">func (f *FlagSet) String(name string, value string, usage string) *string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.StringVar">func (f *FlagSet) StringVar(p *string, name string, value string, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.TextVar">func (f *FlagSet) TextVar(p encoding.TextUnmarshaler, name string, value encoding.TextMarshaler, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Uint">func (f *FlagSet) Uint(name string, value uint, usage string) *uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Uint64">func (f *FlagSet) Uint64(name string, value uint64, usage string) *uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Uint64Var">func (f *FlagSet) Uint64Var(p *uint64, name string, value uint64, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.UintVar">func (f *FlagSet) UintVar(p *uint, name string, value uint, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Var">func (f *FlagSet) Var(value Value, name string, usage string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.Visit">func (f *FlagSet) Visit(fn func(*Flag))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlagSet.VisitAll">func (f *FlagSet) VisitAll(fn func(*Flag))</a></dd>
+				
+			
+				
+				<dd><a href="#Getter">type Getter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_BoolFunc">BoolFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FlagSet">FlagSet</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Func">Func</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TextVar">TextVar</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value">Value</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/flag/flag.go">flag.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>当使用了 -help 或 -h 标志，但并未定义相应标志时，会返回 ErrHelp 错误。
+
+				<pre>var <span id="ErrHelp">ErrHelp</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;flag: help requested&#34;)</pre>
+			
+				<p>Usage 将说明所有已定义命令行标志的用法信息写入 <a href="#CommandLine">CommandLine</a> 的输出，默认输出为 <a href="/pkg/os/#Stderr">os.Stderr</a>。解析标志时发生错误会调用它。该函数本身是一个变量，可以将其改为指向自定义函数。默认情况下，它打印简单的标题，然后调用 <a href="#PrintDefaults">PrintDefaults</a>；输出格式及其控制方式请参阅 <a href="#PrintDefaults">PrintDefaults</a> 文档。自定义用法函数可以自行退出程序；默认情况下，由于命令行错误处理策略设为 <a href="#ExitOnError">ExitOnError</a>，程序无论如何都会退出。
+
+				<pre>var <span id="Usage">Usage</span> = func() {
+    <a href="/pkg/fmt/">fmt</a>.<a href="/pkg/fmt/#Fprintf">Fprintf</a>(<a href="#CommandLine">CommandLine</a>.<a href="#Output">Output</a>(), &#34;Usage of %s:\n&#34;, <a href="/pkg/os/">os</a>.<a href="/pkg/os/#Args">Args</a>[0])
+    <a href="#PrintDefaults">PrintDefaults</a>()
+}</pre>
+			
+		
+		
+			
+			<h2 id="Arg">func <a href="/src/flag/flag.go?s=20944:20966#L720">Arg</a>
+				
+				
+			</h2>
+			<pre>func Arg(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Arg 返回第 i 个命令行参数。Arg(0) 是处理完标志后剩余的第一个参数。如果请求的元素不存在，Arg 返回空字符串。
+
+			
+		
+			
+			<h2 id="Args">func <a href="/src/flag/flag.go?s=21404:21424#L734">Args</a>
+				
+				
+			</h2>
+			<pre>func Args() []<a href="/pkg/builtin/#string">string</a></pre>
+			<p>Args 返回命令行中的非标志参数。
+
+			
+		
+			
+			<h2 id="Bool">func <a href="/src/flag/flag.go?s=22512:22566#L758">Bool</a>
+				
+				
+			</h2>
+			<pre>func Bool(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#bool">bool</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Bool 使用指定名称、默认值和用法字符串定义一个 bool 标志。返回值是用于存储标志值的 bool 变量的地址。
+
+			
+		
+			
+			<h2 id="BoolFunc">func <a href="/src/flag/flag.go?s=33740:33796#L990">BoolFunc</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func BoolFunc(name, usage <a href="/pkg/builtin/#string">string</a>, fn func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>BoolFunc 使用指定名称和用法字符串定义一个无需提供值的标志。每遇到一次该标志，就以标志值调用 fn。如果 fn 返回非 nil 错误，则将其视为标志值解析错误。
+
+			
+
+
+<div id="example_BoolFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;flag&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	fs := flag.NewFlagSet(&#34;ExampleBoolFunc&#34;, flag.ContinueOnError)
+	fs.SetOutput(os.Stdout)
+
+	fs.BoolFunc(&#34;log&#34;, &#34;logs a dummy message&#34;, func(s string) error {
+		fmt.Println(&#34;dummy message:&#34;, s)
+		return nil
+	})
+	fs.Parse([]string{&#34;-log&#34;})
+	fs.Parse([]string{&#34;-log=0&#34;})
+
+}
+</textarea></div>
+        <div class="output"><pre>dummy message: true
+dummy message: 0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="BoolVar">func <a href="/src/flag/flag.go?s=21917:21977#L744">BoolVar</a>
+				
+				
+			</h2>
+			<pre>func BoolVar(p *<a href="/pkg/builtin/#bool">bool</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#bool">bool</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>BoolVar 使用指定名称、默认值和用法字符串定义一个 bool 标志。参数 p 指向用于存储标志值的 bool 变量。
+
+			
+		
+			
+			<h2 id="Duration">func <a href="/src/flag/flag.go?s=31295:31371#L944">Duration</a>
+				
+				
+			</h2>
+			<pre>func Duration(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+			<p>Duration 使用指定名称、默认值和用法字符串定义一个 time.Duration 标志。返回值是用于存储标志值的 time.Duration 变量的地址。此标志接受 time.ParseDuration 可解析的值。
+
+			
+		
+			
+			<h2 id="DurationVar">func <a href="/src/flag/flag.go?s=30471:30553#L928">DurationVar</a>
+				
+				
+			</h2>
+			<pre>func DurationVar(p *<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>DurationVar 使用指定名称、默认值和用法字符串定义一个 time.Duration 标志。参数 p 指向用于存储标志值的 time.Duration 变量。此标志接受 time.ParseDuration 可解析的值。
+
+			
+		
+			
+			<h2 id="Float64">func <a href="/src/flag/flag.go?s=29697:29760#L914">Float64</a>
+				
+				
+			</h2>
+			<pre>func Float64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#float64">float64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#float64">float64</a></pre>
+			<p>Float64 使用指定名称、默认值和用法字符串定义一个 float64 标志。返回值是用于存储标志值的 float64 变量的地址。
+
+			
+		
+			
+			<h2 id="Float64Var">func <a href="/src/flag/flag.go?s=29057:29126#L900">Float64Var</a>
+				
+				
+			</h2>
+			<pre>func Float64Var(p *<a href="/pkg/builtin/#float64">float64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#float64">float64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Float64Var 使用指定名称、默认值和用法字符串定义一个 float64 标志。参数 p 指向用于存储标志值的 float64 变量。
+
+			
+		
+			
+			<h2 id="Func">func <a href="/src/flag/flag.go?s=33033:33085#L976">Func</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func Func(name, usage <a href="/pkg/builtin/#string">string</a>, fn func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Func 使用指定名称和用法字符串定义一个标志。每遇到一次该标志，就以标志值调用 fn。如果 fn 返回非 nil 错误，则将其视为标志值解析错误。
+
+			
+
+
+<div id="example_Func" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"errors"
+	"flag"
+	"fmt"
+	"net"
+	"os"
+)
+
+func main() {
+	fs := flag.NewFlagSet("ExampleFunc", flag.ContinueOnError)
+	fs.SetOutput(os.Stdout)
+	var ip net.IP
+	fs.Func("ip", "`IP address` to parse", func(s string) error {
+		ip = net.ParseIP(s)
+		if ip == nil {
+			return errors.New("could not parse IP")
+		}
+		return nil
+	})
+	fs.Parse([]string{"-ip", "127.0.0.1"})
+	fmt.Printf("{ip: %v, loopback: %t}\n\n", ip, ip.IsLoopback())
+
+	// 256 不是有效的 IPv4 地址分量
+	fs.Parse([]string{"-ip", "256.0.0.1"})
+	fmt.Printf("{ip: %v, loopback: %t}\n\n", ip, ip.IsLoopback())
+
+}
+</textarea></div>
+        <div class="output"><pre>{ip: 127.0.0.1, loopback: true}
+
+invalid value &#34;256.0.0.1&#34; for flag -ip: could not parse IP
+Usage of ExampleFunc:
+  -ip IP address
+    	IP address to parse
+{ip: &lt;nil&gt;, loopback: false}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Int">func <a href="/src/flag/flag.go?s=23658:23709#L784">Int</a>
+				
+				
+			</h2>
+			<pre>func Int(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int">int</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#int">int</a></pre>
+			<p>Int 使用指定名称、默认值和用法字符串定义一个 int 标志。返回值是用于存储标志值的 int 变量的地址。
+
+			
+		
+			
+			<h2 id="Int64">func <a href="/src/flag/flag.go?s=24850:24907#L810">Int64</a>
+				
+				
+			</h2>
+			<pre>func Int64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int64">int64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>Int64 使用指定名称、默认值和用法字符串定义一个 int64 标志。返回值是用于存储标志值的 int64 变量的地址。
+
+			
+		
+			
+			<h2 id="Int64Var">func <a href="/src/flag/flag.go?s=24236:24299#L796">Int64Var</a>
+				
+				
+			</h2>
+			<pre>func Int64Var(p *<a href="/pkg/builtin/#int64">int64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int64">int64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Int64Var 使用指定名称、默认值和用法字符串定义一个 int64 标志。参数 p 指向用于存储标志值的 int64 变量。
+
+			
+		
+			
+			<h2 id="IntVar">func <a href="/src/flag/flag.go?s=23074:23131#L770">IntVar</a>
+				
+				
+			</h2>
+			<pre>func IntVar(p *<a href="/pkg/builtin/#int">int</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int">int</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>IntVar 使用指定名称、默认值和用法字符串定义一个 int 标志。参数 p 指向用于存储标志值的 int 变量。
+
+			
+		
+			
+			<h2 id="NArg">func <a href="/src/flag/flag.go?s=21208:21223#L728">NArg</a>
+				
+				
+			</h2>
+			<pre>func NArg() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NArg 返回处理完标志后剩余的参数数量。
+
+			
+		
+			
+			<h2 id="NFlag">func <a href="/src/flag/flag.go?s=20410:20426#L705">NFlag</a>
+				
+				
+			</h2>
+			<pre>func NFlag() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NFlag 返回已设置的命令行标志数量。
+
+			
+		
+			
+			<h2 id="Parse">func <a href="/src/flag/flag.go?s=39209:39221#L1176">Parse</a>
+				
+				
+			</h2>
+			<pre>func Parse()</pre>
+			<p>Parse 从 <a href="/pkg/os/#Args">os.Args</a>[1:] 解析命令行标志。必须在所有标志定义完成之后、程序访问标志之前调用。
+
+			
+		
+			
+			<h2 id="Parsed">func <a href="/src/flag/flag.go?s=39381:39399#L1182">Parsed</a>
+				
+				
+			</h2>
+			<pre>func Parsed() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Parsed 报告命令行标志是否已经解析。
+
+			
+		
+			
+			<h2 id="PrintDefaults">func <a href="/src/flag/flag.go?s=19038:19058#L669">PrintDefaults</a>
+				
+				
+			</h2>
+			<pre>func PrintDefaults()</pre>
+			<p>PrintDefaults 打印用法信息，显示所有已定义命令行标志的默认设置。除非另行配置，否则写入标准错误。对于整数类型的标志 x，默认输出形式为：
+<pre>-x int
+	usage-message-for-x (default 7)
+</pre>
+<p>除名称只有一个字节的布尔标志外，用法信息都显示在单独一行。对于布尔标志，省略类型；如果标志名称只有一个字节，用法信息显示在同一行。如果默认值是该类型的零值，则省略括号中的默认值。可以在标志的用法字符串中放入一个以反引号括起的名称，以更改显示的类型（此处为 int）：用法信息中的第一个此类名称被视为要显示的参数名，显示时会去掉反引号。例如，给定
+<pre>flag.String(&quot;I&quot;, &quot;&quot;, &quot;search `directory` for include files&quot;)
+</pre>
+<p>输出为
+<pre>-I directory
+	search directory for include files.
+</pre>
+<p>若要更改标志消息的输出目标，请调用 <a href="#CommandLine">CommandLine</a>.SetOutput。
+
+			
+		
+			
+			<h2 id="Set">func <a href="/src/flag/flag.go?s=14014:14048#L522">Set</a>
+				
+				
+			</h2>
+			<pre>func Set(name, value <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Set 设置指定名称的命令行标志的值。
+
+			
+		
+			
+			<h2 id="String">func <a href="/src/flag/flag.go?s=28451:28511#L888">String</a>
+				
+				
+			</h2>
+			<pre>func String(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#string">string</a></pre>
+			<p>String 使用指定名称、默认值和用法字符串定义一个 string 标志。返回值是用于存储标志值的 string 变量的地址。
+
+			
+		
+			
+			<h2 id="StringVar">func <a href="/src/flag/flag.go?s=27826:27892#L874">StringVar</a>
+				
+				
+			</h2>
+			<pre>func StringVar(p *<a href="/pkg/builtin/#string">string</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>StringVar 使用指定名称、默认值和用法字符串定义一个 string 标志。参数 p 指向用于存储标志值的 string 变量。
+
+			
+		
+			
+			<h2 id="TextVar">func <a href="/src/flag/flag.go?s=32328:32425#L962">TextVar</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func TextVar(p <a href="/pkg/encoding/">encoding</a>.<a href="/pkg/encoding/#TextUnmarshaler">TextUnmarshaler</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/encoding/">encoding</a>.<a href="/pkg/encoding/#TextMarshaler">TextMarshaler</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>TextVar 使用指定名称、默认值和用法字符串定义一个标志。参数 p 必须指向用于保存标志值的变量，并且必须实现 encoding.TextUnmarshaler。如果使用了该标志，就会将其值传给 p 的 UnmarshalText 方法。默认值的类型必须与 p 的类型相同。
+
+			
+
+
+<div id="example_TextVar" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"flag"
+	"fmt"
+	"net"
+	"os"
+)
+
+func main() {
+	fs := flag.NewFlagSet("ExampleTextVar", flag.ContinueOnError)
+	fs.SetOutput(os.Stdout)
+	var ip net.IP
+	fs.TextVar(&amp;ip, "ip", net.IPv4(192, 168, 0, 100), "`IP address` to parse")
+	fs.Parse([]string{"-ip", "127.0.0.1"})
+	fmt.Printf("{ip: %v}\n\n", ip)
+
+	// 256 不是有效的 IPv4 地址分量
+	ip = nil
+	fs.Parse([]string{"-ip", "256.0.0.1"})
+	fmt.Printf("{ip: %v}\n\n", ip)
+
+}
+</textarea></div>
+        <div class="output"><pre>{ip: 127.0.0.1}
+
+invalid value &#34;256.0.0.1&#34; for flag -ip: invalid IP address: 256.0.0.1
+Usage of ExampleTextVar:
+  -ip IP address
+    	IP address to parse (default 192.168.0.100)
+{ip: &lt;nil&gt;}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Uint">func <a href="/src/flag/flag.go?s=26017:26071#L836">Uint</a>
+				
+				
+			</h2>
+			<pre>func Uint(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint">uint</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#uint">uint</a></pre>
+			<p>Uint 使用指定名称、默认值和用法字符串定义一个 uint 标志。返回值是用于存储标志值的 uint 变量的地址。
+
+			
+		
+			
+			<h2 id="Uint64">func <a href="/src/flag/flag.go?s=27230:27290#L862">Uint64</a>
+				
+				
+			</h2>
+			<pre>func Uint64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint64">uint64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Uint64 使用指定名称、默认值和用法字符串定义一个 uint64 标志。返回值是用于存储标志值的 uint64 变量的地址。
+
+			
+		
+			
+			<h2 id="Uint64Var">func <a href="/src/flag/flag.go?s=26605:26671#L848">Uint64Var</a>
+				
+				
+			</h2>
+			<pre>func Uint64Var(p *<a href="/pkg/builtin/#uint64">uint64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint64">uint64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Uint64Var 使用指定名称、默认值和用法字符串定义一个 uint64 标志。参数 p 指向用于存储标志值的 uint64 变量。
+
+			
+		
+			
+			<h2 id="UintVar">func <a href="/src/flag/flag.go?s=25422:25482#L822">UintVar</a>
+				
+				
+			</h2>
+			<pre>func UintVar(p *<a href="/pkg/builtin/#uint">uint</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint">uint</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>UintVar 使用指定名称、默认值和用法字符串定义一个 uint 标志。参数 p 指向用于存储标志值的 uint 变量。
+
+			
+		
+			
+			<h2 id="UnquoteUsage">func <a href="/src/flag/flag.go?s=15392:15449#L558">UnquoteUsage</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func UnquoteUsage(flag *<a href="#Flag">Flag</a>) (name <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>UnquoteUsage 从标志的用法字符串中提取以反引号括起的名称，返回该名称以及去掉反引号的用法字符串。对于 &quot;a `name` to show&quot;，返回 (&quot;name&quot;, &quot;a name to show&quot;)。如果没有反引号，则根据标志值的类型合理推断名称；如果是布尔标志，则名称为空字符串。
+
+			
+		
+			
+			<h2 id="Var">func <a href="/src/flag/flag.go?s=35644:35692#L1035">Var</a>
+				
+				
+			</h2>
+			<pre>func Var(value <a href="#Value">Value</a>, name <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Var 使用指定名称和用法字符串定义一个标志。标志的类型和值由第一个参数表示，该参数的类型为 <a href="#Value">Value</a>，通常保存用户自定义的 <a href="#Value">Value</a> 实现。例如，调用方可以为切片提供 <a href="#Value">Value</a> 的方法，从而创建一个将逗号分隔字符串转换为字符串切片的标志；具体来说，<a href="#Set">Set</a> 会将逗号分隔的字符串拆解为该切片。
+
+			
+		
+			
+			<h2 id="Visit">func <a href="/src/flag/flag.go?s=12568:12594#L468">Visit</a>
+				
+				
+			</h2>
+			<pre>func Visit(fn func(*<a href="#Flag">Flag</a>))</pre>
+			<p>Visit 按字典序访问命令行标志，对每个标志调用 fn。它只访问已设置的标志。
+
+			
+		
+			
+			<h2 id="VisitAll">func <a href="/src/flag/flag.go?s=12145:12174#L454">VisitAll</a>
+				
+				
+			</h2>
+			<pre>func VisitAll(fn func(*<a href="#Flag">Flag</a>))</pre>
+			<p>VisitAll 按字典序访问命令行标志，对每个标志调用 fn。它访问所有标志，包括未设置的标志。
+
+			
+		
+		
+			
+			<h2 id="ErrorHandling">type <a href="/src/flag/flag.go?s=9205:9227#L365">ErrorHandling</a>
+				
+				
+			</h2>
+			<p>ErrorHandling 定义 <a href="#FlagSet.Parse">FlagSet.Parse</a> 在解析失败时的行为。
+
+			<pre>type ErrorHandling <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>这些常量决定 <a href="#FlagSet.Parse">FlagSet.Parse</a> 在解析失败时执行下述行为。
+
+				<pre>const (
+    <span id="ContinueOnError">ContinueOnError</span> <a href="#ErrorHandling">ErrorHandling</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 返回描述性的错误。</span>
+    <span id="ExitOnError">ExitOnError</span>                          <span class="comment">// 调用 os.Exit(2)；对于 -h/-help 则调用 Exit(0)。</span>
+    <span id="PanicOnError">PanicOnError</span>                         <span class="comment">// 使用描述性的错误调用 panic。</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Flag">type <a href="/src/flag/flag.go?s=10596:10800#L398">Flag</a>
+				
+				
+			</h2>
+			<p>Flag 表示一个标志的状态。
+
+			<pre>type Flag struct {
+<span id="Flag.Name"></span>    Name     <a href="/pkg/builtin/#string">string</a> <span class="comment">// 命令行中显示的名称</span>
+<span id="Flag.Usage"></span>    Usage    <a href="/pkg/builtin/#string">string</a> <span class="comment">// 帮助信息</span>
+<span id="Flag.Value"></span>    Value    <a href="#Value">Value</a>  <span class="comment">// 设置的值</span>
+<span id="Flag.DefValue"></span>    DefValue <a href="/pkg/builtin/#string">string</a> <span class="comment">// 默认值（文本形式），用于用法信息</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Lookup">func <a href="/src/flag/flag.go?s=12887:12917#L479">Lookup</a>
+					
+					
+				</h3>
+				<pre>func Lookup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Flag">Flag</a></pre>
+				<p>Lookup 返回指定名称的命令行标志的 <a href="#Flag">Flag</a> 结构；如果不存在，则返回 nil。
+
+				
+			
+
+			
+		
+			
+			<h2 id="FlagSet">type <a href="/src/flag/flag.go?s=9818:10552#L379">FlagSet</a>
+				
+				
+			</h2>
+			<p>FlagSet 表示一组已定义的标志。FlagSet 的零值没有名称，采用 <a href="#ContinueOnError">ContinueOnError</a> 错误处理方式。
+<p><a href="#Flag">Flag</a> 的名称在同一个 FlagSet 中必须唯一。尝试定义名称已被使用的标志会触发 panic。
+
+			<pre>type FlagSet struct {
+<span id="FlagSet.Usage"></span>    <span class="comment">// Usage 是解析标志时发生错误所调用的函数。</span>
+    <span class="comment">// 此字段是函数（不是方法），可以改为指向</span>
+    <span class="comment">// 自定义错误处理函数。调用 Usage 之后的行为取决于</span>
+    <span class="comment">// ErrorHandling 设置；对于命令行，默认设置</span>
+    <span class="comment">// 为 ExitOnError，即调用 Usage 后退出程序。</span>
+    Usage func()
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+				<p>CommandLine 是默认的命令行标志集合，从 <a href="/pkg/os/#Args">os.Args</a> 解析。<a href="#BoolVar">BoolVar</a>、<a href="#Arg">Arg</a> 等包级函数都是对 CommandLine 相应方法的封装。
+
+				<pre>var <span id="CommandLine">CommandLine</span> *<a href="#FlagSet">FlagSet</a></pre>
+			
+
+			
+
+
+<div id="example_FlagSet" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"flag"
+	"fmt"
+	"time"
+)
+
+func main() {
+
+	start := func(args []string) {
+		// 实际程序（而非示例）应使用 flag.ExitOnError。
+		fs := flag.NewFlagSet("start", flag.ContinueOnError)
+		addr := fs.String("addr", ":8080", "`address` to listen on")
+		if err := fs.Parse(args); err != nil {
+			fmt.Printf("error: %s", err)
+			return
+		}
+		fmt.Printf("starting server on %s\n", *addr)
+	}
+
+	stop := func(args []string) {
+		fs := flag.NewFlagSet("stop", flag.ContinueOnError)
+		timeout := fs.Duration("timeout", time.Second, "stop timeout duration")
+		if err := fs.Parse(args); err != nil {
+			fmt.Printf("error: %s", err)
+			return
+		}
+		fmt.Printf("stopping server (timeout=%v)\n", *timeout)
+	}
+
+	main := func(args []string) {
+		subArgs := args[2:] // 去掉程序名和命令名。
+		switch args[1] {
+		case "start":
+			start(subArgs)
+		case "stop":
+			stop(subArgs)
+		default:
+			fmt.Printf("error: unknown command - %q\n", args[1])
+			// 实际程序（而非示例）应输出到 os.Stderr，并以非零退出码结束。
+		}
+	}
+
+	main([]string{"httpd", "start", "-addr", ":9999"})
+	main([]string{"httpd", "stop"})
+	main([]string{"http", "start", "-log-level", "verbose"})
+
+}
+</textarea></div>
+        <div class="output"><pre>starting server on :9999
+stopping server (timeout=1s)
+error: flag provided but not defined: -log-level
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewFlagSet">func <a href="/src/flag/flag.go?s=40375:40441#L1213">NewFlagSet</a>
+					
+					
+				</h3>
+				<pre>func NewFlagSet(name <a href="/pkg/builtin/#string">string</a>, errorHandling <a href="#ErrorHandling">ErrorHandling</a>) *<a href="#FlagSet">FlagSet</a></pre>
+				<p>NewFlagSet 返回一个新的空标志集合，使用指定名称和错误处理方式。如果名称非空，就会显示在默认用法信息和错误信息中。
+
+				
+			
+
+			
+				<h3 id="FlagSet.Arg">func (*FlagSet) <a href="/src/flag/flag.go?s=20644:20679#L710">Arg</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Arg(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Arg 返回第 i 个参数。Arg(0) 是处理完标志后剩余的第一个参数。如果请求的元素不存在，Arg 返回空字符串。
+
+				
+			
+				<h3 id="FlagSet.Args">func (*FlagSet) <a href="/src/flag/flag.go?s=21298:21331#L731">Args</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Args() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>Args 返回非标志参数。
+
+				
+			
+				<h3 id="FlagSet.Bool">func (*FlagSet) <a href="/src/flag/flag.go?s=22208:22275#L750">Bool</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Bool(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#bool">bool</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Bool 使用指定名称、默认值和用法字符串定义一个 bool 标志。返回值是用于存储标志值的 bool 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.BoolFunc">func (*FlagSet) <a href="/src/flag/flag.go?s=33376:33445#L983">BoolFunc</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) BoolFunc(name, usage <a href="/pkg/builtin/#string">string</a>, fn func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>BoolFunc 使用指定名称和用法字符串定义一个无需提供值的标志。每遇到一次该标志，就以标志值调用 fn。如果 fn 返回非 nil 错误，则将其视为标志值解析错误。
+
+				
+			
+				<h3 id="FlagSet.BoolVar">func (*FlagSet) <a href="/src/flag/flag.go?s=21624:21697#L738">BoolVar</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) BoolVar(p *<a href="/pkg/builtin/#bool">bool</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#bool">bool</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>BoolVar 使用指定名称、默认值和用法字符串定义一个 bool 标志。参数 p 指向用于存储标志值的 bool 变量。
+
+				
+			
+				<h3 id="FlagSet.Duration">func (*FlagSet) <a href="/src/flag/flag.go?s=30872:30961#L935">Duration</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Duration(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+				<p>Duration 使用指定名称、默认值和用法字符串定义一个 time.Duration 标志。返回值是用于存储标志值的 time.Duration 变量的地址。此标志接受 time.ParseDuration 可解析的值。
+
+				
+			
+				<h3 id="FlagSet.DurationVar">func (*FlagSet) <a href="/src/flag/flag.go?s=30068:30163#L921">DurationVar</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) DurationVar(p *<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>DurationVar 使用指定名称、默认值和用法字符串定义一个 time.Duration 标志。参数 p 指向用于存储标志值的 time.Duration 变量。此标志接受 time.ParseDuration 可解析的值。
+
+				
+			
+				<h3 id="FlagSet.ErrorHandling">func (*FlagSet) <a href="/src/flag/flag.go?s=11533:11580#L434">ErrorHandling</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) ErrorHandling() <a href="#ErrorHandling">ErrorHandling</a></pre>
+				<p>ErrorHandling 返回标志集合的错误处理方式。
+
+				
+			
+				<h3 id="FlagSet.Float64">func (*FlagSet) <a href="/src/flag/flag.go?s=29369:29445#L906">Float64</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Float64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#float64">float64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>Float64 使用指定名称、默认值和用法字符串定义一个 float64 标志。返回值是用于存储标志值的 float64 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.Float64Var">func (*FlagSet) <a href="/src/flag/flag.go?s=28743:28825#L894">Float64Var</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Float64Var(p *<a href="/pkg/builtin/#float64">float64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#float64">float64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Float64Var 使用指定名称、默认值和用法字符串定义一个 float64 标志。参数 p 指向用于存储标志值的 float64 变量。
+
+				
+			
+				<h3 id="FlagSet.Func">func (*FlagSet) <a href="/src/flag/flag.go?s=32706:32771#L969">Func</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Func(name, usage <a href="/pkg/builtin/#string">string</a>, fn func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Func 使用指定名称和用法字符串定义一个标志。每遇到一次该标志，就以标志值调用 fn。如果 fn 返回非 nil 错误，则将其视为标志值解析错误。
+
+				
+			
+				<h3 id="FlagSet.Init">func (*FlagSet) <a href="/src/flag/flag.go?s=40728:40792#L1225">Init</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Init(name <a href="/pkg/builtin/#string">string</a>, errorHandling <a href="#ErrorHandling">ErrorHandling</a>)</pre>
+				<p>Init 设置标志集合的名称和错误处理方式。默认情况下，零值 <a href="#FlagSet">FlagSet</a> 使用空名称及 <a href="#ContinueOnError">ContinueOnError</a> 错误处理策略。
+
+				
+			
+				<h3 id="FlagSet.Int">func (*FlagSet) <a href="/src/flag/flag.go?s=23360:23424#L776">Int</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Int(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int">int</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#int">int</a></pre>
+				<p>Int 使用指定名称、默认值和用法字符串定义一个 int 标志。返回值是用于存储标志值的 int 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.Int64">func (*FlagSet) <a href="/src/flag/flag.go?s=24536:24606#L802">Int64</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Int64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int64">int64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int64 使用指定名称、默认值和用法字符串定义一个 int64 标志。返回值是用于存储标志值的 int64 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.Int64Var">func (*FlagSet) <a href="/src/flag/flag.go?s=23934:24010#L790">Int64Var</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Int64Var(p *<a href="/pkg/builtin/#int64">int64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int64">int64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Int64Var 使用指定名称、默认值和用法字符串定义一个 int64 标志。参数 p 指向用于存储标志值的 int64 变量。
+
+				
+			
+				<h3 id="FlagSet.IntVar">func (*FlagSet) <a href="/src/flag/flag.go?s=22786:22856#L764">IntVar</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) IntVar(p *<a href="/pkg/builtin/#int">int</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int">int</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>IntVar 使用指定名称、默认值和用法字符串定义一个 int 标志。参数 p 指向用于存储标志值的 int 变量。
+
+				
+			
+				<h3 id="FlagSet.Lookup">func (*FlagSet) <a href="/src/flag/flag.go?s=12711:12754#L473">Lookup</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Lookup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Flag">Flag</a></pre>
+				<p>Lookup 返回指定名称的标志的 <a href="#Flag">Flag</a> 结构；如果不存在，则返回 nil。
+
+				
+			
+				<h3 id="FlagSet.NArg">func (*FlagSet) <a href="/src/flag/flag.go?s=21077:21105#L725">NArg</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) NArg() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NArg 返回处理完标志后剩余的参数数量。
+
+				
+			
+				<h3 id="FlagSet.NFlag">func (*FlagSet) <a href="/src/flag/flag.go?s=20284:20313#L702">NFlag</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) NFlag() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NFlag 返回已设置的标志数量。
+
+				
+			
+				<h3 id="FlagSet.Name">func (*FlagSet) <a href="/src/flag/flag.go?s=11411:11442#L429">Name</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回标志集合的名称。
+
+				
+			
+				<h3 id="FlagSet.Output">func (*FlagSet) <a href="/src/flag/flag.go?s=11266:11302#L421">Output</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Output() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+				<p>Output 返回用法信息和错误信息的输出目标。如果没有设置输出目标，或将其设为 nil，则返回 <a href="/pkg/os/#Stderr">os.Stderr</a>。
+
+				
+			
+				<h3 id="FlagSet.Parse">func (*FlagSet) <a href="/src/flag/flag.go?s=38571:38620#L1143">Parse</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Parse(arguments []<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Parse 根据已定义的标志解析参数列表，该列表不应包含命令名称。必须在 <a href="#FlagSet">FlagSet</a> 中所有标志定义完成之后、程序访问标志之前调用。如果设置了 -help 或 -h，但没有定义相应标志，则返回 <a href="#ErrHelp">ErrHelp</a>。
+
+				
+			
+				<h3 id="FlagSet.Parsed">func (*FlagSet) <a href="/src/flag/flag.go?s=39004:39035#L1170">Parsed</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Parsed() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Parsed 报告是否已经调用 f.Parse。
+
+				
+			
+				<h3 id="FlagSet.PrintDefaults">func (*FlagSet) <a href="/src/flag/flag.go?s=16431:16464#L597">PrintDefaults</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) PrintDefaults()</pre>
+				<p>PrintDefaults 打印集合中所有已定义命令行标志的默认值。除非另行配置，否则写入标准错误。更多信息请参阅包级函数 PrintDefaults 的文档。
+
+				
+			
+				<h3 id="FlagSet.Set">func (*FlagSet) <a href="/src/flag/flag.go?s=12997:13044#L484">Set</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Set(name, value <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Set 设置指定名称的标志的值。
+
+				
+			
+				<h3 id="FlagSet.SetOutput">func (*FlagSet) <a href="/src/flag/flag.go?s=11716:11761#L440">SetOutput</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) SetOutput(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>)</pre>
+				<p>SetOutput 设置用法信息和错误信息的输出目标。如果 output 为 nil，则使用 <a href="/pkg/os/#Stderr">os.Stderr</a>。
+
+				
+			
+				<h3 id="FlagSet.String">func (*FlagSet) <a href="/src/flag/flag.go?s=28131:28204#L880">String</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) String(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 使用指定名称、默认值和用法字符串定义一个 string 标志。返回值是用于存储标志值的 string 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.StringVar">func (*FlagSet) <a href="/src/flag/flag.go?s=27519:27598#L868">StringVar</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) StringVar(p *<a href="/pkg/builtin/#string">string</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>StringVar 使用指定名称、默认值和用法字符串定义一个 string 标志。参数 p 指向用于存储标志值的 string 变量。
+
+				
+			
+				<h3 id="FlagSet.TextVar">func (*FlagSet) <a href="/src/flag/flag.go?s=31797:31907#L953">TextVar</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) TextVar(p <a href="/pkg/encoding/">encoding</a>.<a href="/pkg/encoding/#TextUnmarshaler">TextUnmarshaler</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/encoding/">encoding</a>.<a href="/pkg/encoding/#TextMarshaler">TextMarshaler</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>TextVar 使用指定名称、默认值和用法字符串定义一个标志。参数 p 必须指向用于保存标志值的变量，并且必须实现 encoding.TextUnmarshaler。如果使用了该标志，就会将其值传给 p 的 UnmarshalText 方法。默认值的类型必须与 p 的类型相同。
+
+				
+			
+				<h3 id="FlagSet.Uint">func (*FlagSet) <a href="/src/flag/flag.go?s=25713:25780#L828">Uint</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Uint(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint">uint</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>Uint 使用指定名称、默认值和用法字符串定义一个 uint 标志。返回值是用于存储标志值的 uint 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.Uint64">func (*FlagSet) <a href="/src/flag/flag.go?s=26910:26983#L854">Uint64</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Uint64(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint64">uint64</a>, usage <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 使用指定名称、默认值和用法字符串定义一个 uint64 标志。返回值是用于存储标志值的 uint64 变量的地址。
+
+				
+			
+				<h3 id="FlagSet.Uint64Var">func (*FlagSet) <a href="/src/flag/flag.go?s=26298:26377#L842">Uint64Var</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Uint64Var(p *<a href="/pkg/builtin/#uint64">uint64</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint64">uint64</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Uint64Var 使用指定名称、默认值和用法字符串定义一个 uint64 标志。参数 p 指向用于存储标志值的 uint64 变量。
+
+				
+			
+				<h3 id="FlagSet.UintVar">func (*FlagSet) <a href="/src/flag/flag.go?s=25129:25202#L816">UintVar</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) UintVar(p *<a href="/pkg/builtin/#uint">uint</a>, name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#uint">uint</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>UintVar 使用指定名称、默认值和用法字符串定义一个 uint 标志。参数 p 指向用于存储标志值的 uint 变量。
+
+				
+			
+				<h3 id="FlagSet.Var">func (*FlagSet) <a href="/src/flag/flag.go?s=34300:34361#L1000">Var</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Var(value <a href="#Value">Value</a>, name <a href="/pkg/builtin/#string">string</a>, usage <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Var 使用指定名称和用法字符串定义一个标志。标志的类型和值由第一个参数表示，该参数的类型为 <a href="#Value">Value</a>，通常保存用户自定义的 <a href="#Value">Value</a> 实现。例如，调用方可以为切片提供 <a href="#Value">Value</a> 的方法，从而创建一个将逗号分隔字符串转换为字符串切片的标志；具体来说，<a href="#Set">Set</a> 会将逗号分隔的字符串拆解为该切片。
+
+				
+			
+				<h3 id="FlagSet.Visit">func (*FlagSet) <a href="/src/flag/flag.go?s=12329:12368#L460">Visit</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) Visit(fn func(*<a href="#Flag">Flag</a>))</pre>
+				<p>Visit 按字典序访问标志，对每个标志调用 fn。它只访问已设置的标志。
+
+				
+			
+				<h3 id="FlagSet.VisitAll">func (*FlagSet) <a href="/src/flag/flag.go?s=11906:11948#L446">VisitAll</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FlagSet">FlagSet</a>) VisitAll(fn func(*<a href="#Flag">Flag</a>))</pre>
+				<p>VisitAll 按字典序访问标志，对每个标志调用 fn。它访问所有标志，包括未设置的标志。
+
+				
+			
+		
+			
+			<h2 id="Getter">type <a href="/src/flag/flag.go?s=9087:9130#L359">Getter</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Getter 是用于获取 <a href="#Value">Value</a> 内容的接口。它嵌入 <a href="#Value">Value</a> 接口，而不是成为后者的一部分，因为它是在 Go 1 及其兼容性规则确定之后才引入的。本包提供的所有 <a href="#Value">Value</a> 类型都满足 <a href="#Getter">Getter</a> 接口，唯有 <a href="#Func">Func</a> 使用的类型例外。
+
+			<pre>type Getter interface {
+    <a href="#Value">Value</a>
+    Get() <a href="/pkg/builtin/#any">any</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/flag/flag.go?s=8706:8766#L350">Value</a>
+				
+				
+			</h2>
+			<p>Value 是访问标志所存储动态值的接口。（默认值用字符串表示。）
+<p>如果某个 Value 具有返回 true 的 IsBoolFlag() bool 方法，命令行解析器会将 -name 视为等价于 -name=true，而不会使用下一个命令行参数。
+<p>对于命令行中每次出现的标志，都会按命令行顺序调用一次 Set。flag 包可能使用零值接收者（例如 nil 指针）调用 <a href="#String">String</a> 方法。
+
+			<pre>type Value interface {
+    String() <a href="/pkg/builtin/#string">string</a>
+    Set(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Value" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;flag&#34;
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+type URLValue struct {
+	URL *url.URL
+}
+
+func (v URLValue) String() string {
+	if v.URL != nil {
+		return v.URL.String()
+	}
+	return &#34;&#34;
+}
+
+func (v URLValue) Set(s string) error {
+	if u, err := url.Parse(s); err != nil {
+		return err
+	} else {
+		*v.URL = *u
+	}
+	return nil
+}
+
+var u = &amp;url.URL{}
+
+func main() {
+	fs := flag.NewFlagSet(&#34;ExampleValue&#34;, flag.ExitOnError)
+	fs.Var(&amp;URLValue{u}, &#34;url&#34;, &#34;URL to parse&#34;)
+
+	fs.Parse([]string{&#34;-url&#34;, &#34;https://golang.org/pkg/flag/&#34;})
+	fmt.Printf(`{scheme: %q, host: %q, path: %q}`, u.Scheme, u.Host, u.Path)
+
+}
+</textarea></div>
+        <div class="output"><pre>{scheme: &#34;https&#34;, host: &#34;golang.org&#34;, path: &#34;/pkg/flag/&#34;}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

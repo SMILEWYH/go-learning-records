@@ -1,0 +1,289 @@
+<!--{
+  "Title": "cgo 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>cgo 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Cgo 用于创建能够调用 C 代码的 Go 包。
+<h3 id="hdr-Using_cgo_with_the_go_command">通过 go 命令使用 cgo
+</h3>
+<p>使用 cgo 时，编写普通 Go 代码并导入伪包 "C"。随后就可以引用 C.size_t 等类型、C.stdout 等变量，以及 C.putchar 等函数。
+<p>如果 import "C" 前面紧挨着一段注释，这段称为前导代码（preamble）的注释，会在编译该包的 C 部分时作为头部代码使用。例如：
+<pre>// #include &lt;stdio.h&gt;
+// #include &lt;errno.h&gt;
+import &quot;C&quot;
+</pre>
+<p>前导代码中可以包含任意 C 代码，包括函数和变量的声明与定义。Go 代码随后可以像引用 "C" 包中的成员一样使用它们。前导代码中声明的所有名称都可以使用，即使以小写字母开头也不例外。但有一个例外：Go 代码不能引用前导代码中的 static 变量，static 函数则可以。
+<p>示例见 $GOROOT/cmd/cgo/internal/teststdio 和 $GOROOT/misc/cgo/gmp。关于 cgo 的入门介绍，请参阅《C? Go? Cgo!》：<a href="/golang.org/doc/articles/c_go_cgo.html">https://golang.org/doc/articles/c_go_cgo.html</a>。
+<p>可以在这些注释中通过 #cgo 伪指令定义 CFLAGS、CPPFLAGS、CXXFLAGS、FFLAGS 和 LDFLAGS，调整 C、C++ 或 Fortran 编译器的行为。多条指令中定义的值会连接起来。指令可以包含一组构建约束，只在满足其中某个约束的系统上生效，约束语法详情见 <a href="/golang.org/pkg/go/build/#hdr-Build_Constraints">https://golang.org/pkg/go/build/#hdr-Build_Constraints</a>。例如：
+<pre>// #cgo CFLAGS: -DPNG_DEBUG=1
+// #cgo amd64 386 CFLAGS: -DX86=1
+// #cgo LDFLAGS: -lpng
+// #include &lt;png.h&gt;
+import &quot;C&quot;
+</pre>
+<p>也可以使用“#cgo pkg-config:”指令，后接包名，通过 pkg-config 工具获取 CPPFLAGS 和 LDFLAGS。例如：
+<pre>// #cgo pkg-config: png cairo
+// #include &lt;png.h&gt;
+import &quot;C&quot;
+</pre>
+<p>可以通过设置 PKG_CONFIG 环境变量更改默认的 pkg-config 工具。
+<p>出于安全考虑，只允许有限的一组标志参数，主要包括 -D、-U、-I 和 -l。要允许其他标志，将 CGO_CFLAGS_ALLOW 设为匹配这些标志的正则表达式；要禁止原本允许的标志，将 CGO_CFLAGS_DISALLOW 设为匹配待禁止参数的正则表达式。两种情况下都必须匹配整个参数：例如要允许 -mfoo=bar，应使用 CGO_CFLAGS_ALLOW='-mfoo.*'，而不能只写 CGO_CFLAGS_ALLOW='-mfoo'。名称类似的变量用于控制允许的 CPPFLAGS、CXXFLAGS、FFLAGS 和 LDFLAGS。
+<p>同样出于安全考虑，参数中只允许有限的字符，主要是字母、数字以及点号等不会被意外解释的少量符号。使用被禁止的字符会得到“malformed #cgo argument”错误。
+<p>构建时，CGO_CFLAGS、CGO_CPPFLAGS、CGO_CXXFLAGS、CGO_FFLAGS 和 CGO_LDFLAGS 环境变量中的内容，会追加到这些指令产生的标志参数中。包专用的标志应通过指令设置，而不是通过环境变量设置，以便在未经修改的环境中也能构建。来自环境变量的标志不受上述安全限制。
+<p>一个包中的所有 cgo CPPFLAGS 和 CFLAGS 指令会连接起来，用于编译该包的 C 文件；所有 CPPFLAGS 和 CXXFLAGS 指令连接起来，用于编译 C++ 文件；所有 CPPFLAGS 和 FFLAGS 指令连接起来，用于编译 Fortran 文件。程序中所有包的 LDFLAGS 指令都会连接起来，在链接阶段使用。所有 pkg-config 指令也会合并后一次性传给 pkg-config，再将结果加入相应的命令行标志集合。
+<p>解析 cgo 指令时，所有 ${SRCDIR} 字符串都会替换为源文件所在目录的绝对路径。这样可以将预编译的静态库放在包目录中，并正确链接。例如，foo 包位于 /go/src/foo 时：
+<pre>// #cgo LDFLAGS: -L${SRCDIR}/libs -lfoo
+</pre>
+<p>会展开为：
+<pre>// #cgo LDFLAGS: -L/go/src/foo/libs -lfoo
+</pre>
+<p>Go 工具发现一个或多个 Go 文件使用特殊导入 "C" 时，会查找目录中的其他非 Go 文件，并将它们作为该 Go 包的一部分编译。.c、.s、.S 和 .sx 文件由 C 编译器编译；.cc、.cpp 和 .cxx 文件由 C++ 编译器编译；.f、.F、.for 和 .f90 文件由 Fortran 编译器编译。.h、.hh、.hpp 和 .hxx 文件不会单独编译，但这些头文件发生变更时，会重新编译整个包，包括非 Go 源文件。注意，其他目录中的文件变化不会触发该包重新编译，因此包的所有非 Go 源代码都应放在包目录中，而不是子目录中。默认 C 和 C++ 编译器可分别通过 CC 和 CXX 环境变量更改，这些变量也可以包含命令行选项。
+<p>cgo 调用 C 编译器时，总会将源文件所在目录加入头文件搜索路径，即始终隐含 -I${SRCDIR}。因此，如果源目录和系统头文件目录（或由 -I 指定的其他位置）中都存在 foo/bar.h，那么“#include &lt;foo/bar.h&gt;”始终优先使用本地版本。
+<p>在预期可以正常工作的系统上进行本机构建时，默认启用 cgo。交叉编译时，或者未设置 CC 且系统 PATH 中找不到默认 C 编译器（通常为 gcc 或 clang）时，默认禁用 cgo。运行 go 工具时，可以通过 CGO_ENABLED 环境变量覆盖默认行为：1 表示启用，0 表示禁用。启用 cgo 时，go 工具会设置 "cgo" 构建约束。特殊导入 "C" 隐含 "cgo" 构建约束，相当于文件中同时写有 "//go:build cgo"。因此，禁用 cgo 时，go 工具不会构建导入 "C" 的文件。构建约束详情见 <a href="/golang.org/pkg/go/build/#hdr-Build_Constraints">https://golang.org/pkg/go/build/#hdr-Build_Constraints</a>。
+<p>交叉编译时，必须为 cgo 指定 C 交叉编译器。可以在使用 make.bash 构建工具链时，设置通用的 CC_FOR_TARGET，或更具体的 CC_FOR_${GOOS}_${GOARCH} 环境变量，例如 CC_FOR_linux_arm；也可以在每次运行 go 工具时设置 CC 环境变量。
+<p>对于 C++ 代码，CXX_FOR_TARGET、CXX_FOR_${GOOS}_${GOARCH} 和 CXX 环境变量的作用类似。
+<h3 id="hdr-Go_references_to_C">从 Go 引用 C
+</h3>
+<p>在 Go 文件中，如果 C 结构体的字段名是 Go 关键字，可以添加下划线前缀访问：例如 x 指向一个具有 type 字段的 C 结构体，则用 x._type 访问该字段。无法在 Go 中表达的 C 结构体字段，例如位域或未对齐的数据，会在对应的 Go 结构体中省略，并用适当的填充字节补到下一个字段或结构体末尾。
+<p>标准 C 数值类型可通过以下名称使用：C.char、C.schar（signed char）、C.uchar（unsigned char）、C.short、C.ushort（unsigned short）、C.int、C.uint（unsigned int）、C.long、C.ulong（unsigned long）、C.longlong（long long）、C.ulonglong（unsigned long long）、C.float、C.double、C.complexfloat（complex float）和 C.complexdouble（complex double）。C 的 void* 用 Go 的 unsafe.Pointer 表示；C 的 __int128_t 和 __uint128_t 用 [16]byte 表示。
+<p>少数特殊 C 类型通常应在 Go 中表示为指针类型，但实际使用 uintptr 表示。请参阅下文“特殊情况”。
+<p>直接访问 struct、union 或 enum 类型时，添加 struct_、union_ 或 enum_ 前缀，例如 C.struct_stat。任意 C 类型 T 的大小可以通过 C.sizeof_T 获取，例如 C.sizeof_struct_stat。由于这些特殊前缀，无法直接引用以 struct_、union_、enum_ 或 sizeof_ 开头的 C 标识符，例如名为 struct_function 的函数。解决办法是在前导代码中使用 #define，例如“#define c_struct_function struct_function”，然后在 Go 代码中引用 C.c_struct_function。
+<p>可以在 Go 文件中声明参数类型为特殊名称 _GoString_ 的 C 函数，并使用普通 Go 字符串值调用它。通过以下 C 函数，可以获取字符串长度和指向字符串内容的指针：
+<pre>size_t _GoStringLen(_GoString_ s);
+const char *_GoStringPtr(_GoString_ s);
+</pre>
+<p>这些函数仅在前导代码中可用，不能在其他 C 文件中使用。C 代码不得修改 _GoStringPtr 返回的指针所指向的内容。注意，字符串内容末尾可能没有 NUL 字节。
+<p>Go 通常不支持 C 的 union 类型，因此 C 联合体会表示为长度相同的 Go 字节数组。
+<p>Go 结构体不能嵌入 C 类型的字段。
+<p>Go 代码不能引用非空 C 结构体末尾的零大小字段。要获取此类字段的地址（这是对零大小字段唯一能执行的操作），必须取得结构体地址，再加上结构体的大小。
+<p>Cgo 将 C 类型转换为等价的、未导出的 Go 类型。由于这些类型未导出，Go 包不应在导出的 API 中暴露 C 类型：一个 Go 包中使用的 C 类型，与另一个 Go 包中使用的同名 C 类型并不相同。
+<p>任何 C 函数，包括返回 void 的函数，都可以在多重赋值上下文中调用，同时获取返回值（若有）和转换为 error 的 C errno 值。若函数返回 void，使用 _ 跳过结果值。例如：
+<pre>n, err = C.sqrt(-1)
+_, err := C.voidFunc()
+var n, err = C.sqrt(1)
+</pre>
+<p>注意，即使函数调用成功，C errno 也可能非零，因此 err 结果仍可能非 nil。与 Go 的通常惯例不同，应该先判断调用是否成功，再检查错误结果。例如：
+<pre>n, err := C.setenv(key, value, 1)
+if n != 0 {
+	// 已确认调用失败，此时才可以使用 err
+	return err
+}
+</pre>
+<p>目前不支持直接调用 C 函数指针，但可以声明保存 C 函数指针的 Go 变量，并在 Go 和 C 之间来回传递。C 代码可以调用从 Go 收到的函数指针。例如：
+<pre>package main
+
+// typedef int (*intFunc) ();
+//
+// int
+// bridge_int_func(intFunc f)
+// {
+//		return f();
+// }
+//
+// int fortytwo()
+// {
+//	    return 42;
+// }
+import &quot;C&quot;
+import &quot;fmt&quot;
+
+func main() {
+	f := C.intFunc(C.fortytwo)
+	fmt.Println(int(C.bridge_int_func(f)))
+	// Output: 42
+}
+</pre>
+<p>在 C 中，以定长数组形式声明的函数参数，实际上要求传入指向数组首元素的指针。C 编译器知道这一调用约定，并会相应调整调用，但 Go 不会。在 Go 中，必须显式传入首元素的指针：C.f(&amp;C.x[0])。
+<p>不支持直接调用 C 的可变参数函数，但可以通过 C 包装函数绕过这一限制。例如：
+<pre>package main
+
+// #include &lt;stdio.h&gt;
+// #include &lt;stdlib.h&gt;
+//
+// static void myprint(char* s) {
+//   printf(&quot;%s\n&quot;, s);
+// }
+import &quot;C&quot;
+import &quot;unsafe&quot;
+
+func main() {
+	cs := C.CString(&quot;Hello from stdio&quot;)
+	C.myprint(cs)
+	C.free(unsafe.Pointer(cs))
+}
+</pre>
+<p>有几个特殊函数通过复制数据，在 Go 与 C 类型之间转换。用伪 Go 定义表示如下：
+<pre>// 将 Go 字符串转换为 C 字符串。
+// C 字符串通过 malloc 分配在 C 堆上。
+// 调用方负责安排释放，例如调用 C.free。
+// 如果需要使用 C.free，请务必包含 stdlib.h。
+func C.CString(string) *C.char
+
+// 将 Go []byte 切片转换为 C 数组。
+// C 数组通过 malloc 分配在 C 堆上。
+// 调用方负责安排释放，例如调用 C.free。
+// 如果需要使用 C.free，请务必包含 stdlib.h。
+func C.CBytes([]byte) unsafe.Pointer
+
+// 将 C 字符串转换为 Go 字符串。
+func C.GoString(*C.char) string
+
+// 将具有显式长度的 C 数据转换为 Go 字符串。
+func C.GoStringN(*C.char, C.int) string
+
+// 将具有显式长度的 C 数据转换为 Go []byte。
+func C.GoBytes(unsafe.Pointer, C.int) []byte
+</pre>
+<p>一个特殊情况是，C.malloc 并不直接调用 C 库的 malloc，而是调用一个 Go 辅助函数。该函数封装 C malloc，并保证绝不返回 nil。如果 C malloc 报告内存不足，辅助函数会使程序崩溃，类似 Go 自身内存耗尽时的行为。由于 C.malloc 不会返回失败结果，因此它没有同时返回 errno 的双返回值形式。
+<h3 id="hdr-C_references_to_Go">从 C 引用 Go
+</h3>
+<p>可以通过以下方式导出 Go 函数，供 C 代码使用：
+<pre>//export MyFunction
+func MyFunction(arg1, arg2 int, arg3 string) int64 {...}
+
+//export MyFunction2
+func MyFunction2(arg1, arg2 int, arg3 string) (int64, *C.char) {...}
+</pre>
+<p>它们在 C 代码中的声明为：
+<pre>extern GoInt64 MyFunction(int arg1, int arg2, GoString arg3);
+extern struct MyFunction2_return MyFunction2(int arg1, int arg2, GoString arg3);
+</pre>
+<p>这些声明位于生成的 _cgo_export.h 头文件中，排在从 cgo 输入文件复制过来的前导代码之后。具有多个返回值的函数，会映射为返回结构体的 C 函数。
+<p>并非所有 Go 类型都能有意义地映射为 C 类型。不支持 Go 结构体类型，应使用 C 结构体；不支持 Go 数组类型，应使用 C 指针。
+<p>参数类型为 string 的 Go 函数，可以使用上文的 C 类型 _GoString_ 调用。_GoString_ 会自动定义在前导代码中。注意，C 代码无法创建该类型的值，因此它只适用于将字符串值从 Go 传给 C，再传回 Go。
+<p>在文件中使用 //export，会对前导代码施加限制：由于前导代码会被复制到两个不同的 C 输出文件中，它只能包含声明，不能包含定义。若同时包含定义和声明，两个输出文件会产生重复符号，导致链接失败。为避免这一问题，必须将定义放入其他文件的前导代码或 C 源文件中。
+<h3 id="hdr-Passing_pointers">指针传递
+</h3>
+<p>Go 采用垃圾回收，垃圾回收器需要知道每个指向 Go 内存的指针的位置。因此，在 Go 和 C 之间传递指针存在一些限制。
+<p>本节中，“Go 指针”指向由 Go 分配的内存，例如通过 &amp; 运算符或预声明函数 new 获得的内存；“C 指针”指向由 C 分配的内存，例如调用 C.malloc 分配的内存。一个指针是 Go 指针还是 C 指针，是由内存分配方式决定的动态属性，与指针的类型无关。
+<p>注意，某些 Go 类型的非零值始终包含 Go 指针，包括接口、通道、映射和函数类型。指针类型可以持有 Go 指针或 C 指针。数组、切片、字符串和结构体是否包含 Go 指针，取决于其类型和构造方式。下面关于 Go 指针的所有讨论，不仅适用于指针类型，也适用于包含 Go 指针的其他类型。
+<p>所有传给 C 的 Go 指针，都必须指向已固定（pinned）的 Go 内存。作为 C 函数参数传入的 Go 指针，其指向的内存在调用期间会被隐式固定。从这些参数可达的 Go 内存，只要 C 代码仍能访问，就必须保持固定。Go 内存是否已固定，是该内存区域的动态属性，与指针类型无关。
+<p>通过 new、对复合字面量取地址或对局部变量取地址创建的 Go 值，也可以使用 <a href="/pkg/runtime/#Pinner">runtime.Pinner</a> 固定其内存。该类型用于管理内存的固定期限，使其可以超过一次 C 函数调用的持续时间。同一块内存可以被固定多次，但解除固定的次数必须与固定次数完全相同。
+<p>Go 代码可以将 Go 指针传给 C，前提是它指向的内存中，不包含任何指向未固定内存的 Go 指针。传递结构体字段的指针时，这里所指的 Go 内存是该字段占用的内存，而不是整个结构体。传递数组或切片元素的指针时，则指整个数组或切片的整个底层数组。
+<p>只有在 Go 指针所指向的内存仍保持固定时，C 代码才能保留该指针的副本。
+<p>调用返回后，C 代码不得保留 Go 指针的副本，除非其指向的内存通过 <a href="/pkg/runtime/#Pinner">runtime.Pinner</a> 固定，并且在该 Go 指针存储于 C 内存期间没有解除固定。这意味着 C 代码不能保留字符串、切片、通道等值的副本，因为这些值不能通过 <a href="/pkg/runtime/#Pinner">runtime.Pinner</a> 固定。
+<p>_GoString_ 类型也不能通过 <a href="/pkg/runtime/#Pinner">runtime.Pinner</a> 固定。由于它包含 Go 指针，其指向的内存仅在调用期间固定，因此 C 代码不能保留 _GoString_ 值。
+<p>由 C 代码调用的 Go 函数，可以返回指向已固定内存的 Go 指针，这意味着它不能返回字符串、切片、通道等值。此类函数可以接收 C 指针参数，并通过这些指针存储非指针数据、C 指针或指向已固定内存的 Go 指针；但不得在 C 指针所指向的内存中，存储指向未固定内存的 Go 指针，同样也不能存储字符串、切片、通道等值。由 C 调用的 Go 函数也可以接收 Go 指针，但必须确保它指向的 Go 内存，以及该内存继续指向的 Go 内存等，始终保持固定。
+<p>这些规则会在运行时动态检查，由 GODEBUG 环境变量中的 cgocheck 设置控制。默认值 GODEBUG=cgocheck=1 会执行开销较低的动态检查；GODEBUG=cgocheck=0 可以完全禁用检查。构建时设置 GOEXPERIMENT=cgocheck2，可以启用完整的指针处理检查，但会增加运行时开销。
+<p>可以使用 unsafe 包绕过这些检查，当然也没有什么能阻止 C 代码执行任意操作。但是，违反这些规则的程序很可能以意外、不可预测的方式失败。
+<p>可以使用 <a href="/pkg/runtime/cgo/#Handle">runtime/cgo.Handle</a> 类型，在 Go 和 C 之间安全地传递 Go 值。
+<p>注意：当前实现存在一个缺陷。虽然 Go 代码允许向 C 内存写入 nil 或 C 指针，但不允许写入 Go 指针；如果 C 内存中已有的内容看起来像 Go 指针，当前实现有时会产生运行时错误。因此，如果 Go 代码将向 C 内存写入指针值，应避免把未初始化的 C 内存传给它。应先在 C 中将该内存清零，再传给 Go。
+<h3 id="hdr-Optimizing_calls_of_C_code">优化 C 代码调用
+</h3>
+<p>将 Go 指针传给 C 函数时，编译器通常会确保相应 Go 对象位于堆上。如果 C 函数既不保留 Go 指针的副本，也从不将其传回 Go 代码，则不必如此。可以使用 #cgo noescape 指令，告知编译器没有 Go 指针会经由指定的 C 函数逃逸。如果使用了 noescape，而 C 函数未安全处理指针，程序可能崩溃或发生内存损坏。
+<p>例如：
+<pre>// #cgo noescape cFunctionName
+</pre>
+<p>Go 函数调用 C 函数时，会为 C 函数回调 Go 函数做好准备。可以使用 #cgo nocallback 指令，告知编译器无需进行这些准备。如果使用了 nocallback，而 C 函数实际回调了 Go 代码，程序会发生 panic。
+<p>例如：
+<pre>// #cgo nocallback cFunctionName
+</pre>
+<h3 id="hdr-Special_cases">特殊情况
+</h3>
+<p>少数特殊 C 类型通常应在 Go 中表示为指针类型，但实际使用 uintptr 表示，包括：
+<p>1. Darwin 上以 CoreFoundation 的 CFTypeRef 为根的各种 *Ref 类型。
+<p>2. Java JNI 接口中的对象类型：
+<pre>jobject
+jclass
+jthrowable
+jstring
+jarray
+jbooleanArray
+jbyteArray
+jcharArray
+jshortArray
+jintArray
+jlongArray
+jfloatArray
+jdoubleArray
+jobjectArray
+jweak
+</pre>
+<p>3. EGL API 中的 EGLDisplay 和 EGLConfig 类型。
+<p>这些类型在 Go 一侧使用 uintptr 表示，否则会使 Go 垃圾回收器产生误判；它们有时并不是真正的指针，而是编码在指针类型中的数据结构。对这些类型的所有操作都必须在 C 中进行。初始化此类空引用时，正确的常量是 0，而不是 nil。
+<p>这些特殊处理在 Go 1.10 中引入。要自动更新 Go 1.9 及更早版本的代码，可以使用 Go fix 工具的 cftype 或 jni 重写规则：
+<pre>go tool fix -r cftype &lt;pkg&gt;
+go tool fix -r jni &lt;pkg&gt;
+</pre>
+<p>它会在适当的位置将 nil 替换为 0。
+<p>EGLDisplay 的特殊处理在 Go 1.12 中引入。使用 egl 重写规则，可以自动更新 Go 1.11 及更早版本的代码：
+<pre>go tool fix -r egl &lt;pkg&gt;
+</pre>
+<p>EGLConfig 的特殊处理在 Go 1.15 中引入。使用 eglconf 重写规则，可以自动更新 Go 1.14 及更早版本的代码：
+<pre>go tool fix -r eglconf &lt;pkg&gt;
+</pre>
+<h3 id="hdr-Using_cgo_directly">直接使用 cgo
+</h3>
+<p>用法：
+<pre>go tool cgo [cgo options] [-- compiler options] gofiles...
+</pre>
+<p>Cgo 将指定的 Go 输入源文件转换为若干 Go 和 C 输出源文件。
+<p>调用 C 编译器编译包中的 C 部分时，compiler options 会原样传递，不经解释。
+<p>直接运行 cgo 时，可以使用以下选项：
+<pre>-V
+	输出 cgo 版本并退出。
+-debug-define
+	调试选项，输出 #define 定义。
+-debug-gcc
+	调试选项，追踪 C 编译器的执行与输出。
+-dynimport file
+	输出 file 导入的符号列表，写入 -dynout 指定的文件或标准输出。
+	go build 构建 cgo 包时使用。
+-dynlinker
+	将动态链接器信息纳入 -dynimport 的输出。
+-dynout file
+	将 -dynimport 的输出写入 file。
+-dynpackage package
+	设置 -dynimport 输出中的 Go 包名。
+-exportheader file
+	如果存在导出函数，将生成的导出声明写入 file。
+	C 代码可以通过 #include 包含此文件，获取这些声明。
+-gccgo
+	为 gccgo 编译器生成输出，而不是为 gc 编译器生成。
+-gccgoprefix prefix
+	传给 gccgo 的 -fgo-prefix 选项。
+-gccgopkgpath path
+	传给 gccgo 的 -fgo-pkgpath 选项。
+-gccgo_define_cgoincomplete
+	在本地定义 cgo.Incomplete，而不是从 "runtime/cgo" 包导入。
+	用于旧版本 gccgo。
+-godefs
+	以 Go 语法输出输入文件，将 C 包名称替换为实际值。
+	在引导构建新目标平台时，用于生成 syscall 包中的文件。
+-importpath string
+	Go 包的导入路径，可选，用于在生成文件中提供更清晰的注释。
+-import_runtime_cgo
+	启用时，在生成的输出中导入 runtime/cgo；默认启用。
+-import_syscall
+	启用时，在生成的输出中导入 syscall；默认启用。
+-ldflags flags
+	传给 C 链接器的标志参数。
+	cmd/go 工具通过此选项传递 CGO_LDFLAGS 变量中的标志。
+-objdir directory
+	将所有生成文件放入 directory。
+-srcdir directory
+	在 directory 中查找命令行列出的 Go 输入文件。
+-trimpath rewrites
+	对源文件路径进行裁剪和重写。
+</pre>
+
+	
+
+	
+
+
+
+
+</article>

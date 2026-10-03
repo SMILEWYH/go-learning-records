@@ -1,0 +1,1270 @@
+<!--{
+  "Title": "database/sql/driver 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>database/sql/driver 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "database/sql/driver"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>driver 包定义供 sql 包使用的数据库驱动必须实现的接口。<p>大多数代码应使用 <a href="/pkg/database/sql/">database/sql</a> 包。<p>驱动接口一直在演进。驱动应实现 <a href="#Connector">Connector</a> 和 <a href="#DriverContext">DriverContext</a> 接口。Connector.Connect 和 Driver.Open 方法绝不应返回 <a href="#ErrBadConn">ErrBadConn</a>。只有连接已处于无效状态（例如已关闭）时，才应从 <a href="#Validator">Validator</a>、<a href="#SessionResetter">SessionResetter</a> 或查询方法返回 <a href="#ErrBadConn">ErrBadConn</a>。<p>所有 <a href="#Conn">Conn</a> 实现都应实现以下接口：<a href="#Pinger">Pinger</a>、<a href="#SessionResetter">SessionResetter</a> 和 <a href="#Validator">Validator</a>。<p>如果支持命名参数或 context，驱动的 <a href="#Conn">Conn</a> 应实现：<a href="#ExecerContext">ExecerContext</a>、<a href="#QueryerContext">QueryerContext</a>、<a href="#ConnPrepareContext">ConnPrepareContext</a> 和 <a href="#ConnBeginTx">ConnBeginTx</a>。<p>要支持自定义数据类型，请实现 <a href="#NamedValueChecker">NamedValueChecker</a>。<a href="#NamedValueChecker">NamedValueChecker</a> 还允许通过参数接受针对单次查询的选项，此时从 CheckNamedValue 返回 <a href="#ErrRemoveArgument">ErrRemoveArgument</a>。<p>如果支持多个结果集，<a href="#Rows">Rows</a> 应实现 <a href="#RowsNextResultSet">RowsNextResultSet</a>。如果驱动能够描述返回结果中的类型，应实现以下接口：<a href="#RowsColumnTypeScanType">RowsColumnTypeScanType</a>、<a href="#RowsColumnTypeDatabaseTypeName">RowsColumnTypeDatabaseTypeName</a>、<a href="#RowsColumnTypeLength">RowsColumnTypeLength</a>、<a href="#RowsColumnTypeNullable">RowsColumnTypeNullable</a> 和 <a href="#RowsColumnTypePrecisionScale">RowsColumnTypePrecisionScale</a>。某个行值也可以返回 <a href="#Rows">Rows</a> 类型，用来表示数据库游标值。<p>如果 <a href="#Conn">Conn</a> 实现 <a href="#Validator">Validator</a>，在将连接放回连接池前会调用 IsValid 方法。如果连接池中的条目实现 <a href="#SessionResetter">SessionResetter</a>，在复用该连接执行另一次查询前会调用 ResetSession。如果连接没有归还连接池就立即被复用，则复用前会调用 ResetSession，但不会调用 IsValid。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#IsScanValue">func IsScanValue(v any) bool</a></dd>
+			
+				<dd><a href="#IsValue">func IsValue(v any) bool</a></dd>
+			
+			
+				
+				<dd><a href="#ColumnConverter">type ColumnConverter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Conn">type Conn</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ConnBeginTx">type ConnBeginTx</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ConnPrepareContext">type ConnPrepareContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Connector">type Connector</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Driver">type Driver</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DriverContext">type DriverContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Execer">type Execer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ExecerContext">type ExecerContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IsolationLevel">type IsolationLevel</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NamedValue">type NamedValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NamedValueChecker">type NamedValueChecker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NotNull">type NotNull</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NotNull.ConvertValue">func (n NotNull) ConvertValue(v any) (Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Null">type Null</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Null.ConvertValue">func (n Null) ConvertValue(v any) (Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Pinger">type Pinger</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Queryer">type Queryer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QueryerContext">type QueryerContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Result">type Result</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Rows">type Rows</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsAffected">type RowsAffected</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RowsAffected.LastInsertId">func (RowsAffected) LastInsertId() (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RowsAffected.RowsAffected">func (v RowsAffected) RowsAffected() (int64, error)</a></dd>
+				
+			
+				
+				<dd><a href="#RowsColumnScanner">type RowsColumnScanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeDatabaseTypeName">type RowsColumnTypeDatabaseTypeName</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeLength">type RowsColumnTypeLength</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeNullable">type RowsColumnTypeNullable</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypePrecisionScale">type RowsColumnTypePrecisionScale</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeScanType">type RowsColumnTypeScanType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsNextResultSet">type RowsNextResultSet</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ScanContext">type ScanContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SessionResetter">type SessionResetter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Stmt">type Stmt</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StmtExecContext">type StmtExecContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StmtQueryContext">type StmtQueryContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Tx">type Tx</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TxOptions">type TxOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Validator">type Validator</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ValueConverter">type ValueConverter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Valuer">type Valuer</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/database/sql/driver/driver.go">driver.go</a>
+			
+				<a href="/src/database/sql/driver/types.go">types.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>Bool 是将输入值转换为 bool 的 <a href="#ValueConverter">ValueConverter</a>。<p>转换规则如下：<ul>
+<li>布尔值原样返回<li>对于整数类型，1 为 true，0 为 false，其他整数会报错<li>对于字符串和 []byte，规则与 <a href="/pkg/strconv/#ParseBool">strconv.ParseBool</a> 相同<li>其他所有类型都会报错</ul>
+
+				<pre>var <span id="Bool">Bool</span> boolType</pre>
+			
+				<p>DefaultParameterConverter 是 <a href="#ValueConverter">ValueConverter</a> 的默认实现，在 <a href="#Stmt">Stmt</a> 未实现 <a href="#ColumnConverter">ColumnConverter</a> 时使用。<p>如果 IsValue(arg) 为 true，DefaultParameterConverter 直接返回其参数。否则，如果参数实现了 <a href="#Valuer">Valuer</a>，就调用其 Value 方法返回 <a href="#Value">Value</a>。后备处理使用参数的底层类型，将其转换为 <a href="#Value">Value</a>：底层整数类型转换为 int64，浮点类型转换为 float64，bool、string 和 []byte 保持不变。如果参数是 nil 指针，defaultConverter.ConvertValue 返回 nil <a href="#Value">Value</a>。如果参数是非 nil 指针，则解引用后递归调用 defaultConverter.ConvertValue。其他类型会报错。<pre>var <span id="DefaultParameterConverter">DefaultParameterConverter</span> defaultConverter</pre>
+			
+				<p>驱动应返回 ErrBadConn，向 <a href="/pkg/database/sql/">database/sql</a> 包表明某个 driver.<a href="#Conn">Conn</a> 状态异常（例如服务端此前已关闭连接），<a href="/pkg/database/sql/">database/sql</a> 包应在新连接上重试。<p>为防止重复操作，只要数据库服务端有可能已经执行该操作，就绝不能返回 ErrBadConn。即使服务端返回错误，也不应返回 ErrBadConn。<p>错误会使用 <a href="/pkg/errors/#Is">errors.Is</a> 检查。错误可以包装 ErrBadConn，或实现 Is(error) bool 方法。<pre>var <span id="ErrBadConn">ErrBadConn</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: bad connection&#34;)</pre>
+			
+				<p><a href="#NamedValueChecker">NamedValueChecker</a> 可以返回 ErrRemoveArgument，指示 <a href="/pkg/database/sql/">database/sql</a> 包不要将该参数传给驱动的查询接口。在接受查询专用选项或不属于 SQL 查询参数的结构时返回此错误。<pre>var <span id="ErrRemoveArgument">ErrRemoveArgument</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: remove argument from query&#34;)</pre>
+			
+				<p>某些可选接口的方法可以返回 ErrSkip，表示运行时无法使用快速路径，sql 包应按未实现该可选接口的方式继续执行。只有文档明确说明的地方才支持 ErrSkip。<pre>var <span id="ErrSkip">ErrSkip</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: skip fast-path; continue as if unimplemented&#34;)</pre>
+			
+				<p>Int32 是将输入值转换为 int64 的 <a href="#ValueConverter">ValueConverter</a>，但会遵守 int32 值的范围限制。<pre>var <span id="Int32">Int32</span> int32Type</pre>
+			
+				<p>ResultNoRows 是预定义的 <a href="#Result">Result</a>，供驱动在 DDL 命令（如 CREATE TABLE）成功时返回。它的 LastInsertId 和 <a href="#RowsAffected">RowsAffected</a> 都返回错误。<pre>var <span id="ResultNoRows">ResultNoRows</span> noRows</pre>
+			
+				<p>String 是将输入转换为字符串的 <a href="#ValueConverter">ValueConverter</a>。如果值已经是 string 或 []byte，则保持不变。如果是其他类型，则通过 fmt.Sprintf("%v", v) 转换为字符串。<pre>var <span id="String">String</span> stringType</pre>
+			
+		
+		
+			
+			<h2 id="IsScanValue">func <a href="/src/database/sql/driver/types.go?s=5573:5601#L186">IsScanValue</a>
+				
+				
+			</h2>
+			<pre>func IsScanValue(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsScanValue 等价于 <a href="#IsValue">IsValue</a>，为兼容性而保留。<h2 id="IsValue">func <a href="/src/database/sql/driver/types.go?s=5293:5317#L171">IsValue</a>
+				
+				
+			</h2>
+			<pre>func IsValue(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsValue 报告 v 是否属于有效的 <a href="#Value">Value</a> 参数类型。<h2 id="ColumnConverter">type <a href="/src/database/sql/driver/driver.go?s=16592:16880#L406">ColumnConverter</a>
+				
+				
+			</h2>
+			<p>如果语句知道自身各列的类型，并能将任意类型转换为驱动的 <a href="#Value">Value</a>，<a href="#Stmt">Stmt</a> 可以选择实现 ColumnConverter。<p>已弃用：驱动应实现 <a href="#NamedValueChecker">NamedValueChecker</a>。<pre>type ColumnConverter interface {
+    <span class="comment">// ColumnConverter 返回指定列索引对应的</span>
+    <span class="comment">// ValueConverter。如果不知道某列的类型，</span>
+    <span class="comment">// 或不应对其进行特殊处理，可以返回 [DefaultParameterConverter]。</span>
+    <span class="comment">// 此时使用默认转换器。</span>
+    ColumnConverter(idx <a href="/pkg/builtin/#int">int</a>) <a href="#ValueConverter">ValueConverter</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Conn">type <a href="/src/database/sql/driver/driver.go?s=9435:10214#L225">Conn</a>
+				
+				
+			</h2>
+			<p>Conn 是数据库连接。它不会被多个 goroutine 并发使用。<p>Conn 被视为有状态的。<pre>type Conn interface {
+    <span class="comment">// Prepare 返回绑定到此连接的预处理语句。</span>
+    Prepare(query <a href="/pkg/builtin/#string">string</a>) (<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Close 使当前的预处理语句和事务失效，</span>
+    <span class="comment">// 并可能终止它们，同时将此连接</span>
+    <span class="comment">// 标记为不再使用。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 由于 sql 包维护了空闲连接池，</span>
+    <span class="comment">// 并且只有空闲连接过多时才调用 Close，</span>
+    <span class="comment">// 驱动通常不需要</span>
+    <span class="comment">// 自行缓存连接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 驱动必须确保 Close 发起的所有网络调用</span>
+    <span class="comment">// 不会无限期阻塞（例如设置超时）。</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// Begin 启动并返回新事务。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：驱动应改为（或额外）实现 ConnBeginTx。</span>
+    Begin() (<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ConnBeginTx">type <a href="/src/database/sql/driver/driver.go?s=11062:11791#L271">ConnBeginTx</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ConnBeginTx 为 <a href="#Conn">Conn</a> 接口增加 context 和 <a href="#TxOptions">TxOptions</a> 支持。<pre>type ConnBeginTx interface {
+    <span class="comment">// BeginTx 启动并返回新事务。</span>
+    <span class="comment">// 如果用户取消 context，sql 包会在</span>
+    <span class="comment">// 丢弃并关闭连接之前调用 Tx.Rollback。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 必须检查 opts.Isolation，确定是否设置了</span>
+    <span class="comment">// 隔离级别。如果设置了非默认级别，而驱动不支持</span>
+    <span class="comment">// 非默认级别，或者所设置的具体非默认隔离级别</span>
+    <span class="comment">// 不受支持，必须返回错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 还必须检查 opts.ReadOnly，确定只读值</span>
+    <span class="comment">// 是否为 true；如果支持，就设置事务的只读属性，</span>
+    <span class="comment">// 否则返回错误。</span>
+    BeginTx(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, opts <a href="#TxOptions">TxOptions</a>) (<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ConnPrepareContext">type <a href="/src/database/sql/driver/driver.go?s=10282:10575#L249">ConnPrepareContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ConnPrepareContext 为 <a href="#Conn">Conn</a> 接口增加 context 支持。<pre>type ConnPrepareContext interface {
+    <span class="comment">// PrepareContext 返回绑定到此连接的预处理语句。</span>
+    <span class="comment">// context 仅用于语句的预处理阶段，</span>
+    <span class="comment">// 不得将其保存在语句本身中。</span>
+    PrepareContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>) (<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Connector">type <a href="/src/database/sql/driver/driver.go?s=4974:5777#L113">Connector</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>Connector 表示具有固定配置的驱动，可以创建任意数量的等价 Conn，供多个 goroutine 使用。<p>Connector 可以传给 <a href="/pkg/database/sql/#OpenDB">database/sql.OpenDB</a>，让驱动实现自己的 <a href="/pkg/database/sql/#DB">database/sql.DB</a> 构造函数；也可以由 <a href="#DriverContext">DriverContext</a> 的 OpenConnector 方法返回，让驱动能访问 context，并避免重复解析驱动配置。<p>如果 Connector 实现 <a href="/pkg/io/#Closer">io.Closer</a>，<a href="/pkg/database/sql/#DB.Close">database/sql.DB.Close</a> 方法会调用其 Close 方法，并返回产生的错误（如果有）。<pre>type Connector interface {
+    <span class="comment">// Connect 返回数据库连接。</span>
+    <span class="comment">// Connect 可以返回缓存的连接（此前已</span>
+    <span class="comment">// 关闭的连接），但没有必要；sql 包</span>
+    <span class="comment">// 维护了空闲连接池，以高效复用连接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 传入的 context.Context 仅用于建立连接</span>
+    <span class="comment">// （参见 net.DialContext），不应保存它，或将它用于</span>
+    <span class="comment">// 其他用途。建立连接时仍应采用默认超时，</span>
+    <span class="comment">// 因为连接池可能独立于任何查询</span>
+    <span class="comment">// 异步调用 Connect。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 返回的连接在同一时刻仅会被一个 goroutine</span>
+    <span class="comment">// 使用。</span>
+    Connect(<a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Driver 返回 Connector 的底层 Driver，</span>
+    <span class="comment">// 主要用于保持与 sql.DB 上</span>
+    <span class="comment">// Driver 方法的兼容性。</span>
+    Driver() <a href="#Driver">Driver</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Driver">type <a href="/src/database/sql/driver/driver.go?s=3402:3823#L76">Driver</a>
+				
+				
+			</h2>
+			<p>Driver 是数据库驱动必须实现的接口。<p>数据库驱动可以实现 <a href="#DriverContext">DriverContext</a>，以访问 context，并针对整个连接池仅解析一次 name，而不是对每个连接分别解析。<pre>type Driver interface {
+    <span class="comment">// Open 返回新的数据库连接。</span>
+    <span class="comment">// name 是采用驱动专有格式的字符串。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Open 可以返回缓存的连接（此前已</span>
+    <span class="comment">// 关闭的连接），但没有必要；sql 包</span>
+    <span class="comment">// 维护了空闲连接池，以高效复用连接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 返回的连接在同一时刻仅会被一个 goroutine</span>
+    <span class="comment">// 使用。</span>
+    Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DriverContext">type <a href="/src/database/sql/driver/driver.go?s=4220:4404#L95">DriverContext</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>如果 <a href="#Driver">Driver</a> 实现 DriverContext，<a href="/pkg/database/sql/#DB">database/sql.DB</a> 会调用 OpenConnector 获得 <a href="#Connector">Connector</a>，然后调用该 <a href="#Connector">Connector</a> 的 Connect 方法获取每个所需连接，而不是对每个连接调用 <a href="#Driver">Driver</a> 的 Open 方法。这两个步骤使驱动只需解析一次 name，同时可以访问每个 <a href="#Conn">Conn</a> 的 context。<pre>type DriverContext interface {
+    <span class="comment">// OpenConnector 必须使用与 Driver.Open 解析 name 参数</span>
+    <span class="comment">// 相同的格式来解析 name。</span>
+    OpenConnector(name <a href="/pkg/builtin/#string">string</a>) (<a href="#Connector">Connector</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Execer">type <a href="/src/database/sql/driver/driver.go?s=7591:7666#L176">Execer</a>
+				
+				
+			</h2>
+			<p>Execer 是 <a href="#Conn">Conn</a> 可以实现的可选接口。<p>如果 <a href="#Conn">Conn</a> 既未实现 <a href="#ExecerContext">ExecerContext</a>，也未实现 <a href="#Execer">Execer</a>，<a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a> 会先预处理查询，再执行语句，最后关闭语句。<p>Exec 可以返回 <a href="#ErrSkip">ErrSkip</a>。<p>已弃用：驱动应改为实现 <a href="#ExecerContext">ExecerContext</a>。<pre>type Execer interface {
+    Exec(query <a href="/pkg/builtin/#string">string</a>, args []<a href="#Value">Value</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ExecerContext">type <a href="/src/database/sql/driver/driver.go?s=8145:8260#L190">ExecerContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ExecerContext 是 <a href="#Conn">Conn</a> 可以实现的可选接口。<p>如果 <a href="#Conn">Conn</a> 未实现 <a href="#ExecerContext">ExecerContext</a>，<a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a> 会退回使用 <a href="#Execer">Execer</a>；如果 Conn 也未实现 Execer，<a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a> 会先预处理查询，再执行语句，最后关闭语句。<p>ExecContext 可以返回 <a href="#ErrSkip">ErrSkip</a>。<p>ExecContext 必须遵守 context 的超时要求，并在 context 被取消时返回。<pre>type ExecerContext interface {
+    ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="IsolationLevel">type <a href="/src/database/sql/driver/driver.go?s=10773:10796#L260">IsolationLevel</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>IsolationLevel 是存储在 <a href="#TxOptions">TxOptions</a> 中的事务隔离级别。<p>此类型及其定义的所有值应视为与 <a href="/pkg/database/sql/#IsolationLevel">database/sql.IsolationLevel</a> 完全相同。<pre>type IsolationLevel <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NamedValue">type <a href="/src/database/sql/driver/driver.go?s=2820:3150#L56">NamedValue</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>NamedValue 同时保存值的名称和值。<pre>type NamedValue struct {
+    <span class="comment">// 如果 Name 非空，应使用它作为参数标识符，</span>
+    <span class="comment">// 而不是使用序号位置。</span>
+    <span class="comment">//</span>
+<span id="NamedValue.Name"></span>    <span class="comment">// Name 不含符号前缀。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="NamedValue.Ordinal"></span>    <span class="comment">// 参数的序号位置，从 1 开始，并且总会设置。</span>
+    Ordinal <a href="/pkg/builtin/#int">int</a>
+
+<span id="NamedValue.Value"></span>    <span class="comment">// Value 是参数值。</span>
+    Value <a href="#Value">Value</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NamedValueChecker">type <a href="/src/database/sql/driver/driver.go?s=16076:16358#L394">NamedValueChecker</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p><a href="#Conn">Conn</a> 或 <a href="#Stmt">Stmt</a> 可以选择实现 NamedValueChecker。它给予驱动更多控制能力，以处理默认允许的 <a href="#Value">Value</a> 类型以外的 Go 类型和数据库类型。<p><a href="/pkg/database/sql/">database/sql</a> 包按以下顺序查找值检查器，并在找到第一个匹配项后停止：Stmt.NamedValueChecker、Conn.NamedValueChecker、Stmt.ColumnConverter、<a href="#DefaultParameterConverter">DefaultParameterConverter</a>。<p>如果 CheckNamedValue 返回 <a href="#ErrRemoveArgument">ErrRemoveArgument</a>，该 <a href="#NamedValue">NamedValue</a> 不会包含在最终查询参数中。这可用于向查询本身传递特殊选项。<p>如果返回 <a href="#ErrSkip">ErrSkip</a>，会对该参数使用列转换器的错误检查路径。驱动处理完自己的所有特殊情况后，可以返回 <a href="#ErrSkip">ErrSkip</a>。<pre>type NamedValueChecker interface {
+    <span class="comment">// CheckNamedValue 在将参数传给驱动前调用，</span>
+    <span class="comment">// 并替代任何 ColumnConverter。CheckNamedValue 必须根据驱动要求</span>
+    <span class="comment">// 进行类型验证和转换。</span>
+    CheckNamedValue(*<a href="#NamedValue">NamedValue</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NotNull">type <a href="/src/database/sql/driver/types.go?s=5017:5066#L159">NotNull</a>
+				
+				
+			</h2>
+			<p>NotNull 实现 <a href="#ValueConverter">ValueConverter</a>：禁止 nil 值，其他情况委托给另一个 <a href="#ValueConverter">ValueConverter</a>。<pre>type NotNull struct {
+<span id="NotNull.Converter"></span>    Converter <a href="#ValueConverter">ValueConverter</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NotNull.ConvertValue">func (NotNull) <a href="/src/database/sql/driver/types.go?s=5068:5119#L163">ConvertValue</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#NotNull">NotNull</a>) ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Null">type <a href="/src/database/sql/driver/types.go?s=4706:4752#L146">Null</a>
+				
+				
+			</h2>
+			<p>Null 实现 <a href="#ValueConverter">ValueConverter</a>：允许 nil 值，其他情况委托给另一个 <a href="#ValueConverter">ValueConverter</a>。<pre>type Null struct {
+<span id="Null.Converter"></span>    Converter <a href="#ValueConverter">ValueConverter</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Null.ConvertValue">func (Null) <a href="/src/database/sql/driver/types.go?s=4754:4802#L150">ConvertValue</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#Null">Null</a>) ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Pinger">type <a href="/src/database/sql/driver/driver.go?s=7177:7235#L163">Pinger</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Pinger 是 <a href="#Conn">Conn</a> 可以实现的可选接口。<p>如果 <a href="#Conn">Conn</a> 未实现 Pinger，<a href="/pkg/database/sql/#DB.Ping">database/sql.DB.Ping</a> 和 <a href="/pkg/database/sql/#DB.PingContext">database/sql.DB.PingContext</a> 会检查是否至少存在一个可用的 <a href="#Conn">Conn</a>。<p>如果 Conn.Ping 返回 <a href="#ErrBadConn">ErrBadConn</a>，<a href="/pkg/database/sql/#DB.Ping">database/sql.DB.Ping</a> 和 <a href="/pkg/database/sql/#DB.PingContext">database/sql.DB.PingContext</a> 会将该 <a href="#Conn">Conn</a> 从池中移除。<pre>type Pinger interface {
+    Ping(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Queryer">type <a href="/src/database/sql/driver/driver.go?s=8622:8697#L203">Queryer</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Queryer 是 <a href="#Conn">Conn</a> 可以实现的可选接口。<p>如果 <a href="#Conn">Conn</a> 既未实现 <a href="#QueryerContext">QueryerContext</a>，也未实现 <a href="#Queryer">Queryer</a>，<a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a> 会先预处理查询，再执行语句，最后关闭语句。<p>Query 可以返回 <a href="#ErrSkip">ErrSkip</a>。<p>已弃用：驱动应改为实现 <a href="#QueryerContext">QueryerContext</a>。<pre>type Queryer interface {
+    Query(query <a href="/pkg/builtin/#string">string</a>, args []<a href="#Value">Value</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QueryerContext">type <a href="/src/database/sql/driver/driver.go?s=9186:9301#L217">QueryerContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>QueryerContext 是 <a href="#Conn">Conn</a> 可以实现的可选接口。<p>如果 <a href="#Conn">Conn</a> 未实现 QueryerContext，<a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a> 会退回使用 <a href="#Queryer">Queryer</a>；如果 <a href="#Conn">Conn</a> 也未实现 <a href="#Queryer">Queryer</a>，<a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a> 会先预处理查询，再执行语句，最后关闭语句。<p>QueryContext 可以返回 <a href="#ErrSkip">ErrSkip</a>。<p>QueryContext 必须遵守 context 的超时要求，并在 context 被取消时返回。<pre>type QueryerContext interface {
+    QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Result">type <a href="/src/database/sql/driver/driver.go?s=12714:13000#L308">Result</a>
+				
+				
+			</h2>
+			<p>Result 是执行查询的结果。<pre>type Result interface {
+    <span class="comment">// LastInsertId 返回数据库自动生成的 ID，</span>
+    <span class="comment">// 例如向具有主键的表执行 INSERT</span>
+    <span class="comment">// 后生成的 ID。</span>
+    LastInsertId() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// RowsAffected 返回受查询影响的</span>
+    <span class="comment">// 行数。</span>
+    RowsAffected() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Rows">type <a href="/src/database/sql/driver/driver.go?s=16939:17648#L415">Rows</a>
+				
+				
+			</h2>
+			<p>Rows 是用于遍历已执行查询结果的迭代器。<pre>type Rows interface {
+    <span class="comment">// Columns 返回列名。结果的列数</span>
+    <span class="comment">// 由返回切片的长度</span>
+    <span class="comment">// 推导得出。如果不知道某列的名称，应在对应位置</span>
+    <span class="comment">// 返回空字符串。</span>
+    Columns() []<a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// Close 关闭行迭代器。</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// 调用 Next 将下一行数据填入</span>
+    <span class="comment">// 提供的切片。该切片的长度</span>
+    <span class="comment">// 与 Columns() 的列数相同。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 没有更多行时，Next 应返回 io.EOF。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不得在 Next 以外写入 dest。关闭 Rows 时</span>
+    <span class="comment">// 应注意不要修改</span>
+    <span class="comment">// dest 中持有的缓冲区。</span>
+    Next(dest []<a href="#Value">Value</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsAffected">type <a href="/src/database/sql/driver/driver.go?s=21655:21678#L542">RowsAffected</a>
+				
+				
+			</h2>
+			<p>RowsAffected 为修改若干行的 INSERT 或 UPDATE 操作实现 <a href="#Result">Result</a>。<pre>type RowsAffected <a href="/pkg/builtin/#int64">int64</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RowsAffected.LastInsertId">func (RowsAffected) <a href="/src/database/sql/driver/driver.go?s=21712:21761#L546">LastInsertId</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#RowsAffected">RowsAffected</a>) LastInsertId() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="RowsAffected.RowsAffected">func (RowsAffected) <a href="/src/database/sql/driver/driver.go?s=21837:21888#L550">RowsAffected</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#RowsAffected">RowsAffected</a>) RowsAffected() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="RowsColumnScanner">type <a href="/src/database/sql/driver/driver.go?s=18218:18641#L448">RowsColumnScanner</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>RowsColumnScanner 扩展 <a href="#Rows">Rows</a> 接口，让驱动可以直接将数据扫描到用户提供的目标中。<p>RowsColumnScanner 取代 <a href="#Rows.Next">Rows.Next</a> 方法。<p>从 Go 1.27 开始，如果 Rows 实现 RowsColumnScanner，database/sql 就不会调用 Next。Rows 实现仍可实现 Next 方法，以支持较旧的 Go 版本。<pre>type RowsColumnScanner interface {
+    <a href="#Rows">Rows</a>
+
+    <span class="comment">// NextRow 前进到下一行数据。</span>
+    <span class="comment">// 没有更多行时，应返回 io.EOF。</span>
+    NextRow() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// ScanColumn 将当前行中指定索引的列复制到</span>
+    <span class="comment">// dest 指向的值中。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 驱动可以使用 [database/sql.ConvertAssign] 将 driver.Value 赋给 dest。</span>
+    ScanColumn(scanCtx <a href="#ScanContext">ScanContext</a>, index <a href="/pkg/builtin/#int">int</a>, dest <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeDatabaseTypeName">type <a href="/src/database/sql/driver/driver.go?s=19875:19976#L491">RowsColumnTypeDatabaseTypeName</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p><a href="#Rows">Rows</a> 可以实现 RowsColumnTypeDatabaseTypeName。它应返回不含长度的数据库系统类型名称，且应为大写。例如："VARCHAR"、"NVARCHAR"、"VARCHAR2"、"CHAR"、"TEXT"、"DECIMAL"、"SMALLINT"、"INT"、"BIGINT"、"BOOL"、"[]BIGINT"、"JSONB"、"XML"、"TIMESTAMP"。<pre>type RowsColumnTypeDatabaseTypeName interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeDatabaseTypeName(index <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeLength">type <a href="/src/database/sql/driver/driver.go?s=20532:20630#L508">RowsColumnTypeLength</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p><a href="#Rows">Rows</a> 可以实现 RowsColumnTypeLength。如果列是可变长度类型，它应返回该列类型的长度；如果不是可变长度类型，ok 应返回 false。如果长度除系统限制外没有其他上限，应返回 <a href="/pkg/math/#MaxInt64">math.MaxInt64</a>。以下是各种类型的返回值示例：<pre>TEXT          (math.MaxInt64, true)
+varchar(10)   (10, true)
+nvarchar(10)  (10, true)
+decimal       (0, false)
+int           (0, false)
+bytea(30)     (30, true)
+</pre>
+
+			<pre>type RowsColumnTypeLength interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeLength(index <a href="/pkg/builtin/#int">int</a>) (length <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeNullable">type <a href="/src/database/sql/driver/driver.go?s=20880:20978#L517">RowsColumnTypeNullable</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p><a href="#Rows">Rows</a> 可以实现 RowsColumnTypeNullable。如果已知列可以为 null，nullable 应为 true；如果已知列不允许为 null，则为 false。如果不知道列是否可为 null，ok 应为 false。<pre>type RowsColumnTypeNullable interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeNullable(index <a href="/pkg/builtin/#int">int</a>) (nullable, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypePrecisionScale">type <a href="/src/database/sql/driver/driver.go?s=21343:21467#L529">RowsColumnTypePrecisionScale</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p><a href="#Rows">Rows</a> 可以实现 RowsColumnTypePrecisionScale。它应返回十进制类型的精度和小数位数。如果不适用，ok 应为 false。以下是各种类型的返回值示例：<pre>decimal(38, 4)    (38, 4, true)
+int               (0, 0, false)
+decimal           (math.MaxInt64, math.MaxInt64, true)
+</pre>
+
+			<pre>type RowsColumnTypePrecisionScale interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypePrecisionScale(index <a href="/pkg/builtin/#int">int</a>) (precision, scale <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeScanType">type <a href="/src/database/sql/driver/driver.go?s=19439:19530#L481">RowsColumnTypeScanType</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p><a href="#Rows">Rows</a> 可以实现 RowsColumnTypeScanType。它应返回可用于扫描该类型的目标值类型。例如，对数据库列类型 "bigint"，应返回 "<a href="/pkg/reflect/#TypeOf">reflect.TypeOf</a>(int64(0))"。<pre>type RowsColumnTypeScanType interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeScanType(index <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsNextResultSet">type <a href="/src/database/sql/driver/driver.go?s=18771:19210#L464">RowsNextResultSet</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsNextResultSet 扩展 <a href="#Rows">Rows</a> 接口，提供通知驱动前进到下一个结果集的方法。<pre>type RowsNextResultSet interface {
+    <a href="#Rows">Rows</a>
+
+    <span class="comment">// HasNextResultSet 在当前结果集末尾调用，</span>
+    <span class="comment">// 报告当前结果集之后是否还有其他结果集。</span>
+    HasNextResultSet() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// NextResultSet 将驱动推进到下一个结果集，即使</span>
+    <span class="comment">// 当前结果集仍有未读取的行。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 没有更多结果集时，NextResultSet 应返回 io.EOF。</span>
+    NextResultSet() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ScanContext">type <a href="/src/database/sql/driver/driver.go?s=17794:17831#L439">ScanContext</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>ScanContext 通过 <a href="#RowsColumnScanner.ScanColumn">RowsColumnScanner.ScanColumn</a> 函数，将当前查询的相关状态传递给 <a href="/pkg/database/sql/#ConvertAssign">database/sql.ConvertAssign</a>。<pre>type ScanContext <a href="/pkg/database/sql/internal/">internal</a>.<a href="/pkg/database/sql/internal/#ScanContext">ScanContext</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SessionResetter">type <a href="/src/database/sql/driver/driver.go?s=11951:12208#L289">SessionResetter</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p><a href="#Conn">Conn</a> 可以实现 SessionResetter，让驱动重置与连接相关的会话状态，并报告无效连接。<pre>type SessionResetter interface {
+    <span class="comment">// 如果连接此前已被使用，ResetSession 会在该连接上</span>
+    <span class="comment">// 执行查询之前调用。如果驱动返回 ErrBadConn，</span>
+    <span class="comment">// 该连接会被丢弃。</span>
+    ResetSession(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Stmt">type <a href="/src/database/sql/driver/driver.go?s=13112:14238#L321">Stmt</a>
+				
+				
+			</h2>
+			<p>Stmt 是预处理语句。它绑定到一个 <a href="#Conn">Conn</a>，不会被多个 goroutine 并发使用。<pre>type Stmt interface {
+    <span class="comment">// Close 关闭语句。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 从 Go 1.1 开始，正在被任何查询使用的 Stmt</span>
+    <span class="comment">// 不会被关闭。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 驱动必须确保 Close 发起的所有网络调用</span>
+    <span class="comment">// 不会无限期阻塞（例如设置超时）。</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// NumInput 返回占位参数的数量。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 NumInput 返回 &gt;= 0，sql 包会检查</span>
+    <span class="comment">// 调用方传入的参数数量是否合理，并在调用语句的</span>
+    <span class="comment">// Exec 或 Query 方法之前向调用方返回错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果驱动不知道占位参数的数量，</span>
+    <span class="comment">// NumInput 也可以返回 -1。这时 sql 包</span>
+    <span class="comment">// 不会检查 Exec 或 Query 的参数数量。</span>
+    NumInput() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Exec 执行不返回行的查询，例如</span>
+    <span class="comment">// INSERT 或 UPDATE。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：驱动应改为（或额外）实现 StmtExecContext。</span>
+    Exec(args []<a href="#Value">Value</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Query 执行可能返回行的查询，例如</span>
+    <span class="comment">// SELECT。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：驱动应改为（或额外）实现 StmtQueryContext。</span>
+    Query(args []<a href="#Value">Value</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StmtExecContext">type <a href="/src/database/sql/driver/driver.go?s=14321:14599#L356">StmtExecContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>StmtExecContext 为 <a href="#Stmt">Stmt</a> 接口增加带 context 的 Exec。<pre>type StmtExecContext interface {
+    <span class="comment">// ExecContext 执行不返回行的查询，例如</span>
+    <span class="comment">// INSERT 或 UPDATE。</span>
+    <span class="comment">//</span>
+    <span class="comment">// ExecContext 必须遵守 context 的超时要求，并在其被取消时返回。</span>
+    ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StmtQueryContext">type <a href="/src/database/sql/driver/driver.go?s=14684:14949#L365">StmtQueryContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>StmtQueryContext 为 <a href="#Stmt">Stmt</a> 接口增加带 context 的 Query。<pre>type StmtQueryContext interface {
+    <span class="comment">// QueryContext 执行可能返回行的查询，例如</span>
+    <span class="comment">// SELECT。</span>
+    <span class="comment">//</span>
+    <span class="comment">// QueryContext 必须遵守 context 的超时要求，并在其被取消时返回。</span>
+    QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Tx">type <a href="/src/database/sql/driver/driver.go?s=21493:21548#L535">Tx</a>
+				
+				
+			</h2>
+			<p>Tx 是事务。<pre>type Tx interface {
+    Commit() <a href="/pkg/builtin/#error">error</a>
+    Rollback() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TxOptions">type <a href="/src/database/sql/driver/driver.go?s=10918:10985#L265">TxOptions</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>TxOptions 保存事务选项。<p>此类型应视为与 <a href="/pkg/database/sql/#TxOptions">database/sql.TxOptions</a> 完全相同。<pre>type TxOptions struct {
+<span id="TxOptions.Isolation"></span>    Isolation <a href="#IsolationLevel">IsolationLevel</a>
+<span id="TxOptions.ReadOnly"></span>    ReadOnly  <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Validator">type <a href="/src/database/sql/driver/driver.go?s=12483:12666#L301">Validator</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<p><a href="#Conn">Conn</a> 可以实现 Validator，让驱动报告连接是否有效，或者是否应被丢弃。<p>如果实现了此接口，即使连接应由连接池丢弃，驱动也可以从查询中返回底层错误。<pre>type Validator interface {
+    <span class="comment">// IsValid 在将连接放入连接池</span>
+    <span class="comment">// 之前调用。如果返回 false，连接会被丢弃。</span>
+    IsValid() <a href="/pkg/builtin/#bool">bool</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/database/sql/driver/driver.go?s=2753:2767#L53">Value</a>
+				
+				
+			</h2>
+			<p>Value 是驱动必须能够处理的值。它可以是 nil、数据库驱动的 <a href="#NamedValueChecker">NamedValueChecker</a> 接口能够处理的类型，或以下类型之一的实例：<pre>int64
+float64
+bool
+[]byte
+string
+time.Time
+</pre>
+<p>如果驱动支持游标，返回的 Value 也可以实现本包中的 <a href="#Rows">Rows</a> 接口。例如，当用户选择游标时会用到这一点，如 "select cursor(select * from my_table) from dual"。如果 select 返回的 <a href="#Rows">Rows</a> 被关闭，游标的 <a href="#Rows">Rows</a> 也会被关闭。<pre>type Value <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ValueConverter">type <a href="/src/database/sql/driver/types.go?s=960:1082#L21">ValueConverter</a>
+				
+				
+			</h2>
+			<p>ValueConverter 是提供 ConvertValue 方法的接口。<p>driver 包提供了多种 ValueConverter 实现，使不同驱动之间的转换实现保持一致。ValueConverter 有以下用途：<ul>
+<li><p>将 sql 包提供的 <a href="#Value">Value</a> 类型转换为数据库表的特定列类型，并确保值适合该列，例如确保某个 int64 值能存入表的 uint16 列。<li><p>将数据库给出的值转换为驱动的某个 <a href="#Value">Value</a> 类型。<li><p>由 <a href="/pkg/database/sql/">database/sql</a> 包在扫描时，将驱动的 <a href="#Value">Value</a> 类型转换为用户的类型。</ul>
+
+			<pre>type ValueConverter interface {
+    <span class="comment">// ConvertValue 将值转换为驱动的 Value。</span>
+    ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Valuer">type <a href="/src/database/sql/driver/types.go?s=1486:1595#L34">Valuer</a>
+				
+				
+			</h2>
+			<p>Valuer 是提供 Value 方法的接口。<p><a href="#Value">Value</a> 方法返回的错误会由 database/sql 包包装。这样，调用方可在 <a href="/pkg/database/sql/#Query">database/sql.Query</a>、<a href="/pkg/database/sql/#Exec">database/sql.Exec</a> 或 <a href="/pkg/database/sql/#QueryRow">database/sql.QueryRow</a> 等操作后，使用 <a href="/pkg/errors/#Is">errors.Is</a> 进行精确的错误处理。<p>实现 Valuer 接口的类型能够将自身转换为驱动的 <a href="#Value">Value</a>。<pre>type Valuer interface {
+    <span class="comment">// Value 返回驱动的 Value。</span>
+    <span class="comment">// Value 不得引发 panic。</span>
+    Value() (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

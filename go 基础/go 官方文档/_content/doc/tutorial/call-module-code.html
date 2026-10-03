@@ -1,0 +1,182 @@
+<!--{
+    "Title": "从另一个模块调用代码",
+    "Breadcrumb": true
+}-->
+
+<p>
+  在<a href="/doc/tutorial/create-module.html">上一节</a>中，你创建了 <code>greetings</code> 模块。本节将编写代码，调用刚才创建的模块中的 <code>Hello</code> 函数。这段代码将作为应用程序运行，并调用 <code>greetings</code> 模块中的代码。
+</p>
+
+<aside class="Note">
+  <strong>注意：</strong>本文是系列教程的一部分，起点是<a href="/doc/tutorial/create-module.html">创建 Go 模块</a>。
+</aside>
+
+<ol>
+  <li>
+    创建 <code>hello</code> 目录，用来存放 Go 模块的源代码。你将在这里编写调用方的代码。
+
+    <p>
+      创建后，hello 和 greetings 目录应该位于同一级，如下所示：
+    </p>
+      <pre>&lt;home&gt;/
+ |-- greetings/
+ |-- hello/</pre>
+
+    <p>
+      例如，如果命令行当前位于 greetings 目录，可以运行以下命令：
+    </p>
+
+    <pre>
+cd ..
+mkdir hello
+cd hello
+</pre
+    >
+  </li>
+
+  <li>
+    为即将编写的代码启用依赖管理。
+
+    <p>
+      要为代码启用依赖管理，请运行 <a href="/ref/mod#go-mod-init" ><code>go mod init</code> 命令</a>，并传入代码所属模块的名称。</p>
+
+    <p>
+        在本教程中，使用 <code>example.com/hello</code> 作为模块路径。
+    </p>
+
+    <pre>
+$ go mod init example.com/hello
+go: creating new go.mod: module example.com/hello
+</pre>
+  </li>
+
+  <li>
+    在文本编辑器中，在 hello 目录下创建 hello.go 文件，用于编写代码。
+  </li>
+
+  <li>
+    编写代码，调用 <code>Hello</code> 函数并输出其返回值。
+
+    <p>
+      将以下代码粘贴到 hello.go 中。
+    </p>
+
+    <pre>
+package main
+
+import (
+    "fmt"
+
+    "example.com/greetings"
+)
+
+func main() {
+    // Get a greeting message and print it.
+    message := greetings.Hello("Gladys")
+    fmt.Println(message)
+}
+</pre>
+
+    <p>
+      在这段代码中，你完成了以下操作：
+    </p>
+
+    <ul>
+      <li>
+        声明 <code>main</code> 包。在 Go 中，作为应用程序执行的代码必须位于 <code>main</code> 包中。
+      </li>
+      <li>
+        导入两个包：<code>example.com/greetings</code> 和 <a href="https://pkg.go.dev/fmt/"><code>fmt</code> 包</a>，以便访问其中的函数。导入 <code>example.com/greetings</code>（前面创建的模块中的包）后，就可以使用 <code>Hello</code> 函数。同时导入的 <code>fmt</code> 提供处理文本输入和输出的函数，例如向控制台输出文本。
+      </li>
+      <li>
+        调用 <code>greetings</code> 包中的 <code>Hello</code> 函数，获取问候语。
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    修改 <code>example.com/hello</code> 模块，使其使用本地的 <code>example.com/greetings</code> 模块。
+
+    <p>
+      在生产环境中，你会通过代码仓库发布 <code>example.com/greetings</code> 模块，并使用与发布地址一致的模块路径，让 Go 工具能够找到并下载它。目前模块尚未发布，因此需要调整 <code>example.com/hello</code> 模块，使其能够在本地文件系统中找到 <code>example.com/greetings</code> 的代码。
+    </p>
+
+    <p>
+      为此，使用 <a href="/ref/mod#go-mod-edit"><code>go mod edit</code> 命令</a>修改 <code>example.com/hello</code> 模块，让 Go 工具将依赖的模块路径（目前尚未发布）重定向到实际存放代码的本地目录。
+    </p>
+
+    <ol>
+      <li>
+        在 hello 目录的命令行中运行以下命令：
+
+    <pre>
+$ go mod edit -replace example.com/greetings=../greetings
+</pre>
+
+    <p>
+      该命令指定：查找依赖时，用 <code>../greetings</code> 替换 <code>example.com/greetings</code> 对应的来源。运行后，hello 目录中的 go.mod 文件应包含一条 <a href="/doc/modules/gomod-ref#replace"> <code>replace</code> 指令</a>：
+    </p>
+
+        <pre>
+module example.com/hello
+
+go 1.16
+
+<ins>replace example.com/greetings => ../greetings</ins>
+</pre>
+      </li>
+
+      <li>
+        在 hello 目录的命令行中运行 <a href="/ref/mod#go-mod-tidy"> <code>go mod tidy</code> 命令</a>，同步 <code>example.com/hello</code> 模块的依赖，添加代码需要但模块中尚未记录的依赖。
+
+        <pre>$ go mod tidy
+go: found example.com/greetings in example.com/greetings v0.0.0-00010101000000-000000000000
+</pre>
+        <p>
+         命令执行完毕后，<code>example.com/hello</code> 模块的 go.mod 文件应如下所示：
+        </p>
+
+        <pre>module example.com/hello
+
+go 1.16
+
+replace example.com/greetings => ../greetings
+
+<ins>require example.com/greetings v0.0.0-00010101000000-000000000000</ins></pre>
+
+        <p>
+          该命令在 greetings 目录中找到了本地代码，并添加了一条 <a href="/doc/modules/gomod-ref#require"><code>require</code> 指令</a>，声明 <code>example.com/hello</code> 依赖 <code>example.com/greetings</code>。在 hello.go 中导入 <code>greetings</code> 包时，就建立了这个依赖关系。
+        </p>
+        <p>
+          模块路径后面的版本号称为<em>伪版本号</em>。它是自动生成的版本号，用来代替模块目前还没有的语义化版本号。
+        </p>
+        <p>
+          引用<em>已发布</em>的模块时，go.mod 文件通常不需要 <code>replace</code> 指令，而是在 <code>require</code> 指令末尾使用带有版本标签的版本号。
+        </p>
+
+        <pre>require example.com/greetings v1.1.0</pre>
+
+        <p>有关版本号的更多说明，请参阅<a href="/doc/modules/version-numbers">模块版本编号</a>。</p>
+      </li>
+    </ol>
+  <li>
+    在 <code>hello</code> 目录的命令行中运行代码，确认它能正常工作。
+
+    <pre>
+$ go run .
+Hi, Gladys. Welcome!
+</pre>
+  </li>
+</ol>
+
+<p>
+  恭喜！你已经编写了两个可以正常工作的模块。
+</p>
+
+<p>
+  下一节将添加错误处理。
+</p>
+
+<p class="Navigation">
+  <a class="Navigation-prev" href="/doc/tutorial/create-module.html" >&lt; 创建 Go 模块</a > <a class="Navigation-next" href="/doc/tutorial/handle-errors.html" >返回和处理错误 &gt;</a >
+</p>

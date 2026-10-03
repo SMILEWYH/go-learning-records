@@ -1,0 +1,304 @@
+<!--{
+  "Title": "crypto/sha256 package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package sha256</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/sha256"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package sha256 implements the SHA224 and SHA256 hash algorithms as defined
+in FIPS 180-4.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#New">func New() hash.Hash</a></dd>
+			
+				<dd><a href="#New224">func New224() hash.Hash</a></dd>
+			
+				<dd><a href="#Sum224">func Sum224(data []byte) [Size224]byte</a></dd>
+			
+				<dd><a href="#Sum256">func Sum256(data []byte) [Size]byte</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_New">New</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_file">New (File)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sum256">Sum256</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/sha256/sha256.go">sha256.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>The blocksize of SHA256 and SHA224 in bytes.
+
+				<pre>const <span id="BlockSize">BlockSize</span> = 64</pre>
+			
+				<p>The size of a SHA256 checksum in bytes.
+
+				<pre>const <span id="Size">Size</span> = 32</pre>
+			
+				<p>The size of a SHA224 checksum in bytes.
+
+				<pre>const <span id="Size224">Size224</span> = 28</pre>
+			
+		
+		
+		
+			
+			<h2 id="New">func <a href="/src/crypto/sha256/sha256.go?s=899:919#L24">New</a>
+				
+				
+			</h2>
+			<pre>func New() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a></pre>
+			<p>New returns a new <a href="/pkg/hash/#Hash">hash.Hash</a> computing the SHA256 checksum. The Hash
+also implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>, <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a> and
+<a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> to marshal and unmarshal the internal
+state of the hash.
+
+			
+
+
+<div id="example_New" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha256&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	h := sha256.New()
+	h.Write([]byte(&#34;hello world\n&#34;))
+	fmt.Printf(&#34;%x&#34;, h.Sum(nil))
+}
+</textarea></div>
+        <div class="output"><pre>a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_New_file" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (File)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (File)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha256&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	f, err := os.Open(&#34;file.txt&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%x&#34;, h.Sum(nil))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="New224">func <a href="/src/crypto/sha256/sha256.go?s=1243:1266#L35">New224</a>
+				
+				
+			</h2>
+			<pre>func New224() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a></pre>
+			<p>New224 returns a new <a href="/pkg/hash/#Hash">hash.Hash</a> computing the SHA224 checksum. The Hash
+also implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>, <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a> and
+<a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> to marshal and unmarshal the internal
+state of the hash.
+
+			
+		
+			
+			<h2 id="Sum224">func <a href="/src/crypto/sha256/sha256.go?s=1619:1657#L55">Sum224</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func Sum224(data []<a href="/pkg/builtin/#byte">byte</a>) [<a href="#Size224">Size224</a>]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum224 returns the SHA224 checksum of the data.
+
+			
+		
+			
+			<h2 id="Sum256">func <a href="/src/crypto/sha256/sha256.go?s=1399:1434#L43">Sum256</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func Sum256(data []<a href="/pkg/builtin/#byte">byte</a>) [<a href="#Size">Size</a>]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum256 returns the SHA256 checksum of the data.
+
+			
+
+
+<div id="example_Sum256" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha256&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	sum := sha256.Sum256([]byte(&#34;hello world\n&#34;))
+	fmt.Printf(&#34;%x&#34;, sum)
+}
+</textarea></div>
+        <div class="output"><pre>a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

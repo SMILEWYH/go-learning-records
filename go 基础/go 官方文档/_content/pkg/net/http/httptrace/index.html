@@ -1,0 +1,417 @@
+<!--{
+  "Title": "net/http/httptrace 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package httptrace</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/httptrace"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>httptrace 包提供了跟踪 HTTP 客户端请求内部事件的机制。
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptrace&#34;
+)
+
+func main() {
+	req, _ := http.NewRequest(&#34;GET&#34;, &#34;http://example.com&#34;, nil)
+	trace := &amp;httptrace.ClientTrace{
+		GotConn: func(connInfo httptrace.GotConnInfo) {
+			fmt.Printf(&#34;Got Conn: %&#43;v\n&#34;, connInfo)
+		},
+		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
+			fmt.Printf(&#34;DNS Info: %&#43;v\n&#34;, dnsInfo)
+		},
+	}
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+	_, err := http.DefaultTransport.RoundTrip(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#WithClientTrace">func WithClientTrace(ctx context.Context, trace *ClientTrace) context.Context</a></dd>
+			
+			
+				
+				<dd><a href="#ClientTrace">type ClientTrace</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ContextClientTrace">func ContextClientTrace(ctx context.Context) *ClientTrace</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DNSDoneInfo">type DNSDoneInfo</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DNSStartInfo">type DNSStartInfo</a></dd>
+				
+				
+			
+				
+				<dd><a href="#GotConnInfo">type GotConnInfo</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WroteRequestInfo">type WroteRequestInfo</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/httptrace/trace.go">trace.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="WithClientTrace">func <a href="/src/net/http/httptrace/trace.go?s=982:1059#L23">WithClientTrace</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func WithClientTrace(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, trace *<a href="#ClientTrace">ClientTrace</a>) <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+			<p>WithClientTrace 基于给定的父上下文 ctx 返回新上下文。使用该新上下文发起的 HTTP 客户端请求，除了使用先前注册到 ctx 的钩子，还会使用给定的跟踪钩子。所提供 trace 中定义的钩子会先被调用。
+
+			
+		
+		
+			
+			<h2 id="ClientTrace">type <a href="/src/net/http/httptrace/trace.go?s=2338:5798#L69">ClientTrace</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>ClientTrace 是一组在传出 HTTP 请求各阶段运行的钩子。任意钩子都可以为 nil。这些函数可能从不同的 goroutine 并发调用，其中一些可能在请求完成或失败后才被调用。
+<p>ClientTrace 目前跟踪单次往返中的一个 HTTP 请求及其响应，没有跨越一系列重定向请求的钩子。
+<p>更多信息见 <a href="/blog/http-tracing">https://go.dev/blog/http-tracing</a>。
+
+			<pre>type ClientTrace struct {
+<span id="ClientTrace.GetConn"></span>    <span class="comment">// GetConn 在创建连接或从空闲池获取连接</span>
+    <span class="comment">// 之前调用。hostPort 是目标或代理的</span>
+    <span class="comment">// "host:port"。即使已有缓存的空闲连接</span>
+    <span class="comment">// 可用，也会调用 GetConn。</span>
+    GetConn func(hostPort <a href="/pkg/builtin/#string">string</a>)
+
+<span id="ClientTrace.GotConn"></span>    <span class="comment">// GotConn 在成功获取连接后调用。</span>
+    <span class="comment">// 没有专门用于获取连接失败的钩子；</span>
+    <span class="comment">// 应当使用 Transport.RoundTrip</span>
+    <span class="comment">// 返回的错误。</span>
+    GotConn func(<a href="#GotConnInfo">GotConnInfo</a>)
+
+<span id="ClientTrace.PutIdleConn"></span>    <span class="comment">// PutIdleConn 在连接放回空闲池时调用。</span>
+    <span class="comment">// 如果 err 为 nil，表示连接已成功</span>
+    <span class="comment">// 放回空闲池；如果 err 非 nil，</span>
+    <span class="comment">// 则说明未放回的原因。如果通过</span>
+    <span class="comment">// Transport.DisableKeepAlives 禁用了连接复用，则不会调用它。</span>
+    <span class="comment">// PutIdleConn 会在调用者的 Response.Body.Close</span>
+    <span class="comment">// 调用返回之前执行。</span>
+    <span class="comment">// 对于 HTTP/2，目前不会使用此钩子。</span>
+    PutIdleConn func(err <a href="/pkg/builtin/#error">error</a>)
+
+<span id="ClientTrace.GotFirstResponseByte"></span>    <span class="comment">// GotFirstResponseByte 在响应头部的第一个字节</span>
+    <span class="comment">// 可用时调用。</span>
+    GotFirstResponseByte func()
+
+<span id="ClientTrace.Got100Continue"></span>    <span class="comment">// Got100Continue 在服务器回复 "100</span>
+    <span class="comment">// Continue" 响应时调用。</span>
+    Got100Continue func()
+
+<span id="ClientTrace.Got1xxResponse"></span>    <span class="comment">// Got1xxResponse 对最终非 1xx 响应之前返回的每个 1xx 信息响应头部</span>
+    <span class="comment">// 各调用一次。即使同时定义了 Got100Continue，</span>
+    <span class="comment">// 对于 "100 Continue" 响应也会调用 Got1xxResponse。</span>
+    <span class="comment">// 如果它返回错误，客户端请求会以该错误值中止。</span>
+    Got1xxResponse func(code <a href="/pkg/builtin/#int">int</a>, header <a href="/pkg/net/textproto/">textproto</a>.<a href="/pkg/net/textproto/#MIMEHeader">MIMEHeader</a>) <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.11</span>
+
+<span id="ClientTrace.DNSStart"></span>    <span class="comment">// DNSStart 在 DNS 查询开始时调用。</span>
+    DNSStart func(<a href="#DNSStartInfo">DNSStartInfo</a>)
+
+<span id="ClientTrace.DNSDone"></span>    <span class="comment">// DNSDone 在 DNS 查询结束时调用。</span>
+    DNSDone func(<a href="#DNSDoneInfo">DNSDoneInfo</a>)
+
+<span id="ClientTrace.ConnectStart"></span>    <span class="comment">// ConnectStart 在新连接的 Dial 开始时调用。</span>
+    <span class="comment">// 如果启用了 net.Dialer.DualStack（IPv6 "Happy Eyeballs"）</span>
+    <span class="comment">// 支持，它可能被调用多次。</span>
+    ConnectStart func(network, addr <a href="/pkg/builtin/#string">string</a>)
+
+<span id="ClientTrace.ConnectDone"></span>    <span class="comment">// ConnectDone 在新连接的 Dial</span>
+    <span class="comment">// 完成时调用。给定的 err 表示</span>
+    <span class="comment">// 连接是否成功建立。</span>
+    <span class="comment">// 如果启用了 net.Dialer.DualStack（"Happy Eyeballs"）</span>
+    <span class="comment">// 支持，它可能被调用多次。</span>
+    ConnectDone func(network, addr <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)
+
+<span id="ClientTrace.TLSHandshakeStart"></span>    <span class="comment">// TLSHandshakeStart 在 TLS 握手开始时调用。通过 HTTP 代理</span>
+    <span class="comment">// 连接 HTTPS 站点时，握手发生在代理</span>
+    <span class="comment">// 处理 CONNECT 请求之后。</span>
+    TLSHandshakeStart func() <span class="comment">// Go 1.8</span>
+
+<span id="ClientTrace.TLSHandshakeDone"></span>    <span class="comment">// TLSHandshakeDone 在 TLS 握手结束后调用；握手成功时，</span>
+    <span class="comment">// 传入连接状态，握手失败时，</span>
+    <span class="comment">// 传入非 nil 错误。</span>
+    TLSHandshakeDone func(<a href="/pkg/crypto/tls/">tls</a>.<a href="/pkg/crypto/tls/#ConnectionState">ConnectionState</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.8</span>
+
+<span id="ClientTrace.WroteHeaderField"></span>    <span class="comment">// WroteHeaderField 在 Transport 写入每个请求头部后</span>
+    <span class="comment">// 调用。调用时，这些值可能仍在</span>
+    <span class="comment">// 缓冲区中，尚未写入网络。</span>
+    WroteHeaderField func(key <a href="/pkg/builtin/#string">string</a>, value []<a href="/pkg/builtin/#string">string</a>) <span class="comment">// Go 1.11</span>
+
+<span id="ClientTrace.WroteHeaders"></span>    <span class="comment">// WroteHeaders 在 Transport 写入所有</span>
+    <span class="comment">// 请求头部后调用。</span>
+    WroteHeaders func()
+
+<span id="ClientTrace.Wait100Continue"></span>    <span class="comment">// 如果 Request 指定了 "Expect: 100-continue"，</span>
+    <span class="comment">// 且 Transport 已写入请求头部，</span>
+    <span class="comment">// 正在等待服务器的 "100 Continue" 后再写入请求体，</span>
+    <span class="comment">// 则调用 Wait100Continue。</span>
+    Wait100Continue func()
+
+<span id="ClientTrace.WroteRequest"></span>    <span class="comment">// WroteRequest 以写入请求及其请求体的</span>
+    <span class="comment">// 结果为参数调用。请求重试时，</span>
+    <span class="comment">// 它可能被调用多次。</span>
+    WroteRequest func(<a href="#WroteRequestInfo">WroteRequestInfo</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ContextClientTrace">func <a href="/src/net/http/httptrace/trace.go?s=551:608#L13">ContextClientTrace</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func ContextClientTrace(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) *<a href="#ClientTrace">ClientTrace</a></pre>
+				<p>ContextClientTrace 返回与给定上下文关联的 <a href="#ClientTrace">ClientTrace</a>。如果不存在，则返回 nil。
+
+				
+			
+
+			
+		
+			
+			<h2 id="DNSDoneInfo">type <a href="/src/net/http/httptrace/trace.go?s=8262:8638#L257">DNSDoneInfo</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>DNSDoneInfo 包含 DNS 查询结果的信息。
+
+			<pre>type DNSDoneInfo struct {
+<span id="DNSDoneInfo.Addrs"></span>    <span class="comment">// Addrs 是 DNS 查询找到的 IPv4 和/或 IPv6</span>
+    <span class="comment">// 地址。不得修改此切片的内容。</span>
+    Addrs []<a href="/pkg/net/">net</a>.<a href="/pkg/net/#IPAddr">IPAddr</a>
+
+<span id="DNSDoneInfo.Err"></span>    <span class="comment">// Err 是 DNS 查询期间发生的错误（如果有）。</span>
+    Err <a href="/pkg/builtin/#error">error</a>
+
+<span id="DNSDoneInfo.Coalesced"></span>    <span class="comment">// Coalesced 表示 Addrs 是否与另一个同时</span>
+    <span class="comment">// 执行相同 DNS 查询的调用者共享。</span>
+    Coalesced <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DNSStartInfo">type <a href="/src/net/http/httptrace/trace.go?s=8148:8189#L252">DNSStartInfo</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>DNSStartInfo 包含 DNS 请求的信息。
+
+			<pre>type DNSStartInfo struct {
+<span id="DNSStartInfo.Host"></span>    Host <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="GotConnInfo">type <a href="/src/net/http/httptrace/trace.go?s=8942:9451#L279">GotConnInfo</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>GotConnInfo 是 <a href="#ClientTrace.GotConn">ClientTrace.GotConn</a> 函数的参数，包含所获取连接的信息。
+
+			<pre>type GotConnInfo struct {
+<span id="GotConnInfo.Conn"></span>    <span class="comment">// Conn 是所获取的连接。它由 http.Transport</span>
+    <span class="comment">// 拥有，ClientTrace 的使用者不得读取、写入</span>
+    <span class="comment">// 或关闭它。</span>
+    Conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>
+
+<span id="GotConnInfo.Reused"></span>    <span class="comment">// Reused 表示此连接以前是否已用于</span>
+    <span class="comment">// 其他 HTTP 请求。</span>
+    Reused <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="GotConnInfo.WasIdle"></span>    <span class="comment">// WasIdle 表示此连接是否从</span>
+    <span class="comment">// 空闲池获取。</span>
+    WasIdle <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="GotConnInfo.IdleTime"></span>    <span class="comment">// 如果 WasIdle 为 true，IdleTime 表示连接</span>
+    <span class="comment">// 此前处于空闲状态的时长。</span>
+    IdleTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="WroteRequestInfo">type <a href="/src/net/http/httptrace/trace.go?s=5879:5982#L157">WroteRequestInfo</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>WroteRequestInfo 包含提供给 WroteRequest 钩子的信息。
+
+			<pre>type WroteRequestInfo struct {
+<span id="WroteRequestInfo.Err"></span>    <span class="comment">// Err 是写入 Request 时遇到的错误（如果有）。</span>
+    Err <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,243 @@
+<!--{
+  "Title": "hash/crc32 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>hash/crc32 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "hash/crc32"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>crc32 包实现 32 位循环冗余校验（CRC-32）校验和。详见 <a href="https://en.wikipedia.org/wiki/Cyclic_redundancy_check">https://en.wikipedia.org/wiki/Cyclic_redundancy_check</a>。<p>多项式采用最低有效位优先（LSB-first）的形式表示，也称为反向表示法。<p>详见 <a href="https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks#Reversed_representations_and_reciprocal_polynomials">https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks#Reversed_representations_and_reciprocal_polynomials</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Checksum">func Checksum(data []byte, tab *Table) uint32</a></dd>
+			
+				<dd><a href="#ChecksumIEEE">func ChecksumIEEE(data []byte) uint32</a></dd>
+			
+				<dd><a href="#New">func New(tab *Table) hash.Hash32</a></dd>
+			
+				<dd><a href="#NewIEEE">func NewIEEE() hash.Hash32</a></dd>
+			
+				<dd><a href="#Update">func Update(crc uint32, tab *Table, p []byte) uint32</a></dd>
+			
+			
+				
+				<dd><a href="#Table">type Table</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeTable">func MakeTable(poly uint32) *Table</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_MakeTable">MakeTable</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/hash/crc32/crc32.go">crc32.go</a>
+			
+				<a href="/src/hash/crc32/crc32_amd64.go">crc32_amd64.go</a>
+			
+				<a href="/src/hash/crc32/crc32_generic.go">crc32_generic.go</a>
+			
+				<a href="/src/hash/crc32/gen.go">gen.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>预定义的多项式。<pre>const (
+    <span class="comment">// IEEE 是迄今最常用的 CRC-32 多项式。</span>
+    <span class="comment">// 用于以太网（IEEE 802.3）、v.42、fddi、gzip、zip、png 等。</span>
+    <span id="IEEE">IEEE</span> = 0xedb88320
+
+    <span class="comment">// Castagnoli 多项式，用于 iSCSI。</span>
+    <span class="comment">// 它的错误检测特性优于 IEEE。</span>
+    <span class="comment">// https://dx.doi.org/10.1109/26.231911</span>
+    <span id="Castagnoli">Castagnoli</span> = 0x82f63b78
+
+    <span class="comment">// Koopman 多项式。</span>
+    <span class="comment">// 它的错误检测特性也优于 IEEE。</span>
+    <span class="comment">// https://dx.doi.org/10.1109/DSN.2002.1028931</span>
+    <span id="Koopman">Koopman</span> = 0xeb31d82e
+)</pre>
+			
+				<p>CRC-32 校验和的大小，以字节为单位。<pre>const <span id="Size">Size</span> = 4</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>IEEETable 是 <a href="#IEEE">IEEE</a> 多项式对应的表。<pre>var <span id="IEEETable">IEEETable</span> = simpleMakeTable(<a href="#IEEE">IEEE</a>)</pre>
+			
+		
+		
+			
+			<h2 id="Checksum">func <a href="/src/hash/crc32/crc32.go?s=7305:7350#L229">Checksum</a>
+				
+				
+			</h2>
+			<pre>func Checksum(data []<a href="/pkg/builtin/#byte">byte</a>, tab *<a href="#Table">Table</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>Checksum 使用 <a href="#Table">Table</a> 表示的多项式，返回 data 的 CRC-32 校验和。<h2 id="ChecksumIEEE">func <a href="/src/hash/crc32/crc32.go?s=7468:7505#L233">ChecksumIEEE</a>
+				
+				
+			</h2>
+			<pre>func ChecksumIEEE(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>ChecksumIEEE 使用 <a href="#IEEE">IEEE</a> 多项式，返回 data 的 CRC-32 校验和。<h2 id="New">func <a href="/src/hash/crc32/crc32.go?s=4678:4710#L136">New</a>
+				
+				
+			</h2>
+			<pre>func New(tab *<a href="#Table">Table</a>) <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash32">Hash32</a></pre>
+			<p>New 创建一个新的 <a href="/pkg/hash/#Hash32">hash.Hash32</a>，使用 <a href="#Table">Table</a> 表示的多项式计算 CRC-32 校验和。其 Sum 方法按大端字节序排列结果值。返回的 Hash32 还实现了 <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a> 和 <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a>，以序列化和反序列化哈希的内部状态。<h2 id="NewIEEE">func <a href="/src/hash/crc32/crc32.go?s=5110:5136#L148">NewIEEE</a>
+				
+				
+			</h2>
+			<pre>func NewIEEE() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash32">Hash32</a></pre>
+			<p>NewIEEE 创建一个新的 <a href="/pkg/hash/#Hash32">hash.Hash32</a>，使用 <a href="#IEEE">IEEE</a> 多项式计算 CRC-32 校验和。其 Sum 方法按大端字节序排列结果值。返回的 Hash32 还实现了 <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a> 和 <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a>，以序列化和反序列化哈希的内部状态。<h2 id="Update">func <a href="/src/hash/crc32/crc32.go?s=6564:6616#L207">Update</a>
+				
+				
+			</h2>
+			<pre>func Update(crc <a href="/pkg/builtin/#uint32">uint32</a>, tab *<a href="#Table">Table</a>, p []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>Update 返回将 p 中的字节加入 crc 后的结果。<h2 id="Table">type <a href="/src/hash/crc32/crc32.go?s=1317:1339#L34">Table</a>
+				
+				
+			</h2>
+			<p>Table 是一个含 256 个字的表，用于表示多项式以便高效处理。<pre>type Table [256]<a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MakeTable">func <a href="/src/hash/crc32/crc32.go?s=4015:4049#L112">MakeTable</a>
+					
+					
+				</h3>
+				<pre>func MakeTable(poly <a href="/pkg/builtin/#uint32">uint32</a>) *<a href="#Table">Table</a></pre>
+				<p>MakeTable 返回使用指定多项式构造的 <a href="#Table">Table</a>。不得修改此 <a href="#Table">Table</a> 的内容。<div id="example_MakeTable" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/crc32&#34;
+)
+
+func main() {
+	// 在本包中，CRC 多项式使用反向表示法，
+	// 也就是最低有效位优先（LSB-first）的表示法。
+	//
+	// LSB-first 表示法是一个具有 n 位的十六进制数，
+	// 其中最高有效位表示 x⁰ 的系数，最低有效位
+	// 表示 xⁿ⁻¹ 的系数（xⁿ 的系数是隐含的）。
+	//
+	// 例如，由以下多项式定义的 CRC32-Q：
+	//	x³²&#43; x³¹&#43; x²⁴&#43; x²²&#43; x¹⁶&#43; x¹⁴&#43; x⁸&#43; x⁷&#43; x⁵&#43; x³&#43; x¹&#43; x⁰
+	// 其反向表示为 0b11010101100000101000001010000001，
+	// 因此传给 MakeTable 的值应为 0xD5828281。
+	crc32q := crc32.MakeTable(0xD5828281)
+	fmt.Printf(&#34;%08x\n&#34;, crc32.Checksum([]byte(&#34;Hello world&#34;), crc32q))
+}
+</textarea></div>
+        <div class="output"><pre>2964d064
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

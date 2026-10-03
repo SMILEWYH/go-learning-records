@@ -1,0 +1,1095 @@
+<!--{
+  "Title": "bufio 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>bufio 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "bufio"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>bufio 包实现带缓冲的 I/O。它包装 io.Reader 或 io.Writer 对象，创建一个同样实现相应接口的 Reader 或 Writer，并提供缓冲能力和一些方便文本 I/O 的辅助功能。
+</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#ScanBytes">func ScanBytes(data []byte, atEOF bool) (advance int, token []byte, err error)</a></dd>
+			
+				<dd><a href="#ScanLines">func ScanLines(data []byte, atEOF bool) (advance int, token []byte, err error)</a></dd>
+			
+				<dd><a href="#ScanRunes">func ScanRunes(data []byte, atEOF bool) (advance int, token []byte, err error)</a></dd>
+			
+				<dd><a href="#ScanWords">func ScanWords(data []byte, atEOF bool) (advance int, token []byte, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#ReadWriter">type ReadWriter</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReadWriter">func NewReadWriter(r *Reader, w *Writer) *ReadWriter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(rd io.Reader) *Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReaderSize">func NewReaderSize(rd io.Reader, size int) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Buffered">func (b *Reader) Buffered() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Discard">func (b *Reader) Discard(n int) (discarded int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Peek">func (b *Reader) Peek(n int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (b *Reader) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadByte">func (b *Reader) ReadByte() (byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadBytes">func (b *Reader) ReadBytes(delim byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadLine">func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadRune">func (b *Reader) ReadRune() (r rune, size int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadSlice">func (b *Reader) ReadSlice(delim byte) (line []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadString">func (b *Reader) ReadString(delim byte) (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Reset">func (b *Reader) Reset(r io.Reader)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Size">func (b *Reader) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.UnreadByte">func (b *Reader) UnreadByte() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.UnreadRune">func (b *Reader) UnreadRune() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.WriteTo">func (b *Reader) WriteTo(w io.Writer) (n int64, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewScanner">func NewScanner(r io.Reader) *Scanner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Buffer">func (s *Scanner) Buffer(buf []byte, max int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Bytes">func (s *Scanner) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Err">func (s *Scanner) Err() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Scan">func (s *Scanner) Scan() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Split">func (s *Scanner) Split(split SplitFunc)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Text">func (s *Scanner) Text() string</a></dd>
+				
+			
+				
+				<dd><a href="#SplitFunc">type SplitFunc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriterSize">func NewWriterSize(w io.Writer, size int) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Available">func (b *Writer) Available() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.AvailableBuffer">func (b *Writer) AvailableBuffer() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Buffered">func (b *Writer) Buffered() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (b *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.ReadFrom">func (b *Writer) ReadFrom(r io.Reader) (n int64, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Reset">func (b *Writer) Reset(w io.Writer)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Size">func (b *Writer) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (b *Writer) Write(p []byte) (nn int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.WriteByte">func (b *Writer) WriteByte(c byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.WriteRune">func (b *Writer) WriteRune(r rune) (size int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.WriteString">func (b *Writer) WriteString(s string) (int, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_Bytes">Scanner.Bytes</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_custom">Scanner (Custom)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_earlyStop">Scanner (EarlyStop)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_emptyFinalToken">Scanner (EmptyFinalToken)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_lines">Scanner (Lines)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_words">Scanner (Words)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Writer">Writer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Writer_AvailableBuffer">Writer.AvailableBuffer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Writer_ReadFrom">Writer.ReadFrom</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/bufio/bufio.go">bufio.go</a>
+			
+				<a href="/src/bufio/scan.go">scan.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// MaxScanTokenSize 是缓冲一个 token 所使用的最大大小，</span>
+    <span class="comment">// 除非使用者通过 [Scanner.Buffer] 显式提供缓冲区。</span>
+    <span class="comment">// 实际允许的最大 token 大小可能更小，因为缓冲区</span>
+    <span class="comment">// 可能还需要包含换行符等内容。</span>
+    <span id="MaxScanTokenSize">MaxScanTokenSize</span> = 64 * 1024
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span id="ErrInvalidUnreadByte">ErrInvalidUnreadByte</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio: invalid use of UnreadByte&#34;)
+    <span id="ErrInvalidUnreadRune">ErrInvalidUnreadRune</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio: invalid use of UnreadRune&#34;)
+    <span id="ErrBufferFull">ErrBufferFull</span>        = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio: buffer full&#34;)
+    <span id="ErrNegativeCount">ErrNegativeCount</span>     = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio: negative count&#34;)
+)</pre>
+			
+				<p>Scanner 返回的错误。
+<pre>var (
+    <span id="ErrTooLong">ErrTooLong</span>         = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio.Scanner: token too long&#34;)
+    <span id="ErrNegativeAdvance">ErrNegativeAdvance</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio.Scanner: SplitFunc returns negative advance count&#34;)
+    <span id="ErrAdvanceTooFar">ErrAdvanceTooFar</span>   = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio.Scanner: SplitFunc returns advance count beyond input&#34;)
+    <span id="ErrBadReadCount">ErrBadReadCount</span>    = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bufio.Scanner: Read returned impossible count&#34;)
+)</pre>
+			
+				<p>ErrFinalToken 是一个特殊的哨兵错误值。分割函数可返回它，表示扫描应当正常停止，不报告错误。如果同时返回的 token 非 nil，它就是最后一个 token。
+<p>这个值适用于提前结束处理，或需要返回最后一个空 token 的情况；空 token 与 nil token 不同。虽然自定义错误值也能实现相同效果，但在这里统一提供更简洁。使用示例见 emptyFinalToken。
+<pre>var <span id="ErrFinalToken">ErrFinalToken</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;final token&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="ScanBytes">func <a href="/src/bufio/scan.go?s=10398:10476#L287">ScanBytes</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ScanBytes(data []<a href="/pkg/builtin/#byte">byte</a>, atEOF <a href="/pkg/builtin/#bool">bool</a>) (advance <a href="/pkg/builtin/#int">int</a>, token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ScanBytes 是用于 <a href="#Scanner">Scanner</a> 的分割函数，将每个字节作为一个 token 返回。
+<h2 id="ScanLines">func <a href="/src/bufio/scan.go?s=12608:12686#L348">ScanLines</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ScanLines(data []<a href="/pkg/builtin/#byte">byte</a>, atEOF <a href="/pkg/builtin/#bool">bool</a>) (advance <a href="/pkg/builtin/#int">int</a>, token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ScanLines 是用于 <a href="#Scanner">Scanner</a> 的分割函数，返回每行文本，并去掉末尾的行结束标记。返回的行可以为空。行结束标记由一个可选的回车符和一个必需的换行符组成，用正则表达式表示为 `\r?\n`。输入的最后一个非空行即使没有换行符，也会被返回。
+<h2 id="ScanRunes">func <a href="/src/bufio/scan.go?s=11047:11125#L302">ScanRunes</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ScanRunes(data []<a href="/pkg/builtin/#byte">byte</a>, atEOF <a href="/pkg/builtin/#bool">bool</a>) (advance <a href="/pkg/builtin/#int">int</a>, token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ScanRunes 是用于 <a href="#Scanner">Scanner</a> 的分割函数，将每个 UTF-8 编码的 rune 作为一个 token 返回。返回的 rune 序列，与将输入视为字符串进行 range 循环得到的序列相同，因此错误的 UTF-8 编码会被转换为 U+FFFD = &quot;\xef\xbf\xbd&quot;。受 Scan 接口的限制，调用方无法区分编码正确的替换字符与编码错误。
+<h2 id="ScanWords">func <a href="/src/bufio/scan.go?s=13904:13982#L393">ScanWords</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ScanWords(data []<a href="/pkg/builtin/#byte">byte</a>, atEOF <a href="/pkg/builtin/#bool">bool</a>) (advance <a href="/pkg/builtin/#int">int</a>, token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ScanWords 是用于 <a href="#Scanner">Scanner</a> 的分割函数，返回文本中由空白分隔的每个单词，并去掉两侧的空白。它永远不会返回空字符串。空白的定义由 unicode.IsSpace 决定。
+<h2 id="ReadWriter">type <a href="/src/bufio/bufio.go?s=22303:22347#L824">ReadWriter</a>
+				
+				
+			</h2>
+			<p>ReadWriter 保存指向 <a href="#Reader">Reader</a> 和 <a href="#Writer">Writer</a> 的指针，实现了 <a href="/pkg/io/#ReadWriter">io.ReadWriter</a>。
+<pre>type ReadWriter struct {
+    *<a href="#Reader">Reader</a>
+    *<a href="#Writer">Writer</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReadWriter">func <a href="/src/bufio/bufio.go?s=22423:22475#L830">NewReadWriter</a>
+					
+					
+				</h3>
+				<pre>func NewReadWriter(r *<a href="#Reader">Reader</a>, w *<a href="#Writer">Writer</a>) *<a href="#ReadWriter">ReadWriter</a></pre>
+				<p>NewReadWriter 分配一个新的 <a href="#ReadWriter">ReadWriter</a>，将读写操作分别转发给 r 和 w。
+<h2 id="Reader">type <a href="/src/bufio/bufio.go?s=1005:1327#L25">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 为 io.Reader 对象提供缓冲。可以调用 <a href="#NewReader">NewReader</a> 或 <a href="#NewReaderSize">NewReaderSize</a> 创建 Reader，也可以对 Reader 的零值调用 <a href="#Reader.Reset">Reader.Reset</a> 后使用。
+<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/bufio/bufio.go?s=1904:1940#L52">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(rd <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader 返回一个缓冲区采用默认大小的新 <a href="#Reader">Reader</a>。
+<h3 id="NewReaderSize">func <a href="/src/bufio/bufio.go?s=1596:1646#L40">NewReaderSize</a>
+					
+					
+				</h3>
+				<pre>func NewReaderSize(rd <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, size <a href="/pkg/builtin/#int">int</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReaderSize 返回一个新的 <a href="#Reader">Reader</a>，其缓冲区至少具有指定大小。如果传入的 io.Reader 已经是缓冲区足够大的 <a href="#Reader">Reader</a>，就直接返回原来的 <a href="#Reader">Reader</a>。
+<h3 id="Reader.Buffered">func (*Reader) <a href="/src/bufio/bufio.go?s=8778:8809#L326">Buffered</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Buffered() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Buffered 返回当前缓冲区中可读取的字节数。
+<h3 id="Reader.Discard">func (*Reader) <a href="/src/bufio/bufio.go?s=4876:4934#L167">Discard</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Discard(n <a href="/pkg/builtin/#int">int</a>) (discarded <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Discard 跳过接下来的 n 个字节，返回实际丢弃的字节数。
+<p>如果 Discard 跳过的字节数少于 n，还会返回错误。如果 0 &lt;= n &lt;= b.Buffered()，Discard 保证成功，并且不会读取底层 io.Reader。
+<h3 id="Reader.Peek">func (*Reader) <a href="/src/bufio/bufio.go?s=4079:4123#L133">Peek</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Peek(n <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Peek 返回接下来的 n 个字节，但不推进读取位置。返回的字节只在下一次读取调用之前有效。必要时，Peek 会向缓冲区读取更多数据，尽量凑足 n 个字节。如果返回的字节数少于 n，还会返回错误以说明原因。如果 n 大于 b 的缓冲区大小，该错误为 <a href="#ErrBufferFull">ErrBufferFull</a>。
+<p>调用 Peek 后，在下一次读取操作之前，<a href="#Reader.UnreadByte">Reader.UnreadByte</a> 和 <a href="#Reader.UnreadRune">Reader.UnreadRune</a> 都无法成功。
+<h3 id="Reader.Read">func (*Reader) <a href="/src/bufio/bufio.go?s=5702:5752#L206">Read</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 将数据读入 p，返回读入 p 的字节数。它最多对底层 <a href="#Reader">Reader</a> 调用一次 Read，因此 n 可能小于 len(p)。要恰好读取 len(p) 个字节，请使用 io.ReadFull(b, p)。如果底层 <a href="#Reader">Reader</a> 可以同时返回非零字节数和 io.EOF，那么此 Read 方法也可能这样返回；详见 <a href="/pkg/io/#Reader">io.Reader</a> 文档。
+<h3 id="Reader.ReadByte">func (*Reader) <a href="/src/bufio/bufio.go?s=6753:6794#L257">ReadByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadByte() (<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadByte 读取并返回一个字节。如果没有字节可读，返回错误。
+<h3 id="Reader.ReadBytes">func (*Reader) <a href="/src/bufio/bufio.go?s=13375:13429#L468">ReadBytes</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadBytes(delim <a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadBytes 读取输入，直到第一次遇到 delim，并返回包含截至该分隔符的全部数据的切片，分隔符也包含在内。如果在找到分隔符前遇到错误，ReadBytes 会返回错误发生前已读取的数据以及错误本身（通常是 io.EOF）。当且仅当返回的数据不以 delim 结尾时，err != nil。对于简单场景，Scanner 可能更方便。
+<h3 id="Reader.ReadLine">func (*Reader) <a href="/src/bufio/bufio.go?s=11179:11246#L395">ReadLine</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadLine() (line []<a href="/pkg/builtin/#byte">byte</a>, isPrefix <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadLine 是一个底层的逐行读取原语。大多数调用方应改用 <a href="#Reader.ReadBytes">Reader.ReadBytes</a>(&apos;\n&apos;)、<a href="#Reader.ReadString">Reader.ReadString</a>(&apos;\n&apos;)，或使用 <a href="#Scanner">Scanner</a>。
+<p>ReadLine 尝试返回一行文本，不包含行结束字节。如果一行长于缓冲区，就将 isPrefix 设为 true，并返回该行的开头部分；剩余部分将在后续调用中返回。返回该行的最后一段时，isPrefix 为 false。返回的缓冲区只在下一次 ReadLine 调用之前有效。ReadLine 要么返回非 nil 的 line，要么返回错误，不会同时返回两者。
+<p>ReadLine 返回的文本不包含行结束符（&quot;\r\n&quot; 或 &quot;\n&quot;）。如果输入结束时没有末尾行结束符，不会给出提示或错误。在 ReadLine 后调用 <a href="#Reader.UnreadByte">Reader.UnreadByte</a>，总是会回退最后一个实际读取的字节，即使该字节不属于 ReadLine 返回的行（它可能是行结束符中的一个字节）。
+<h3 id="Reader.ReadRune">func (*Reader) <a href="/src/bufio/bufio.go?s=7799:7856#L296">ReadRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadRune() (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadRune 读取一个 UTF-8 编码的 Unicode 字符，返回对应的 rune 及其占用的字节数。如果编码无效，就消耗一个字节，并返回 unicode.ReplacementChar（U+FFFD），大小为 1。
+<h3 id="Reader.ReadSlice">func (*Reader) <a href="/src/bufio/bufio.go?s=9470:9533#L338">ReadSlice</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadSlice(delim <a href="/pkg/builtin/#byte">byte</a>) (line []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadSlice 读取输入，直到第一次遇到 delim，返回一个指向缓冲区中字节的切片。返回的字节只在下一次读取之前有效。如果在找到分隔符前遇到错误，ReadSlice 返回缓冲区中的全部数据和错误本身（通常是 io.EOF）。如果缓冲区已满但仍未找到 delim，ReadSlice 返回 <a href="#ErrBufferFull">ErrBufferFull</a> 错误。由于返回的数据会被下一次 I/O 操作覆盖，大多数调用方应改用 <a href="#Reader.ReadBytes">Reader.ReadBytes</a> 或 ReadString。当且仅当 line 不以 delim 结尾时，err != nil。
+<h3 id="Reader.ReadString">func (*Reader) <a href="/src/bufio/bufio.go?s=14153:14208#L488">ReadString</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) ReadString(delim <a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadString 读取输入，直到第一次遇到 delim，返回包含截至该分隔符的全部数据的字符串，分隔符也包含在内。如果在找到分隔符前遇到错误，ReadString 返回错误发生前已读取的数据和错误本身（通常是 io.EOF）。当且仅当返回的数据不以 delim 结尾时，err != nil。对于简单场景，Scanner 可能更方便。
+<h3 id="Reader.Reset">func (*Reader) <a href="/src/bufio/bufio.go?s=2387:2422#L64">Reset</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Reset(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>)</pre>
+				<p>Reset 丢弃缓冲区中的全部数据，重置所有状态，并让这个带缓冲的读取器改为从 r 读取。对 <a href="#Reader">Reader</a> 的零值调用 Reset，会将内部缓冲区初始化为默认大小。调用 b.Reset(b)，即将 <a href="#Reader">Reader</a> 重置为自身，不执行任何操作。
+<h3 id="Reader.Size">func (*Reader) <a href="/src/bufio/bufio.go?s=2048:2075#L57">Size</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回底层缓冲区的大小，单位为字节。
+<h3 id="Reader.UnreadByte">func (*Reader) <a href="/src/bufio/bufio.go?s=7280:7315#L276">UnreadByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) UnreadByte() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadByte 回退最后读取的一个字节。只能回退最近一次读取的字节。
+<p>如果最近对 <a href="#Reader">Reader</a> 调用的方法不是读取操作，UnreadByte 返回错误。特别注意，<a href="#Reader.Peek">Reader.Peek</a>、<a href="#Reader.Discard">Reader.Discard</a> 和 <a href="#Reader.WriteTo">Reader.WriteTo</a> 不被视为读取操作。
+<h3 id="Reader.UnreadRune">func (*Reader) <a href="/src/bufio/bufio.go?s=8500:8535#L315">UnreadRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) UnreadRune() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadRune 回退最后读取的一个 rune。如果最近对 <a href="#Reader">Reader</a> 调用的方法不是 <a href="#Reader.ReadRune">Reader.ReadRune</a>，<a href="#Reader.UnreadRune">Reader.UnreadRune</a> 就会返回错误。（这一点比 <a href="#Reader.UnreadByte">Reader.UnreadByte</a> 更严格，后者可回退任何读取操作所读取的最后一个字节。）
+<h3 id="Reader.WriteTo">func (*Reader) <a href="/src/bufio/bufio.go?s=14748:14806#L505">WriteTo</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (b *<a href="#Reader">Reader</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteTo 实现 io.WriterTo，可能多次调用底层 <a href="#Reader">Reader</a> 的 <a href="#Reader.Read">Reader.Read</a> 方法。如果底层读取器支持 <a href="#Reader.WriteTo">Reader.WriteTo</a> 方法，则直接调用底层 <a href="#Reader.WriteTo">Reader.WriteTo</a>，不经过缓冲。
+<h2 id="Scanner">type <a href="/src/bufio/scan.go?s=1215:1872#L19">Scanner</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Scanner 提供便于读取数据的接口，例如读取以换行符分隔的文本文件。连续调用 <a href="#Scanner.Scan">Scanner.Scan</a> 会依次读取文件中的 token，并跳过 token 之间的字节。token 的划分规则由 <a href="#SplitFunc">SplitFunc</a> 类型的分割函数定义；默认分割函数按行拆分输入，并去掉行结束符。本包提供可通过 <a href="#Scanner.Split">Scanner.Split</a> 设置的分割函数，支持按行、字节、UTF-8 编码的 rune，以及空白分隔的单词扫描文件。调用方也可以提供自定义分割函数。
+<p>遇到 EOF、第一个 I/O 错误，或 token 大到无法装入 <a href="#Scanner.Buffer">Scanner.Buffer</a> 时，扫描会停止，而且无法恢复。扫描停止时，底层读取器可能已经向前读过最后一个 token 很远。如果程序需要更精细的错误处理、处理大 token，或必须对同一个读取器连续执行多轮扫描，应改用 <a href="#Reader">bufio.Reader</a>。
+<pre>type Scanner struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Scanner_custom" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Custom)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Custom)</span></p>
+    <p>使用 Scanner 和通过包装 ScanWords 创建的自定义分割函数，校验 32 位十进制整数输入。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	// 构造一个输入源。
+	const input = &#34;1234 5678 1234567901234567890&#34;
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	// 通过包装现有 ScanWords 函数，创建自定义分词函数。
+	split := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		advance, token, err = bufio.ScanWords(data, atEOF)
+		if err == nil &amp;&amp; token != nil {
+			_, err = strconv.ParseInt(string(token), 10, 32)
+		}
+		return
+	}
+	// 为扫描操作设置分词函数。
+	scanner.Split(split)
+	// 校验输入
+	for scanner.Scan() {
+		fmt.Printf(&#34;%s\n&#34;, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Printf(&#34;Invalid input: %s&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>1234
+5678
+Invalid input: strconv.ParseInt: parsing &#34;1234567901234567890&#34;: value out of range
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Scanner_earlyStop" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (EarlyStop)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (EarlyStop)</span></p>
+    <p>使用 Scanner 和自定义分割函数，解析末尾值为空的逗号分隔列表，并在遇到 token“STOP”时停止。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	onComma := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		i := bytes.IndexByte(data, &#39;,&#39;)
+		if i == -1 {
+			if !atEOF {
+				return 0, nil, nil
+			}
+			// 如果已经到达末尾，则返回最后一个 token。
+			return 0, data, bufio.ErrFinalToken
+		}
+		// 如果 token 为 "STOP"，则停止扫描，忽略其余内容。
+		if string(data[:i]) == &#34;STOP&#34; {
+			return i &#43; 1, nil, bufio.ErrFinalToken
+		}
+		// 否则，返回逗号之前的 token。
+		return i &#43; 1, data[:i], nil
+	}
+	const input = &#34;1,2,STOP,4,&#34;
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	scanner.Split(onComma)
+	for scanner.Scan() {
+		fmt.Printf(&#34;Got a token %q\n&#34;, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, &#34;reading input:&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Got a token &#34;1&#34;
+Got a token &#34;2&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Scanner_emptyFinalToken" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (EmptyFinalToken)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (EmptyFinalToken)</span></p>
+    <p>使用 Scanner 和自定义分割函数，解析末尾值为空的逗号分隔列表。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	// 以逗号分隔的列表；最后一项为空。
+	const input = &#34;1,2,3,4,&#34;
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	// 定义一个按逗号分隔的分词函数。
+	onComma := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		for i := 0; i &lt; len(data); i&#43;&#43; {
+			if data[i] == &#39;,&#39; {
+				return i &#43; 1, data[:i], nil
+			}
+		}
+		if !atEOF {
+			return 0, nil, nil
+		}
+		// 还有最后一个 token 需要返回，它可能是空字符串。
+		// 这里返回 bufio.ErrFinalToken，告诉 Scan 此后没有更多 token，
+		// 但不会导致 Scan 本身返回错误。
+		return 0, data, bufio.ErrFinalToken
+	}
+	scanner.Split(onComma)
+	// 开始扫描。
+	for scanner.Scan() {
+		fmt.Printf(&#34;%q &#34;, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, &#34;reading input:&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>&#34;1&#34; &#34;2&#34; &#34;3&#34; &#34;4&#34; &#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Scanner_lines" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Lines)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Lines)</span></p>
+    <p>Scanner 最简单的用法：逐行读取标准输入。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text()) // Println 会补回末尾的 '\n'
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, &#34;reading standard input:&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Scanner_words" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Words)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Words)</span></p>
+    <p>使用 Scanner 将输入扫描为空白分隔的 token 序列，实现简单的单词计数工具。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	// 构造一个输入源。
+	const input = &#34;Now is the winter of our discontent,\nMade glorious summer by this sun of York.\n&#34;
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	// 为扫描操作设置分词函数。
+	scanner.Split(bufio.ScanWords)
+	// 统计单词数。
+	count := 0
+	for scanner.Scan() {
+		count&#43;&#43;
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, &#34;reading input:&#34;, err)
+	}
+	fmt.Printf(&#34;%d\n&#34;, count)
+}
+</textarea></div>
+        <div class="output"><pre>15
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewScanner">func <a href="/src/bufio/scan.go?s=4218:4255#L79">NewScanner</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func NewScanner(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Scanner">Scanner</a></pre>
+				<p>NewScanner 返回从 r 读取数据的新 <a href="#Scanner">Scanner</a>。默认分割函数为 <a href="#ScanLines">ScanLines</a>。
+<h3 id="Scanner.Buffer">func (*Scanner) <a href="/src/bufio/scan.go?s=9857:9902#L265">Buffer</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Buffer(buf []<a href="/pkg/builtin/#byte">byte</a>, max <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Buffer 控制 Scanner 的内存分配：设置扫描使用的初始缓冲区，以及扫描期间允许分配的缓冲区最大大小。缓冲区中原有的内容会被忽略。
+<p>token 的最大大小必须小于 max 和 cap(buf) 中的较大值。如果 max &lt;= cap(buf)，<a href="#Scanner.Scan">Scanner.Scan</a> 只使用这个缓冲区，不会再分配内存。
+<p>默认情况下，<a href="#Scanner.Scan">Scanner.Scan</a> 使用内部缓冲区，并将 token 的最大大小设为 <a href="#MaxScanTokenSize">MaxScanTokenSize</a>。
+<p>扫描开始后再调用 Buffer，会触发 panic。
+<h3 id="Scanner.Bytes">func (*Scanner) <a href="/src/bufio/scan.go?s=4728:4760#L98">Bytes</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes 返回最近一次调用 <a href="#Scanner.Scan">Scanner.Scan</a> 生成的 token。其底层数组可能指向会被后续 Scan 调用覆盖的数据。Bytes 不进行内存分配。
+<div id="example_Scanner_Bytes" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>以 []byte 形式返回最近一次 Scan 调用得到的 token。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	scanner := bufio.NewScanner(strings.NewReader(&#34;gopher&#34;))
+	for scanner.Scan() {
+		fmt.Println(len(scanner.Bytes()) == 6)
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, &#34;shouldn&#39;t see an error scanning a string&#34;)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Scanner.Err">func (*Scanner) <a href="/src/bufio/scan.go?s=4440:4469#L88">Err</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Err() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err 返回 <a href="#Scanner">Scanner</a> 遇到的第一个非 EOF 错误。
+<h3 id="Scanner.Scan">func (*Scanner) <a href="/src/bufio/scan.go?s=6140:6169#L129">Scan</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Scan() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Scan 将 <a href="#Scanner">Scanner</a> 推进到下一个 token，之后可以通过 <a href="#Scanner.Bytes">Scanner.Bytes</a> 或 <a href="#Scanner.Text">Scanner.Text</a> 获取它。当输入结束或发生错误，导致没有更多 token 时，Scan 返回 false。Scan 返回 false 后，<a href="#Scanner.Err">Scanner.Err</a> 会返回扫描过程中发生的错误；如果该错误为 <a href="/pkg/io/#EOF">io.EOF</a>，则 <a href="#Scanner.Err">Scanner.Err</a> 返回 nil。如果分割函数在不推进输入的情况下连续返回过多空 token，Scan 会触发 panic。这是扫描器的一种常见错误用法。
+<h3 id="Scanner.Split">func (*Scanner) <a href="/src/bufio/scan.go?s=10174:10214#L277">Split</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Split(split <a href="#SplitFunc">SplitFunc</a>)</pre>
+				<p>Split 设置 <a href="#Scanner">Scanner</a> 的分割函数。默认分割函数为 <a href="#ScanLines">ScanLines</a>。
+<p>扫描开始后再调用 Split，会触发 panic。
+<h3 id="Scanner.Text">func (*Scanner) <a href="/src/bufio/scan.go?s=4908:4939#L104">Text</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Text() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Text 返回最近一次调用 <a href="#Scanner.Scan">Scanner.Scan</a> 生成的 token，形式为新分配的字符串，其中保存该 token 的字节。
+<h2 id="SplitFunc">type <a href="/src/bufio/scan.go?s=3303:3386#L57">SplitFunc</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>SplitFunc 是用于将输入切分为 token 的分割函数签名。参数包括剩余未处理数据的起始片段，以及表示 <a href="#Reader">Reader</a> 是否已无更多数据可读的标志 atEOF。返回值依次为输入应前进的字节数、下一个应返回给用户的 token（如果有），以及错误（如果有）。
+<p>函数返回错误时，扫描会停止，此时部分输入可能被丢弃。如果错误为 <a href="#ErrFinalToken">ErrFinalToken</a>，扫描会正常停止，不报告错误。与 <a href="#ErrFinalToken">ErrFinalToken</a> 一同返回的非 nil token 将作为最后一个 token；如果返回的 token 为 nil 且错误为 <a href="#ErrFinalToken">ErrFinalToken</a>，扫描立即停止。
+<p>否则，<a href="#Scanner">Scanner</a> 会推进输入。如果 token 非 nil，<a href="#Scanner">Scanner</a> 将其返回给用户。如果 token 为 nil，Scanner 会读取更多数据并继续扫描；如果已经没有更多数据，即 atEOF 为 true，<a href="#Scanner">Scanner</a> 就会返回。如果 data 还不包含完整的 token，例如逐行扫描时尚未找到换行符，<a href="#SplitFunc">SplitFunc</a> 可以返回 (0, nil, nil)，通知 <a href="#Scanner">Scanner</a> 向切片读取更多数据，再用从输入中同一位置开始的更长切片重试。
+<p>除非 atEOF 为 true，否则函数不会收到空的 data 切片。不过，即使 atEOF 为 true，data 也可能非空，并且仍然包含尚未处理的文本。
+<pre>type SplitFunc func(data []<a href="/pkg/builtin/#byte">byte</a>, atEOF <a href="/pkg/builtin/#bool">bool</a>) (advance <a href="/pkg/builtin/#int">int</a>, token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/bufio/bufio.go?s=16101:16170#L569">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 为 <a href="/pkg/io/#Writer">io.Writer</a> 对象提供缓冲。如果向 <a href="#Writer">Writer</a> 写入时发生错误，它就不再接受数据，后续所有写入操作和 <a href="#Writer.Flush">Writer.Flush</a> 都会返回该错误。全部数据写入后，调用方应调用 <a href="#Writer.Flush">Writer.Flush</a>，确保所有数据都已转交给底层 <a href="/pkg/io/#Writer">io.Writer</a>。
+<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Writer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	w := bufio.NewWriter(os.Stdout)
+	fmt.Fprint(w, &#34;Hello, &#34;)
+	fmt.Fprint(w, &#34;world!&#34;)
+	w.Flush() // 别忘了刷新缓冲区！
+}
+</textarea></div>
+        <div class="output"><pre>Hello, world!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewWriter">func <a href="/src/bufio/bufio.go?s=16814:16849#L597">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 返回一个缓冲区采用默认大小的新 <a href="#Writer">Writer</a>。如果传入的 io.Writer 已经是缓冲区足够大的 <a href="#Writer">Writer</a>，就直接返回原来的 <a href="#Writer">Writer</a>。
+<h3 id="NewWriterSize">func <a href="/src/bufio/bufio.go?s=16372:16421#L579">NewWriterSize</a>
+					
+					
+				</h3>
+				<pre>func NewWriterSize(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, size <a href="/pkg/builtin/#int">int</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriterSize 返回一个新的 <a href="#Writer">Writer</a>，其缓冲区至少具有指定大小。如果传入的 io.Writer 已经是缓冲区足够大的 <a href="#Writer">Writer</a>，就直接返回原来的 <a href="#Writer">Writer</a>。
+<h3 id="Writer.Available">func (*Writer) <a href="/src/bufio/bufio.go?s=18106:18138#L649">Available</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Available() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Available 返回缓冲区中尚未使用的字节数。
+<h3 id="Writer.AvailableBuffer">func (*Writer) <a href="/src/bufio/bufio.go?s=18414:18455#L655">AvailableBuffer</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) AvailableBuffer() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>AvailableBuffer 返回容量为 b.Available() 的空缓冲区。该缓冲区供调用方追加数据，再立即传给下一次 <a href="#Writer.Write">Writer.Write</a> 调用。它只在对 b 的下一次写操作之前有效。
+<div id="example_Writer_AvailableBuffer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;os&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	w := bufio.NewWriter(os.Stdout)
+	for _, i := range []int64{1, 2, 3, 4} {
+		b := w.AvailableBuffer()
+		b = strconv.AppendInt(b, i, 10)
+		b = append(b, &#39; &#39;)
+		w.Write(b)
+	}
+	w.Flush()
+}
+</textarea></div>
+        <div class="output"><pre>1 2 3 4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Writer.Buffered">func (*Writer) <a href="/src/bufio/bufio.go?s=18573:18604#L660">Buffered</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Buffered() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Buffered 返回已经写入当前缓冲区的字节数。
+<h3 id="Writer.Flush">func (*Writer) <a href="/src/bufio/bufio.go?s=17703:17733#L625">Flush</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush 将缓冲区中的所有数据写入底层 <a href="/pkg/io/#Writer">io.Writer</a>。
+<h3 id="Writer.ReadFrom">func (*Writer) <a href="/src/bufio/bufio.go?s=21350:21409#L774">ReadFrom</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) ReadFrom(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadFrom 实现 <a href="/pkg/io/#ReaderFrom">io.ReaderFrom</a>。如果底层写入器支持 ReadFrom 方法，就调用底层 ReadFrom。如果缓冲区中已有数据且底层实现了 ReadFrom，会先填满并写出缓冲区，再调用 ReadFrom。
+<div id="example_Writer_ReadFrom" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleWriter_ReadFrom 演示如何使用 Writer 的 ReadFrom 方法。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bufio&#34;
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	writer := bufio.NewWriter(&amp;buf)
+
+	data := &#34;Hello, world!\nThis is a ReadFrom example.&#34;
+	reader := strings.NewReader(data)
+
+	n, err := writer.ReadFrom(reader)
+	if err != nil {
+		fmt.Println(&#34;ReadFrom Error:&#34;, err)
+		return
+	}
+
+	if err = writer.Flush(); err != nil {
+		fmt.Println(&#34;Flush Error:&#34;, err)
+		return
+	}
+
+	fmt.Println(&#34;Bytes written:&#34;, n)
+	fmt.Println(&#34;Buffer contents:&#34;, buf.String())
+}
+</textarea></div>
+        <div class="output"><pre>Bytes written: 41
+Buffer contents: Hello, world!
+This is a ReadFrom example.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Writer.Reset">func (*Writer) <a href="/src/bufio/bufio.go?s=17295:17330#L609">Reset</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Reset(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>)</pre>
+				<p>Reset 丢弃所有尚未刷出的缓冲数据，清除错误，并重置 b，使其输出改为写入 w。对 <a href="#Writer">Writer</a> 的零值调用 Reset，会将内部缓冲区初始化为默认大小。调用 w.Reset(w)，即将 <a href="#Writer">Writer</a> 重置为自身，不执行任何操作。
+<h3 id="Writer.Size">func (*Writer) <a href="/src/bufio/bufio.go?s=16956:16983#L602">Size</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回底层缓冲区的大小，单位为字节。
+<h3 id="Writer.Write">func (*Writer) <a href="/src/bufio/bufio.go?s=18797:18849#L666">Write</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (nn <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 p 的内容写入缓冲区，返回写入的字节数。如果 nn &lt; len(p)，还会返回错误，说明未能写入全部数据的原因。
+<h3 id="Writer.WriteByte">func (*Writer) <a href="/src/bufio/bufio.go?s=19273:19313#L691">WriteByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) WriteByte(c <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteByte 写入一个字节。
+<h3 id="Writer.WriteRune">func (*Writer) <a href="/src/bufio/bufio.go?s=19559:19615#L705">WriteRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) WriteRune(r <a href="/pkg/builtin/#rune">rune</a>) (size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteRune 写入一个 Unicode 码点，返回写入的字节数及可能发生的错误。
+<h3 id="Writer.WriteString">func (*Writer) <a href="/src/bufio/bufio.go?s=20313:20364#L737">WriteString</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) WriteString(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString 写入一个字符串，返回写入的字节数。如果字节数小于 len(s)，还会返回错误，说明未能写入全部数据的原因。
+</article>

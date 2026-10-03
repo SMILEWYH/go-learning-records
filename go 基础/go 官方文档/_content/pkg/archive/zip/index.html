@@ -1,0 +1,723 @@
+<!--{
+  "Title": "archive/zip 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>archive/zip 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "archive/zip"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>zip 包提供读取和写入 ZIP 归档的支持。<p>详见 <a href="https://support.pkware.com/pkzip/appnote">ZIP 规范</a>。<p>本包不支持跨磁盘分卷。<p>关于 ZIP64 的说明：<p>为保持向后兼容，FileHeader 同时具有 32 位和 64 位的 Size 字段。64 位字段始终包含正确值；对于普通归档，两种字段的值相同。对于需要 ZIP64 格式的文件，32 位字段为 0xffffffff，此时必须使用 64 位字段。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#RegisterCompressor">func RegisterCompressor(method uint16, comp Compressor)</a></dd>
+			
+				<dd><a href="#RegisterDecompressor">func RegisterDecompressor(method uint16, dcomp Decompressor)</a></dd>
+			
+			
+				
+				<dd><a href="#Compressor">type Compressor</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Decompressor">type Decompressor</a></dd>
+				
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.DataOffset">func (f *File) DataOffset() (offset int64, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Open">func (f *File) Open() (io.ReadCloser, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.OpenRaw">func (f *File) OpenRaw() (io.Reader, error)</a></dd>
+				
+			
+				
+				<dd><a href="#FileHeader">type FileHeader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileInfoHeader">func FileInfoHeader(fi fs.FileInfo) (*FileHeader, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.FileInfo">func (h *FileHeader) FileInfo() fs.FileInfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.ModTime">func (h *FileHeader) ModTime() time.Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.Mode">func (h *FileHeader) Mode() (mode fs.FileMode)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.SetModTime">func (h *FileHeader) SetModTime(t time.Time)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.SetMode">func (h *FileHeader) SetMode(mode fs.FileMode)</a></dd>
+				
+			
+				
+				<dd><a href="#ReadCloser">type ReadCloser</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenReader">func OpenReader(name string) (*ReadCloser, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ReadCloser.Close">func (rc *ReadCloser) Close() error</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r io.ReaderAt, size int64) (*Reader, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Open">func (r *Reader) Open(name string) (fs.File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.RegisterDecompressor">func (r *Reader) RegisterDecompressor(method uint16, dcomp Decompressor)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.AddFS">func (w *Writer) AddFS(fsys fs.FS) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Copy">func (w *Writer) Copy(f *File) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Create">func (w *Writer) Create(name string) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.CreateHeader">func (w *Writer) CreateHeader(fh *FileHeader) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.CreateRaw">func (w *Writer) CreateRaw(fh *FileHeader) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (w *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.RegisterCompressor">func (w *Writer) RegisterCompressor(method uint16, comp Compressor)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.SetComment">func (w *Writer) SetComment(comment string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.SetOffset">func (w *Writer) SetOffset(n int64)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Reader">Reader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Writer">Writer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Writer_RegisterCompressor">Writer.RegisterCompressor</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/archive/zip/reader.go">reader.go</a>
+			
+				<a href="/src/archive/zip/register.go">register.go</a>
+			
+				<a href="/src/archive/zip/struct.go">struct.go</a>
+			
+				<a href="/src/archive/zip/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>压缩方法。<pre>const (
+    <span id="Store">Store</span>   <a href="/pkg/builtin/#uint16">uint16</a> = 0 <span class="comment">// 不压缩</span>
+    <span id="Deflate">Deflate</span> <a href="/pkg/builtin/#uint16">uint16</a> = 8 <span class="comment">// 使用 DEFLATE 压缩</span>
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span id="ErrFormat">ErrFormat</span>       = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zip: not a valid zip file&#34;)
+    <span id="ErrAlgorithm">ErrAlgorithm</span>    = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zip: unsupported compression algorithm&#34;)
+    <span id="ErrChecksum">ErrChecksum</span>     = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zip: checksum error&#34;)
+    <span id="ErrInsecurePath">ErrInsecurePath</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zip: insecure file path&#34;)
+)</pre>
+			
+		
+		
+			
+			<h2 id="RegisterCompressor">func <a href="/src/archive/zip/register.go?s=3313:3368#L117">RegisterCompressor</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func RegisterCompressor(method <a href="/pkg/builtin/#uint16">uint16</a>, comp <a href="#Compressor">Compressor</a>)</pre>
+			<p>RegisterCompressor 为指定的方法 ID 注册自定义压缩器。常用方法 <a href="#Store">Store</a> 和 <a href="#Deflate">Deflate</a> 已内建。<h2 id="RegisterDecompressor">func <a href="/src/archive/zip/register.go?s=3003:3063#L109">RegisterDecompressor</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func RegisterDecompressor(method <a href="/pkg/builtin/#uint16">uint16</a>, dcomp <a href="#Decompressor">Decompressor</a>)</pre>
+			<p>RegisterDecompressor 允许为指定的方法 ID 使用自定义解压缩器。常用方法 <a href="#Store">Store</a> 和 <a href="#Deflate">Deflate</a> 已内建。<h2 id="Compressor">type <a href="/src/archive/zip/register.go?s=532:589#L9">Compressor</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Compressor 返回一个向 w 写入的新压缩写入器。必须调用 WriteCloser 的 Close 方法，将待输出的数据刷新到 w。Compressor 本身必须能由多个 goroutine 同时安全调用，但每个返回的写入器同一时刻只会由一个 goroutine 使用。<pre>type Compressor func(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Decompressor">type <a href="/src/archive/zip/register.go?s=913:962#L16">Decompressor</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Decompressor 返回一个从 r 读取的新解压缩读取器。必须调用 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> 的 Close 方法释放关联资源。Decompressor 本身必须能由多个 goroutine 同时安全调用，但每个返回的读取器同一时刻只会由一个 goroutine 使用。<pre>type Decompressor func(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="File">type <a href="/src/archive/zip/reader.go?s=1411:1554#L51">File</a>
+				
+				
+			</h2>
+			<p>File 是 ZIP 归档中的单个文件。文件信息位于嵌入的 <a href="#FileHeader">FileHeader</a> 中。可以通过调用 <a href="#File.Open">File.Open</a> 访问文件内容。<pre>type File struct {
+    <a href="#FileHeader">FileHeader</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="File.DataOffset">func (*File) <a href="/src/archive/zip/reader.go?s=6256:6309#L197">DataOffset</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) DataOffset() (offset <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DataOffset 返回文件中可能经过压缩的数据相对于 zip 文件开头的偏移量。<p>大多数调用方应改用 <a href="#File.Open">File.Open</a>，它会透明地解压缩数据并验证校验和。<h3 id="File.Open">func (*File) <a href="/src/archive/zip/reader.go?s=6546:6590#L207">Open</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Open() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 返回一个 <a href="#ReadCloser">ReadCloser</a>，用于访问 <a href="#File">File</a> 的内容。可以并发读取多个文件。<h3 id="File.OpenRaw">func (*File) <a href="/src/archive/zip/reader.go?s=8019:8062#L250">OpenRaw</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) OpenRaw() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>OpenRaw 返回一个 <a href="#Reader">Reader</a>，用于直接访问 <a href="#File">File</a> 的内容，不进行解压缩。<h2 id="FileHeader">type <a href="/src/archive/zip/struct.go?s=2837:5681#L76">FileHeader</a>
+				
+				
+			</h2>
+			<p>FileHeader 描述 ZIP 文件中的一个文件。详见 <a href="https://support.pkware.com/pkzip/appnote">ZIP 规范</a>。<pre>type FileHeader struct {
+<span id="FileHeader.Name"></span>    <span class="comment">// Name 是文件名称。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它必须是相对路径，不能以驱动器盘符（如 "C:"）开头，</span>
+    <span class="comment">// 且必须使用正斜杠而非反斜杠。末尾的斜杠</span>
+    <span class="comment">// 表示该文件是目录，不应包含数据。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="FileHeader.Comment"></span>    <span class="comment">// Comment 是用户定义的任意字符串，长度小于 64KiB。</span>
+    Comment <a href="/pkg/builtin/#string">string</a>
+
+<span id="FileHeader.NonUTF8"></span>    <span class="comment">// NonUTF8 表示 Name 和 Comment 不是以 UTF-8 编码的。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 根据规范，唯一允许的其他编码应为 CP-437，</span>
+    <span class="comment">// 但历史上许多 ZIP 读取器会将 Name 和 Comment</span>
+    <span class="comment">// 按系统当前的本地字符编码解释。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 只有在用户打算为某个特定本地区域编码不可移植的</span>
+    <span class="comment">// ZIP 文件时，才应设置此标志。否则，Writer 会为</span>
+    <span class="comment">// 有效的 UTF-8 字符串自动设置 ZIP 格式的 UTF-8 标志。</span>
+    NonUTF8 <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.10</span>
+
+<span id="FileHeader.CreatorVersion"></span>    CreatorVersion <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="FileHeader.ReaderVersion"></span>    ReaderVersion  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="FileHeader.Flags"></span>    Flags          <a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="FileHeader.Method"></span>    <span class="comment">// Method 是压缩方法。为零时使用 Store。</span>
+    Method <a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="FileHeader.Modified"></span>    <span class="comment">// Modified 是文件的修改时间。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 读取时，扩展时间戳优先于旧的 MS-DOS</span>
+    <span class="comment">// 日期字段，两者的时间偏移用于确定时区。</span>
+    <span class="comment">// 如果只有 MS-DOS 日期，则假定时区为 UTC。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 写入时，始终输出不依赖时区的扩展时间戳。</span>
+    <span class="comment">// 旧的 MS-DOS 日期字段则根据 Modified 时间</span>
+    <span class="comment">// 所属的时区进行编码。</span>
+    Modified <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// Go 1.10</span>
+
+<span id="FileHeader.ModifiedTime"></span>    <span class="comment">// ModifiedTime 是采用 MS-DOS 编码的时间。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 Modified。</span>
+    ModifiedTime <a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="FileHeader.ModifiedDate"></span>    <span class="comment">// ModifiedDate 是采用 MS-DOS 编码的日期。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 Modified。</span>
+    ModifiedDate <a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="FileHeader.CRC32"></span>    <span class="comment">// CRC32 是文件内容的 CRC32 校验和。</span>
+    CRC32 <a href="/pkg/builtin/#uint32">uint32</a>
+
+<span id="FileHeader.CompressedSize"></span>    <span class="comment">// CompressedSize 是文件压缩后的字节大小。</span>
+    <span class="comment">// 如果文件压缩前或压缩后的大小</span>
+    <span class="comment">// 不能用 32 位表示，则将 CompressedSize 设为 ^uint32(0)。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 CompressedSize64。</span>
+    CompressedSize <a href="/pkg/builtin/#uint32">uint32</a>
+
+<span id="FileHeader.UncompressedSize"></span>    <span class="comment">// UncompressedSize 是文件未压缩时的字节大小。</span>
+    <span class="comment">// 如果文件压缩前或压缩后的大小</span>
+    <span class="comment">// 不能用 32 位表示，则将 UncompressedSize 设为 ^uint32(0)。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 UncompressedSize64。</span>
+    UncompressedSize <a href="/pkg/builtin/#uint32">uint32</a>
+
+<span id="FileHeader.CompressedSize64"></span>    <span class="comment">// CompressedSize64 是文件压缩后的字节大小。</span>
+    CompressedSize64 <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.1</span>
+
+<span id="FileHeader.UncompressedSize64"></span>    <span class="comment">// UncompressedSize64 是文件未压缩时的字节大小。</span>
+    UncompressedSize64 <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.1</span>
+
+<span id="FileHeader.Extra"></span>    <span class="comment">// Extra 是可扩展数据字段。必要时，写入器会自动包含</span>
+    <span class="comment">// 适当的 Zip64 字段，而 [Writer.Close] 会将</span>
+    <span class="comment">// Zip64 字段的中央目录版本追加到 Extra。</span>
+    Extra []<a href="/pkg/builtin/#byte">byte</a>
+
+<span id="FileHeader.ExternalAttrs"></span>    ExternalAttrs <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// 含义取决于 CreatorVersion</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FileInfoHeader">func <a href="/src/archive/zip/struct.go?s=7092:7148#L198">FileInfoHeader</a>
+					
+					
+				</h3>
+				<pre>func FileInfoHeader(fi <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>) (*<a href="#FileHeader">FileHeader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>FileInfoHeader 根据 fs.FileInfo 创建一个仅填充部分字段的 <a href="#FileHeader">FileHeader</a>。由于 fs.FileInfo 的 Name 方法只返回其描述文件的基本名称，因此可能需要修改返回头部的 Name 字段，以提供文件的完整路径名。如果需要压缩，调用方应设置 FileHeader.Method 字段；默认不设置该字段。<h3 id="FileHeader.FileInfo">func (*FileHeader) <a href="/src/archive/zip/struct.go?s=5740:5783#L158">FileInfo</a>
+					
+					
+				</h3>
+				<pre>func (h *<a href="#FileHeader">FileHeader</a>) FileInfo() <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a></pre>
+				<p>FileInfo 为该 <a href="#FileHeader">FileHeader</a> 返回一个 fs.FileInfo。<h3 id="FileHeader.ModTime">func (*FileHeader) <a href="/src/archive/zip/struct.go?s=9439:9479#L273">ModTime</a>
+					
+					
+				</h3>
+				<pre>func (h *<a href="#FileHeader">FileHeader</a>) ModTime() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a></pre>
+				<p>ModTime 使用旧的 [ModifiedDate] 和 [ModifiedTime] 字段，返回 UTC 表示的修改时间。<p>已弃用：请改用 [Modified]。<h3 id="FileHeader.Mode">func (*FileHeader) <a href="/src/archive/zip/struct.go?s=10302:10348#L307">Mode</a>
+					
+					
+				</h3>
+				<pre>func (h *<a href="#FileHeader">FileHeader</a>) Mode() (mode <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a>)</pre>
+				<p>Mode 返回 <a href="#FileHeader">FileHeader</a> 的权限位和模式位。<h3 id="FileHeader.SetModTime">func (*FileHeader) <a href="/src/archive/zip/struct.go?s=9689:9733#L281">SetModTime</a>
+					
+					
+				</h3>
+				<pre>func (h *<a href="#FileHeader">FileHeader</a>) SetModTime(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>)</pre>
+				<p>SetModTime 将 [Modified]、[ModifiedTime] 和 [ModifiedDate] 字段设置为以 UTC 表示的给定时间。<p>已弃用：请改用 [Modified]。<h3 id="FileHeader.SetMode">func (*FileHeader) <a href="/src/archive/zip/struct.go?s=10725:10771#L321">SetMode</a>
+					
+					
+				</h3>
+				<pre>func (h *<a href="#FileHeader">FileHeader</a>) SetMode(mode <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a>)</pre>
+				<p>SetMode 修改 <a href="#FileHeader">FileHeader</a> 的权限位和模式位。<h2 id="ReadCloser">type <a href="/src/archive/zip/reader.go?s=1201:1247#L43">ReadCloser</a>
+				
+				
+			</h2>
+			<p>ReadCloser 是一个 <a href="#Reader">Reader</a>，不再需要时必须将其关闭。<pre>type ReadCloser struct {
+    <a href="#Reader">Reader</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="OpenReader">func <a href="/src/archive/zip/reader.go?s=2083:2132#L67">OpenReader</a>
+					
+					
+				</h3>
+				<pre>func OpenReader(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>OpenReader 打开 name 指定的 Zip 文件，并返回 ReadCloser。<p>如果归档中的任何文件使用非本地名称（按 <a href="/pkg/path/filepath/#IsLocal">filepath.IsLocal</a> 的定义）或包含反斜杠的名称，且 GODEBUG 环境变量包含 `zipinsecurepath=0`，OpenReader 会在返回读取器的同时返回 ErrInsecurePath 错误。未来的 Go 版本可能默认启用此行为。希望接受非本地名称的程序可以忽略 ErrInsecurePath 错误并使用返回的读取器。<h3 id="ReadCloser.Close">func (*ReadCloser) <a href="/src/archive/zip/reader.go?s=5959:5994#L188">Close</a>
+					
+					
+				</h3>
+				<pre>func (rc *<a href="#ReadCloser">ReadCloser</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 Zip 文件，使其无法再用于 I/O。<h2 id="Reader">type <a href="/src/archive/zip/reader.go?s=706:1126#L26">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 提供 ZIP 归档中的内容。<pre>type Reader struct {
+<span id="Reader.File"></span>    File    []*<a href="#File">File</a>
+<span id="Reader.Comment"></span>    Comment <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Reader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;archive/zip&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	// 打开 zip 归档以供读取。
+	r, err := zip.OpenReader(&#34;testdata/readme.zip&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer r.Close()
+
+	// 遍历归档中的文件，
+	// 打印其部分内容。
+	for _, f := range r.File {
+		fmt.Printf(&#34;Contents of %s:\n&#34;, f.Name)
+		rc, err := f.Open()
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = io.CopyN(os.Stdout, rc, 68)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rc.Close()
+		fmt.Println()
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Contents of README:
+This is the source code repository for the Go programming language.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewReader">func <a href="/src/archive/zip/reader.go?s=2977:3035#L96">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>, size <a href="/pkg/builtin/#int64">int64</a>) (*<a href="#Reader">Reader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewReader 返回一个从 r 读取的新 <a href="#Reader">Reader</a>，并假定 r 具有给定的字节大小。<p>如果归档中的任何文件使用非本地名称（按 <a href="/pkg/path/filepath/#IsLocal">filepath.IsLocal</a> 的定义）或包含反斜杠的名称，且 GODEBUG 环境变量包含 `zipinsecurepath=0`，NewReader 会在返回读取器的同时返回 <a href="#ErrInsecurePath">ErrInsecurePath</a> 错误。未来的 Go 版本可能默认启用此行为。希望接受非本地名称的程序可以忽略 <a href="#ErrInsecurePath">ErrInsecurePath</a> 错误并使用返回的读取器。<h3 id="Reader.Open">func (*Reader) <a href="/src/archive/zip/reader.go?s=25595:25646#L863">Open</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 使用 fs.FS.Open 的语义打开 ZIP 归档中的指定文件：路径始终以斜杠分隔，不得以 / 开头，也不得包含 ../ 路径元素。<h3 id="Reader.RegisterDecompressor">func (*Reader) <a href="/src/archive/zip/reader.go?s=5541:5613#L172">RegisterDecompressor</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) RegisterDecompressor(method <a href="/pkg/builtin/#uint16">uint16</a>, dcomp <a href="#Decompressor">Decompressor</a>)</pre>
+				<p>RegisterDecompressor 为特定方法 ID 注册或覆盖自定义解压缩器。如果未找到给定方法的解压缩器，<a href="#Reader">Reader</a> 默认会在包级别查找。<h2 id="Writer">type <a href="/src/archive/zip/writer.go?s=457:790#L15">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 实现 zip 文件写入器。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Writer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;archive/zip&#34;
+	&#34;bytes&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	// 创建用于写入归档的缓冲区。
+	buf := new(bytes.Buffer)
+
+	// 创建新的 zip 归档。
+	w := zip.NewWriter(buf)
+
+	// 向归档添加一些文件。
+	var files = []struct {
+		Name, Body string
+	}{
+		{&#34;readme.txt&#34;, &#34;This archive contains some text files.&#34;},
+		{&#34;gopher.txt&#34;, &#34;Gopher names:\nGeorge\nGeoffrey\nGonzo&#34;},
+		{&#34;todo.txt&#34;, &#34;Get animal handling licence.\nWrite more examples.&#34;},
+	}
+	for _, file := range files {
+		f, err := w.Create(file.Name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = f.Write([]byte(file.Body))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// 务必检查 Close 返回的错误。
+	err := w.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewWriter">func <a href="/src/archive/zip/writer.go?s=1092:1127#L39">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 返回一个将 zip 文件写入 w 的新 <a href="#Writer">Writer</a>。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<h3 id="Writer.AddFS">func (*Writer) <a href="/src/archive/zip/writer.go?s=19223:19263#L553">AddFS</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) AddFS(fsys <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>AddFS 将 fs.FS 中的文件添加到归档。它从文件系统根目录开始遍历目录树，在保留目录结构的同时，使用 deflate 将每个文件添加到 zip。<h3 id="Writer.Close">func (*Writer) <a href="/src/archive/zip/writer.go?s=2184:2214#L72">Close</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 通过写入中央目录完成 zip 文件的写入。它不会关闭底层写入器。<h3 id="Writer.Copy">func (*Writer) <a href="/src/archive/zip/writer.go?s=18295:18331#L524">Copy</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Copy(f *<a href="#File">File</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Copy 将文件 f（从 <a href="#Reader">Reader</a> 获取）复制到 w。它直接复制原始形式，跳过解压缩、压缩和验证。<h3 id="Writer.Create">func (*Writer) <a href="/src/archive/zip/writer.go?s=8135:8190#L229">Create</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Create(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Create 使用提供的名称向 zip 文件添加文件。它返回一个 <a href="#Writer">Writer</a>，应将文件内容写入其中。文件内容将使用 <a href="#Deflate">Deflate</a> 方法压缩。名称必须是相对路径：不能以驱动器盘符（例如 C:）或斜杠开头，且只允许使用正斜杠。要创建目录而不是文件，请在名称末尾添加斜杠。重名条目不会覆盖之前的条目，而会追加到 zip 文件。必须在下一次调用 <a href="#Writer.Create">Writer.Create</a>、<a href="#Writer.CreateHeader">Writer.CreateHeader</a> 或 <a href="#Writer.Close">Writer.Close</a> 之前，将文件内容写入该 <a href="/pkg/io/#Writer">io.Writer</a>。<h3 id="Writer.CreateHeader">func (*Writer) <a href="/src/archive/zip/writer.go?s=10047:10111#L282">CreateHeader</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) CreateHeader(fh *<a href="#FileHeader">FileHeader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CreateHeader 使用提供的 <a href="#FileHeader">FileHeader</a> 作为文件元数据，向 zip 归档添加文件。<a href="#Writer">Writer</a> 接管 fh 的所有权，并可能修改其字段。调用方在调用 <a href="#Writer.CreateHeader">Writer.CreateHeader</a> 之后不得再修改 fh。<p>此方法返回一个 <a href="#Writer">Writer</a>，应将文件内容写入其中。必须在下一次调用 <a href="#Writer.Create">Writer.Create</a>、<a href="#Writer.CreateHeader">Writer.CreateHeader</a>、<a href="#Writer.CreateRaw">Writer.CreateRaw</a> 或 <a href="#Writer.Close">Writer.Close</a> 之前，将文件内容写入该 io.Writer。<h3 id="Writer.CreateRaw">func (*Writer) <a href="/src/archive/zip/writer.go?s=17534:17595#L491">CreateRaw</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) CreateRaw(fh *<a href="#FileHeader">FileHeader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CreateRaw 使用提供的 <a href="#FileHeader">FileHeader</a> 向 zip 归档添加文件，并返回一个 <a href="#Writer">Writer</a>，应将文件内容写入其中。必须在下一次调用 <a href="#Writer.Create">Writer.Create</a>、<a href="#Writer.CreateHeader">Writer.CreateHeader</a>、<a href="#Writer.CreateRaw">Writer.CreateRaw</a> 或 <a href="#Writer.Close">Writer.Close</a> 之前，将文件内容写入该 io.Writer。<p>与 <a href="#Writer.CreateHeader">Writer.CreateHeader</a> 不同，传给 Writer 的字节不会被压缩。<p>CreateRaw 的实参会存储在 w 中。如果实参是指向某个 <a href="#File">File</a> 中嵌入的 <a href="#FileHeader">FileHeader</a> 的指针，且该 File 来自由内存数据创建的 <a href="#Reader">Reader</a>，那么 w 将引用那一整块内存。<h3 id="Writer.Flush">func (*Writer) <a href="/src/archive/zip/writer.go?s=1707:1737#L56">Flush</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush 将所有已缓冲的数据刷新到底层写入器。通常无须调用 Flush；调用 Close 即可。<h3 id="Writer.RegisterCompressor">func (*Writer) <a href="/src/archive/zip/writer.go?s=18835:18902#L543">RegisterCompressor</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) RegisterCompressor(method <a href="/pkg/builtin/#uint16">uint16</a>, comp <a href="#Compressor">Compressor</a>)</pre>
+				<p>RegisterCompressor 为特定方法 ID 注册或覆盖自定义压缩器。如果未找到给定方法的压缩器，<a href="#Writer">Writer</a> 默认会在包级别查找。<div id="example_Writer_RegisterCompressor" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;archive/zip&#34;
+	&#34;bytes&#34;
+	&#34;compress/flate&#34;
+	&#34;io&#34;
+)
+
+func main() {
+	// 用更高压缩级别的压缩器覆盖默认 Deflate 压缩器。
+
+	// 创建用于写入归档的缓冲区。
+	buf := new(bytes.Buffer)
+
+	// 创建新的 zip 归档。
+	w := zip.NewWriter(buf)
+
+	// 注册自定义 Deflate 压缩器。
+	w.RegisterCompressor(zip.Deflate, func(out io.Writer) (io.WriteCloser, error) {
+		return flate.NewWriter(out, flate.BestCompression)
+	})
+
+	// 接着向 w 添加文件。
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Writer.SetComment">func (*Writer) <a href="/src/archive/zip/writer.go?s=1893:1942#L62">SetComment</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) SetComment(comment <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SetComment 设置中央目录结束记录的注释字段。只能在 <a href="#Writer.Close">Writer.Close</a> 之前调用。<h3 id="Writer.SetOffset">func (*Writer) <a href="/src/archive/zip/writer.go?s=1435:1470#L47">SetOffset</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) SetOffset(n <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>SetOffset 设置 zip 数据起始位置在底层写入器中的偏移量。将 zip 数据追加到现有文件（如二进制可执行文件）时应使用它。必须在写入任何数据之前调用。</article>

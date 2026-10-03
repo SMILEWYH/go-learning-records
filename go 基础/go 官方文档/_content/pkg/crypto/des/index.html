@@ -1,0 +1,219 @@
+<!--{
+  "Title": "crypto/des 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package des</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/des"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>des 包实现美国《联邦信息处理标准》46-3 号（FIPS 46-3）定义的数据加密标准（DES）和三重数据加密算法（TDEA）。
+<p>DES 已在密码学意义上被攻破，不应再用于需要安全保障的应用程序。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#NewCipher">func NewCipher(key []byte) (cipher.Block, error)</a></dd>
+			
+				<dd><a href="#NewTripleDESCipher">func NewTripleDESCipher(key []byte) (cipher.Block, error)</a></dd>
+			
+			
+				
+				<dd><a href="#KeySizeError">type KeySizeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#KeySizeError.Error">func (k KeySizeError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewTripleDESCipher">NewTripleDESCipher</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/des/block.go">block.go</a>
+			
+				<a href="/src/crypto/des/cipher.go">cipher.go</a>
+			
+				<a href="/src/crypto/des/const.go">const.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>DES 的分组大小，以字节为单位。
+
+				<pre>const <span id="BlockSize">BlockSize</span> = 8</pre>
+			
+		
+		
+		
+			
+			<h2 id="NewCipher">func <a href="/src/crypto/des/cipher.go?s=639:687#L21">NewCipher</a>
+				
+				
+			</h2>
+			<pre>func NewCipher(key []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/crypto/cipher/">cipher</a>.<a href="/pkg/crypto/cipher/#Block">Block</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewCipher 创建并返回新的 <a href="/pkg/crypto/cipher/#Block">cipher.Block</a>。
+
+			
+		
+			
+			<h2 id="NewTripleDESCipher">func <a href="/src/crypto/des/cipher.go?s=1891:1948#L69">NewTripleDESCipher</a>
+				
+				
+			</h2>
+			<pre>func NewTripleDESCipher(key []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/crypto/cipher/">cipher</a>.<a href="/pkg/crypto/cipher/#Block">Block</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewTripleDESCipher 创建并返回新的 <a href="/pkg/crypto/cipher/#Block">cipher.Block</a>。
+
+			
+
+
+<div id="example_NewTripleDESCipher" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/des"
+)
+
+func main() {
+	// 如果需要 EDE2，也可以复制 16 字节密钥的前 8 个字节，
+	// 然后使用 NewTripleDESCipher。
+	ede2Key := []byte("example key 1234")
+
+	var tripleDESKey []byte
+	tripleDESKey = append(tripleDESKey, ede2Key[:16]...)
+	tripleDESKey = append(tripleDESKey, ede2Key[:8]...)
+
+	_, err := des.NewTripleDESCipher(tripleDESKey)
+	if err != nil {
+		panic(err)
+	}
+
+	// 如何使用 cipher.Block 进行加密和
+	// 解密，请参阅 crypto/cipher。
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="KeySizeError">type <a href="/src/crypto/des/cipher.go?s=362:383#L9">KeySizeError</a>
+				
+				
+			</h2>
+			
+			<pre>type KeySizeError <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="KeySizeError.Error">func (KeySizeError) <a href="/src/crypto/des/cipher.go?s=385:421#L11">Error</a>
+					
+					
+				</h3>
+				<pre>func (k <a href="#KeySizeError">KeySizeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

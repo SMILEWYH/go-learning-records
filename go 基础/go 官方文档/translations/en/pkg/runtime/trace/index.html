@@ -1,0 +1,616 @@
+<!--{
+  "Title": "runtime/trace package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package trace</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime/trace"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package trace contains facilities for programs to generate traces
+for the Go execution tracer.
+<h3 id="hdr-Tracing_runtime_activities">Tracing runtime activities</h3>
+<p>The execution trace captures a wide range of execution events such as
+goroutine creation/blocking/unblocking, syscall enter/exit/block,
+GC-related events, changes of heap size, processor start/stop, etc.
+When CPU profiling is active, the execution tracer makes an effort to
+include those samples as well.
+A precise nanosecond-precision timestamp and a stack trace is
+captured for most events. The generated trace can be interpreted
+using `go tool trace`.
+<p>Support for tracing tests and benchmarks built with the standard
+testing package is built into `go test`. For example, the following
+command runs the test in the current directory and writes the trace
+file (trace.out).
+<pre>go test -trace=trace.out
+</pre>
+<p>This runtime/trace package provides APIs to add equivalent tracing
+support to a standalone program. See the Example that demonstrates
+how to use this API to enable tracing.
+<p>There is also a standard HTTP interface to trace data. Adding the
+following line will install a handler under the /debug/pprof/trace URL
+to download a live trace:
+<pre>import _ &quot;net/http/pprof&quot;
+</pre>
+<p>See the <a href="/pkg/net/http/pprof/">net/http/pprof</a> package for more details about all of the
+debug endpoints installed by this import.
+<h3 id="hdr-User_annotation">User annotation</h3>
+<p>Package trace provides user annotation APIs that can be used to
+log interesting events during execution.
+<p>There are three types of user annotations: log messages, regions,
+and tasks.
+<p><a href="#Log">Log</a> emits a timestamped message to the execution trace along with
+additional information such as the category of the message and
+which goroutine called <a href="#Log">Log</a>. The execution tracer provides UIs to filter
+and group goroutines using the log category and the message supplied
+in <a href="#Log">Log</a>.
+<p>A region is for logging a time interval during a goroutine&apos;s execution.
+By definition, a region starts and ends in the same goroutine.
+Regions can be nested to represent subintervals.
+For example, the following code records four regions in the execution
+trace to trace the durations of sequential steps in a cappuccino making
+operation.
+<pre>trace.WithRegion(ctx, &quot;makeCappuccino&quot;, func() {
+
+   // orderID allows to identify a specific order
+   // among many cappuccino order region records.
+   trace.Log(ctx, &quot;orderID&quot;, orderID)
+
+   trace.WithRegion(ctx, &quot;steamMilk&quot;, steamMilk)
+   trace.WithRegion(ctx, &quot;extractCoffee&quot;, extractCoffee)
+   trace.WithRegion(ctx, &quot;mixMilkCoffee&quot;, mixMilkCoffee)
+})
+</pre>
+<p>A task is a higher-level component that aids tracing of logical
+operations such as an RPC request, an HTTP request, or an
+interesting local operation which may require multiple goroutines
+working together. Since tasks can involve multiple goroutines,
+they are tracked via a <a href="/pkg/context/#Context">context.Context</a> object. <a href="#NewTask">NewTask</a> creates
+a new task and embeds it in the returned <a href="/pkg/context/#Context">context.Context</a> object.
+Log messages and regions are attached to the task, if any, in the
+Context passed to <a href="#Log">Log</a> and <a href="#WithRegion">WithRegion</a>.
+<p>For example, assume that we decided to froth milk, extract coffee,
+and mix milk and coffee in separate goroutines. With a task,
+the trace tool can identify the goroutines involved in a specific
+cappuccino order.
+<pre>ctx, task := trace.NewTask(ctx, &quot;makeCappuccino&quot;)
+trace.Log(ctx, &quot;orderID&quot;, orderID)
+
+milk := make(chan bool)
+espresso := make(chan bool)
+
+go func() {
+        trace.WithRegion(ctx, &quot;steamMilk&quot;, steamMilk)
+        milk &lt;- true
+}()
+go func() {
+        trace.WithRegion(ctx, &quot;extractCoffee&quot;, extractCoffee)
+        espresso &lt;- true
+}()
+go func() {
+        defer task.End() // When assemble is done, the order is complete.
+        &lt;-espresso
+        &lt;-milk
+        trace.WithRegion(ctx, &quot;mixMilkCoffee&quot;, mixMilkCoffee)
+}()
+</pre>
+<p>The trace tool computes the latency of a task by measuring the
+time between the task creation and the task end and provides
+latency distributions for each task type found in the trace.
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>Example demonstrates the use of the trace package to trace
+the execution of a Go program. The trace output will be
+written to the file trace.out
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;runtime/trace&#34;
+)
+
+// Example demonstrates the use of the trace package to trace
+// the execution of a Go program. The trace output will be
+// written to the file trace.out
+func main() {
+	f, err := os.Create(&#34;trace.out&#34;)
+	if err != nil {
+		log.Fatalf(&#34;failed to create trace output file: %v&#34;, err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatalf(&#34;failed to close trace file: %v&#34;, err)
+		}
+	}()
+
+	if err := trace.Start(f); err != nil {
+		log.Fatalf(&#34;failed to start trace: %v&#34;, err)
+	}
+	defer trace.Stop()
+
+	// your program here
+	RunMyProgram()
+}
+
+func RunMyProgram() {
+	fmt.Printf(&#34;this function will be traced&#34;)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#IsEnabled">func IsEnabled() bool</a></dd>
+			
+				<dd><a href="#Log">func Log(ctx context.Context, category, message string)</a></dd>
+			
+				<dd><a href="#Logf">func Logf(ctx context.Context, category, format string, args ...any)</a></dd>
+			
+				<dd><a href="#Start">func Start(w io.Writer) error</a></dd>
+			
+				<dd><a href="#Stop">func Stop()</a></dd>
+			
+				<dd><a href="#WithRegion">func WithRegion(ctx context.Context, regionType string, fn func())</a></dd>
+			
+			
+				
+				<dd><a href="#FlightRecorder">type FlightRecorder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFlightRecorder">func NewFlightRecorder(cfg FlightRecorderConfig) *FlightRecorder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FlightRecorder.Enabled">func (fr *FlightRecorder) Enabled() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlightRecorder.Start">func (fr *FlightRecorder) Start() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlightRecorder.Stop">func (fr *FlightRecorder) Stop()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FlightRecorder.WriteTo">func (fr *FlightRecorder) WriteTo(w io.Writer) (n int64, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#FlightRecorderConfig">type FlightRecorderConfig</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Region">type Region</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StartRegion">func StartRegion(ctx context.Context, regionType string) *Region</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Region.End">func (r *Region) End()</a></dd>
+				
+			
+				
+				<dd><a href="#Task">type Task</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTask">func NewTask(pctx context.Context, taskType string) (ctx context.Context, task *Task)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Task.End">func (t *Task) End()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/trace/annotation.go">annotation.go</a>
+			
+				<a href="/src/runtime/trace/batch.go">batch.go</a>
+			
+				<a href="/src/runtime/trace/encoding.go">encoding.go</a>
+			
+				<a href="/src/runtime/trace/flightrecorder.go">flightrecorder.go</a>
+			
+				<a href="/src/runtime/trace/recorder.go">recorder.go</a>
+			
+				<a href="/src/runtime/trace/subscribe.go">subscribe.go</a>
+			
+				<a href="/src/runtime/trace/trace.go">trace.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="IsEnabled">func <a href="/src/runtime/trace/annotation.go?s=5824:5845#L170">IsEnabled</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func IsEnabled() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsEnabled reports whether tracing is enabled.
+The information is advisory only. The tracing status
+may have changed by the time this function returns.
+
+			
+		
+			
+			<h2 id="Log">func <a href="/src/runtime/trace/annotation.go?s=2983:3038#L85">Log</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func Log(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, category, message <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Log emits a one-off event with the given category and message.
+Category can be empty and the API assumes there are only a handful of
+unique categories in the system.
+
+			
+		
+			
+			<h2 id="Logf">func <a href="/src/runtime/trace/annotation.go?s=3186:3254#L91">Logf</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func Logf(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, category, format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Logf is like <a href="#Log">Log</a>, but the value is formatted using the specified format spec.
+
+			
+		
+			
+			<h2 id="Start">func <a href="/src/runtime/trace/trace.go?s=4550:4579#L108">Start</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Start(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Start enables tracing for the current program.
+While tracing, the trace will be buffered and written to w.
+Start returns an error if tracing is already enabled.
+
+			
+		
+			
+			<h2 id="Stop">func <a href="/src/runtime/trace/trace.go?s=4745:4756#L114">Stop</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Stop()</pre>
+			<p>Stop stops the current tracing, if any.
+Stop only returns after all the writes for the trace have completed.
+
+			
+		
+			
+			<h2 id="WithRegion">func <a href="/src/runtime/trace/annotation.go?s=3881:3947#L112">WithRegion</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func WithRegion(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, regionType <a href="/pkg/builtin/#string">string</a>, fn func())</pre>
+			<p>WithRegion starts a region associated with its calling goroutine, runs fn,
+and then ends the region. If the context carries a task, the region is
+associated with the task. Otherwise, the region is attached to the background
+task.
+<p>The regionType is used to classify regions, so there should be only a
+handful of unique region types.
+
+			
+		
+		
+			
+			<h2 id="FlightRecorder">type <a href="/src/runtime/trace/flightrecorder.go?s=723:1281#L15">FlightRecorder</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>FlightRecorder represents a single consumer of a Go execution
+trace.
+It tracks a moving window over the execution trace produced by
+the runtime, always containing the most recent trace data.
+<p>At most one flight recorder may be active at any given time,
+though flight recording is allowed to be concurrently active
+with a trace consumer using trace.Start.
+This restriction of only a single flight recorder may be removed
+in the future.
+
+			<pre>type FlightRecorder struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFlightRecorder">func <a href="/src/runtime/trace/flightrecorder.go?s=1367:1431#L38">NewFlightRecorder</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func NewFlightRecorder(cfg <a href="#FlightRecorderConfig">FlightRecorderConfig</a>) *<a href="#FlightRecorder">FlightRecorder</a></pre>
+				<p>NewFlightRecorder creates a new flight recorder from the provided configuration.
+
+				
+			
+
+			
+				<h3 id="FlightRecorder.Enabled">func (*FlightRecorder) <a href="/src/runtime/trace/flightrecorder.go?s=3045:3085#L93">Enabled</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fr *<a href="#FlightRecorder">FlightRecorder</a>) Enabled() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Enabled returns true if the flight recorder is active.
+Specifically, it will return true if Start did not return an error, and Stop has not yet been called.
+It is safe to call from multiple goroutines simultaneously.
+
+				
+			
+				<h3 id="FlightRecorder.Start">func (*FlightRecorder) <a href="/src/runtime/trace/flightrecorder.go?s=1987:2026#L58">Start</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fr *<a href="#FlightRecorder">FlightRecorder</a>) Start() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Start activates the flight recorder and begins recording trace data.
+Only one call to trace.Start may be active at any given time.
+In addition, currently only one flight recorder may be active in the program.
+Returns an error if the flight recorder cannot be started or is already started.
+
+				
+			
+				<h3 id="FlightRecorder.Stop">func (*FlightRecorder) <a href="/src/runtime/trace/flightrecorder.go?s=2573:2605#L78">Stop</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fr *<a href="#FlightRecorder">FlightRecorder</a>) Stop()</pre>
+				<p>Stop ends recording of trace data. It blocks until any concurrent WriteTo calls complete.
+
+				
+			
+				<h3 id="FlightRecorder.WriteTo">func (*FlightRecorder) <a href="/src/runtime/trace/flightrecorder.go?s=3508:3575#L101">WriteTo</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fr *<a href="#FlightRecorder">FlightRecorder</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteTo snapshots the moving window tracked by the flight recorder.
+The snapshot is expected to contain data that is up-to-date as of when WriteTo is called,
+though this is not a hard guarantee.
+Only one goroutine may execute WriteTo at a time.
+An error is returned upon failure to write to w, if another WriteTo call is already in-progress,
+or if the flight recorder is inactive.
+
+				
+			
+		
+			
+			<h2 id="FlightRecorderConfig">type <a href="/src/runtime/trace/flightrecorder.go?s=4883:5745#L146">FlightRecorderConfig</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			
+			<pre>type FlightRecorderConfig struct {
+<span id="FlightRecorderConfig.MinAge"></span>    <span class="comment">// MinAge is a lower bound on the age of an event in the flight recorder&#39;s window.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The flight recorder will strive to promptly discard events older than the minimum age,</span>
+    <span class="comment">// but older events may appear in the window snapshot. The age setting will always be</span>
+    <span class="comment">// overridden by MaxBytes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If this is 0, the minimum age is implementation defined, but can be assumed to be on the order</span>
+    <span class="comment">// of seconds.</span>
+    MinAge <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+
+<span id="FlightRecorderConfig.MaxBytes"></span>    <span class="comment">// MaxBytes is an upper bound on the size of the window in bytes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This setting takes precedence over MinAge.</span>
+    <span class="comment">// However, it does not make any guarantees on the size of the data WriteTo will write,</span>
+    <span class="comment">// nor does it guarantee memory overheads will always stay below MaxBytes. Treat it</span>
+    <span class="comment">// as a hint.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If this is 0, the maximum size is implementation defined.</span>
+    MaxBytes <a href="/pkg/builtin/#uint64">uint64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Region">type <a href="/src/runtime/trace/annotation.go?s=5417:5477#L152">Region</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<p>Region is a region of code whose execution time interval is traced.
+
+			<pre>type Region struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StartRegion">func <a href="/src/runtime/trace/annotation.go?s=5130:5194#L142">StartRegion</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func StartRegion(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, regionType <a href="/pkg/builtin/#string">string</a>) *<a href="#Region">Region</a></pre>
+				<p>StartRegion starts a region and returns it.
+The returned Region&apos;s <a href="#Region.End">Region.End</a> method must be called
+from the same goroutine where the region was started.
+Within each goroutine, regions must nest. That is, regions started
+after this region must be ended before this region can be ended.
+Recommended usage is
+<pre>defer trace.StartRegion(ctx, &quot;myTracedRegion&quot;).End()
+</pre>
+
+				
+			
+
+			
+				<h3 id="Region.End">func (*Region) <a href="/src/runtime/trace/annotation.go?s=5555:5577#L160">End</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (r *<a href="#Region">Region</a>) End()</pre>
+				<p>End marks the end of the traced code region.
+
+				
+			
+		
+			
+			<h2 id="Task">type <a href="/src/runtime/trace/annotation.go?s=2438:2506#L63">Task</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<p>Task is a data type for tracing a user-defined, logical operation.
+
+			<pre>type Task struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTask">func <a href="/src/runtime/trace/annotation.go?s=1285:1370#L28">NewTask</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func NewTask(pctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, taskType <a href="/pkg/builtin/#string">string</a>) (ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, task *<a href="#Task">Task</a>)</pre>
+				<p>NewTask creates a task instance with the type taskType and returns
+it along with a Context that carries the task.
+If the input context contains a task, the new task is its subtask.
+<p>The taskType is used to classify task instances. Analysis tools
+like the Go execution tracer may assume there are only a bounded
+number of unique task types in the system.
+<p>The returned Task&apos;s <a href="#Task.End">Task.End</a> method is used to mark the task&apos;s end.
+The trace tool measures task latency as the time between task creation
+and when the End method is called, and provides the latency
+distribution per task type.
+If the End method is called multiple times, only the first
+call is used in the latency measurement.
+<pre>ctx, task := trace.NewTask(ctx, &quot;awesomeTask&quot;)
+trace.WithRegion(ctx, &quot;preparation&quot;, prepWork)
+// preparation of the task
+go func() {  // continue processing the task in a separate goroutine.
+    defer task.End()
+    trace.WithRegion(ctx, &quot;remainingWork&quot;, remainingWork)
+}()
+</pre>
+
+				
+			
+
+			
+				<h3 id="Task.End">func (*Task) <a href="/src/runtime/trace/annotation.go?s=2573:2593#L69">End</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (t *<a href="#Task">Task</a>) End()</pre>
+				<p>End marks the end of the operation represented by the <a href="#Task">Task</a>.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

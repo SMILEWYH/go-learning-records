@@ -1,0 +1,792 @@
+<!--{
+  "Title": "go/doc package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package doc</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/doc"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package doc extracts source code documentation from a Go AST.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#IsPredeclared">func IsPredeclared(s string) bool</a></dd>
+			
+				<dd><a href="#Synopsis">func Synopsis(text string) string</a></dd>
+			
+				<dd><a href="#ToHTML">func ToHTML(w io.Writer, text string, words map[string]string)</a></dd>
+			
+				<dd><a href="#ToText">func ToText(w io.Writer, text string, prefix, codePrefix string, width int)</a></dd>
+			
+			
+				
+				<dd><a href="#Example">type Example</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Examples">func Examples(testFiles ...*ast.File) []*Example</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Filter">type Filter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Note">type Note</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Package">type Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(pkg *ast.Package, importPath string, mode Mode) *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFromFiles">func NewFromFiles(fset *token.FileSet, files []*ast.File, importPath string, opts ...any) (*Package, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Filter">func (p *Package) Filter(f Filter)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.HTML">func (p *Package) HTML(text string) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Markdown">func (p *Package) Markdown(text string) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Parser">func (p *Package) Parser() *comment.Parser</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Printer">func (p *Package) Printer() *comment.Printer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Synopsis">func (p *Package) Synopsis(text string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Text">func (p *Package) Text(text string) []byte</a></dd>
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewFromFiles">NewFromFiles</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/doc/comment.go">comment.go</a>
+			
+				<a href="/src/go/doc/doc.go">doc.go</a>
+			
+				<a href="/src/go/doc/example.go">example.go</a>
+			
+				<a href="/src/go/doc/exports.go">exports.go</a>
+			
+				<a href="/src/go/doc/filter.go">filter.go</a>
+			
+				<a href="/src/go/doc/reader.go">reader.go</a>
+			
+				<a href="/src/go/doc/synopsis.go">synopsis.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>IllegalPrefixes is a list of lower-case prefixes that identify
+a comment as not being a doc comment.
+This helps to avoid misinterpreting the common mistake
+of a copyright notice immediately before a package statement
+as being a doc comment.
+
+				<pre>var <span id="IllegalPrefixes">IllegalPrefixes</span> = []<a href="/pkg/builtin/#string">string</a>{
+    &#34;copyright&#34;,
+    &#34;all rights&#34;,
+    &#34;author&#34;,
+}</pre>
+			
+		
+		
+			
+			<h2 id="IsPredeclared">func <a href="/src/go/doc/reader.go?s=26322:26355#L919">IsPredeclared</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func IsPredeclared(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsPredeclared reports whether s is a predeclared identifier.
+
+			
+		
+			
+			<h2 id="Synopsis">func <a href="/src/go/doc/synopsis.go?s=900:933#L27">Synopsis</a>
+				
+				
+			</h2>
+			<pre>func Synopsis(text <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Synopsis returns a cleaned version of the first sentence in text.
+<p>Deprecated: New programs should use <a href="#Package.Synopsis">Package.Synopsis</a> instead,
+which handles links in text properly.
+
+			
+		
+			
+			<h2 id="ToHTML">func <a href="/src/go/doc/comment.go?s=822:884#L22">ToHTML</a>
+				
+				
+			</h2>
+			<pre>func ToHTML(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, text <a href="/pkg/builtin/#string">string</a>, words map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>ToHTML converts comment text to formatted HTML.
+<p>Deprecated: ToHTML cannot identify documentation links
+in the doc comment, because they depend on knowing what
+package the text came from, which is not included in this API.
+<p>Given the *<a href="#Package">doc.Package</a> p where text was found,
+ToHTML(w, text, nil) can be replaced by:
+<pre>w.Write(p.HTML(text))
+</pre>
+<p>which is in turn shorthand for:
+<pre>w.Write(p.Printer().HTML(p.Parser().Parse(text)))
+</pre>
+<p>If words may be non-nil, the longer replacement is:
+<pre>parser := p.Parser()
+parser.Words = words
+w.Write(p.Printer().HTML(parser.Parse(d)))
+</pre>
+
+			
+		
+			
+			<h2 id="ToText">func <a href="/src/go/doc/comment.go?s=1727:1802#L53">ToText</a>
+				
+				
+			</h2>
+			<pre>func ToText(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, text <a href="/pkg/builtin/#string">string</a>, prefix, codePrefix <a href="/pkg/builtin/#string">string</a>, width <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>ToText converts comment text to formatted text.
+<p>Deprecated: ToText cannot identify documentation links
+in the doc comment, because they depend on knowing what
+package the text came from, which is not included in this API.
+<p>Given the *<a href="#Package">doc.Package</a> p where text was found,
+ToText(w, text, &quot;&quot;, &quot;\t&quot;, 80) can be replaced by:
+<pre>w.Write(p.Text(text))
+</pre>
+<p>In the general case, ToText(w, text, prefix, codePrefix, width)
+can be replaced by:
+<pre>d := p.Parser().Parse(text)
+pr := p.Printer()
+pr.TextPrefix = prefix
+pr.TextCodePrefix = codePrefix
+pr.TextWidth = width
+w.Write(pr.Text(d))
+</pre>
+<p>See the documentation for <a href="#Package.Text">Package.Text</a> and <a href="/pkg/go/doc/comment/#Printer.Text">comment.Printer.Text</a>
+for more details.
+
+			
+		
+		
+			
+			<h2 id="Example">type <a href="/src/go/doc/example.go?s=416:934#L12">Example</a>
+				
+				
+			</h2>
+			<p>An Example represents an example function found in a test source file.
+
+			<pre>type Example struct {
+<span id="Example.Name"></span>    Name        <a href="/pkg/builtin/#string">string</a> <span class="comment">// name of the item being exemplified (including optional suffix)</span>
+<span id="Example.Suffix"></span>    Suffix      <a href="/pkg/builtin/#string">string</a> <span class="comment">// example suffix, without leading &#39;_&#39; (only populated by NewFromFiles); added in Go 1.14</span>
+<span id="Example.Doc"></span>    Doc         <a href="/pkg/builtin/#string">string</a> <span class="comment">// example function doc string</span>
+<span id="Example.Code"></span>    Code        <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Node">Node</a>
+<span id="Example.Play"></span>    Play        *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a> <span class="comment">// a whole program version of the example; added in Go 1.1</span>
+<span id="Example.Comments"></span>    Comments    []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#CommentGroup">CommentGroup</a>
+<span id="Example.Output"></span>    Output      <a href="/pkg/builtin/#string">string</a> <span class="comment">// expected output</span>
+<span id="Example.Unordered"></span>    Unordered   <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.7</span>
+<span id="Example.EmptyOutput"></span>    EmptyOutput <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// expect empty output; added in Go 1.1</span>
+<span id="Example.Order"></span>    Order       <a href="/pkg/builtin/#int">int</a>  <span class="comment">// original source code order; added in Go 1.1</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Examples">func <a href="/src/go/doc/example.go?s=1891:1939#L40">Examples</a>
+					
+					
+				</h3>
+				<pre>func Examples(testFiles ...*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>) []*<a href="#Example">Example</a></pre>
+				<p>Examples returns the examples found in testFiles, sorted by Name field.
+The Order fields record the order in which the examples were encountered.
+The Suffix field is not populated when Examples is called directly, it is
+only populated by <a href="#NewFromFiles">NewFromFiles</a> for examples it finds in _test.go files.
+<p>Playable Examples must be in a package whose name ends in &quot;_test&quot;.
+An Example is &quot;playable&quot; (the Play field is non-nil) in either of these
+circumstances:
+<ul>
+<li>The example function is self-contained: the function references only
+identifiers from other packages (or predeclared identifiers, such as
+&quot;int&quot;) and the test file does not include a dot import.
+<li>The entire test file is the example: the file contains exactly one
+example function, zero test, fuzz test, or benchmark function, and at
+least one top-level function, type, variable, or constant declaration
+other than the example function.
+</ul>
+
+				
+			
+
+			
+		
+			
+			<h2 id="Filter">type <a href="/src/go/doc/filter.go?s=190:219#L1">Filter</a>
+				
+				
+			</h2>
+			
+			<pre>type Filter func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Func">type <a href="/src/go/doc/doc.go?s=1830:2356#L62">Func</a>
+				
+				
+			</h2>
+			<p>Func is the documentation for a func declaration.
+
+			<pre>type Func struct {
+<span id="Func.Doc"></span>    Doc  <a href="/pkg/builtin/#string">string</a>
+<span id="Func.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Func.Decl"></span>    Decl *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#FuncDecl">FuncDecl</a>
+
+    <span class="comment">// methods</span>
+    <span class="comment">// (for functions, these fields have the respective zero value)</span>
+<span id="Func.Recv"></span>    Recv  <a href="/pkg/builtin/#string">string</a> <span class="comment">// actual   receiver &#34;T&#34; or &#34;*T&#34; possibly followed by type parameters [P1, ..., Pn]</span>
+<span id="Func.Orig"></span>    Orig  <a href="/pkg/builtin/#string">string</a> <span class="comment">// original receiver &#34;T&#34; or &#34;*T&#34;</span>
+<span id="Func.Level"></span>    Level <a href="/pkg/builtin/#int">int</a>    <span class="comment">// embedding level; 0 means not embedded</span>
+
+<span id="Func.Examples"></span>    <span class="comment">// Examples is a sorted list of examples associated with this</span>
+    <span class="comment">// function or method. Examples are extracted from _test.go files</span>
+    <span class="comment">// provided to NewFromFiles.</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Mode">type <a href="/src/go/doc/doc.go?s=2920:2933#L90">Mode</a>
+				
+				
+			</h2>
+			<p>Mode values control the operation of <a href="#New">New</a> and <a href="#NewFromFiles">NewFromFiles</a>.
+
+			<pre>type Mode <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// AllDecls says to extract documentation for all package-level</span>
+    <span class="comment">// declarations, not just exported ones.</span>
+    <span id="AllDecls">AllDecls</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// AllMethods says to show all embedded methods, not just the ones of</span>
+    <span class="comment">// invisible (unexported) anonymous fields.</span>
+    <span id="AllMethods">AllMethods</span>
+
+    <span class="comment">// PreserveAST says to leave the AST unmodified. Originally, pieces of</span>
+    <span class="comment">// the AST such as function bodies were nil-ed out to save memory in</span>
+    <span class="comment">// godoc, but not all programs want that behavior.</span>
+    <span id="PreserveAST">PreserveAST</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Note">type <a href="/src/go/doc/doc.go?s=2670:2852#L83">Note</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>A Note represents a marked comment starting with &quot;MARKER(uid): note body&quot;.
+Any note with a marker of 2 or more upper case [A-Z] letters and a uid of
+at least one character is recognized. The &quot;:&quot; following the uid is optional.
+Notes are collected in the Package.Notes map indexed by the notes marker.
+
+			<pre>type Note struct {
+<span id="Note.Pos"></span>    Pos, End <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// position range of the comment containing the marker</span>
+<span id="Note.UID"></span>    UID      <a href="/pkg/builtin/#string">string</a>    <span class="comment">// uid found with the marker</span>
+<span id="Note.Body"></span>    Body     <a href="/pkg/builtin/#string">string</a>    <span class="comment">// note body text</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Package">type <a href="/src/go/doc/doc.go?s=363:964#L7">Package</a>
+				
+				
+			</h2>
+			<p>Package is the documentation for an entire package.
+
+			<pre>type Package struct {
+<span id="Package.Doc"></span>    Doc        <a href="/pkg/builtin/#string">string</a>
+<span id="Package.Name"></span>    Name       <a href="/pkg/builtin/#string">string</a>
+<span id="Package.ImportPath"></span>    ImportPath <a href="/pkg/builtin/#string">string</a>
+<span id="Package.Imports"></span>    Imports    []<a href="/pkg/builtin/#string">string</a>
+<span id="Package.Filenames"></span>    Filenames  []<a href="/pkg/builtin/#string">string</a>
+<span id="Package.Notes"></span>    Notes      map[<a href="/pkg/builtin/#string">string</a>][]*<a href="#Note">Note</a> <span class="comment">// Go 1.1</span>
+
+    <span class="comment">// Deprecated: For backward compatibility Bugs is still populated,</span>
+    <span class="comment">// but all new code should use Notes instead.</span>
+<span id="Package.Bugs"></span>    Bugs []<a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// declarations</span>
+<span id="Package.Consts"></span>    Consts []*<a href="#Value">Value</a>
+<span id="Package.Types"></span>    Types  []*<a href="#Type">Type</a>
+<span id="Package.Vars"></span>    Vars   []*<a href="#Value">Value</a>
+<span id="Package.Funcs"></span>    Funcs  []*<a href="#Func">Func</a>
+
+<span id="Package.Examples"></span>    <span class="comment">// Examples is a sorted list of examples associated with</span>
+    <span class="comment">// the package. Examples are extracted from _test.go files</span>
+    <span class="comment">// provided to NewFromFiles.</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/go/doc/doc.go?s=3662:3727#L111">New</a>
+					
+					
+				</h3>
+				<pre>func New(pkg *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Package">Package</a>, importPath <a href="/pkg/builtin/#string">string</a>, mode <a href="#Mode">Mode</a>) *<a href="#Package">Package</a></pre>
+				<p>New computes the package documentation for the given package AST.
+New takes ownership of the AST pkg and may edit or overwrite it.
+To have the <a href="#Examples">Examples</a> fields populated, use <a href="#NewFromFiles">NewFromFiles</a> and include
+the package&apos;s _test.go files.
+
+				
+			
+				<h3 id="NewFromFiles">func <a href="/src/go/doc/doc.go?s=7662:7769#L246">NewFromFiles</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func NewFromFiles(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, files []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>, importPath <a href="/pkg/builtin/#string">string</a>, opts ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewFromFiles computes documentation for a package.
+<p>The package is specified by a list of *ast.Files and corresponding
+file set, which must not be nil.
+<p>NewFromFiles uses all provided files when computing documentation,
+so it is the caller&apos;s responsibility to provide only the files that
+match the desired build context. &quot;go/build&quot;.Context.MatchFile can
+be used for determining whether a file matches a build context with
+the desired GOOS and GOARCH values, and other build constraints.
+The import path of the package is specified by importPath.
+<p>Examples found in _test.go files are associated with the corresponding
+type, function, method, or the package, based on their name.
+If the example has a suffix in its name, it is set in the
+<a href="#Example.Suffix">Example.Suffix</a> field. <a href="#Examples">Examples</a> with malformed names are skipped.
+<p>Optionally, a single extra argument of type <a href="#Mode">Mode</a> can be provided to
+control low-level aspects of the documentation extraction behavior.
+<p>NewFromFiles takes ownership of the AST files and may edit them,
+unless the PreserveAST Mode bit is on.
+
+				
+
+
+<div id="example_NewFromFiles" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>This example illustrates how to use NewFromFiles
+to compute package documentation with examples.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/doc&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src and test are two source files that make up
+	// a package whose documentation will be computed.
+	const src = `
+// This is the package comment.
+package p
+
+import &#34;fmt&#34;
+
+// This comment is associated with the Greet function.
+func Greet(who string) {
+	fmt.Printf(&#34;Hello, %s!\n&#34;, who)
+}
+`
+	const test = `
+package p_test
+
+// This comment is associated with the ExampleGreet_world example.
+func ExampleGreet_world() {
+	Greet(&#34;world&#34;)
+}
+`
+
+	// Create the AST by parsing src and test.
+	fset := token.NewFileSet()
+	files := []*ast.File{
+		mustParse(fset, &#34;src.go&#34;, src),
+		mustParse(fset, &#34;src_test.go&#34;, test),
+	}
+
+	// Compute package documentation with examples.
+	p, err := doc.NewFromFiles(fset, files, &#34;example.com/p&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(&#34;package %s - %s&#34;, p.Name, p.Doc)
+	fmt.Printf(&#34;func %s - %s&#34;, p.Funcs[0].Name, p.Funcs[0].Doc)
+	fmt.Printf(&#34; ⤷ example with suffix %q - %s&#34;, p.Funcs[0].Examples[0].Suffix, p.Funcs[0].Examples[0].Doc)
+
+}
+
+func mustParse(fset *token.FileSet, filename, src string) *ast.File {
+	f, err := parser.ParseFile(fset, filename, src, parser.ParseComments|parser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+</textarea></div>
+        <div class="output"><pre>package p - This is the package comment.
+func Greet - This comment is associated with the Greet function.
+ ⤷ example with suffix &#34;world&#34; - This comment is associated with the ExampleGreet_world example.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Package.Filter">func (*Package) <a href="/src/go/doc/filter.go?s=2040:2074#L90">Filter</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Filter(f <a href="#Filter">Filter</a>)</pre>
+				<p>Filter eliminates documentation for names that don&apos;t pass through the filter f.
+TODO(gri): Recognize &quot;Type.Method&quot; as a name.
+
+				
+			
+				<h3 id="Package.HTML">func (*Package) <a href="/src/go/doc/doc.go?s=11441:11483#L359">HTML</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) HTML(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>HTML returns formatted HTML for the doc comment text.
+<p>To customize details of the HTML, use <a href="#Package.Printer">Package.Printer</a>
+to obtain a <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>, and configure it
+before calling its HTML method.
+
+				
+			
+				<h3 id="Package.Markdown">func (*Package) <a href="/src/go/doc/doc.go?s=11759:11805#L368">Markdown</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Markdown(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Markdown returns formatted Markdown for the doc comment text.
+<p>To customize details of the Markdown, use <a href="#Package.Printer">Package.Printer</a>
+to obtain a <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>, and configure it
+before calling its Markdown method.
+
+				
+			
+				<h3 id="Package.Parser">func (*Package) <a href="/src/go/doc/doc.go?s=10710:10752#L337">Parser</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Parser() *<a href="/pkg/go/doc/comment/">comment</a>.<a href="/pkg/go/doc/comment/#Parser">Parser</a></pre>
+				<p>Parser returns a doc comment parser configured
+for parsing doc comments from package p.
+Each call returns a new parser, so that the caller may
+customize it before use.
+
+				
+			
+				<h3 id="Package.Printer">func (*Package) <a href="/src/go/doc/doc.go?s=11034:11078#L348">Printer</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Printer() *<a href="/pkg/go/doc/comment/">comment</a>.<a href="/pkg/go/doc/comment/#Printer">Printer</a></pre>
+				<p>Printer returns a doc comment printer configured
+for printing doc comments from package p.
+Each call returns a new printer, so that the caller may
+customize it before use.
+
+				
+			
+				<h3 id="Package.Synopsis">func (*Package) <a href="/src/go/doc/synopsis.go?s=1712:1758#L49">Synopsis</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Synopsis(text <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Synopsis returns a cleaned version of the first sentence in text.
+That sentence ends after the first period followed by space and not
+preceded by exactly one uppercase letter, or at the first paragraph break.
+The result string has no \n, \r, or \t characters and uses only single
+spaces between words. If text starts with any of the <a href="#IllegalPrefixes">IllegalPrefixes</a>,
+the result is the empty string.
+
+				
+			
+				<h3 id="Package.Text">func (*Package) <a href="/src/go/doc/doc.go?s=12158:12200#L379">Text</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Text(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Text returns formatted text for the doc comment text,
+wrapped to 80 Unicode code points and using tabs for
+code block indentation.
+<p>To customize details of the formatting, use <a href="#Package.Printer">Package.Printer</a>
+to obtain a <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>, and configure it
+before calling its Text method.
+
+				
+			
+		
+			
+			<h2 id="Type">type <a href="/src/go/doc/doc.go?s=1228:1775#L44">Type</a>
+				
+				
+			</h2>
+			<p>Type is the documentation for a type declaration.
+
+			<pre>type Type struct {
+<span id="Type.Doc"></span>    Doc  <a href="/pkg/builtin/#string">string</a>
+<span id="Type.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Type.Decl"></span>    Decl *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#GenDecl">GenDecl</a>
+
+    <span class="comment">// associated declarations</span>
+<span id="Type.Consts"></span>    Consts  []*<a href="#Value">Value</a> <span class="comment">// sorted list of constants of (mostly) this type</span>
+<span id="Type.Vars"></span>    Vars    []*<a href="#Value">Value</a> <span class="comment">// sorted list of variables of (mostly) this type</span>
+<span id="Type.Funcs"></span>    Funcs   []*<a href="#Func">Func</a>  <span class="comment">// sorted list of functions returning this type</span>
+<span id="Type.Methods"></span>    Methods []*<a href="#Func">Func</a>  <span class="comment">// sorted list of methods (including embedded ones) of this type</span>
+
+<span id="Type.Examples"></span>    <span class="comment">// Examples is a sorted list of examples associated with</span>
+    <span class="comment">// this type. Examples are extracted from _test.go files</span>
+    <span class="comment">// provided to NewFromFiles.</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/go/doc/doc.go?s=1047:1173#L35">Value</a>
+				
+				
+			</h2>
+			<p>Value is the documentation for a (possibly grouped) var or const declaration.
+
+			<pre>type Value struct {
+<span id="Value.Doc"></span>    Doc   <a href="/pkg/builtin/#string">string</a>
+<span id="Value.Names"></span>    Names []<a href="/pkg/builtin/#string">string</a> <span class="comment">// var or const names in declaration order</span>
+<span id="Value.Decl"></span>    Decl  *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#GenDecl">GenDecl</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="comment/">comment</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package comment implements parsing and reformatting of Go doc comments, (documentation comments), which are comments that immediately precede a top-level declaration of a package, const, func, type, or var.
+					</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

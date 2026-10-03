@@ -1,0 +1,1555 @@
+<!--{
+  "Title": "database/sql/driver package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package driver</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "database/sql/driver"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package driver defines interfaces to be implemented by database
+drivers as used by package sql.
+<p>Most code should use the <a href="/pkg/database/sql/">database/sql</a> package.
+<p>The driver interface has evolved over time. Drivers should implement
+<a href="#Connector">Connector</a> and <a href="#DriverContext">DriverContext</a> interfaces.
+The Connector.Connect and Driver.Open methods should never return <a href="#ErrBadConn">ErrBadConn</a>.
+<a href="#ErrBadConn">ErrBadConn</a> should only be returned from <a href="#Validator">Validator</a>, <a href="#SessionResetter">SessionResetter</a>, or
+a query method if the connection is already in an invalid (e.g. closed) state.
+<p>All <a href="#Conn">Conn</a> implementations should implement the following interfaces:
+<a href="#Pinger">Pinger</a>, <a href="#SessionResetter">SessionResetter</a>, and <a href="#Validator">Validator</a>.
+<p>If named parameters or context are supported, the driver&apos;s <a href="#Conn">Conn</a> should implement:
+<a href="#ExecerContext">ExecerContext</a>, <a href="#QueryerContext">QueryerContext</a>, <a href="#ConnPrepareContext">ConnPrepareContext</a>, and <a href="#ConnBeginTx">ConnBeginTx</a>.
+<p>To support custom data types, implement <a href="#NamedValueChecker">NamedValueChecker</a>. <a href="#NamedValueChecker">NamedValueChecker</a>
+also allows queries to accept per-query options as a parameter by returning
+<a href="#ErrRemoveArgument">ErrRemoveArgument</a> from CheckNamedValue.
+<p>If multiple result sets are supported, <a href="#Rows">Rows</a> should implement <a href="#RowsNextResultSet">RowsNextResultSet</a>.
+If the driver knows how to describe the types present in the returned result
+it should implement the following interfaces: <a href="#RowsColumnTypeScanType">RowsColumnTypeScanType</a>,
+<a href="#RowsColumnTypeDatabaseTypeName">RowsColumnTypeDatabaseTypeName</a>, <a href="#RowsColumnTypeLength">RowsColumnTypeLength</a>, <a href="#RowsColumnTypeNullable">RowsColumnTypeNullable</a>,
+and <a href="#RowsColumnTypePrecisionScale">RowsColumnTypePrecisionScale</a>. A given row value may also return a <a href="#Rows">Rows</a>
+type, which may represent a database cursor value.
+<p>If a <a href="#Conn">Conn</a> implements <a href="#Validator">Validator</a>, then the IsValid method is called
+before returning the connection to the connection pool. If an entry in the
+connection pool implements <a href="#SessionResetter">SessionResetter</a>, then ResetSession
+is called before reusing the connection for another query. If a connection is
+never returned to the connection pool but is immediately reused, then
+ResetSession is called prior to reuse but IsValid is not called.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#IsScanValue">func IsScanValue(v any) bool</a></dd>
+			
+				<dd><a href="#IsValue">func IsValue(v any) bool</a></dd>
+			
+			
+				
+				<dd><a href="#ColumnConverter">type ColumnConverter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Conn">type Conn</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ConnBeginTx">type ConnBeginTx</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ConnPrepareContext">type ConnPrepareContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Connector">type Connector</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Driver">type Driver</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DriverContext">type DriverContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Execer">type Execer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ExecerContext">type ExecerContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IsolationLevel">type IsolationLevel</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NamedValue">type NamedValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NamedValueChecker">type NamedValueChecker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NotNull">type NotNull</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NotNull.ConvertValue">func (n NotNull) ConvertValue(v any) (Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Null">type Null</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Null.ConvertValue">func (n Null) ConvertValue(v any) (Value, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Pinger">type Pinger</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Queryer">type Queryer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QueryerContext">type QueryerContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Result">type Result</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Rows">type Rows</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsAffected">type RowsAffected</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RowsAffected.LastInsertId">func (RowsAffected) LastInsertId() (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RowsAffected.RowsAffected">func (v RowsAffected) RowsAffected() (int64, error)</a></dd>
+				
+			
+				
+				<dd><a href="#RowsColumnScanner">type RowsColumnScanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeDatabaseTypeName">type RowsColumnTypeDatabaseTypeName</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeLength">type RowsColumnTypeLength</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeNullable">type RowsColumnTypeNullable</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypePrecisionScale">type RowsColumnTypePrecisionScale</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsColumnTypeScanType">type RowsColumnTypeScanType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RowsNextResultSet">type RowsNextResultSet</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ScanContext">type ScanContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SessionResetter">type SessionResetter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Stmt">type Stmt</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StmtExecContext">type StmtExecContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StmtQueryContext">type StmtQueryContext</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Tx">type Tx</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TxOptions">type TxOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Validator">type Validator</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ValueConverter">type ValueConverter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Valuer">type Valuer</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/database/sql/driver/driver.go">driver.go</a>
+			
+				<a href="/src/database/sql/driver/types.go">types.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>Bool is a <a href="#ValueConverter">ValueConverter</a> that converts input values to bool.
+<p>The conversion rules are:
+<ul>
+<li>booleans are returned unchanged
+<li>for integer types,
+1 is true
+0 is false,
+other integers are an error
+<li>for strings and []byte, same rules as <a href="/pkg/strconv/#ParseBool">strconv.ParseBool</a>
+<li>all other types are an error
+</ul>
+
+				<pre>var <span id="Bool">Bool</span> boolType</pre>
+			
+				<p>DefaultParameterConverter is the default implementation of
+<a href="#ValueConverter">ValueConverter</a> that&apos;s used when a <a href="#Stmt">Stmt</a> doesn&apos;t implement
+<a href="#ColumnConverter">ColumnConverter</a>.
+<p>DefaultParameterConverter returns its argument directly if
+IsValue(arg). Otherwise, if the argument implements <a href="#Valuer">Valuer</a>, its
+Value method is used to return a <a href="#Value">Value</a>. As a fallback, the provided
+argument&apos;s underlying type is used to convert it to a <a href="#Value">Value</a>:
+underlying integer types are converted to int64, floats to float64,
+bool, string, and []byte to themselves. If the argument is a nil
+pointer, defaultConverter.ConvertValue returns a nil <a href="#Value">Value</a>.
+If the argument is a non-nil pointer, it is dereferenced and
+defaultConverter.ConvertValue is called recursively. Other types
+are an error.
+
+				<pre>var <span id="DefaultParameterConverter">DefaultParameterConverter</span> defaultConverter</pre>
+			
+				<p>ErrBadConn should be returned by a driver to signal to the <a href="/pkg/database/sql/">database/sql</a>
+package that a driver.<a href="#Conn">Conn</a> is in a bad state (such as the server
+having earlier closed the connection) and the <a href="/pkg/database/sql/">database/sql</a> package should
+retry on a new connection.
+<p>To prevent duplicate operations, ErrBadConn should NOT be returned
+if there&apos;s a possibility that the database server might have
+performed the operation. Even if the server sends back an error,
+you shouldn&apos;t return ErrBadConn.
+<p>Errors will be checked using <a href="/pkg/errors/#Is">errors.Is</a>. An error may
+wrap ErrBadConn or implement the Is(error) bool method.
+
+				<pre>var <span id="ErrBadConn">ErrBadConn</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: bad connection&#34;)</pre>
+			
+				<p>ErrRemoveArgument may be returned from <a href="#NamedValueChecker">NamedValueChecker</a> to instruct the
+<a href="/pkg/database/sql/">database/sql</a> package to not pass the argument to the driver query interface.
+Return when accepting query specific options or structures that aren&apos;t
+SQL query arguments.
+
+				<pre>var <span id="ErrRemoveArgument">ErrRemoveArgument</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: remove argument from query&#34;)</pre>
+			
+				<p>ErrSkip may be returned by some optional interfaces&apos; methods to
+indicate at runtime that the fast path is unavailable and the sql
+package should continue as if the optional interface was not
+implemented. ErrSkip is only supported where explicitly
+documented.
+
+				<pre>var <span id="ErrSkip">ErrSkip</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;driver: skip fast-path; continue as if unimplemented&#34;)</pre>
+			
+				<p>Int32 is a <a href="#ValueConverter">ValueConverter</a> that converts input values to int64,
+respecting the limits of an int32 value.
+
+				<pre>var <span id="Int32">Int32</span> int32Type</pre>
+			
+				<p>ResultNoRows is a pre-defined <a href="#Result">Result</a> for drivers to return when a DDL
+command (such as a CREATE TABLE) succeeds. It returns an error for both
+LastInsertId and <a href="#RowsAffected">RowsAffected</a>.
+
+				<pre>var <span id="ResultNoRows">ResultNoRows</span> noRows</pre>
+			
+				<p>String is a <a href="#ValueConverter">ValueConverter</a> that converts its input to a string.
+If the value is already a string or []byte, it&apos;s unchanged.
+If the value is of another type, conversion to string is done
+with fmt.Sprintf(&quot;%v&quot;, v).
+
+				<pre>var <span id="String">String</span> stringType</pre>
+			
+		
+		
+			
+			<h2 id="IsScanValue">func <a href="/src/database/sql/driver/types.go?s=5573:5601#L186">IsScanValue</a>
+				
+				
+			</h2>
+			<pre>func IsScanValue(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsScanValue is equivalent to <a href="#IsValue">IsValue</a>.
+It exists for compatibility.
+
+			
+		
+			
+			<h2 id="IsValue">func <a href="/src/database/sql/driver/types.go?s=5293:5317#L171">IsValue</a>
+				
+				
+			</h2>
+			<pre>func IsValue(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsValue reports whether v is a valid <a href="#Value">Value</a> parameter type.
+
+			
+		
+		
+			
+			<h2 id="ColumnConverter">type <a href="/src/database/sql/driver/driver.go?s=16592:16880#L406">ColumnConverter</a>
+				
+				
+			</h2>
+			<p>ColumnConverter may be optionally implemented by <a href="#Stmt">Stmt</a> if the
+statement is aware of its own columns&apos; types and can convert from
+any type to a driver <a href="#Value">Value</a>.
+<p>Deprecated: Drivers should implement <a href="#NamedValueChecker">NamedValueChecker</a>.
+
+			<pre>type ColumnConverter interface {
+    <span class="comment">// ColumnConverter returns a ValueConverter for the provided</span>
+    <span class="comment">// column index. If the type of a specific column isn&#39;t known</span>
+    <span class="comment">// or shouldn&#39;t be handled specially, [DefaultParameterConverter]</span>
+    <span class="comment">// can be returned.</span>
+    ColumnConverter(idx <a href="/pkg/builtin/#int">int</a>) <a href="#ValueConverter">ValueConverter</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Conn">type <a href="/src/database/sql/driver/driver.go?s=9435:10214#L225">Conn</a>
+				
+				
+			</h2>
+			<p>Conn is a connection to a database. It is not used concurrently
+by multiple goroutines.
+<p>Conn is assumed to be stateful.
+
+			<pre>type Conn interface {
+    <span class="comment">// Prepare returns a prepared statement, bound to this connection.</span>
+    Prepare(query <a href="/pkg/builtin/#string">string</a>) (<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Close invalidates and potentially stops any current</span>
+    <span class="comment">// prepared statements and transactions, marking this</span>
+    <span class="comment">// connection as no longer in use.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Because the sql package maintains a free pool of</span>
+    <span class="comment">// connections and only calls Close when there&#39;s a surplus of</span>
+    <span class="comment">// idle connections, it shouldn&#39;t be necessary for drivers to</span>
+    <span class="comment">// do their own connection caching.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Drivers must ensure all network calls made by Close</span>
+    <span class="comment">// do not block indefinitely (e.g. apply a timeout).</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// Begin starts and returns a new transaction.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Deprecated: Drivers should implement ConnBeginTx instead (or additionally).</span>
+    Begin() (<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ConnBeginTx">type <a href="/src/database/sql/driver/driver.go?s=11062:11791#L271">ConnBeginTx</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ConnBeginTx enhances the <a href="#Conn">Conn</a> interface with context and <a href="#TxOptions">TxOptions</a>.
+
+			<pre>type ConnBeginTx interface {
+    <span class="comment">// BeginTx starts and returns a new transaction.</span>
+    <span class="comment">// If the context is canceled by the user the sql package will</span>
+    <span class="comment">// call Tx.Rollback before discarding and closing the connection.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This must check opts.Isolation to determine if there is a set</span>
+    <span class="comment">// isolation level. If the driver does not support a non-default</span>
+    <span class="comment">// level and one is set or if there is a non-default isolation level</span>
+    <span class="comment">// that is not supported, an error must be returned.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This must also check opts.ReadOnly to determine if the read-only</span>
+    <span class="comment">// value is true to either set the read-only transaction property if supported</span>
+    <span class="comment">// or return an error if it is not supported.</span>
+    BeginTx(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, opts <a href="#TxOptions">TxOptions</a>) (<a href="#Tx">Tx</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ConnPrepareContext">type <a href="/src/database/sql/driver/driver.go?s=10282:10575#L249">ConnPrepareContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ConnPrepareContext enhances the <a href="#Conn">Conn</a> interface with context.
+
+			<pre>type ConnPrepareContext interface {
+    <span class="comment">// PrepareContext returns a prepared statement, bound to this connection.</span>
+    <span class="comment">// context is for the preparation of the statement,</span>
+    <span class="comment">// it must not store the context within the statement itself.</span>
+    PrepareContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>) (<a href="#Stmt">Stmt</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Connector">type <a href="/src/database/sql/driver/driver.go?s=4974:5777#L113">Connector</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>A Connector represents a driver in a fixed configuration
+and can create any number of equivalent Conns for use
+by multiple goroutines.
+<p>A Connector can be passed to <a href="/pkg/database/sql/#OpenDB">database/sql.OpenDB</a>, to allow drivers
+to implement their own <a href="/pkg/database/sql/#DB">database/sql.DB</a> constructors, or returned by
+<a href="#DriverContext">DriverContext</a>&apos;s OpenConnector method, to allow drivers
+access to context and to avoid repeated parsing of driver
+configuration.
+<p>If a Connector implements <a href="/pkg/io/#Closer">io.Closer</a>, the <a href="/pkg/database/sql/#DB.Close">database/sql.DB.Close</a>
+method will call the Close method and return error (if any).
+
+			<pre>type Connector interface {
+    <span class="comment">// Connect returns a connection to the database.</span>
+    <span class="comment">// Connect may return a cached connection (one previously</span>
+    <span class="comment">// closed), but doing so is unnecessary; the sql package</span>
+    <span class="comment">// maintains a pool of idle connections for efficient re-use.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The provided context.Context is for dialing purposes only</span>
+    <span class="comment">// (see net.DialContext) and should not be stored or used for</span>
+    <span class="comment">// other purposes. A default timeout should still be used</span>
+    <span class="comment">// when dialing as a connection pool may call Connect</span>
+    <span class="comment">// asynchronously to any query.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The returned connection is only used by one goroutine at a</span>
+    <span class="comment">// time.</span>
+    Connect(<a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) (<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Driver returns the underlying Driver of the Connector,</span>
+    <span class="comment">// mainly to maintain compatibility with the Driver method</span>
+    <span class="comment">// on sql.DB.</span>
+    Driver() <a href="#Driver">Driver</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Driver">type <a href="/src/database/sql/driver/driver.go?s=3402:3823#L76">Driver</a>
+				
+				
+			</h2>
+			<p>Driver is the interface that must be implemented by a database
+driver.
+<p>Database drivers may implement <a href="#DriverContext">DriverContext</a> for access
+to contexts and to parse the name only once for a pool of connections,
+instead of once per connection.
+
+			<pre>type Driver interface {
+    <span class="comment">// Open returns a new connection to the database.</span>
+    <span class="comment">// The name is a string in a driver-specific format.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Open may return a cached connection (one previously</span>
+    <span class="comment">// closed), but doing so is unnecessary; the sql package</span>
+    <span class="comment">// maintains a pool of idle connections for efficient re-use.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The returned connection is only used by one goroutine at a</span>
+    <span class="comment">// time.</span>
+    Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DriverContext">type <a href="/src/database/sql/driver/driver.go?s=4220:4404#L95">DriverContext</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>If a <a href="#Driver">Driver</a> implements DriverContext, then <a href="/pkg/database/sql/#DB">database/sql.DB</a> will call
+OpenConnector to obtain a <a href="#Connector">Connector</a> and then invoke
+that <a href="#Connector">Connector</a>&apos;s Connect method to obtain each needed connection,
+instead of invoking the <a href="#Driver">Driver</a>&apos;s Open method for each connection.
+The two-step sequence allows drivers to parse the name just once
+and also provides access to per-<a href="#Conn">Conn</a> contexts.
+
+			<pre>type DriverContext interface {
+    <span class="comment">// OpenConnector must parse the name in the same format that Driver.Open</span>
+    <span class="comment">// parses the name parameter.</span>
+    OpenConnector(name <a href="/pkg/builtin/#string">string</a>) (<a href="#Connector">Connector</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Execer">type <a href="/src/database/sql/driver/driver.go?s=7591:7666#L176">Execer</a>
+				
+				
+			</h2>
+			<p>Execer is an optional interface that may be implemented by a <a href="#Conn">Conn</a>.
+<p>If a <a href="#Conn">Conn</a> implements neither <a href="#ExecerContext">ExecerContext</a> nor <a href="#Execer">Execer</a>,
+the <a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a> will first prepare a query, execute the statement,
+and then close the statement.
+<p>Exec may return <a href="#ErrSkip">ErrSkip</a>.
+<p>Deprecated: Drivers should implement <a href="#ExecerContext">ExecerContext</a> instead.
+
+			<pre>type Execer interface {
+    Exec(query <a href="/pkg/builtin/#string">string</a>, args []<a href="#Value">Value</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ExecerContext">type <a href="/src/database/sql/driver/driver.go?s=8145:8260#L190">ExecerContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>ExecerContext is an optional interface that may be implemented by a <a href="#Conn">Conn</a>.
+<p>If a <a href="#Conn">Conn</a> does not implement <a href="#ExecerContext">ExecerContext</a>, the <a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a>
+will fall back to <a href="#Execer">Execer</a>; if the Conn does not implement Execer either,
+<a href="/pkg/database/sql/#DB.Exec">database/sql.DB.Exec</a> will first prepare a query, execute the statement, and then
+close the statement.
+<p>ExecContext may return <a href="#ErrSkip">ErrSkip</a>.
+<p>ExecContext must honor the context timeout and return when the context is canceled.
+
+			<pre>type ExecerContext interface {
+    ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="IsolationLevel">type <a href="/src/database/sql/driver/driver.go?s=10773:10796#L260">IsolationLevel</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>IsolationLevel is the transaction isolation level stored in <a href="#TxOptions">TxOptions</a>.
+<p>This type should be considered identical to <a href="/pkg/database/sql/#IsolationLevel">database/sql.IsolationLevel</a> along
+with any values defined on it.
+
+			<pre>type IsolationLevel <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NamedValue">type <a href="/src/database/sql/driver/driver.go?s=2820:3150#L56">NamedValue</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>NamedValue holds both the value name and value.
+
+			<pre>type NamedValue struct {
+    <span class="comment">// If the Name is not empty it should be used for the parameter identifier and</span>
+    <span class="comment">// not the ordinal position.</span>
+    <span class="comment">//</span>
+<span id="NamedValue.Name"></span>    <span class="comment">// Name will not have a symbol prefix.</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="NamedValue.Ordinal"></span>    <span class="comment">// Ordinal position of the parameter starting from one and is always set.</span>
+    Ordinal <a href="/pkg/builtin/#int">int</a>
+
+<span id="NamedValue.Value"></span>    <span class="comment">// Value is the parameter value.</span>
+    Value <a href="#Value">Value</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NamedValueChecker">type <a href="/src/database/sql/driver/driver.go?s=16076:16358#L394">NamedValueChecker</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>NamedValueChecker may be optionally implemented by <a href="#Conn">Conn</a> or <a href="#Stmt">Stmt</a>. It provides
+the driver more control to handle Go and database types beyond the default
+<a href="#Value">Value</a> types allowed.
+<p>The <a href="/pkg/database/sql/">database/sql</a> package checks for value checkers in the following order,
+stopping at the first found match: Stmt.NamedValueChecker, Conn.NamedValueChecker,
+Stmt.ColumnConverter, <a href="#DefaultParameterConverter">DefaultParameterConverter</a>.
+<p>If CheckNamedValue returns <a href="#ErrRemoveArgument">ErrRemoveArgument</a>, the <a href="#NamedValue">NamedValue</a> will not be included in
+the final query arguments. This may be used to pass special options to
+the query itself.
+<p>If <a href="#ErrSkip">ErrSkip</a> is returned the column converter error checking
+path is used for the argument. Drivers may wish to return <a href="#ErrSkip">ErrSkip</a> after
+they have exhausted their own special cases.
+
+			<pre>type NamedValueChecker interface {
+    <span class="comment">// CheckNamedValue is called before passing arguments to the driver</span>
+    <span class="comment">// and is called in place of any ColumnConverter. CheckNamedValue must do type</span>
+    <span class="comment">// validation and conversion as appropriate for the driver.</span>
+    CheckNamedValue(*<a href="#NamedValue">NamedValue</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NotNull">type <a href="/src/database/sql/driver/types.go?s=5017:5066#L159">NotNull</a>
+				
+				
+			</h2>
+			<p>NotNull is a type that implements <a href="#ValueConverter">ValueConverter</a> by disallowing nil
+values but otherwise delegating to another <a href="#ValueConverter">ValueConverter</a>.
+
+			<pre>type NotNull struct {
+<span id="NotNull.Converter"></span>    Converter <a href="#ValueConverter">ValueConverter</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NotNull.ConvertValue">func (NotNull) <a href="/src/database/sql/driver/types.go?s=5068:5119#L163">ConvertValue</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#NotNull">NotNull</a>) ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Null">type <a href="/src/database/sql/driver/types.go?s=4706:4752#L146">Null</a>
+				
+				
+			</h2>
+			<p>Null is a type that implements <a href="#ValueConverter">ValueConverter</a> by allowing nil
+values but otherwise delegating to another <a href="#ValueConverter">ValueConverter</a>.
+
+			<pre>type Null struct {
+<span id="Null.Converter"></span>    Converter <a href="#ValueConverter">ValueConverter</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Null.ConvertValue">func (Null) <a href="/src/database/sql/driver/types.go?s=4754:4802#L150">ConvertValue</a>
+					
+					
+				</h3>
+				<pre>func (n <a href="#Null">Null</a>) ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Pinger">type <a href="/src/database/sql/driver/driver.go?s=7177:7235#L163">Pinger</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Pinger is an optional interface that may be implemented by a <a href="#Conn">Conn</a>.
+<p>If a <a href="#Conn">Conn</a> does not implement Pinger, the <a href="/pkg/database/sql/#DB.Ping">database/sql.DB.Ping</a> and
+<a href="/pkg/database/sql/#DB.PingContext">database/sql.DB.PingContext</a> will check if there is at least one <a href="#Conn">Conn</a> available.
+<p>If Conn.Ping returns <a href="#ErrBadConn">ErrBadConn</a>, <a href="/pkg/database/sql/#DB.Ping">database/sql.DB.Ping</a> and <a href="/pkg/database/sql/#DB.PingContext">database/sql.DB.PingContext</a> will remove
+the <a href="#Conn">Conn</a> from pool.
+
+			<pre>type Pinger interface {
+    Ping(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Queryer">type <a href="/src/database/sql/driver/driver.go?s=8622:8697#L203">Queryer</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Queryer is an optional interface that may be implemented by a <a href="#Conn">Conn</a>.
+<p>If a <a href="#Conn">Conn</a> implements neither <a href="#QueryerContext">QueryerContext</a> nor <a href="#Queryer">Queryer</a>,
+the <a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a> will first prepare a query, execute the statement,
+and then close the statement.
+<p>Query may return <a href="#ErrSkip">ErrSkip</a>.
+<p>Deprecated: Drivers should implement <a href="#QueryerContext">QueryerContext</a> instead.
+
+			<pre>type Queryer interface {
+    Query(query <a href="/pkg/builtin/#string">string</a>, args []<a href="#Value">Value</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QueryerContext">type <a href="/src/database/sql/driver/driver.go?s=9186:9301#L217">QueryerContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>QueryerContext is an optional interface that may be implemented by a <a href="#Conn">Conn</a>.
+<p>If a <a href="#Conn">Conn</a> does not implement QueryerContext, the <a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a>
+will fall back to <a href="#Queryer">Queryer</a>; if the <a href="#Conn">Conn</a> does not implement <a href="#Queryer">Queryer</a> either,
+<a href="/pkg/database/sql/#DB.Query">database/sql.DB.Query</a> will first prepare a query, execute the statement, and then
+close the statement.
+<p>QueryContext may return <a href="#ErrSkip">ErrSkip</a>.
+<p>QueryContext must honor the context timeout and return when the context is canceled.
+
+			<pre>type QueryerContext interface {
+    QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, query <a href="/pkg/builtin/#string">string</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Result">type <a href="/src/database/sql/driver/driver.go?s=12714:13000#L308">Result</a>
+				
+				
+			</h2>
+			<p>Result is the result of a query execution.
+
+			<pre>type Result interface {
+    <span class="comment">// LastInsertId returns the database&#39;s auto-generated ID</span>
+    <span class="comment">// after, for example, an INSERT into a table with primary</span>
+    <span class="comment">// key.</span>
+    LastInsertId() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// RowsAffected returns the number of rows affected by the</span>
+    <span class="comment">// query.</span>
+    RowsAffected() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Rows">type <a href="/src/database/sql/driver/driver.go?s=16939:17648#L415">Rows</a>
+				
+				
+			</h2>
+			<p>Rows is an iterator over an executed query&apos;s results.
+
+			<pre>type Rows interface {
+    <span class="comment">// Columns returns the names of the columns. The number of</span>
+    <span class="comment">// columns of the result is inferred from the length of the</span>
+    <span class="comment">// slice. If a particular column name isn&#39;t known, an empty</span>
+    <span class="comment">// string should be returned for that entry.</span>
+    Columns() []<a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// Close closes the rows iterator.</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// Next is called to populate the next row of data into</span>
+    <span class="comment">// the provided slice. The provided slice will be the same</span>
+    <span class="comment">// size as the Columns() are wide.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Next should return io.EOF when there are no more rows.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The dest should not be written to outside of Next. Care</span>
+    <span class="comment">// should be taken when closing Rows not to modify</span>
+    <span class="comment">// a buffer held in dest.</span>
+    Next(dest []<a href="#Value">Value</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsAffected">type <a href="/src/database/sql/driver/driver.go?s=21655:21678#L542">RowsAffected</a>
+				
+				
+			</h2>
+			<p>RowsAffected implements <a href="#Result">Result</a> for an INSERT or UPDATE operation
+which mutates a number of rows.
+
+			<pre>type RowsAffected <a href="/pkg/builtin/#int64">int64</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RowsAffected.LastInsertId">func (RowsAffected) <a href="/src/database/sql/driver/driver.go?s=21712:21761#L546">LastInsertId</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#RowsAffected">RowsAffected</a>) LastInsertId() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="RowsAffected.RowsAffected">func (RowsAffected) <a href="/src/database/sql/driver/driver.go?s=21837:21888#L550">RowsAffected</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#RowsAffected">RowsAffected</a>) RowsAffected() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="RowsColumnScanner">type <a href="/src/database/sql/driver/driver.go?s=18218:18641#L448">RowsColumnScanner</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>RowsColumnScanner extends the <a href="#Rows">Rows</a> interface by providing a way for the driver
+to scan directly into the user-provided destination.
+<p>RowsColumnScanner supersedes the <a href="#Rows.Next">Rows.Next</a> method.
+<p>As of Go 1.27, database/sql will not call Next if a Rows implements RowsColumnScanner.
+Rows implementations may still implement the Next method to support older versions of Go.
+
+			<pre>type RowsColumnScanner interface {
+    <a href="#Rows">Rows</a>
+
+    <span class="comment">// NextRow advances to the next row of data.</span>
+    <span class="comment">// It should return io.EOF when there are no more rows.</span>
+    NextRow() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// ScanColumn copies the column at the given index in the current row</span>
+    <span class="comment">// into the value pointed to by dest.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The driver may assign a driver.Value to dest using [database/sql.ConvertAssign].</span>
+    ScanColumn(scanCtx <a href="#ScanContext">ScanContext</a>, index <a href="/pkg/builtin/#int">int</a>, dest <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeDatabaseTypeName">type <a href="/src/database/sql/driver/driver.go?s=19875:19976#L491">RowsColumnTypeDatabaseTypeName</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsColumnTypeDatabaseTypeName may be implemented by <a href="#Rows">Rows</a>. It should return the
+database system type name without the length. Type names should be uppercase.
+Examples of returned types: &quot;VARCHAR&quot;, &quot;NVARCHAR&quot;, &quot;VARCHAR2&quot;, &quot;CHAR&quot;, &quot;TEXT&quot;,
+&quot;DECIMAL&quot;, &quot;SMALLINT&quot;, &quot;INT&quot;, &quot;BIGINT&quot;, &quot;BOOL&quot;, &quot;[]BIGINT&quot;, &quot;JSONB&quot;, &quot;XML&quot;,
+&quot;TIMESTAMP&quot;.
+
+			<pre>type RowsColumnTypeDatabaseTypeName interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeDatabaseTypeName(index <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeLength">type <a href="/src/database/sql/driver/driver.go?s=20532:20630#L508">RowsColumnTypeLength</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsColumnTypeLength may be implemented by <a href="#Rows">Rows</a>. It should return the length
+of the column type if the column is a variable length type. If the column is
+not a variable length type ok should return false.
+If length is not limited other than system limits, it should return <a href="/pkg/math/#MaxInt64">math.MaxInt64</a>.
+The following are examples of returned values for various types:
+<pre>TEXT          (math.MaxInt64, true)
+varchar(10)   (10, true)
+nvarchar(10)  (10, true)
+decimal       (0, false)
+int           (0, false)
+bytea(30)     (30, true)
+</pre>
+
+			<pre>type RowsColumnTypeLength interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeLength(index <a href="/pkg/builtin/#int">int</a>) (length <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeNullable">type <a href="/src/database/sql/driver/driver.go?s=20880:20978#L517">RowsColumnTypeNullable</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsColumnTypeNullable may be implemented by <a href="#Rows">Rows</a>. The nullable value should
+be true if it is known the column may be null, or false if the column is known
+to be not nullable.
+If the column nullability is unknown, ok should be false.
+
+			<pre>type RowsColumnTypeNullable interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeNullable(index <a href="/pkg/builtin/#int">int</a>) (nullable, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypePrecisionScale">type <a href="/src/database/sql/driver/driver.go?s=21343:21467#L529">RowsColumnTypePrecisionScale</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsColumnTypePrecisionScale may be implemented by <a href="#Rows">Rows</a>. It should return
+the precision and scale for decimal types. If not applicable, ok should be false.
+The following are examples of returned values for various types:
+<pre>decimal(38, 4)    (38, 4, true)
+int               (0, 0, false)
+decimal           (math.MaxInt64, math.MaxInt64, true)
+</pre>
+
+			<pre>type RowsColumnTypePrecisionScale interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypePrecisionScale(index <a href="/pkg/builtin/#int">int</a>) (precision, scale <a href="/pkg/builtin/#int64">int64</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsColumnTypeScanType">type <a href="/src/database/sql/driver/driver.go?s=19439:19530#L481">RowsColumnTypeScanType</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsColumnTypeScanType may be implemented by <a href="#Rows">Rows</a>. It should return
+the value type that can be used to scan types into. For example, the database
+column type &quot;bigint&quot; this should return &quot;<a href="/pkg/reflect/#TypeOf">reflect.TypeOf</a>(int64(0))&quot;.
+
+			<pre>type RowsColumnTypeScanType interface {
+    <a href="#Rows">Rows</a>
+    ColumnTypeScanType(index <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RowsNextResultSet">type <a href="/src/database/sql/driver/driver.go?s=18771:19210#L464">RowsNextResultSet</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>RowsNextResultSet extends the <a href="#Rows">Rows</a> interface by providing a way to signal
+the driver to advance to the next result set.
+
+			<pre>type RowsNextResultSet interface {
+    <a href="#Rows">Rows</a>
+
+    <span class="comment">// HasNextResultSet is called at the end of the current result set and</span>
+    <span class="comment">// reports whether there is another result set after the current one.</span>
+    HasNextResultSet() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// NextResultSet advances the driver to the next result set even</span>
+    <span class="comment">// if there are remaining rows in the current result set.</span>
+    <span class="comment">//</span>
+    <span class="comment">// NextResultSet should return io.EOF when there are no more result sets.</span>
+    NextResultSet() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ScanContext">type <a href="/src/database/sql/driver/driver.go?s=17794:17831#L439">ScanContext</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>ScanContext carries state related to the current query
+through a <a href="#RowsColumnScanner.ScanColumn">RowsColumnScanner.ScanColumn</a> function to <a href="/pkg/database/sql/#ConvertAssign">database/sql.ConvertAssign</a>.
+
+			<pre>type ScanContext <a href="/pkg/database/sql/internal/">internal</a>.<a href="/pkg/database/sql/internal/#ScanContext">ScanContext</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SessionResetter">type <a href="/src/database/sql/driver/driver.go?s=11951:12208#L289">SessionResetter</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>SessionResetter may be implemented by <a href="#Conn">Conn</a> to allow drivers to reset the
+session state associated with the connection and to signal a bad connection.
+
+			<pre>type SessionResetter interface {
+    <span class="comment">// ResetSession is called prior to executing a query on the connection</span>
+    <span class="comment">// if the connection has been used before. If the driver returns ErrBadConn</span>
+    <span class="comment">// the connection is discarded.</span>
+    ResetSession(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Stmt">type <a href="/src/database/sql/driver/driver.go?s=13112:14238#L321">Stmt</a>
+				
+				
+			</h2>
+			<p>Stmt is a prepared statement. It is bound to a <a href="#Conn">Conn</a> and not
+used by multiple goroutines concurrently.
+
+			<pre>type Stmt interface {
+    <span class="comment">// Close closes the statement.</span>
+    <span class="comment">//</span>
+    <span class="comment">// As of Go 1.1, a Stmt will not be closed if it&#39;s in use</span>
+    <span class="comment">// by any queries.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Drivers must ensure all network calls made by Close</span>
+    <span class="comment">// do not block indefinitely (e.g. apply a timeout).</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// NumInput returns the number of placeholder parameters.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If NumInput returns &gt;= 0, the sql package will sanity check</span>
+    <span class="comment">// argument counts from callers and return errors to the caller</span>
+    <span class="comment">// before the statement&#39;s Exec or Query methods are called.</span>
+    <span class="comment">//</span>
+    <span class="comment">// NumInput may also return -1, if the driver doesn&#39;t know</span>
+    <span class="comment">// its number of placeholders. In that case, the sql package</span>
+    <span class="comment">// will not sanity check Exec or Query argument counts.</span>
+    NumInput() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Exec executes a query that doesn&#39;t return rows, such</span>
+    <span class="comment">// as an INSERT or UPDATE.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Deprecated: Drivers should implement StmtExecContext instead (or additionally).</span>
+    Exec(args []<a href="#Value">Value</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Query executes a query that may return rows, such as a</span>
+    <span class="comment">// SELECT.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Deprecated: Drivers should implement StmtQueryContext instead (or additionally).</span>
+    Query(args []<a href="#Value">Value</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StmtExecContext">type <a href="/src/database/sql/driver/driver.go?s=14321:14599#L356">StmtExecContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>StmtExecContext enhances the <a href="#Stmt">Stmt</a> interface by providing Exec with context.
+
+			<pre>type StmtExecContext interface {
+    <span class="comment">// ExecContext executes a query that doesn&#39;t return rows, such</span>
+    <span class="comment">// as an INSERT or UPDATE.</span>
+    <span class="comment">//</span>
+    <span class="comment">// ExecContext must honor the context timeout and return when it is canceled.</span>
+    ExecContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Result">Result</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StmtQueryContext">type <a href="/src/database/sql/driver/driver.go?s=14684:14949#L365">StmtQueryContext</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>StmtQueryContext enhances the <a href="#Stmt">Stmt</a> interface by providing Query with context.
+
+			<pre>type StmtQueryContext interface {
+    <span class="comment">// QueryContext executes a query that may return rows, such as a</span>
+    <span class="comment">// SELECT.</span>
+    <span class="comment">//</span>
+    <span class="comment">// QueryContext must honor the context timeout and return when it is canceled.</span>
+    QueryContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, args []<a href="#NamedValue">NamedValue</a>) (<a href="#Rows">Rows</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Tx">type <a href="/src/database/sql/driver/driver.go?s=21493:21548#L535">Tx</a>
+				
+				
+			</h2>
+			<p>Tx is a transaction.
+
+			<pre>type Tx interface {
+    Commit() <a href="/pkg/builtin/#error">error</a>
+    Rollback() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TxOptions">type <a href="/src/database/sql/driver/driver.go?s=10918:10985#L265">TxOptions</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>TxOptions holds the transaction options.
+<p>This type should be considered identical to <a href="/pkg/database/sql/#TxOptions">database/sql.TxOptions</a>.
+
+			<pre>type TxOptions struct {
+<span id="TxOptions.Isolation"></span>    Isolation <a href="#IsolationLevel">IsolationLevel</a>
+<span id="TxOptions.ReadOnly"></span>    ReadOnly  <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Validator">type <a href="/src/database/sql/driver/driver.go?s=12483:12666#L301">Validator</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<p>Validator may be implemented by <a href="#Conn">Conn</a> to allow drivers to
+signal if a connection is valid or if it should be discarded.
+<p>If implemented, drivers may return the underlying error from queries,
+even if the connection should be discarded by the connection pool.
+
+			<pre>type Validator interface {
+    <span class="comment">// IsValid is called prior to placing the connection into the</span>
+    <span class="comment">// connection pool. The connection will be discarded if false is returned.</span>
+    IsValid() <a href="/pkg/builtin/#bool">bool</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/database/sql/driver/driver.go?s=2753:2767#L53">Value</a>
+				
+				
+			</h2>
+			<p>Value is a value that drivers must be able to handle.
+It is either nil, a type handled by a database driver&apos;s <a href="#NamedValueChecker">NamedValueChecker</a>
+interface, or an instance of one of these types:
+<pre>int64
+float64
+bool
+[]byte
+string
+time.Time
+</pre>
+<p>If the driver supports cursors, a returned Value may also implement the <a href="#Rows">Rows</a> interface
+in this package. This is used, for example, when a user selects a cursor
+such as &quot;select cursor(select * from my_table) from dual&quot;. If the <a href="#Rows">Rows</a>
+from the select is closed, the cursor <a href="#Rows">Rows</a> will also be closed.
+
+			<pre>type Value <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ValueConverter">type <a href="/src/database/sql/driver/types.go?s=960:1082#L21">ValueConverter</a>
+				
+				
+			</h2>
+			<p>ValueConverter is the interface providing the ConvertValue method.
+<p>Various implementations of ValueConverter are provided by the
+driver package to provide consistent implementations of conversions
+between drivers. The ValueConverters have several uses:
+<ul>
+<li><p>converting from the <a href="#Value">Value</a> types as provided by the sql package
+into a database table&apos;s specific column type and making sure it
+fits, such as making sure a particular int64 fits in a
+table&apos;s uint16 column.
+<li><p>converting a value as given from the database into one of the
+driver <a href="#Value">Value</a> types.
+<li><p>by the <a href="/pkg/database/sql/">database/sql</a> package, for converting from a driver&apos;s <a href="#Value">Value</a> type
+to a user&apos;s type in a scan.
+</ul>
+
+			<pre>type ValueConverter interface {
+    <span class="comment">// ConvertValue converts a value to a driver Value.</span>
+    ConvertValue(v <a href="/pkg/builtin/#any">any</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Valuer">type <a href="/src/database/sql/driver/types.go?s=1486:1595#L34">Valuer</a>
+				
+				
+			</h2>
+			<p>Valuer is the interface providing the Value method.
+<p>Errors returned by the <a href="#Value">Value</a> method are wrapped by the database/sql package.
+This allows callers to use <a href="/pkg/errors/#Is">errors.Is</a> for precise error handling after operations
+like <a href="/pkg/database/sql/#Query">database/sql.Query</a>, <a href="/pkg/database/sql/#Exec">database/sql.Exec</a>, or <a href="/pkg/database/sql/#QueryRow">database/sql.QueryRow</a>.
+<p>Types implementing Valuer interface are able to convert
+themselves to a driver <a href="#Value">Value</a>.
+
+			<pre>type Valuer interface {
+    <span class="comment">// Value returns a driver Value.</span>
+    <span class="comment">// Value must not panic.</span>
+    Value() (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

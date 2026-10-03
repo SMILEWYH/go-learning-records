@@ -1,0 +1,67 @@
+<!--{
+  "Title": "test2json 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>test2json 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Test2json 将 go test 的输出转换为机器可读的 JSON 流。
+<p>用法：
+<pre>go tool test2json [-p pkg] [-t] [./pkg.test -test.v=test2json]
+</pre>
+<p>Test2json 运行给定的测试命令，并将其输出转换为 JSON；如果未指定命令，则从标准输入读取测试输出。它将对应的 JSON 事件流写入标准输出，不进行不必要的输入或输出缓冲，因此可以读取 JSON 流以实时更新测试状态。
+<p>-p 标志设置每个测试事件中报告的包名。
+<p>-t 标志要求为每个测试事件添加时间戳。
+<p>运行测试时应使用 -test.v=test2json。仅使用 -test.v 或 -test.v=true 也可以，但结果的保真度较低。
+<p>注意，“go test -json”会正确调用 test2json。因此，只有在脱离“go test”单独运行测试二进制文件时，才需要“go tool test2json”。应尽可能使用“go test -json”。
+<p>还要注意，test2json 仅用于转换单个测试二进制文件的输出。如果要转换同时运行多个包的“go test”命令的输出，也应使用“go test -json”。
+<h3 id="hdr-Output_Format">输出格式
+</h3>
+<p>JSON 流由以换行分隔的 TestEvent 对象组成，对应以下 Go 结构体：
+<pre>type TestEvent struct {
+	Time        time.Time // 编码为 RFC3339 格式的字符串
+	Action      string
+	Package     string
+	Test        string
+	Elapsed     float64 // 秒
+	Output      string
+	OutputType  string
+	FailedBuild string
+}
+</pre>
+<p>Time 字段记录事件发生的时间。对于缓存的测试结果，通常省略此字段。
+<p>Action 字段取值为以下固定动作描述之一：
+<pre>start  - 即将执行测试二进制文件
+run    - 测试已开始运行
+pause  - 测试已暂停
+cont   - 测试已恢复运行
+pass   - 测试通过
+bench  - 基准测试输出了日志，但未失败
+fail   - 测试或基准测试失败
+output - 测试产生了输出
+skip   - 测试被跳过，或包中没有测试
+</pre>
+<p>每个 JSON 流都以“start”事件开始。
+<p>Package 字段存在时，指定正在测试的包。go 命令以 -json 模式并行运行测试时，不同测试的事件会交错出现；读取方可通过 Package 字段区分它们。
+<p>Test 字段存在时，指定产生事件的测试、示例或基准测试函数。针对整个包的测试事件不设置 Test。
+<p>Elapsed 字段用于“pass”和“fail”事件，记录已通过或失败的单个测试或整个包测试所花费的时间。
+<p>当 Action == "output" 时，会设置 Output 字段，内容是测试输出的一部分，标准输出与标准错误合并在一起。除将测试输出中无效的 UTF-8 用替换字符转换为有效 UTF-8 之外，输出不会被修改。除这一例外，将全部 output 事件的 Output 字段拼接起来，就会得到测试执行时的完整原始输出。
+<p>如果测试失败由构建失败导致，当 Action == "fail" 时会设置 FailedBuild 字段。它包含构建失败包的包 ID，与“go list”输出中的 ImportPath 字段，以及“go build -json”输出的 BuildEvent.ImportPath 字段一致。
+<p>当 Action == "output" 时，OutputType 字段<i>可能</i>被设置，用于指示输出类型。其取值为以下之一：
+<pre>（空值）       - 常规输出
+frame          - 测试框架标记，例如 "=== RUN ..." 或 "--- FAIL: ..."
+error          - Error(f) 或 Fatal(f) 产生的错误
+error-continue - 多行错误的后续行
+</pre>
+<p>基准测试运行时，通常输出一行计时结果。这一行通过 Action == "output" 且没有 Test 字段的事件报告。如果基准测试输出日志或报告失败，例如调用 b.Log 或 b.Error，则这些额外输出会以一系列事件报告，Test 设为基准测试名称，最后以 Action == "bench" 或 "fail" 的事件结束。基准测试没有 Action == "pause" 的事件。
+</article>

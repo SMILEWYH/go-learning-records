@@ -1,0 +1,1478 @@
+<!--{
+  "Title": "sync/atomic 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>sync/atomic 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "sync/atomic"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>atomic 包提供底层的原子内存操作原语，可用于实现同步算法。
+<p>正确使用这些函数需要格外谨慎。除特殊的底层应用外，同步更适合通过通道或 <a href="/pkg/sync/">sync</a> 包提供的机制实现。应通过通信共享内存，而不是通过共享内存通信。
+<p>SwapT 系列函数实现的交换操作，原子地完成以下等价操作：
+<pre>old = *addr
+*addr = new
+return old
+</pre>
+<p>CompareAndSwapT 系列函数实现的比较并交换操作，原子地完成以下等价操作：
+<pre>if *addr == old {
+	*addr = new
+	return true
+}
+return false
+</pre>
+<p>AddT 系列函数实现的加法操作，原子地完成以下等价操作：
+<pre>*addr += delta
+return *addr
+</pre>
+<p>LoadT 和 StoreT 系列函数分别实现加载和存储操作，原子地完成与“return *addr”和“*addr = val”等价的操作。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，如果原子操作 B 观察到了原子操作 A 的效果，则 A“同步先于”B。此外，程序中执行的所有原子操作，其行为都如同按某个顺序一致的次序执行。这一定义提供的语义，与 C++ 的顺序一致原子操作及 Java 的 volatile 变量相同。
+<p>这里只支持少数几种整数大小：在许多体系结构上，对非机器字大小的整数执行原子操作效率低下，甚至不可行。例如，<a href="#Bool">Bool</a> 占用的空间可能大于内置 bool。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#AddInt32">func AddInt32(addr *int32, delta int32) (new int32)</a></dd>
+			
+				<dd><a href="#AddInt64">func AddInt64(addr *int64, delta int64) (new int64)</a></dd>
+			
+				<dd><a href="#AddUint32">func AddUint32(addr *uint32, delta uint32) (new uint32)</a></dd>
+			
+				<dd><a href="#AddUint64">func AddUint64(addr *uint64, delta uint64) (new uint64)</a></dd>
+			
+				<dd><a href="#AddUintptr">func AddUintptr(addr *uintptr, delta uintptr) (new uintptr)</a></dd>
+			
+				<dd><a href="#AndInt32">func AndInt32(addr *int32, mask int32) (old int32)</a></dd>
+			
+				<dd><a href="#AndInt64">func AndInt64(addr *int64, mask int64) (old int64)</a></dd>
+			
+				<dd><a href="#AndUint32">func AndUint32(addr *uint32, mask uint32) (old uint32)</a></dd>
+			
+				<dd><a href="#AndUint64">func AndUint64(addr *uint64, mask uint64) (old uint64)</a></dd>
+			
+				<dd><a href="#AndUintptr">func AndUintptr(addr *uintptr, mask uintptr) (old uintptr)</a></dd>
+			
+				<dd><a href="#CompareAndSwapInt32">func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool)</a></dd>
+			
+				<dd><a href="#CompareAndSwapInt64">func CompareAndSwapInt64(addr *int64, old, new int64) (swapped bool)</a></dd>
+			
+				<dd><a href="#CompareAndSwapPointer">func CompareAndSwapPointer(addr *unsafe.Pointer, old, new unsafe.Pointer) (swapped bool)</a></dd>
+			
+				<dd><a href="#CompareAndSwapUint32">func CompareAndSwapUint32(addr *uint32, old, new uint32) (swapped bool)</a></dd>
+			
+				<dd><a href="#CompareAndSwapUint64">func CompareAndSwapUint64(addr *uint64, old, new uint64) (swapped bool)</a></dd>
+			
+				<dd><a href="#CompareAndSwapUintptr">func CompareAndSwapUintptr(addr *uintptr, old, new uintptr) (swapped bool)</a></dd>
+			
+				<dd><a href="#LoadInt32">func LoadInt32(addr *int32) (val int32)</a></dd>
+			
+				<dd><a href="#LoadInt64">func LoadInt64(addr *int64) (val int64)</a></dd>
+			
+				<dd><a href="#LoadPointer">func LoadPointer(addr *unsafe.Pointer) (val unsafe.Pointer)</a></dd>
+			
+				<dd><a href="#LoadUint32">func LoadUint32(addr *uint32) (val uint32)</a></dd>
+			
+				<dd><a href="#LoadUint64">func LoadUint64(addr *uint64) (val uint64)</a></dd>
+			
+				<dd><a href="#LoadUintptr">func LoadUintptr(addr *uintptr) (val uintptr)</a></dd>
+			
+				<dd><a href="#OrInt32">func OrInt32(addr *int32, mask int32) (old int32)</a></dd>
+			
+				<dd><a href="#OrInt64">func OrInt64(addr *int64, mask int64) (old int64)</a></dd>
+			
+				<dd><a href="#OrUint32">func OrUint32(addr *uint32, mask uint32) (old uint32)</a></dd>
+			
+				<dd><a href="#OrUint64">func OrUint64(addr *uint64, mask uint64) (old uint64)</a></dd>
+			
+				<dd><a href="#OrUintptr">func OrUintptr(addr *uintptr, mask uintptr) (old uintptr)</a></dd>
+			
+				<dd><a href="#StoreInt32">func StoreInt32(addr *int32, val int32)</a></dd>
+			
+				<dd><a href="#StoreInt64">func StoreInt64(addr *int64, val int64)</a></dd>
+			
+				<dd><a href="#StorePointer">func StorePointer(addr *unsafe.Pointer, val unsafe.Pointer)</a></dd>
+			
+				<dd><a href="#StoreUint32">func StoreUint32(addr *uint32, val uint32)</a></dd>
+			
+				<dd><a href="#StoreUint64">func StoreUint64(addr *uint64, val uint64)</a></dd>
+			
+				<dd><a href="#StoreUintptr">func StoreUintptr(addr *uintptr, val uintptr)</a></dd>
+			
+				<dd><a href="#SwapInt32">func SwapInt32(addr *int32, new int32) (old int32)</a></dd>
+			
+				<dd><a href="#SwapInt64">func SwapInt64(addr *int64, new int64) (old int64)</a></dd>
+			
+				<dd><a href="#SwapPointer">func SwapPointer(addr *unsafe.Pointer, new unsafe.Pointer) (old unsafe.Pointer)</a></dd>
+			
+				<dd><a href="#SwapUint32">func SwapUint32(addr *uint32, new uint32) (old uint32)</a></dd>
+			
+				<dd><a href="#SwapUint64">func SwapUint64(addr *uint64, new uint64) (old uint64)</a></dd>
+			
+				<dd><a href="#SwapUintptr">func SwapUintptr(addr *uintptr, new uintptr) (old uintptr)</a></dd>
+			
+			
+				
+				<dd><a href="#Bool">type Bool</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool.CompareAndSwap">func (x *Bool) CompareAndSwap(old, new bool) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool.Load">func (x *Bool) Load() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool.Store">func (x *Bool) Store(val bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool.Swap">func (x *Bool) Swap(new bool) (old bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Int32">type Int32</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.Add">func (x *Int32) Add(delta int32) (new int32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.And">func (x *Int32) And(mask int32) (old int32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.CompareAndSwap">func (x *Int32) CompareAndSwap(old, new int32) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.Load">func (x *Int32) Load() int32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.Or">func (x *Int32) Or(mask int32) (old int32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.Store">func (x *Int32) Store(val int32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int32.Swap">func (x *Int32) Swap(new int32) (old int32)</a></dd>
+				
+			
+				
+				<dd><a href="#Int64">type Int64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.Add">func (x *Int64) Add(delta int64) (new int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.And">func (x *Int64) And(mask int64) (old int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.CompareAndSwap">func (x *Int64) CompareAndSwap(old, new int64) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.Load">func (x *Int64) Load() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.Or">func (x *Int64) Or(mask int64) (old int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.Store">func (x *Int64) Store(val int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64.Swap">func (x *Int64) Swap(new int64) (old int64)</a></dd>
+				
+			
+				
+				<dd><a href="#Pointer">type Pointer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.CompareAndSwap">func (x *Pointer[T]) CompareAndSwap(old, new *T) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Load">func (x *Pointer[T]) Load() *T</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Store">func (x *Pointer[T]) Store(val *T)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Swap">func (x *Pointer[T]) Swap(new *T) (old *T)</a></dd>
+				
+			
+				
+				<dd><a href="#Uint32">type Uint32</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.Add">func (x *Uint32) Add(delta uint32) (new uint32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.And">func (x *Uint32) And(mask uint32) (old uint32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.CompareAndSwap">func (x *Uint32) CompareAndSwap(old, new uint32) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.Load">func (x *Uint32) Load() uint32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.Or">func (x *Uint32) Or(mask uint32) (old uint32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.Store">func (x *Uint32) Store(val uint32)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint32.Swap">func (x *Uint32) Swap(new uint32) (old uint32)</a></dd>
+				
+			
+				
+				<dd><a href="#Uint64">type Uint64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.Add">func (x *Uint64) Add(delta uint64) (new uint64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.And">func (x *Uint64) And(mask uint64) (old uint64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.CompareAndSwap">func (x *Uint64) CompareAndSwap(old, new uint64) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.Load">func (x *Uint64) Load() uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.Or">func (x *Uint64) Or(mask uint64) (old uint64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.Store">func (x *Uint64) Store(val uint64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64.Swap">func (x *Uint64) Swap(new uint64) (old uint64)</a></dd>
+				
+			
+				
+				<dd><a href="#Uintptr">type Uintptr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.Add">func (x *Uintptr) Add(delta uintptr) (new uintptr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.And">func (x *Uintptr) And(mask uintptr) (old uintptr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.CompareAndSwap">func (x *Uintptr) CompareAndSwap(old, new uintptr) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.Load">func (x *Uintptr) Load() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.Or">func (x *Uintptr) Or(mask uintptr) (old uintptr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.Store">func (x *Uintptr) Store(val uintptr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uintptr.Swap">func (x *Uintptr) Swap(new uintptr) (old uintptr)</a></dd>
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CompareAndSwap">func (v *Value) CompareAndSwap(old, new any) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Load">func (v *Value) Load() (val any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Store">func (v *Value) Store(val any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Swap">func (v *Value) Swap(new any) (old any)</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Value_config">Value (Config)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value_readMostly">Value (ReadMostly)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/sync/atomic/doc.go">doc.go</a>
+			
+				<a href="/src/sync/atomic/doc_64.go">doc_64.go</a>
+			
+				<a href="/src/sync/atomic/type.go">type.go</a>
+			
+				<a href="/src/sync/atomic/value.go">value.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="AddInt32">func <a href="/src/sync/atomic/doc.go?s=4841:4892#L111">AddInt32</a>
+				
+				
+			</h2>
+			<pre>func AddInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, delta <a href="/pkg/builtin/#int32">int32</a>) (new <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>AddInt32 原子地将 delta 加到 *addr，并返回新值。建议改用更易使用、也更不容易出错的 <a href="#Int32.Add">Int32.Add</a>。
+
+			
+		
+			
+			<h2 id="AddInt64">func <a href="/src/sync/atomic/doc_64.go?s=1738:1789#L32">AddInt64</a>
+				
+				
+			</h2>
+			<pre>func AddInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, delta <a href="/pkg/builtin/#int64">int64</a>) (new <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>AddInt64 原子地将 delta 加到 *addr，并返回新值。建议改用更易使用、也更不容易出错的 <a href="#Int64.Add">Int64.Add</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="AddUint32">func <a href="/src/sync/atomic/doc.go?s=5216:5271#L119">AddUint32</a>
+				
+				
+			</h2>
+			<pre>func AddUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, delta <a href="/pkg/builtin/#uint32">uint32</a>) (new <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>AddUint32 原子地将 delta 加到 *addr，并返回新值。要从 x 中减去一个有符号正整数常量 c，可调用 AddUint32(&amp;x, ^uint32(c-1))。特别地，要将 x 减一，可调用 AddUint32(&amp;x, ^uint32(0))。建议改用更易使用、也更不容易出错的 <a href="#Uint32.Add">Uint32.Add</a>。
+
+			
+		
+			
+			<h2 id="AddUint64">func <a href="/src/sync/atomic/doc_64.go?s=2184:2239#L41">AddUint64</a>
+				
+				
+			</h2>
+			<pre>func AddUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, delta <a href="/pkg/builtin/#uint64">uint64</a>) (new <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>AddUint64 原子地将 delta 加到 *addr，并返回新值。要从 x 中减去一个有符号正整数常量 c，可调用 AddUint64(&amp;x, ^uint64(c-1))。特别地，要将 x 减一，可调用 AddUint64(&amp;x, ^uint64(0))。建议改用更易使用、也更不容易出错的 <a href="#Uint64.Add">Uint64.Add</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="AddUintptr">func <a href="/src/sync/atomic/doc.go?s=5443:5502#L125">AddUintptr</a>
+				
+				
+			</h2>
+			<pre>func AddUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, delta <a href="/pkg/builtin/#uintptr">uintptr</a>) (new <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>AddUintptr 原子地将 delta 加到 *addr，并返回新值。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.Add">Uintptr.Add</a>。
+
+			
+		
+			
+			<h2 id="AndInt32">func <a href="/src/sync/atomic/doc.go?s=5730:5780#L132">AndInt32</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func AndInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, mask <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>AndInt32 使用 mask 提供的位掩码，原子地对 *addr 执行按位与操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Int32.And">Int32.And</a>。
+
+			
+		
+			
+			<h2 id="AndInt64">func <a href="/src/sync/atomic/doc_64.go?s=2467:2517#L48">AndInt64</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func AndInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, mask <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>AndInt64 使用 mask 提供的位掩码，原子地对 *addr 执行按位与操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Int64.And">Int64.And</a>。
+
+			
+		
+			
+			<h2 id="AndUint32">func <a href="/src/sync/atomic/doc.go?s=6010:6064#L139">AndUint32</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func AndUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, mask <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>AndUint32 使用 mask 提供的位掩码，原子地对 *addr 执行按位与操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uint32.And">Uint32.And</a>。
+
+			
+		
+			
+			<h2 id="AndUint64">func <a href="/src/sync/atomic/doc_64.go?s=2741:2795#L55">AndUint64</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func AndUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, mask <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>AndUint64 使用 mask 提供的位掩码，原子地对 *addr 执行按位与操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uint64.And">Uint64.And</a>。
+
+			
+		
+			
+			<h2 id="AndUintptr">func <a href="/src/sync/atomic/doc.go?s=6296:6354#L146">AndUintptr</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func AndUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, mask <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>AndUintptr 使用 mask 提供的位掩码，原子地对 *addr 执行按位与操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.And">Uintptr.And</a>。
+
+			
+		
+			
+			<h2 id="CompareAndSwapInt32">func <a href="/src/sync/atomic/doc.go?s=3755:3823#L88">CompareAndSwapInt32</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, old, new <a href="/pkg/builtin/#int32">int32</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapInt32 对 int32 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Int32.CompareAndSwap">Int32.CompareAndSwap</a>。
+
+			
+		
+			
+			<h2 id="CompareAndSwapInt64">func <a href="/src/sync/atomic/doc_64.go?s=1095:1163#L18">CompareAndSwapInt64</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, old, new <a href="/pkg/builtin/#int64">int64</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapInt64 对 int64 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Int64.CompareAndSwap">Int64.CompareAndSwap</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="CompareAndSwapPointer">func <a href="/src/sync/atomic/doc.go?s=4585:4673#L105">CompareAndSwapPointer</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapPointer(addr *<a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>, old, new <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapPointer 对 unsafe.Pointer 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Pointer.CompareAndSwap">Pointer.CompareAndSwap</a>。
+
+			
+		
+			
+			<h2 id="CompareAndSwapUint32">func <a href="/src/sync/atomic/doc.go?s=4017:4088#L94">CompareAndSwapUint32</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, old, new <a href="/pkg/builtin/#uint32">uint32</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapUint32 对 uint32 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Uint32.CompareAndSwap">Uint32.CompareAndSwap</a>。
+
+			
+		
+			
+			<h2 id="CompareAndSwapUint64">func <a href="/src/sync/atomic/doc_64.go?s=1428:1499#L25">CompareAndSwapUint64</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, old, new <a href="/pkg/builtin/#uint64">uint64</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapUint64 对 uint64 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Uint64.CompareAndSwap">Uint64.CompareAndSwap</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="CompareAndSwapUintptr">func <a href="/src/sync/atomic/doc.go?s=4324:4398#L101">CompareAndSwapUintptr</a>
+				
+				
+			</h2>
+			<pre>func CompareAndSwapUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, old, new <a href="/pkg/builtin/#uintptr">uintptr</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CompareAndSwapUintptr 对 uintptr 类型的值执行比较并交换操作。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.CompareAndSwap">Uintptr.CompareAndSwap</a>。
+
+			
+		
+			
+			<h2 id="LoadInt32">func <a href="/src/sync/atomic/doc.go?s=7330:7369#L173">LoadInt32</a>
+				
+				
+			</h2>
+			<pre>func LoadInt32(addr *<a href="/pkg/builtin/#int32">int32</a>) (val <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>LoadInt32 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Int32.Load">Int32.Load</a>。
+
+			
+		
+			
+			<h2 id="LoadInt64">func <a href="/src/sync/atomic/doc_64.go?s=3556:3595#L76">LoadInt64</a>
+				
+				
+			</h2>
+			<pre>func LoadInt64(addr *<a href="/pkg/builtin/#int64">int64</a>) (val <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>LoadInt64 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Int64.Load">Int64.Load</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="LoadPointer">func <a href="/src/sync/atomic/doc.go?s=7857:7916#L189">LoadPointer</a>
+				
+				
+			</h2>
+			<pre>func LoadPointer(addr *<a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>) (val <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+			<p>LoadPointer 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Pointer.Load">Pointer.Load</a>。
+
+			
+		
+			
+			<h2 id="LoadUint32">func <a href="/src/sync/atomic/doc.go?s=7507:7549#L179">LoadUint32</a>
+				
+				
+			</h2>
+			<pre>func LoadUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>) (val <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>LoadUint32 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uint32.Load">Uint32.Load</a>。
+
+			
+		
+			
+			<h2 id="LoadUint64">func <a href="/src/sync/atomic/doc_64.go?s=3804:3846#L83">LoadUint64</a>
+				
+				
+			</h2>
+			<pre>func LoadUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>) (val <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>LoadUint64 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uint64.Load">Uint64.Load</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="LoadUintptr">func <a href="/src/sync/atomic/doc.go?s=7689:7734#L185">LoadUintptr</a>
+				
+				
+			</h2>
+			<pre>func LoadUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>) (val <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>LoadUintptr 原子地加载 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.Load">Uintptr.Load</a>。
+
+			
+		
+			
+			<h2 id="OrInt32">func <a href="/src/sync/atomic/doc.go?s=6579:6628#L153">OrInt32</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func OrInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, mask <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>OrInt32 使用 mask 提供的位掩码，原子地对 *addr 执行按位或操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Int32.Or">Int32.Or</a>。
+
+			
+		
+			
+			<h2 id="OrInt64">func <a href="/src/sync/atomic/doc_64.go?s=3020:3069#L62">OrInt64</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func OrInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, mask <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>OrInt64 使用 mask 提供的位掩码，原子地对 *addr 执行按位或操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Int64.Or">Int64.Or</a>。
+
+			
+		
+			
+			<h2 id="OrUint32">func <a href="/src/sync/atomic/doc.go?s=6855:6908#L160">OrUint32</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func OrUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, mask <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>OrUint32 使用 mask 提供的位掩码，原子地对 *addr 执行按位或操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uint32.Or">Uint32.Or</a>。
+
+			
+		
+			
+			<h2 id="OrUint64">func <a href="/src/sync/atomic/doc_64.go?s=3296:3349#L69">OrUint64</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func OrUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, mask <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>OrUint64 使用 mask 提供的位掩码，原子地对 *addr 执行按位或操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uint64.Or">Uint64.Or</a>。
+
+			
+		
+			
+			<h2 id="OrUintptr">func <a href="/src/sync/atomic/doc.go?s=7137:7194#L167">OrUintptr</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func OrUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, mask <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>OrUintptr 使用 mask 提供的位掩码，原子地对 *addr 执行按位或操作，并返回旧值。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.Or">Uintptr.Or</a>。
+
+			
+		
+			
+			<h2 id="StoreInt32">func <a href="/src/sync/atomic/doc.go?s=8064:8103#L195">StoreInt32</a>
+				
+				
+			</h2>
+			<pre>func StoreInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, val <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>StoreInt32 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Int32.Store">Int32.Store</a>。
+
+			
+		
+			
+			<h2 id="StoreInt64">func <a href="/src/sync/atomic/doc_64.go?s=4065:4104#L90">StoreInt64</a>
+				
+				
+			</h2>
+			<pre>func StoreInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, val <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>StoreInt64 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Int64.Store">Int64.Store</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="StorePointer">func <a href="/src/sync/atomic/doc.go?s=8657:8716#L212">StorePointer</a>
+				
+				
+			</h2>
+			<pre>func StorePointer(addr *<a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>, val <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+			<p>StorePointer 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Pointer.Store">Pointer.Store</a>。
+
+			
+		
+			
+			<h2 id="StoreUint32">func <a href="/src/sync/atomic/doc.go?s=8253:8295#L201">StoreUint32</a>
+				
+				
+			</h2>
+			<pre>func StoreUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, val <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>StoreUint32 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uint32.Store">Uint32.Store</a>。
+
+			
+		
+			
+			<h2 id="StoreUint64">func <a href="/src/sync/atomic/doc_64.go?s=4325:4367#L97">StoreUint64</a>
+				
+				
+			</h2>
+			<pre>func StoreUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, val <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>StoreUint64 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uint64.Store">Uint64.Store</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="StoreUintptr">func <a href="/src/sync/atomic/doc.go?s=8477:8522#L208">StoreUintptr</a>
+				
+				
+			</h2>
+			<pre>func StoreUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, val <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>StoreUintptr 原子地将 val 存入 *addr。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.Store">Uintptr.Store</a>。
+
+			
+		
+			
+			<h2 id="SwapInt32">func <a href="/src/sync/atomic/doc.go?s=2751:2801#L65">SwapInt32</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapInt32(addr *<a href="/pkg/builtin/#int32">int32</a>, new <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+			<p>SwapInt32 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Int32.Swap">Int32.Swap</a>。
+
+			
+		
+			
+			<h2 id="SwapInt64">func <a href="/src/sync/atomic/doc_64.go?s=472:522#L4">SwapInt64</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapInt64(addr *<a href="/pkg/builtin/#int64">int64</a>, new <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>SwapInt64 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Int64.Swap">Int64.Swap</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="SwapPointer">func <a href="/src/sync/atomic/doc.go?s=3484:3563#L82">SwapPointer</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapPointer(addr *<a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>, new <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>) (old <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+			<p>SwapPointer 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Pointer.Swap">Pointer.Swap</a>。
+
+			
+		
+			
+			<h2 id="SwapUint32">func <a href="/src/sync/atomic/doc.go?s=2986:3040#L71">SwapUint32</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapUint32(addr *<a href="/pkg/builtin/#uint32">uint32</a>, new <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+			<p>SwapUint32 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Uint32.Swap">Uint32.Swap</a>。
+
+			
+		
+			
+			<h2 id="SwapUint64">func <a href="/src/sync/atomic/doc_64.go?s=778:832#L11">SwapUint64</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapUint64(addr *<a href="/pkg/builtin/#uint64">uint64</a>, new <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+			<p>SwapUint64 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Uint64.Swap">Uint64.Swap</a>。尤其是在目标为 32 位平台时，参见已知问题一节。
+
+			
+		
+			
+			<h2 id="SwapUintptr">func <a href="/src/sync/atomic/doc.go?s=3256:3314#L78">SwapUintptr</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SwapUintptr(addr *<a href="/pkg/builtin/#uintptr">uintptr</a>, new <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>SwapUintptr 原子地将 new 存入 *addr，并返回 *addr 之前的值。建议改用更易使用、也更不容易出错的 <a href="#Uintptr.Swap">Uintptr.Swap</a>。
+
+			
+		
+		
+			
+			<h2 id="Bool">type <a href="/src/sync/atomic/type.go?s=306:346#L3">Bool</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Bool 是原子布尔值，零值为 false。
+<p>Bool 首次使用后不得复制。
+
+			<pre>type Bool struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Bool.CompareAndSwap">func (*Bool) <a href="/src/sync/atomic/type.go?s=809:868#L18">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Bool">Bool</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#bool">bool</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对布尔值 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Bool.Load">func (*Bool) <a href="/src/sync/atomic/type.go?s=408:434#L9">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Bool">Bool</a>) Load() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Bool.Store">func (*Bool) <a href="/src/sync/atomic/type.go?s=508:538#L12">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Bool">Bool</a>) Store(val <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Bool.Swap">func (*Bool) <a href="/src/sync/atomic/type.go?s=641:681#L15">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Bool">Bool</a>) Swap(new <a href="/pkg/builtin/#bool">bool</a>) (old <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Int32">type <a href="/src/sync/atomic/type.go?s=2309:2349#L64">Int32</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Int32 是原子的 int32 值，零值为零。
+<p>Int32 首次使用后不得复制。
+
+			<pre>type Int32 struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Int32.Add">func (*Int32) <a href="/src/sync/atomic/type.go?s=2950:2994#L84">Add</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) Add(delta <a href="/pkg/builtin/#int32">int32</a>) (new <a href="/pkg/builtin/#int32">int32</a>)</pre>
+				<p>Add 原子地将 delta 加到 x，并返回新值。
+
+				
+			
+				<h3 id="Int32.And">func (*Int32) <a href="/src/sync/atomic/type.go?s=3150:3193#L88">And</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) And(mask <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+				<p>And 使用 mask 提供的位掩码，原子地对 x 执行按位与操作，并返回旧值。
+
+				
+			
+				<h3 id="Int32.CompareAndSwap">func (*Int32) <a href="/src/sync/atomic/type.go?s=2778:2839#L79">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#int32">int32</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Int32.Load">func (*Int32) <a href="/src/sync/atomic/type.go?s=2411:2439#L70">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) Load() <a href="/pkg/builtin/#int32">int32</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Int32.Or">func (*Int32) <a href="/src/sync/atomic/type.go?s=3346:3388#L92">Or</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) Or(mask <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+				<p>Or 使用 mask 提供的位掩码，原子地对 x 执行按位或操作，并返回旧值。
+
+				
+			
+				<h3 id="Int32.Store">func (*Int32) <a href="/src/sync/atomic/type.go?s=2507:2539#L73">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) Store(val <a href="/pkg/builtin/#int32">int32</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Int32.Swap">func (*Int32) <a href="/src/sync/atomic/type.go?s=2636:2679#L76">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int32">Int32</a>) Swap(new <a href="/pkg/builtin/#int32">int32</a>) (old <a href="/pkg/builtin/#int32">int32</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Int64">type <a href="/src/sync/atomic/type.go?s=3525:3576#L97">Int64</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Int64 是原子的 int64 值，零值为零。
+<p>Int64 首次使用后不得复制。
+
+			<pre>type Int64 struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Int64.Add">func (*Int64) <a href="/src/sync/atomic/type.go?s=4177:4221#L118">Add</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) Add(delta <a href="/pkg/builtin/#int64">int64</a>) (new <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Add 原子地将 delta 加到 x，并返回新值。
+
+				
+			
+				<h3 id="Int64.And">func (*Int64) <a href="/src/sync/atomic/type.go?s=4377:4420#L122">And</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) And(mask <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>And 使用 mask 提供的位掩码，原子地对 x 执行按位与操作，并返回旧值。
+
+				
+			
+				<h3 id="Int64.CompareAndSwap">func (*Int64) <a href="/src/sync/atomic/type.go?s=4005:4066#L113">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#int64">int64</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Int64.Load">func (*Int64) <a href="/src/sync/atomic/type.go?s=3638:3666#L104">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) Load() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Int64.Or">func (*Int64) <a href="/src/sync/atomic/type.go?s=4573:4615#L126">Or</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) Or(mask <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Or 使用 mask 提供的位掩码，原子地对 x 执行按位或操作，并返回旧值。
+
+				
+			
+				<h3 id="Int64.Store">func (*Int64) <a href="/src/sync/atomic/type.go?s=3734:3766#L107">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) Store(val <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Int64.Swap">func (*Int64) <a href="/src/sync/atomic/type.go?s=3863:3906#L110">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Int64">Int64</a>) Swap(new <a href="/pkg/builtin/#int64">int64</a>) (old <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Pointer">type <a href="/src/sync/atomic/type.go?s=1320:1576#L37">Pointer</a>
+				
+				
+			</h2>
+			<p>Pointer 是类型为 *T 的原子指针，零值为 nil *T。
+<p>Pointer 首次使用后不得复制。
+
+			<pre>type Pointer[T <a href="/pkg/builtin/#any">any</a>] struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pointer.CompareAndSwap">func (*Pointer[T]) <a href="/src/sync/atomic/type.go?s=2058:2121#L57">CompareAndSwap</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Pointer">Pointer</a>[<a href="#T">T</a>]) CompareAndSwap(old, new *<a href="#T">T</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Pointer.Load">func (*Pointer[T]) <a href="/src/sync/atomic/type.go?s=1638:1668#L48">Load</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Pointer">Pointer</a>[<a href="#T">T</a>]) Load() *<a href="#T">T</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Pointer.Store">func (*Pointer[T]) <a href="/src/sync/atomic/type.go?s=1744:1778#L51">Store</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Pointer">Pointer</a>[<a href="#T">T</a>]) Store(val *<a href="#T">T</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Pointer.Swap">func (*Pointer[T]) <a href="/src/sync/atomic/type.go?s=1893:1935#L54">Swap</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Pointer">Pointer</a>[<a href="#T">T</a>]) Swap(new *<a href="#T">T</a>) (old *<a href="#T">T</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Uint32">type <a href="/src/sync/atomic/type.go?s=4754:4796#L131">Uint32</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Uint32 是原子的 uint32 值，零值为零。
+<p>Uint32 首次使用后不得复制。
+
+			<pre>type Uint32 struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Uint32.Add">func (*Uint32) <a href="/src/sync/atomic/type.go?s=5410:5457#L151">Add</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) Add(delta <a href="/pkg/builtin/#uint32">uint32</a>) (new <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+				<p>Add 原子地将 delta 加到 x，并返回新值。
+
+				
+			
+				<h3 id="Uint32.And">func (*Uint32) <a href="/src/sync/atomic/type.go?s=5614:5660#L155">And</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) And(mask <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+				<p>And 使用 mask 提供的位掩码，原子地对 x 执行按位与操作，并返回旧值。
+
+				
+			
+				<h3 id="Uint32.CompareAndSwap">func (*Uint32) <a href="/src/sync/atomic/type.go?s=5235:5298#L146">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#uint32">uint32</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Uint32.Load">func (*Uint32) <a href="/src/sync/atomic/type.go?s=4858:4888#L137">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) Load() <a href="/pkg/builtin/#uint32">uint32</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Uint32.Or">func (*Uint32) <a href="/src/sync/atomic/type.go?s=5814:5859#L159">Or</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) Or(mask <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+				<p>Or 使用 mask 提供的位掩码，原子地对 x 执行按位或操作，并返回旧值。
+
+				
+			
+				<h3 id="Uint32.Store">func (*Uint32) <a href="/src/sync/atomic/type.go?s=4957:4991#L140">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) Store(val <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Uint32.Swap">func (*Uint32) <a href="/src/sync/atomic/type.go?s=5089:5135#L143">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint32">Uint32</a>) Swap(new <a href="/pkg/builtin/#uint32">uint32</a>) (old <a href="/pkg/builtin/#uint32">uint32</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Uint64">type <a href="/src/sync/atomic/type.go?s=5999:6052#L164">Uint64</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Uint64 是原子的 uint64 值，零值为零。
+<p>Uint64 首次使用后不得复制。
+
+			<pre>type Uint64 struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Uint64.Add">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6666:6713#L185">Add</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) Add(delta <a href="/pkg/builtin/#uint64">uint64</a>) (new <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>Add 原子地将 delta 加到 x，并返回新值。
+
+				
+			
+				<h3 id="Uint64.And">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6870:6916#L189">And</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) And(mask <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>And 使用 mask 提供的位掩码，原子地对 x 执行按位与操作，并返回旧值。
+
+				
+			
+				<h3 id="Uint64.CompareAndSwap">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6491:6554#L180">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#uint64">uint64</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Uint64.Load">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6114:6144#L171">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) Load() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Uint64.Or">func (*Uint64) <a href="/src/sync/atomic/type.go?s=7070:7115#L193">Or</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) Or(mask <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>Or 使用 mask 提供的位掩码，原子地对 x 执行按位或操作，并返回旧值。
+
+				
+			
+				<h3 id="Uint64.Store">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6213:6247#L174">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) Store(val <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Uint64.Swap">func (*Uint64) <a href="/src/sync/atomic/type.go?s=6345:6391#L177">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uint64">Uint64</a>) Swap(new <a href="/pkg/builtin/#uint64">uint64</a>) (old <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Uintptr">type <a href="/src/sync/atomic/type.go?s=7258:7302#L198">Uintptr</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Uintptr 是原子的 uintptr 值，零值为零。
+<p>Uintptr 首次使用后不得复制。
+
+			<pre>type Uintptr struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Uintptr.Add">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=7929:7979#L218">Add</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) Add(delta <a href="/pkg/builtin/#uintptr">uintptr</a>) (new <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+				<p>Add 原子地将 delta 加到 x，并返回新值。
+
+				
+			
+				<h3 id="Uintptr.And">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=8137:8186#L222">And</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) And(mask <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+				<p>And 使用 mask 提供的位掩码，原子地对 x 执行按位与操作，并返回旧值。
+
+				
+			
+				<h3 id="Uintptr.CompareAndSwap">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=7751:7816#L213">CompareAndSwap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#uintptr">uintptr</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对 x 执行比较并交换操作。
+
+				
+			
+				<h3 id="Uintptr.Load">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=7364:7396#L204">Load</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) Load() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Load 原子地加载并返回 x 中存储的值。
+
+				
+			
+				<h3 id="Uintptr.Or">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=8341:8389#L226">Or</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) Or(mask <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+				<p>Or 使用 mask 提供的位掩码，原子地对 x 执行按位或操作，并返回旧值。
+
+				
+			
+				<h3 id="Uintptr.Store">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=7466:7502#L207">Store</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) Store(val <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+				<p>Store 原子地将 val 存入 x。
+
+				
+			
+				<h3 id="Uintptr.Swap">func (*Uintptr) <a href="/src/sync/atomic/type.go?s=7601:7650#L210">Swap</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (x *<a href="#Uintptr">Uintptr</a>) Swap(new <a href="/pkg/builtin/#uintptr">uintptr</a>) (old <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+				<p>Swap 原子地将 new 存入 x，并返回之前的值。
+
+				
+			
+		
+			
+			<h2 id="Value">type <a href="/src/sync/atomic/value.go?s=452:480#L6">Value</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>Value 提供对类型始终一致的值进行原子加载和存储的能力。对于 Value 的零值，<a href="#Value.Load">Value.Load</a> 返回 nil。一旦调用过 <a href="#Value.Store">Value.Store</a>，就不得复制该 Value。
+<p>Value 首次使用后不得复制。
+
+			<pre>type Value struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Value_config" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Config)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Config)</span></p>
+    <p>以下示例展示如何使用 Value 定期更新程序配置，并将更改传递给工作 goroutine。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"sync/atomic"
+	"time"
+)
+
+func loadConfig() map[string]string {
+	return make(map[string]string)
+}
+
+func requests() chan int {
+	return make(chan int)
+}
+
+func main() {
+	var config atomic.Value // 保存当前服务器配置
+	// 创建初始配置值，并将其存入 config。
+	config.Store(loadConfig())
+	go func() {
+		// 每隔 10 秒重新加载配置，
+		// 并用新版本更新 config 的值。
+		for {
+			time.Sleep(10 * time.Second)
+			config.Store(loadConfig())
+		}
+	}()
+	// 创建工作 goroutine，使用最新配置值
+	// 处理传入的请求。
+	for i := 0; i &lt; 10; i++ {
+		go func() {
+			for r := range requests() {
+				c := config.Load()
+				// 使用配置 c 处理请求 r。
+				_, _ = r, c
+			}
+		}()
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Value_readMostly" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ReadMostly)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ReadMostly)</span></p>
+    <p>以下示例展示如何使用写时复制的方式，维护一个适合大量读取、少量更新且可扩展的数据结构。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"sync"
+	"sync/atomic"
+)
+
+func main() {
+	type Map map[string]string
+	var m atomic.Value
+	m.Store(make(Map))
+	var mu sync.Mutex // 仅供写入方使用
+	// read 函数无需额外同步即可读取数据
+	read := func(key string) (val string) {
+		m1 := m.Load().(Map)
+		return m1[key]
+	}
+	// insert 函数无需额外同步即可更新数据
+	insert := func(key, val string) {
+		mu.Lock() // 与其他可能的写入方同步
+		defer mu.Unlock()
+		m1 := m.Load().(Map) // 加载数据结构的当前值
+		m2 := make(Map)      // 创建新值
+		for k, v := range m1 {
+			m2[k] = v // 将当前对象的所有数据复制到新对象中
+		}
+		m2[key] = val // 执行所需的更新
+		m.Store(m2)   // 以原子操作将当前对象替换为新对象
+		// 此时，所有新的读取方开始使用新版本。
+		// 等现有读取方（如果有）都不再使用旧版本后，
+		// 旧版本就会被垃圾回收。
+	}
+	_, _ = read, insert
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Value.CompareAndSwap">func (*Value) <a href="/src/sync/atomic/value.go?s=4035:4094#L124">CompareAndSwap</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) CompareAndSwap(old, new <a href="/pkg/builtin/#any">any</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap 对该 <a href="#Value">Value</a> 执行比较并交换操作。
+<p>对于给定的 Value，所有 CompareAndSwap 调用都必须使用相同具体类型的值。以不一致的类型调用 CompareAndSwap 会触发 panic，CompareAndSwap(old, nil) 也会触发 panic。
+
+				
+			
+				<h3 id="Value.Load">func (*Value) <a href="/src/sync/atomic/value.go?s=731:763#L18">Load</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Load() (val <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Load 返回最近一次 Store 设置的值。如果从未对该 Value 调用 Store，则返回 nil。
+
+				
+			
+				<h3 id="Value.Store">func (*Value) <a href="/src/sync/atomic/value.go?s=1294:1324#L37">Store</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Store(val <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Store 将 <a href="#Value">Value</a> v 的值设置为 val。对于给定的 Value，所有 Store 调用都必须使用相同具体类型的值。以不一致的类型调用 Store 会触发 panic，Store(nil) 也会触发 panic。
+
+				
+			
+				<h3 id="Value.Swap">func (*Value) <a href="/src/sync/atomic/value.go?s=2620:2659#L80">Swap</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Swap(new <a href="/pkg/builtin/#any">any</a>) (old <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Swap 将 new 存入 Value，并返回之前的值。如果 Value 为空，则返回 nil。
+<p>对于给定的 Value，所有 Swap 调用都必须使用相同具体类型的值。以不一致的类型调用 Swap 会触发 panic，Swap(nil) 也会触发 panic。
+
+				
+			
+		
+	
+
+	
+		<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/sync/atomic/doc.go?s=1888:2568#L49" style="float: left;">&#x261e;</a> <p>在 386 上，64 位函数使用的指令在 Pentium MMX 之前的处理器上不可用。
+<p>在非 Linux 的 ARM 平台上，64 位函数使用的指令在 ARMv6k 内核之前不可用。
+<p>在 ARM、386 和 32 位 MIPS 上，使用底层原子函数对 64 位字进行原子访问时，调用方负责确保其按 64 位对齐（类型 <a href="#Int64">Int64</a> 和 <a href="#Uint64">Uint64</a> 会自动对齐）。已分配的结构体、数组或切片中的第一个字，全局变量中的第一个字，以及局部变量中的第一个字，都可以保证按 64 位对齐；局部变量的保证来自于：在 32 位体系结构上，64 位原子操作的目标会逃逸到堆上。
+</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

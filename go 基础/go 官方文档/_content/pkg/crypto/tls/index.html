@@ -1,0 +1,2830 @@
+<!--{
+  "Title": "crypto/tls 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package tls</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/tls"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>tls 包部分实现了 RFC 5246 规定的 TLS 1.2 和 RFC 8446 规定的 TLS 1.3。
+<h3 id="hdr-FIPS_140_3_mode">FIPS 140-3 模式</h3>
+<p>程序处于 <a href="/doc/security/fips140">FIPS 140-3 模式</a>时，本包的行为相当于只实现了 SP 800-140C 和 SP 800-140D 批准的协议版本、密码套件、签名算法、证书公钥类型和大小，以及密钥交换和派生算法。其他选项会被静默忽略而不参与协商，或被拒绝。该集合可能取决于 GOFIPS140 选择的 FIPS 140-3 Go 密码模块所支持的算法，并可能随 Go 版本变化。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#CipherSuiteName">func CipherSuiteName(id uint16) string</a></dd>
+			
+				<dd><a href="#Listen">func Listen(network, laddr string, config *Config) (net.Listener, error)</a></dd>
+			
+				<dd><a href="#NewListener">func NewListener(inner net.Listener, config *Config) net.Listener</a></dd>
+			
+				<dd><a href="#VersionName">func VersionName(version uint16) string</a></dd>
+			
+			
+				
+				<dd><a href="#AlertError">type AlertError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#AlertError.Error">func (e AlertError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Certificate">type Certificate</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadX509KeyPair">func LoadX509KeyPair(certFile, keyFile string) (Certificate, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#X509KeyPair">func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (Certificate, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CertificateRequestInfo">type CertificateRequestInfo</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CertificateRequestInfo.Context">func (c *CertificateRequestInfo) Context() context.Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CertificateRequestInfo.SupportsCertificate">func (cri *CertificateRequestInfo) SupportsCertificate(c *Certificate) error</a></dd>
+				
+			
+				
+				<dd><a href="#CertificateVerificationError">type CertificateVerificationError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CertificateVerificationError.Error">func (e *CertificateVerificationError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CertificateVerificationError.Unwrap">func (e *CertificateVerificationError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#CipherSuite">type CipherSuite</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CipherSuites">func CipherSuites() []*CipherSuite</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#InsecureCipherSuites">func InsecureCipherSuites() []*CipherSuite</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ClientAuthType">type ClientAuthType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientAuthType.String">func (i ClientAuthType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#ClientHelloInfo">type ClientHelloInfo</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientHelloInfo.Context">func (c *ClientHelloInfo) Context() context.Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientHelloInfo.SupportsCertificate">func (chi *ClientHelloInfo) SupportsCertificate(c *Certificate) error</a></dd>
+				
+			
+				
+				<dd><a href="#ClientSessionCache">type ClientSessionCache</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewLRUClientSessionCache">func NewLRUClientSessionCache(capacity int) ClientSessionCache</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ClientSessionState">type ClientSessionState</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewResumptionState">func NewResumptionState(ticket []byte, state *SessionState) (*ClientSessionState, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientSessionState.ResumptionState">func (cs *ClientSessionState) ResumptionState() (ticket []byte, state *SessionState, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Config">type Config</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.BuildNameToCertificate">func (c *Config) BuildNameToCertificate()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.Clone">func (c *Config) Clone() *Config</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.DecryptTicket">func (c *Config) DecryptTicket(identity []byte, cs ConnectionState) (*SessionState, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.EncryptTicket">func (c *Config) EncryptTicket(cs ConnectionState, ss *SessionState) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.SetSessionTicketKeys">func (c *Config) SetSessionTicketKeys(keys [][32]byte)</a></dd>
+				
+			
+				
+				<dd><a href="#Conn">type Conn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client">func Client(conn net.Conn, config *Config) *Conn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(network, addr string, config *Config) (*Conn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DialWithDialer">func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*Conn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server">func Server(conn net.Conn, config *Config) *Conn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Close">func (c *Conn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.CloseWrite">func (c *Conn) CloseWrite() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.ConnectionState">func (c *Conn) ConnectionState() ConnectionState</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Handshake">func (c *Conn) Handshake() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.HandshakeContext">func (c *Conn) HandshakeContext(ctx context.Context) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.LocalAddr">func (c *Conn) LocalAddr() net.Addr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.NetConn">func (c *Conn) NetConn() net.Conn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.OCSPResponse">func (c *Conn) OCSPResponse() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Read">func (c *Conn) Read(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.RemoteAddr">func (c *Conn) RemoteAddr() net.Addr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.SetDeadline">func (c *Conn) SetDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.SetReadDeadline">func (c *Conn) SetReadDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.SetWriteDeadline">func (c *Conn) SetWriteDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.VerifyHostname">func (c *Conn) VerifyHostname(host string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Write">func (c *Conn) Write(b []byte) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#ConnectionState">type ConnectionState</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ConnectionState.ExportKeyingMaterial">func (cs *ConnectionState) ExportKeyingMaterial(label string, context []byte, length int) ([]byte, error)</a></dd>
+				
+			
+				
+				<dd><a href="#CurveID">type CurveID</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveID.String">func (i CurveID) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Dialer">type Dialer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Dialer.Dial">func (d *Dialer) Dial(network, addr string) (net.Conn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dialer.DialContext">func (d *Dialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error)</a></dd>
+				
+			
+				
+				<dd><a href="#ECHRejectionError">type ECHRejectionError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ECHRejectionError.Error">func (e *ECHRejectionError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#EncryptedClientHelloKey">type EncryptedClientHelloKey</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QUICConfig">type QUICConfig</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QUICConn">type QUICConn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICClient">func QUICClient(config *QUICConfig) *QUICConn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICServer">func QUICServer(config *QUICConfig) *QUICConn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.Close">func (q *QUICConn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.ConnectionState">func (q *QUICConn) ConnectionState() ConnectionState</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.HandleData">func (q *QUICConn) HandleData(level QUICEncryptionLevel, data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.NextEvent">func (q *QUICConn) NextEvent() QUICEvent</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.SendSessionTicket">func (q *QUICConn) SendSessionTicket(opts QUICSessionTicketOptions) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.SetTransportParameters">func (q *QUICConn) SetTransportParameters(params []byte)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.Start">func (q *QUICConn) Start(ctx context.Context) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICConn.StoreSession">func (q *QUICConn) StoreSession(session *SessionState) error</a></dd>
+				
+			
+				
+				<dd><a href="#QUICEncryptionLevel">type QUICEncryptionLevel</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#QUICEncryptionLevel.String">func (l QUICEncryptionLevel) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#QUICEvent">type QUICEvent</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QUICEventKind">type QUICEventKind</a></dd>
+				
+				
+			
+				
+				<dd><a href="#QUICSessionTicketOptions">type QUICSessionTicketOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RecordHeaderError">type RecordHeaderError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RecordHeaderError.Error">func (e RecordHeaderError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#RenegotiationSupport">type RenegotiationSupport</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SessionState">type SessionState</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseSessionState">func ParseSessionState(data []byte) (*SessionState, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SessionState.Bytes">func (s *SessionState) Bytes() ([]byte, error)</a></dd>
+				
+			
+				
+				<dd><a href="#SignatureScheme">type SignatureScheme</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SignatureScheme.String">func (i SignatureScheme) String() string</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Config_keyLogWriter">Config (KeyLogWriter)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Config_verifyConnection">Config (VerifyConnection)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Dial">Dial</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LoadX509KeyPair">LoadX509KeyPair</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_X509KeyPair">X509KeyPair</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_X509KeyPair_httpServer">X509KeyPair (HttpServer)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/tls/alert.go">alert.go</a>
+			
+				<a href="/src/crypto/tls/auth.go">auth.go</a>
+			
+				<a href="/src/crypto/tls/cache.go">cache.go</a>
+			
+				<a href="/src/crypto/tls/cipher_suites.go">cipher_suites.go</a>
+			
+				<a href="/src/crypto/tls/common.go">common.go</a>
+			
+				<a href="/src/crypto/tls/common_string.go">common_string.go</a>
+			
+				<a href="/src/crypto/tls/conn.go">conn.go</a>
+			
+				<a href="/src/crypto/tls/defaults.go">defaults.go</a>
+			
+				<a href="/src/crypto/tls/defaults_fips140.go">defaults_fips140.go</a>
+			
+				<a href="/src/crypto/tls/ech.go">ech.go</a>
+			
+				<a href="/src/crypto/tls/handshake_client.go">handshake_client.go</a>
+			
+				<a href="/src/crypto/tls/handshake_client_tls13.go">handshake_client_tls13.go</a>
+			
+				<a href="/src/crypto/tls/handshake_messages.go">handshake_messages.go</a>
+			
+				<a href="/src/crypto/tls/handshake_server.go">handshake_server.go</a>
+			
+				<a href="/src/crypto/tls/handshake_server_tls13.go">handshake_server_tls13.go</a>
+			
+				<a href="/src/crypto/tls/key_agreement.go">key_agreement.go</a>
+			
+				<a href="/src/crypto/tls/key_schedule.go">key_schedule.go</a>
+			
+				<a href="/src/crypto/tls/prf.go">prf.go</a>
+			
+				<a href="/src/crypto/tls/quic.go">quic.go</a>
+			
+				<a href="/src/crypto/tls/ticket.go">ticket.go</a>
+			
+				<a href="/src/crypto/tls/tls.go">tls.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>本包当前实现或曾经实现过的密码套件 ID 列表。
+<p>参见 <a href="https://www.iana.org/assignments/tls-parameters/tls-parameters.xml">https://www.iana.org/assignments/tls-parameters/tls-parameters.xml</a>。
+
+				<pre>const (
+    <span class="comment">// TLS 1.0 至 1.2 的密码套件。</span>
+    <span id="TLS_RSA_WITH_RC4_128_SHA">TLS_RSA_WITH_RC4_128_SHA</span>                      <a href="/pkg/builtin/#uint16">uint16</a> = 0x0005
+    <span id="TLS_RSA_WITH_3DES_EDE_CBC_SHA">TLS_RSA_WITH_3DES_EDE_CBC_SHA</span>                 <a href="/pkg/builtin/#uint16">uint16</a> = 0x000a
+    <span id="TLS_RSA_WITH_AES_128_CBC_SHA">TLS_RSA_WITH_AES_128_CBC_SHA</span>                  <a href="/pkg/builtin/#uint16">uint16</a> = 0x002f
+    <span id="TLS_RSA_WITH_AES_256_CBC_SHA">TLS_RSA_WITH_AES_256_CBC_SHA</span>                  <a href="/pkg/builtin/#uint16">uint16</a> = 0x0035
+    <span id="TLS_RSA_WITH_AES_128_CBC_SHA256">TLS_RSA_WITH_AES_128_CBC_SHA256</span>               <a href="/pkg/builtin/#uint16">uint16</a> = 0x003c
+    <span id="TLS_RSA_WITH_AES_128_GCM_SHA256">TLS_RSA_WITH_AES_128_GCM_SHA256</span>               <a href="/pkg/builtin/#uint16">uint16</a> = 0x009c
+    <span id="TLS_RSA_WITH_AES_256_GCM_SHA384">TLS_RSA_WITH_AES_256_GCM_SHA384</span>               <a href="/pkg/builtin/#uint16">uint16</a> = 0x009d
+    <span id="TLS_ECDHE_ECDSA_WITH_RC4_128_SHA">TLS_ECDHE_ECDSA_WITH_RC4_128_SHA</span>              <a href="/pkg/builtin/#uint16">uint16</a> = 0xc007
+    <span id="TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA">TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA</span>          <a href="/pkg/builtin/#uint16">uint16</a> = 0xc009
+    <span id="TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA">TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA</span>          <a href="/pkg/builtin/#uint16">uint16</a> = 0xc00a
+    <span id="TLS_ECDHE_RSA_WITH_RC4_128_SHA">TLS_ECDHE_RSA_WITH_RC4_128_SHA</span>                <a href="/pkg/builtin/#uint16">uint16</a> = 0xc011
+    <span id="TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA">TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA</span>           <a href="/pkg/builtin/#uint16">uint16</a> = 0xc012
+    <span id="TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA</span>            <a href="/pkg/builtin/#uint16">uint16</a> = 0xc013
+    <span id="TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA">TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA</span>            <a href="/pkg/builtin/#uint16">uint16</a> = 0xc014
+    <span id="TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256">TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256</span>       <a href="/pkg/builtin/#uint16">uint16</a> = 0xc023
+    <span id="TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</span>         <a href="/pkg/builtin/#uint16">uint16</a> = 0xc027
+    <span id="TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>         <a href="/pkg/builtin/#uint16">uint16</a> = 0xc02f
+    <span id="TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>       <a href="/pkg/builtin/#uint16">uint16</a> = 0xc02b
+    <span id="TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>         <a href="/pkg/builtin/#uint16">uint16</a> = 0xc030
+    <span id="TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>       <a href="/pkg/builtin/#uint16">uint16</a> = 0xc02c
+    <span id="TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>   <a href="/pkg/builtin/#uint16">uint16</a> = 0xcca8
+    <span id="TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span> <a href="/pkg/builtin/#uint16">uint16</a> = 0xcca9
+
+    <span class="comment">// TLS 1.3 的密码套件。</span>
+    <span id="TLS_AES_128_GCM_SHA256">TLS_AES_128_GCM_SHA256</span>       <a href="/pkg/builtin/#uint16">uint16</a> = 0x1301
+    <span id="TLS_AES_256_GCM_SHA384">TLS_AES_256_GCM_SHA384</span>       <a href="/pkg/builtin/#uint16">uint16</a> = 0x1302
+    <span id="TLS_CHACHA20_POLY1305_SHA256">TLS_CHACHA20_POLY1305_SHA256</span> <a href="/pkg/builtin/#uint16">uint16</a> = 0x1303
+
+    <span class="comment">// TLS_FALLBACK_SCSV 不是标准密码套件，而是表示</span>
+    <span class="comment">// 客户端正在回退协议版本的指示值。参见 RFC 7507。</span>
+    <span id="TLS_FALLBACK_SCSV">TLS_FALLBACK_SCSV</span> <a href="/pkg/builtin/#uint16">uint16</a> = 0x5600
+
+    <span class="comment">// 对应密码套件带有正确 _SHA256 后缀的旧名称，</span>
+    <span class="comment">// 为向后兼容而保留。</span>
+    <span id="TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305</span>   = <a href="#TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</a>
+    <span id="TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305</span> = <a href="#TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</a>
+)</pre>
+			
+				
+				<pre>const (
+    <span id="VersionTLS10">VersionTLS10</span> = 0x0301
+    <span id="VersionTLS11">VersionTLS11</span> = 0x0302
+    <span id="VersionTLS12">VersionTLS12</span> = 0x0303
+    <span id="VersionTLS13">VersionTLS13</span> = 0x0304
+
+    <span class="comment">// 已弃用：SSLv3 已在密码学意义上被攻破，</span>
+    <span class="comment">// 本包不再支持。参见 golang.org/issue/32716。</span>
+    <span id="VersionSSL30">VersionSSL30</span> = 0x0300
+)</pre>
+			
+				
+				<pre>const (
+    <span id="QUICEncryptionLevelInitial">QUICEncryptionLevelInitial</span> = <a href="#QUICEncryptionLevel">QUICEncryptionLevel</a>(<a href="/pkg/builtin/#iota">iota</a>)
+    <span id="QUICEncryptionLevelEarly">QUICEncryptionLevelEarly</span>
+    <span id="QUICEncryptionLevelHandshake">QUICEncryptionLevelHandshake</span>
+    <span id="QUICEncryptionLevelApplication">QUICEncryptionLevelApplication</span>
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="CipherSuiteName">func <a href="/src/crypto/tls/cipher_suites.go?s=4907:4945#L93">CipherSuiteName</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<pre>func CipherSuiteName(id <a href="/pkg/builtin/#uint16">uint16</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>CipherSuiteName 返回给定密码套件 ID 的标准名称（例如 &quot;TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256&quot;）；如果本包未实现该密码套件，则返回该 ID 值的备用表示。
+
+			
+		
+			
+			<h2 id="Listen">func <a href="/src/crypto/tls/tls.go?s=3048:3120#L90">Listen</a>
+				
+				
+			</h2>
+			<pre>func Listen(network, laddr <a href="/pkg/builtin/#string">string</a>, config *<a href="#Config">Config</a>) (<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Listen 使用 net.Listen 创建 TLS 监听器，在给定网络地址接受连接。config 必须非 nil，且必须至少包含一个证书，或者设置 GetCertificate。
+
+			
+		
+			
+			<h2 id="NewListener">func <a href="/src/crypto/tls/tls.go?s=2686:2751#L79">NewListener</a>
+				
+				
+			</h2>
+			<pre>func NewListener(inner <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>, config *<a href="#Config">Config</a>) <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a></pre>
+			<p>NewListener 创建一个 Listener，从内部 Listener 接受连接，并用 <a href="#Server">Server</a> 封装每个连接。config 必须非 nil，且必须至少包含一个证书，或者设置 GetCertificate。
+
+			
+		
+			
+			<h2 id="VersionName">func <a href="/src/crypto/tls/common.go?s=980:1019#L39">VersionName</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func VersionName(version <a href="/pkg/builtin/#uint16">uint16</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>VersionName 返回给定 TLS 版本号的名称（例如 &quot;TLS 1.3&quot;）；如果本包未实现该版本，则返回该值的备用表示。
+
+			
+		
+		
+			
+			<h2 id="AlertError">type <a href="/src/crypto/tls/alert.go?s=356:377#L3">AlertError</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>AlertError 表示 TLS 警报。
+<p>使用 QUIC 传输时，QUICConn 方法会返回包装了 AlertError 的错误，而不是发送 TLS 警报。
+
+			<pre>type AlertError <a href="/pkg/builtin/#uint8">uint8</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AlertError.Error">func (AlertError) <a href="/src/crypto/tls/alert.go?s=408:442#L7">Error</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (e <a href="#AlertError">AlertError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Certificate">type <a href="/src/crypto/tls/common.go?s=61578:62780#L1624">Certificate</a>
+				
+				
+			</h2>
+			<p>Certificate 是由一个或多个证书组成的证书链，叶子证书在前。
+
+			<pre>type Certificate struct {
+<span id="Certificate.Certificate"></span>    Certificate [][]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Certificate.PrivateKey"></span>    <span class="comment">// PrivateKey 包含与以下位置的公钥对应的私钥：</span>
+<span id="Certificate.Leaf"></span>    <span class="comment">// Leaf。它必须实现 [crypto.Signer]，其 PublicKey 类型为 RSA、ECDSA、Ed25519</span>
+    <span class="comment">// （TLS 1.2+）或 ML-DSA（TLS 1.3）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于 TLS 1.2 及更早版本的服务器，也可以实现 crypto.Decrypter，</span>
+    <span class="comment">// 并使用 RSA PublicKey。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果它实现了 [crypto.MessageSigner]，则在 TLS 1.2 及更高版本中</span>
+    <span class="comment">// 使用 SignMessage，而不是 Sign。</span>
+    PrivateKey <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>
+<span id="Certificate.SupportedSignatureAlgorithms"></span>    <span class="comment">// SupportedSignatureAlgorithms 是可选列表，用于限制</span>
+    <span class="comment">// PrivateKey 可以使用的签名算法。</span>
+    SupportedSignatureAlgorithms []<a href="#SignatureScheme">SignatureScheme</a> <span class="comment">// Go 1.14</span>
+<span id="Certificate.OCSPStaple"></span>    <span class="comment">// OCSPStaple 包含可选的 OCSP 响应，</span>
+    <span class="comment">// 会提供给请求它的客户端。</span>
+    OCSPStaple []<a href="/pkg/builtin/#byte">byte</a>
+<span id="Certificate.SignedCertificateTimestamps"></span>    <span class="comment">// SignedCertificateTimestamps 包含可选的签名证书时间戳列表，</span>
+    <span class="comment">// 会提供给请求它的客户端。</span>
+    SignedCertificateTimestamps [][]<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.5</span>
+    <span class="comment">// Leaf 是叶子证书的解析形式，可以通过 x509.ParseCertificate</span>
+    <span class="comment">// 初始化，以减少每次握手的处理量。如果为 nil，</span>
+    <span class="comment">// 则在需要时解析叶子证书。</span>
+    Leaf *<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LoadX509KeyPair">func <a href="/src/crypto/tls/tls.go?s=8014:8081#L234">LoadX509KeyPair</a>
+					
+					
+				</h3>
+				<pre>func LoadX509KeyPair(certFile, keyFile <a href="/pkg/builtin/#string">string</a>) (<a href="#Certificate">Certificate</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LoadX509KeyPair 从两个文件读取并解析公钥和私钥对。文件必须包含 PEM 编码的数据。证书文件可以在叶子证书之后包含中间证书，以构成证书链。成功返回时，会填充 Certificate.Leaf。
+
+				
+
+
+<div id="example_LoadX509KeyPair" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/tls&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	cert, err := tls.LoadX509KeyPair(&#34;testdata/example-cert.pem&#34;, &#34;testdata/example-key.pem&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg := &amp;tls.Config{Certificates: []tls.Certificate{cert}}
+	listener, err := tls.Listen(&#34;tcp&#34;, &#34;:2000&#34;, cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = listener
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="X509KeyPair">func <a href="/src/crypto/tls/tls.go?s=8458:8529#L248">X509KeyPair</a>
+					
+					
+				</h3>
+				<pre>func X509KeyPair(certPEMBlock, keyPEMBlock []<a href="/pkg/builtin/#byte">byte</a>) (<a href="#Certificate">Certificate</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>X509KeyPair 从一对 PEM 编码数据中解析公钥和私钥对。成功返回时，会填充 Certificate.Leaf。
+
+				
+
+
+<div id="example_X509KeyPair" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/tls&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	certPem := []byte(`-----BEGIN CERTIFICATE-----
+MIIBhTCCASugAwIBAgIQIRi6zePL6mKjOipn&#43;dNuaTAKBggqhkjOPQQDAjASMRAw
+DgYDVQQKEwdBY21lIENvMB4XDTE3MTAyMDE5NDMwNloXDTE4MTAyMDE5NDMwNlow
+EjEQMA4GA1UEChMHQWNtZSBDbzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABD0d
+7VNhbWvZLWPuj/RtHFjvtJBEwOkhbN/BnnE8rnZR8&#43;sbwnc/KhCk3FhnpHZnQz7B
+5aETbbIgmuvewdjvSBSjYzBhMA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggr
+BgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1UdEQQiMCCCDmxvY2FsaG9zdDo1
+NDUzgg4xMjcuMC4wLjE6NTQ1MzAKBggqhkjOPQQDAgNIADBFAiEA2zpJEPQyz6/l
+Wf86aX6PepsntZv2GYlA5UpabfT2EZICICpJ5h/iI&#43;i341gBmLiAFQOyTDT&#43;/wQc
+6MF9&#43;Yw1Yy0t
+-----END CERTIFICATE-----`)
+	keyPem := []byte(`-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIIrYSSNQFaA2Hwf1duRSxKtLYX5CB04fSeQ6tF1aY/PuoAoGCCqGSM49
+AwEHoUQDQgAEPR3tU2Fta9ktY&#43;6P9G0cWO&#43;0kETA6SFs38GecTyudlHz6xvCdz8q
+EKTcWGekdmdDPsHloRNtsiCa697B2O9IFA==
+-----END EC PRIVATE KEY-----`)
+	cert, err := tls.X509KeyPair(certPem, keyPem)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg := &amp;tls.Config{Certificates: []tls.Certificate{cert}}
+	listener, err := tls.Listen(&#34;tcp&#34;, &#34;:2000&#34;, cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = listener
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_X509KeyPair_httpServer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (HttpServer)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (HttpServer)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/tls&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	certPem := []byte(`-----BEGIN CERTIFICATE-----
+MIIBhTCCASugAwIBAgIQIRi6zePL6mKjOipn&#43;dNuaTAKBggqhkjOPQQDAjASMRAw
+DgYDVQQKEwdBY21lIENvMB4XDTE3MTAyMDE5NDMwNloXDTE4MTAyMDE5NDMwNlow
+EjEQMA4GA1UEChMHQWNtZSBDbzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABD0d
+7VNhbWvZLWPuj/RtHFjvtJBEwOkhbN/BnnE8rnZR8&#43;sbwnc/KhCk3FhnpHZnQz7B
+5aETbbIgmuvewdjvSBSjYzBhMA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggr
+BgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MCkGA1UdEQQiMCCCDmxvY2FsaG9zdDo1
+NDUzgg4xMjcuMC4wLjE6NTQ1MzAKBggqhkjOPQQDAgNIADBFAiEA2zpJEPQyz6/l
+Wf86aX6PepsntZv2GYlA5UpabfT2EZICICpJ5h/iI&#43;i341gBmLiAFQOyTDT&#43;/wQc
+6MF9&#43;Yw1Yy0t
+-----END CERTIFICATE-----`)
+	keyPem := []byte(`-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIIrYSSNQFaA2Hwf1duRSxKtLYX5CB04fSeQ6tF1aY/PuoAoGCCqGSM49
+AwEHoUQDQgAEPR3tU2Fta9ktY&#43;6P9G0cWO&#43;0kETA6SFs38GecTyudlHz6xvCdz8q
+EKTcWGekdmdDPsHloRNtsiCa697B2O9IFA==
+-----END EC PRIVATE KEY-----`)
+	cert, err := tls.X509KeyPair(certPem, keyPem)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cfg := &amp;tls.Config{Certificates: []tls.Certificate{cert}}
+	srv := &amp;http.Server{
+		TLSConfig:    cfg,
+		ReadTimeout:  time.Minute,
+		WriteTimeout: time.Minute,
+	}
+	log.Fatal(srv.ListenAndServeTLS(&#34;&#34;, &#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="CertificateRequestInfo">type <a href="/src/crypto/tls/common.go?s=18428:19056#L510">CertificateRequestInfo</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>CertificateRequestInfo 包含服务器 CertificateRequest 消息中的信息，该消息用于要求客户端提供证书以及对相应私钥的控制证明。
+
+			<pre>type CertificateRequestInfo struct {
+<span id="CertificateRequestInfo.AcceptableCAs"></span>    <span class="comment">// AcceptableCAs 包含零个或多个经过 DER 编码的 X.501</span>
+    <span class="comment">// 可辨别名称，表示服务器希望返回的证书由哪些根 CA</span>
+    <span class="comment">// 或中间 CA 签发。</span>
+    <span class="comment">// 空切片表示服务器没有偏好。</span>
+    AcceptableCAs [][]<a href="/pkg/builtin/#byte">byte</a>
+
+<span id="CertificateRequestInfo.SignatureSchemes"></span>    <span class="comment">// SignatureSchemes 列出服务器愿意验证的</span>
+    <span class="comment">// 签名方案。</span>
+    SignatureSchemes []<a href="#SignatureScheme">SignatureScheme</a>
+
+<span id="CertificateRequestInfo.Version"></span>    <span class="comment">// Version 是为此连接协商的 TLS 版本。</span>
+    Version <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.14</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CertificateRequestInfo.Context">func (*CertificateRequestInfo) <a href="/src/crypto/tls/common.go?s=19254:19312#L531">Context</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (c *<a href="#CertificateRequestInfo">CertificateRequestInfo</a>) Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+				<p>Context 返回当前正在进行的握手的上下文。如果向 HandshakeContext 传入了上下文，则此上下文是它的子上下文，并在握手结束时被取消。
+
+				
+			
+				<h3 id="CertificateRequestInfo.SupportsCertificate">func (*CertificateRequestInfo) <a href="/src/crypto/tls/common.go?s=58983:59059#L1539">SupportsCertificate</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (cri *<a href="#CertificateRequestInfo">CertificateRequestInfo</a>) SupportsCertificate(c *<a href="#Certificate">Certificate</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>如果给定证书受发送 CertificateRequest 的服务器支持，SupportsCertificate 返回 nil。否则返回描述不兼容原因的错误。
+
+				
+			
+		
+			
+			<h2 id="CertificateVerificationError">type <a href="/src/crypto/tls/common.go?s=68527:68713#L1847">CertificateVerificationError</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>握手期间证书验证失败时，会返回 CertificateVerificationError。
+
+			<pre>type CertificateVerificationError struct {
+<span id="CertificateVerificationError.UnverifiedCertificates"></span>    <span class="comment">// 不应修改 UnverifiedCertificates 及其中的内容。</span>
+    UnverifiedCertificates []*<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a>
+<span id="CertificateVerificationError.Err"></span>    Err                    <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CertificateVerificationError.Error">func (*CertificateVerificationError) <a href="/src/crypto/tls/common.go?s=68715:68768#L1853">Error</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (e *<a href="#CertificateVerificationError">CertificateVerificationError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="CertificateVerificationError.Unwrap">func (*CertificateVerificationError) <a href="/src/crypto/tls/common.go?s=68842:68895#L1857">Unwrap</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (e *<a href="#CertificateVerificationError">CertificateVerificationError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CipherSuite">type <a href="/src/crypto/tls/cipher_suites.go?s=691:1012#L21">CipherSuite</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<p>CipherSuite 是 TLS 密码套件。注意，本包的大多数函数接受和提供的是密码套件 ID，而不是此类型。
+
+			<pre>type CipherSuite struct {
+<span id="CipherSuite.ID"></span>    ID   <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="CipherSuite.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// SupportedVersions 列出可以协商此密码套件的</span>
+    <span class="comment">// TLS 协议版本。</span>
+<span id="CipherSuite.SupportedVersions"></span>    SupportedVersions []<a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="CipherSuite.Insecure"></span>    <span class="comment">// 如果密码套件因其密码原语、设计或实现存在已知安全问题，</span>
+    <span class="comment">// Insecure 就为 true。</span>
+    Insecure <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CipherSuites">func <a href="/src/crypto/tls/cipher_suites.go?s=1578:1612#L47">CipherSuites</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func CipherSuites() []*<a href="#CipherSuite">CipherSuite</a></pre>
+				<p>CipherSuites 返回本包当前实现的密码套件列表，不包括存在安全问题的套件；后者由 <a href="#InsecureCipherSuites">InsecureCipherSuites</a> 返回。
+<p>列表按 ID 排序。注意，本包选择默认密码套件时可能依赖静态列表无法表示的逻辑，因此默认套件可能与此函数返回的列表不同。
+
+				
+			
+				<h3 id="InsecureCipherSuites">func <a href="/src/crypto/tls/cipher_suites.go?s=3288:3330#L71">InsecureCipherSuites</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func InsecureCipherSuites() []*<a href="#CipherSuite">CipherSuite</a></pre>
+				<p>InsecureCipherSuites 返回本包当前实现且存在安全问题的密码套件列表。
+<p>多数应用程序不应使用此列表中的密码套件，而应仅使用 <a href="#CipherSuites">CipherSuites</a> 返回的套件。
+
+				
+			
+
+			
+		
+			
+			<h2 id="ClientAuthType">type <a href="/src/crypto/tls/common.go?s=11716:11739#L342">ClientAuthType</a>
+				
+				
+			</h2>
+			<p>ClientAuthType 声明服务器进行 TLS 客户端身份认证时采用的策略。
+
+			<pre>type ClientAuthType <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// NoClientCert 表示握手期间不应请求客户端证书，</span>
+    <span class="comment">// 并且即使客户端发送了证书，</span>
+    <span class="comment">// 也不会验证。</span>
+    <span id="NoClientCert">NoClientCert</span> <a href="#ClientAuthType">ClientAuthType</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span class="comment">// RequestClientCert 表示握手期间应请求客户端证书，</span>
+    <span class="comment">// 但不要求客户端实际发送</span>
+    <span class="comment">// 任何证书。</span>
+    <span id="RequestClientCert">RequestClientCert</span>
+    <span class="comment">// RequireAnyClientCert 表示握手期间应请求客户端证书，</span>
+    <span class="comment">// 并要求客户端至少发送一个证书，</span>
+    <span class="comment">// 但不要求证书有效。</span>
+    <span id="RequireAnyClientCert">RequireAnyClientCert</span>
+    <span class="comment">// VerifyClientCertIfGiven 表示握手期间应请求客户端证书，</span>
+    <span class="comment">// 但不要求客户端实际发送</span>
+    <span class="comment">// 证书。如果客户端发送了证书，</span>
+    <span class="comment">// 则要求证书有效。</span>
+    <span id="VerifyClientCertIfGiven">VerifyClientCertIfGiven</span>
+    <span class="comment">// RequireAndVerifyClientCert 表示握手期间应请求客户端证书，</span>
+    <span class="comment">// 并要求客户端至少发送一个</span>
+    <span class="comment">// 有效证书。</span>
+    <span id="RequireAndVerifyClientCert">RequireAndVerifyClientCert</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ClientAuthType.String">func (ClientAuthType) <a href="/src/crypto/tls/common_string.go?s=3802:3841#L121">String</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (i <a href="#ClientAuthType">ClientAuthType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ClientHelloInfo">type <a href="/src/crypto/tls/common.go?s=15405:17988#L434">ClientHelloInfo</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>ClientHelloInfo 包含 ClientHello 消息中的信息，用于指导 GetCertificate 和 GetConfigForClient 回调中的应用逻辑。
+
+			<pre>type ClientHelloInfo struct {
+<span id="ClientHelloInfo.CipherSuites"></span>    <span class="comment">// CipherSuites 列出客户端支持的密码套件，例如</span>
+    <span class="comment">// TLS_AES_128_GCM_SHA256、TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256。</span>
+    CipherSuites []<a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="ClientHelloInfo.ServerName"></span>    <span class="comment">// ServerName 表示客户端请求的服务器名称，</span>
+    <span class="comment">// 用于支持虚拟主机。只有客户端使用 SNI 时才会设置</span>
+    <span class="comment">// ServerName（参见 RFC 4366 第 3.1 节）。</span>
+    ServerName <a href="/pkg/builtin/#string">string</a>
+
+<span id="ClientHelloInfo.SupportedCurves"></span>    <span class="comment">// SupportedCurves 列出客户端支持的密钥交换机制。</span>
+    <span class="comment">// 在 TLS 1.3 中它改称为“支持的群”，参见 RFC 8446</span>
+    <span class="comment">// 第 4.2.7 节及 [CurveID]。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在 TLS 1.2 及更早版本中，如果未使用支持的椭圆曲线扩展，</span>
+    <span class="comment">// SupportedCurves 可能为 nil（参见 RFC 4492 第 5.1.1 节）。</span>
+    SupportedCurves []<a href="#CurveID">CurveID</a>
+
+<span id="ClientHelloInfo.SupportedPoints"></span>    <span class="comment">// SupportedPoints 列出客户端支持的点格式。</span>
+    <span class="comment">// 只有使用支持的点格式扩展时才会设置 SupportedPoints</span>
+    <span class="comment">// （参见 RFC 4492 第 5.1.2 节）。</span>
+    SupportedPoints []<a href="/pkg/builtin/#uint8">uint8</a>
+
+<span id="ClientHelloInfo.SignatureSchemes"></span>    <span class="comment">// SignatureSchemes 列出客户端愿意验证的签名和</span>
+    <span class="comment">// 哈希方案。只有使用签名算法扩展时才会设置 SignatureSchemes</span>
+    <span class="comment">// （参见 RFC 5246 第 7.4.1.4.1 节）。</span>
+    SignatureSchemes []<a href="#SignatureScheme">SignatureScheme</a> <span class="comment">// Go 1.8</span>
+
+<span id="ClientHelloInfo.SupportedProtos"></span>    <span class="comment">// SupportedProtos 列出客户端支持的应用协议。</span>
+    <span class="comment">// 只有使用应用层协议协商扩展时才会设置 SupportedProtos</span>
+    <span class="comment">// （参见 RFC 7301 第 3.1 节）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 服务器可以通过在 GetConfigForClient 的返回值中设置</span>
+    <span class="comment">// Config.NextProtos 来选择协议。</span>
+    SupportedProtos []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.8</span>
+
+<span id="ClientHelloInfo.SupportedVersions"></span>    <span class="comment">// SupportedVersions 列出客户端支持的 TLS 版本。</span>
+    <span class="comment">// 对于低于 1.3 的 TLS 版本，该列表由客户端声明的</span>
+    <span class="comment">// 最高版本推算而来，因此使用除最高版本之外的值</span>
+    <span class="comment">// 时可能被拒绝。</span>
+    SupportedVersions []<a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.8</span>
+
+<span id="ClientHelloInfo.Extensions"></span>    <span class="comment">// Extensions 列出客户端在 ClientHello 中</span>
+    <span class="comment">// 提供的扩展 ID。</span>
+    Extensions []<a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.24</span>
+
+<span id="ClientHelloInfo.Conn"></span>    <span class="comment">// Conn 是该连接底层的 net.Conn。不得读取</span>
+    <span class="comment">// 或写入此连接，否则会导致 TLS</span>
+    <span class="comment">// 连接失败。</span>
+    Conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a> <span class="comment">// Go 1.8</span>
+
+<span id="ClientHelloInfo.HelloRetryRequest"></span>    <span class="comment">// HelloRetryRequest 表示此 ClientHello 是否作为</span>
+    <span class="comment">// 对 HelloRetryRequest 消息的响应而发送。</span>
+    HelloRetryRequest <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.26</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ClientHelloInfo.Context">func (*ClientHelloInfo) <a href="/src/crypto/tls/common.go?s=18186:18237#L503">Context</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (c *<a href="#ClientHelloInfo">ClientHelloInfo</a>) Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+				<p>Context 返回当前正在进行的握手的上下文。如果向 HandshakeContext 传入了上下文，则此上下文是它的子上下文，并在握手结束时被取消。
+
+				
+			
+				<h3 id="ClientHelloInfo.SupportsCertificate">func (*ClientHelloInfo) <a href="/src/crypto/tls/common.go?s=53709:53778#L1379">SupportsCertificate</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (chi *<a href="#ClientHelloInfo">ClientHelloInfo</a>) SupportsCertificate(c *<a href="#Certificate">Certificate</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>如果给定证书受发送 ClientHello 的客户端支持，SupportsCertificate 返回 nil。否则返回描述不兼容原因的错误。
+<p>如果此 <a href="#ClientHelloInfo">ClientHelloInfo</a> 被传给 GetConfigForClient 或 GetCertificate 回调，此方法会考虑关联的 <a href="#Config">Config</a>。注意，如果 GetConfigForClient 返回了不同的 <a href="#Config">Config</a>，此方法无法考虑这一变化。
+<p>除非已设置 c.Leaf，否则此函数会调用 x509.ParseCertificate，这可能产生显著的性能开销。
+
+				
+			
+		
+			
+			<h2 id="ClientSessionCache">type <a href="/src/crypto/tls/common.go?s=13580:14113#L385">ClientSessionCache</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>ClientSessionCache 是 ClientSessionState 对象的缓存，客户端可借此恢复与给定服务器的 TLS 会话。ClientSessionCache 的实现应能处理不同 goroutine 的并发调用。对于 TLS 1.2 及更早版本，只支持基于票据的恢复，不支持基于 SessionID 的恢复。在 TLS 1.3 中，两者合并为 PSK 模式，并通过此接口提供支持。
+
+			<pre>type ClientSessionCache interface {
+    <span class="comment">// Get 查找与给定键关联的 ClientSessionState。</span>
+    <span class="comment">// 返回时，ok 为 true 表示找到。</span>
+    Get(sessionKey <a href="/pkg/builtin/#string">string</a>) (session *<a href="#ClientSessionState">ClientSessionState</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// Put 使用给定键将 ClientSessionState 添加到缓存。如果 TLS 1.3</span>
+    <span class="comment">// 服务器提供多个会话票据，一次连接中可能调用多次。</span>
+    <span class="comment">// 如果传入 nil *ClientSessionState，</span>
+    <span class="comment">// 则应移除相应缓存条目。</span>
+    Put(sessionKey <a href="/pkg/builtin/#string">string</a>, cs *<a href="#ClientSessionState">ClientSessionState</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewLRUClientSessionCache">func <a href="/src/crypto/tls/common.go?s=63890:63952#L1692">NewLRUClientSessionCache</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func NewLRUClientSessionCache(capacity <a href="/pkg/builtin/#int">int</a>) <a href="#ClientSessionCache">ClientSessionCache</a></pre>
+				<p>NewLRUClientSessionCache 返回使用 LRU 策略、具有给定容量的 <a href="#ClientSessionCache">ClientSessionCache</a>。如果 capacity &lt; 1，则使用默认容量。
+
+				
+			
+
+			
+		
+			
+			<h2 id="ClientSessionState">type <a href="/src/crypto/tls/ticket.go?s=11937:11994#L394">ClientSessionState</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>ClientSessionState 包含客户端恢复先前 TLS 会话所需的状态。
+
+			<pre>type ClientSessionState struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewResumptionState">func <a href="/src/crypto/tls/ticket.go?s=12760:12848#L415">NewResumptionState</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func NewResumptionState(ticket []<a href="/pkg/builtin/#byte">byte</a>, state *<a href="#SessionState">SessionState</a>) (*<a href="#ClientSessionState">ClientSessionState</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewResumptionState 返回一个状态值，<a href="#ClientSessionCache.Get">ClientSessionCache.Get</a> 可以返回它以恢复先前会话。
+<p>state 必须由 <a href="#ParseSessionState">ParseSessionState</a> 返回，而票据和会话状态必须来自 <a href="#ClientSessionState.ResumptionState">ClientSessionState.ResumptionState</a>。
+
+				
+			
+
+			
+				<h3 id="ClientSessionState.ResumptionState">func (*ClientSessionState) <a href="/src/crypto/tls/ticket.go?s=12269:12364#L403">ResumptionState</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (cs *<a href="#ClientSessionState">ClientSessionState</a>) ResumptionState() (ticket []<a href="/pkg/builtin/#byte">byte</a>, state *<a href="#SessionState">SessionState</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ResumptionState 返回服务器发送的会话票据（也称为会话标识）及恢复此会话所需的状态。
+<p><a href="#ClientSessionCache.Put">ClientSessionCache.Put</a> 可以调用它，再通过 <a href="#SessionState.Bytes">SessionState.Bytes</a> 序列化并存储会话。
+
+				
+			
+		
+			
+			<h2 id="Config">type <a href="/src/crypto/tls/common.go?s=20718:37104#L568">Config</a>
+				
+				
+			</h2>
+			<p>Config 结构用于配置 TLS 客户端或服务器。将它传给 TLS 函数后，不得再修改。Config 可以复用；tls 包也不会修改它。
+
+			<pre>type Config struct {
+<span id="Config.Rand"></span>    <span class="comment">// Rand 为连接提供熵源。</span>
+    <span class="comment">// 如果 Rand 为 nil，TLS 使用 crypto/rand 包中的密码学随机读取器。</span>
+    <span class="comment">// 该 Reader 必须能由多个 goroutine 安全使用。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：生产环境中应保留为 nil。并非所有 TLS</span>
+    <span class="comment">// 配置都保证使用 Rand。测试代码可以改用</span>
+    <span class="comment">// [testing/cryptotest.SetGlobalRandom]。</span>
+    Rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+
+<span id="Config.Time"></span>    <span class="comment">// Time 返回当前时间，以自纪元以来的秒数表示。</span>
+    <span class="comment">// 如果 Time 为 nil，TLS 使用 time.Now。</span>
+    Time func() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>
+
+<span id="Config.Certificates"></span>    <span class="comment">// Certificates 包含要提供给连接对端的一个或多个证书链。</span>
+    <span class="comment">// 会自动选择第一个符合对端要求的</span>
+    <span class="comment">// 证书。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 服务器配置必须设置 Certificates、GetCertificate 或</span>
+<span id="Config.GetConfigForClient"></span>    <span class="comment">// GetConfigForClient 中的一项。执行客户端身份认证的客户端可以设置</span>
+    <span class="comment">// Certificates 或 GetClientCertificate。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意：如果存在多个 Certificate，且它们都未设置</span>
+    <span class="comment">// 可选的 Leaf 字段，选择证书会在每次握手中产生</span>
+    <span class="comment">// 显著的性能开销。</span>
+    Certificates []<a href="#Certificate">Certificate</a>
+
+<span id="Config.NameToCertificate"></span>    <span class="comment">// NameToCertificate 将证书名称映射到 Certificates</span>
+    <span class="comment">// 中的一个元素。注意，证书名称可以采用</span>
+    <span class="comment">// '*.example.com' 的形式，因此不一定是通常意义上的域名。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：NameToCertificate 只能为给定名称关联单个</span>
+    <span class="comment">// 证书。保留此字段为 nil，让库从 Certificates 中</span>
+    <span class="comment">// 选择第一条兼容的证书链。</span>
+    NameToCertificate map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Certificate">Certificate</a>
+
+<span id="Config.GetCertificate"></span>    <span class="comment">// GetCertificate 根据给定的 ClientHelloInfo</span>
+    <span class="comment">// 返回 Certificate。只有客户端提供了 SNI</span>
+    <span class="comment">// 信息，或 Certificates 为空时，才会调用它。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetCertificate 为 nil 或返回 nil，则从</span>
+    <span class="comment">// NameToCertificate 获取证书。如果 NameToCertificate 为 nil，</span>
+    <span class="comment">// 则使用 Certificates 中最合适的元素。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Certificate 一经返回，就不应再修改。</span>
+    GetCertificate func(*<a href="#ClientHelloInfo">ClientHelloInfo</a>) (*<a href="#Certificate">Certificate</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.4</span>
+
+<span id="Config.GetClientCertificate"></span>    <span class="comment">// GetClientCertificate 非 nil 时，会在服务器向客户端</span>
+    <span class="comment">// 请求证书时被调用。如果设置了此字段，就会</span>
+    <span class="comment">// 忽略 Certificates 的内容。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetClientCertificate 返回错误，则中止握手，</span>
+    <span class="comment">// 并返回该错误。否则，</span>
+    <span class="comment">// GetClientCertificate 必须返回非 nil 的 Certificate。如果</span>
+    <span class="comment">// Certificate.Certificate 为空，就不会向服务器</span>
+    <span class="comment">// 发送证书。如果服务器不接受这种情况，可能会中止</span>
+    <span class="comment">// 握手。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果发生重新协商，或使用 TLS 1.3，同一连接中</span>
+    <span class="comment">// 可能会多次调用 GetClientCertificate。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Certificate 一经返回，就不应再修改。</span>
+    GetClientCertificate func(*<a href="#CertificateRequestInfo">CertificateRequestInfo</a>) (*<a href="#Certificate">Certificate</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.8</span>
+
+    <span class="comment">// GetConfigForClient 非 nil 时，会在收到客户端的</span>
+    <span class="comment">// ClientHello 后被调用。它可以返回非 nil 的 Config，</span>
+    <span class="comment">// 以更改处理此连接所用的 Config。如果</span>
+    <span class="comment">// 返回的 Config 为 nil，就使用原 Config。</span>
+    <span class="comment">// 此回调返回的 Config 此后不得修改。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetConfigForClient 为 nil，则对所有连接使用</span>
+    <span class="comment">// 传给 Server() 的 Config。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果返回的 Config 显式设置了 SessionTicketKey，或对</span>
+    <span class="comment">// 返回的 Config 调用了 SetSessionTicketKeys，就使用这些密钥。</span>
+    <span class="comment">// 否则，使用原 Config 的密钥（如果密钥自动管理，</span>
+    <span class="comment">// 也可能进行轮换）。警告：这允许恢复最初通过父 Config</span>
+    <span class="comment">// 或同级 Config 建立的连接，</span>
+    <span class="comment">// 从而可能绕过返回的 Config 中设置的 [Config.VerifyPeerCertificate]</span>
+    <span class="comment">// 回调。</span>
+    GetConfigForClient func(*<a href="#ClientHelloInfo">ClientHelloInfo</a>) (*<a href="#Config">Config</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.8</span>
+
+<span id="Config.VerifyPeerCertificate"></span>    <span class="comment">// VerifyPeerCertificate 非 nil 时，会在 TLS 客户端或服务器</span>
+    <span class="comment">// 完成正常证书验证之后被调用。</span>
+    <span class="comment">// 它接收对端提供的原始 ASN.1 证书，</span>
+    <span class="comment">// 以及正常处理过程中找到的已验证证书链。如果它返回</span>
+    <span class="comment">// 非 nil 错误，则中止握手并返回该错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果正常验证失败，会在考虑此回调之前中止</span>
+    <span class="comment">// 握手。如果正常验证被禁用（客户端设置了 InsecureSkipVerify，</span>
+    <span class="comment">// 或服务器的 ClientAuth 为 RequestClientCert 或 RequireAnyClientCert），</span>
+    <span class="comment">// 则仍会考虑调用此回调，</span>
+    <span class="comment">// 但 verifiedChains 参数始终为 nil。当</span>
+<span id="Config.ClientAuth"></span>    <span class="comment">// ClientAuth 为 NoClientCert 时，服务器不会调用此回调。</span>
+    <span class="comment">// 如果 ClientAuth 为 RequestClientCert 或 VerifyClientCertIfGiven，</span>
+    <span class="comment">// 服务器上的 rawCerts 可能为空。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 恢复连接时不会调用此回调。警告：这包括在 [Config.Clone] 或</span>
+    <span class="comment">// [Config.GetConfigForClient] 返回的 Config 与其父 Config 之间</span>
+    <span class="comment">// 恢复的连接。如果不希望如此，</span>
+    <span class="comment">// 请改用 [Config.VerifyConnection]，或设置 [Config.SessionTicketsDisabled]。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不应修改 verifiedChains 及其中的内容。</span>
+    VerifyPeerCertificate func(rawCerts [][]<a href="/pkg/builtin/#byte">byte</a>, verifiedChains [][]*<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a>) <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.8</span>
+
+<span id="Config.VerifyConnection"></span>    <span class="comment">// VerifyConnection 非 nil 时，会在 TLS 客户端或服务器完成</span>
+    <span class="comment">// 正常证书验证及 VerifyPeerCertificate 调用之后</span>
+    <span class="comment">// 被调用。如果它返回非 nil 错误，则中止握手，</span>
+    <span class="comment">// 并返回该错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果正常验证失败，会在考虑此回调之前中止</span>
+    <span class="comment">// 握手。此回调对所有连接都会运行，</span>
+    <span class="comment">// 包括恢复的连接，不受 InsecureSkipVerify 或 ClientAuth</span>
+    <span class="comment">// 设置影响。</span>
+    VerifyConnection func(<a href="#ConnectionState">ConnectionState</a>) <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.15</span>
+
+<span id="Config.RootCAs"></span>    <span class="comment">// RootCAs 定义客户端验证服务器证书时</span>
+    <span class="comment">// 使用的根证书颁发机构集合。</span>
+    <span class="comment">// 如果 RootCAs 为 nil，TLS 使用宿主系统的根 CA 集合。</span>
+    RootCAs *<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#CertPool">CertPool</a>
+
+<span id="Config.NextProtos"></span>    <span class="comment">// NextProtos 按偏好顺序列出支持的应用层协议。</span>
+    <span class="comment">// 如果双方都支持 ALPN，选定协议将来自此列表，</span>
+    <span class="comment">// 如果没有双方都支持的协议，连接会失败。</span>
+    <span class="comment">// 如果 NextProtos 为空，或对端不支持 ALPN，</span>
+    <span class="comment">// 则连接会成功，且</span>
+    <span class="comment">// ConnectionState.NegotiatedProtocol 为空。</span>
+    NextProtos []<a href="/pkg/builtin/#string">string</a>
+
+<span id="Config.ServerName"></span>    <span class="comment">// 除非设置了 InsecureSkipVerify，否则 ServerName 用于验证</span>
+    <span class="comment">// 返回证书中的主机名。它也会包含在</span>
+    <span class="comment">// 客户端握手中，以支持虚拟主机，除非其值</span>
+    <span class="comment">// 是 IP 地址。</span>
+    ServerName <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// ClientAuth 决定服务器的 TLS 客户端</span>
+    <span class="comment">// 身份认证策略。默认为 NoClientCert。</span>
+    ClientAuth <a href="#ClientAuthType">ClientAuthType</a>
+
+<span id="Config.ClientCAs"></span>    <span class="comment">// ClientCAs 定义根证书颁发机构集合，</span>
+    <span class="comment">// 当 ClientAuth 策略要求验证客户端证书时，</span>
+    <span class="comment">// 服务器使用此集合。</span>
+    ClientCAs *<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#CertPool">CertPool</a>
+
+<span id="Config.InsecureSkipVerify"></span>    <span class="comment">// InsecureSkipVerify 控制客户端是否验证服务器的</span>
+    <span class="comment">// 证书链和主机名。如果 InsecureSkipVerify 为 true，crypto/tls</span>
+    <span class="comment">// 接受服务器提供的任何证书以及该证书中的任何主机名。</span>
+    <span class="comment">// 在此模式下，除非使用自定义验证，否则 TLS 容易遭受</span>
+    <span class="comment">// 中间人攻击。此设置只应供测试使用，</span>
+    <span class="comment">// 或与 VerifyConnection、VerifyPeerCertificate 配合使用。</span>
+    InsecureSkipVerify <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="Config.CipherSuites"></span>    <span class="comment">// CipherSuites 列出已启用的 TLS 1.0–1.2 密码套件，列表顺序</span>
+    <span class="comment">// 会被忽略。注意，TLS 1.3 密码套件不可配置。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 CipherSuites 为 nil，则使用安全的默认列表。默认密码</span>
+    <span class="comment">// 套件可能随时间变化。</span>
+    CipherSuites []<a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="Config.PreferServerCipherSuites"></span>    <span class="comment">// PreferServerCipherSuites 是历史遗留字段，没有作用。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它曾用于控制服务器遵循客户端还是服务器自己的</span>
+    <span class="comment">// 偏好。现在，服务器会综合推断出的客户端硬件、</span>
+    <span class="comment">// 服务器硬件及安全性，</span>
+    <span class="comment">// 选择双方支持的最合适的密码套件。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：PreferServerCipherSuites 被忽略。</span>
+    PreferServerCipherSuites <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.1</span>
+
+<span id="Config.SessionTicketsDisabled"></span>    <span class="comment">// 将 SessionTicketsDisabled 设为 true，可以禁用会话票据和</span>
+    <span class="comment">// PSK（恢复）支持。注意，在客户端上，如果 ClientSessionCache</span>
+    <span class="comment">// 为 nil，也会禁用会话票据支持。</span>
+    SessionTicketsDisabled <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.1</span>
+
+<span id="Config.SessionTicketKey"></span>    <span class="comment">// TLS 服务器使用 SessionTicketKey 提供会话恢复。</span>
+    <span class="comment">// 参见 RFC 5077 及 RFC 8446 的 PSK 模式。如果为零值，会在首次</span>
+    <span class="comment">// 服务器握手之前用随机数据填充。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：如果此字段保留为零值，会话票据密钥会</span>
+    <span class="comment">// 每天自动轮换，并在七天后丢弃。若要</span>
+    <span class="comment">// 自定义轮换计划，或同步为同一主机终止连接的</span>
+    <span class="comment">// 多台服务器，请使用 SetSessionTicketKeys。</span>
+    SessionTicketKey [32]<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.1</span>
+
+<span id="Config.ClientSessionCache"></span>    <span class="comment">// ClientSessionCache 是用于 TLS 会话恢复的 ClientSessionState</span>
+    <span class="comment">// 条目缓存。只有客户端会使用它。</span>
+    ClientSessionCache <a href="#ClientSessionCache">ClientSessionCache</a> <span class="comment">// Go 1.3</span>
+
+<span id="Config.UnwrapSession"></span>    <span class="comment">// UnwrapSession 在服务器端被调用，将之前由 [WrapSession]</span>
+    <span class="comment">// 生成的票据或标识转换为可用会话。</span>
+    <span class="comment">//</span>
+    <span class="comment">// UnwrapSession 通常会解密票据中的会话状态</span>
+    <span class="comment">// （例如通过 [Config.EncryptTicket]），或者将票据作为句柄，</span>
+    <span class="comment">// 恢复先前存储的状态。它必须使用 [ParseSessionState]</span>
+    <span class="comment">// 反序列化会话状态。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 UnwrapSession 返回错误，则终止连接。如果</span>
+    <span class="comment">// 返回 (nil, nil)，则忽略该会话。crypto/tls 仍可能</span>
+    <span class="comment">// 选择不恢复返回的会话。</span>
+    UnwrapSession func(identity []<a href="/pkg/builtin/#byte">byte</a>, cs <a href="#ConnectionState">ConnectionState</a>) (*<a href="#SessionState">SessionState</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.21</span>
+
+<span id="Config.WrapSession"></span>    <span class="comment">// WrapSession 在服务器端被调用，生成会话票据或标识。</span>
+    <span class="comment">//</span>
+    <span class="comment">// WrapSession 必须使用 [SessionState.Bytes] 序列化会话状态。</span>
+    <span class="comment">// 然后可以加密序列化后的状态（例如使用</span>
+    <span class="comment">// [Config.DecryptTicket]）并将其作为票据，或存储该状态，</span>
+    <span class="comment">// 返回对应句柄。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 WrapSession 返回错误，则终止连接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 警告：返回值会以明文形式暴露在网络上，并提供给客户端。</span>
+    <span class="comment">// 应用程序负责对其加密和认证（以及轮换密钥），</span>
+    <span class="comment">// 或返回高熵标识符。如果未能正确完成这些工作，</span>
+    <span class="comment">// 根据协议版本的不同，当前、过去和未来的连接</span>
+    <span class="comment">// 都可能受到威胁。</span>
+    WrapSession func(<a href="#ConnectionState">ConnectionState</a>, *<a href="#SessionState">SessionState</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.21</span>
+
+<span id="Config.MinVersion"></span>    <span class="comment">// MinVersion 指定可接受的最低 TLS 版本。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 当前默认最低版本为 TLS 1.2。本包支持的</span>
+    <span class="comment">// 最低版本为 TLS 1.0。</span>
+    MinVersion <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.2</span>
+
+<span id="Config.MaxVersion"></span>    <span class="comment">// MaxVersion 指定可接受的最高 TLS 版本。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 默认使用本包支持的最高版本，</span>
+    <span class="comment">// 当前为 TLS 1.3。</span>
+    MaxVersion <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.2</span>
+
+<span id="Config.CurvePreferences"></span>    <span class="comment">// CurvePreferences 包含一组支持的密钥交换机制。</span>
+    <span class="comment">// 字段名因历史原因仍称为椭圆曲线，参见 [CurveID]。</span>
+    <span class="comment">// 列表顺序被忽略，密钥交换机制会按照内部偏好顺序</span>
+    <span class="comment">// 从列表中选择。如果为空，则使用</span>
+    <span class="comment">// 默认值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 自 Go 1.24 起，默认包含 [X25519MLKEM768] 混合</span>
+    <span class="comment">// 后量子密钥交换。若要禁用它，请显式设置 CurvePreferences，</span>
+    <span class="comment">// 或使用 GODEBUG=tlsmlkem=0 环境变量。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 自 Go 1.26 起，默认还包含 [SecP256r1MLKEM768] 和</span>
+    <span class="comment">// [SecP384r1MLKEM1024] 混合后量子密钥交换。若要禁用</span>
+    <span class="comment">// 它们，请显式设置 CurvePreferences，或使用</span>
+    <span class="comment">// GODEBUG=tlsmlkem=0 或 GODEBUG=tlssecpmlkem=0 环境变量。</span>
+    CurvePreferences []<a href="#CurveID">CurveID</a> <span class="comment">// Go 1.3</span>
+
+<span id="Config.DynamicRecordSizingDisabled"></span>    <span class="comment">// DynamicRecordSizingDisabled 禁用 TLS 记录大小的自适应调整。</span>
+    <span class="comment">// 为 true 时，始终使用允许的最大 TLS 记录大小。为</span>
+    <span class="comment">// false 时，TLS 记录大小可能被调整，</span>
+    <span class="comment">// 以改善延迟。</span>
+    DynamicRecordSizingDisabled <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.7</span>
+
+<span id="Config.Renegotiation"></span>    <span class="comment">// Renegotiation 控制支持的重新协商类型。</span>
+    <span class="comment">// 默认不支持重新协商，这适用于绝大多数应用程序。</span>
+    Renegotiation <a href="#RenegotiationSupport">RenegotiationSupport</a> <span class="comment">// Go 1.7</span>
+
+<span id="Config.KeyLogWriter"></span>    <span class="comment">// KeyLogWriter 可选地指定 TLS 主秘密的输出目标，</span>
+    <span class="comment">// 使用 NSS 密钥日志格式，使 Wireshark 等外部程序</span>
+    <span class="comment">// 能够解密 TLS 连接。</span>
+    <span class="comment">// 参见 https://datatracker.ietf.org/doc/draft-ietf-tls-keylogfile/。</span>
+    <span class="comment">// 使用 KeyLogWriter 会损害安全性，</span>
+    <span class="comment">// 因此只能用于调试。</span>
+    KeyLogWriter <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a> <span class="comment">// Go 1.8</span>
+
+<span id="Config.EncryptedClientHelloConfigList"></span>    <span class="comment">// EncryptedClientHelloConfigList 是序列化的 ECHConfigList。</span>
+    <span class="comment">// 如果提供此字段，客户端会使用其中一个 ECHConfig，</span>
+    <span class="comment">// 尝试通过加密客户端 Hello（ECH）连接服务器。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 服务器不使用此字段。若要为服务器配置 ECH，请参阅</span>
+    <span class="comment">// EncryptedClientHelloKeys 字段。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果列表不包含有效的 ECH 配置，握手会失败，</span>
+    <span class="comment">// 并返回错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果设置了 EncryptedClientHelloConfigList，那么 MinVersion（若设置）</span>
+    <span class="comment">// 必须为 VersionTLS13。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 设置 EncryptedClientHelloConfigList 后，只有成功协商</span>
+    <span class="comment">// ECH，握手才会成功。如果服务器拒绝 ECH，</span>
+    <span class="comment">// 就返回 ECHRejectionError，其中可能包含服务器建议</span>
+    <span class="comment">// 使用的新 ECHConfigList。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果最终的 Encrypted Client Hello RFC 描述的编码发生变化，</span>
+    <span class="comment">// 此字段的解析方式可能在未来 Go 版本中改变。</span>
+    EncryptedClientHelloConfigList []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.23</span>
+
+<span id="Config.EncryptedClientHelloRejectionVerify"></span>    <span class="comment">// EncryptedClientHelloRejectionVerify 非 nil 时，会在远端服务器</span>
+    <span class="comment">// 拒绝 ECH 时被调用，用于验证外层 ClientHello 对应的</span>
+    <span class="comment">// ECH 提供方证书。如果它返回非 nil 错误，</span>
+    <span class="comment">// 则中止握手并返回该错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 服务器端不使用此字段。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 与 VerifyPeerCertificate 和 VerifyConnection 不同，</span>
+    <span class="comment">// 调用 EncryptedClientHelloRejectionVerify 之前</span>
+    <span class="comment">// 不会执行正常证书验证。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 EncryptedClientHelloRejectionVerify 为 nil 且 ECH 被拒绝，</span>
+    <span class="comment">// 则使用 RootCAs 中的根证书验证 ECH 提供方的</span>
+    <span class="comment">// 公开证书。ECH 被拒绝时，即使设置了 VerifyPeerCertificate 和</span>
+    <span class="comment">// VerifyConnection，也不会调用它们，而且 InsecureSkipVerify 会被忽略。</span>
+    EncryptedClientHelloRejectionVerify func(<a href="#ConnectionState">ConnectionState</a>) <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.23</span>
+
+<span id="Config.GetEncryptedClientHelloKeys"></span>    <span class="comment">// GetEncryptedClientHelloKeys 非 nil 时，服务器会在</span>
+    <span class="comment">// 客户端尝试使用 ECH 时调用它。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetEncryptedClientHelloKeys 非 nil，就会忽略</span>
+    <span class="comment">// [EncryptedClientHelloKeys]。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetEncryptedClientHelloKeys 返回错误，则中止握手，</span>
+    <span class="comment">// 并返回该错误。否则，</span>
+    <span class="comment">// GetEncryptedClientHelloKeys 必须返回非 nil 的</span>
+    <span class="comment">// [EncryptedClientHelloKey] 切片，表示可接受的 ECH 密钥。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 更多细节参见 [EncryptedClientHelloKeys]。</span>
+    GetEncryptedClientHelloKeys func(*<a href="#ClientHelloInfo">ClientHelloInfo</a>) ([]<a href="#EncryptedClientHelloKey">EncryptedClientHelloKey</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.25</span>
+
+<span id="Config.EncryptedClientHelloKeys"></span>    <span class="comment">// EncryptedClientHelloKeys 是客户端尝试 ECH 时</span>
+    <span class="comment">// 使用的 ECH 密钥。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果设置了 EncryptedClientHelloKeys，那么 MinVersion（若设置）</span>
+    <span class="comment">// 必须为 VersionTLS13。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果客户端尝试 ECH，但被服务器拒绝，服务器会</span>
+    <span class="comment">// 根据 EncryptedClientHelloKeys 中设置了 SendAsRetry 字段</span>
+    <span class="comment">// 的条目，发送可用于重试的配置列表。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 GetEncryptedClientHelloKeys 非 nil，就会忽略</span>
+    <span class="comment">// EncryptedClientHelloKeys。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在客户端，此字段被忽略。若要为客户端配置 ECH，</span>
+    <span class="comment">// 请参阅 EncryptedClientHelloConfigList 字段。</span>
+    EncryptedClientHelloKeys []<a href="#EncryptedClientHelloKey">EncryptedClientHelloKey</a> <span class="comment">// Go 1.24</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Config_keyLogWriter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (KeyLogWriter)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (KeyLogWriter)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"os"
+)
+
+func main() {
+	// 通过解密捕获的网络流量来调试 TLS 应用程序。
+	// 警告：使用 KeyLogWriter 会损害安全性，
+	// 因此只能用于调试。
+
+	server := httptest.NewUnstartedServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {}))
+	server.StartTLS()
+	defer server.Close()
+
+	pool := x509.NewCertPool()
+	pool.AddCert(server.Certificate())
+
+	// 通常会将日志写入打开的文件：
+	// w, err := os.OpenFile("tls-secrets.txt", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	w := os.Stdout
+
+	client := &amp;http.Client{
+		Transport: &amp;http.Transport{
+			TLSClientConfig: &amp;tls.Config{
+				KeyLogWriter: w,
+				RootCAs:      pool,
+			},
+		},
+	}
+	resp, err := client.Get(server.URL)
+	if err != nil {
+		log.Fatalf("Failed to get URL: %v", err)
+	}
+	resp.Body.Close()
+
+	// 在 Wireshark 的 SSL 协议首选项中设置
+	// (Pre)-Master-Secret log filename，即可使用生成的文件
+	// 解密 TLS 连接。
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Config_verifyConnection" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (VerifyConnection)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (VerifyConnection)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+)
+
+func main() {
+	// VerifyConnection 可以替换并自定义连接
+	// 验证。此示例展示的 VerifyConnection 实现，
+	// 大致等价于 crypto/tls 通常用于验证
+	// 对端证书的行为。
+
+	// 客户端配置。
+	_ = &amp;tls.Config{
+		// 设置 InsecureSkipVerify，跳过将由此实现替代的
+		// 默认验证。这不会禁用 VerifyConnection。
+		InsecureSkipVerify: true,
+		VerifyConnection: func(cs tls.ConnectionState) error {
+			opts := x509.VerifyOptions{
+				DNSName:       cs.ServerName,
+				Intermediates: x509.NewCertPool(),
+			}
+			for _, cert := range cs.PeerCertificates[1:] {
+				opts.Intermediates.AddCert(cert)
+			}
+			_, err := cs.PeerCertificates[0].Verify(opts)
+			return err
+		},
+	}
+
+	// 服务器端配置。
+	_ = &amp;tls.Config{
+		// 要求客户端提供证书（否则 VerifyConnection 仍会运行，
+		// 并在访问 cs.PeerCertificates[0] 时触发 panic），但不使用
+		// 默认验证器验证它们。这不会禁用 VerifyConnection。
+		ClientAuth: tls.RequireAnyClientCert,
+		VerifyConnection: func(cs tls.ConnectionState) error {
+			opts := x509.VerifyOptions{
+				DNSName:       cs.ServerName,
+				Intermediates: x509.NewCertPool(),
+				KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+			}
+			for _, cert := range cs.PeerCertificates[1:] {
+				opts.Intermediates.AddCert(cert)
+			}
+			_, err := cs.PeerCertificates[0].Verify(opts)
+			return err
+		},
+	}
+
+	// 注意，不由默认验证器处理证书时，
+	// ConnectionState.VerifiedChains 将为 nil。
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Config.BuildNameToCertificate">func (*Config) <a href="/src/crypto/tls/common.go?s=60117:60158#L1575">BuildNameToCertificate</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Config">Config</a>) BuildNameToCertificate()</pre>
+				<p>BuildNameToCertificate 解析 c.Certificates，并根据每个叶子证书的 CommonName 和 SubjectAlternateName 字段构建 c.NameToCertificate。
+<p>已弃用：NameToCertificate 只能为给定名称关联单个证书。将该字段保留为 nil，让库从 Certificates 中选择第一条兼容的证书链。
+
+				
+			
+				<h3 id="Config.Clone">func (*Config) <a href="/src/crypto/tls/common.go?s=40460:40492#L999">Clone</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (c *<a href="#Config">Config</a>) Clone() *<a href="#Config">Config</a></pre>
+				<p>Clone 返回 c 的浅克隆；如果 c 为 nil，则返回 nil。对正在由 TLS 客户端或服务器并发使用的 <a href="#Config">Config</a> 进行克隆是安全的。
+<p>返回的 Config 可以与原 Config 共享会话票据密钥，这意味着连接可以跨两个 Config 恢复。警告：恢复连接时不会调用 <a href="#Config.VerifyPeerCertificate">Config.VerifyPeerCertificate</a>，包括最初在父 Config 上建立的连接。如果不希望如此，请改用 <a href="#Config.VerifyConnection">Config.VerifyConnection</a>，或设置 <a href="#Config.SessionTicketsDisabled">Config.SessionTicketsDisabled</a>。
+
+				
+			
+				<h3 id="Config.DecryptTicket">func (*Config) <a href="/src/crypto/tls/ticket.go?s=10680:10770#L347">DecryptTicket</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (c *<a href="#Config">Config</a>) DecryptTicket(identity []<a href="/pkg/builtin/#byte">byte</a>, cs <a href="#ConnectionState">ConnectionState</a>) (*<a href="#SessionState">SessionState</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DecryptTicket 解密由 <a href="#Config.EncryptTicket">Config.EncryptTicket</a> 加密的票据，可用作 <a href="#Config.UnwrapSession">Config.UnwrapSession</a> 的实现。
+<p>如果票据无法解密或解析，DecryptTicket 返回 (nil, nil)。
+
+				
+			
+				<h3 id="Config.EncryptTicket">func (*Config) <a href="/src/crypto/tls/ticket.go?s=9308:9392#L306">EncryptTicket</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (c *<a href="#Config">Config</a>) EncryptTicket(cs <a href="#ConnectionState">ConnectionState</a>, ss *<a href="#SessionState">SessionState</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>EncryptTicket 使用 <a href="#Config">Config</a> 配置的（或默认的）会话票据密钥加密票据，可用作 <a href="#Config.WrapSession">Config.WrapSession</a> 的实现。
+
+				
+			
+				<h3 id="Config.SetSessionTicketKeys">func (*Config) <a href="/src/crypto/tls/common.go?s=47291:47345#L1154">SetSessionTicketKeys</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Config">Config</a>) SetSessionTicketKeys(keys [][32]<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>SetSessionTicketKeys 更新服务器的会话票据密钥。
+<p>创建新票据时使用第一个密钥，而所有密钥都可用于解密票据。服务器运行期间可以安全地调用此函数，以轮换会话票据密钥。如果 keys 为空，函数会触发 panic。
+<p>调用此函数会关闭会话票据密钥的自动轮换。
+<p>如果多台服务器为同一主机终止 TLS 连接，它们应具有相同的会话票据密钥。如果会话票据密钥泄露，过去记录下来的连接和未来使用这些密钥的 TLS 连接都可能遭到破解。
+
+				
+			
+		
+			
+			<h2 id="Conn">type <a href="/src/crypto/tls/conn.go?s=453:4514#L17">Conn</a>
+				
+				
+			</h2>
+			<p>Conn 表示安全连接，实现 net.Conn 接口。
+
+			<pre>type Conn struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Client">func <a href="/src/crypto/tls/tls.go?s=1871:1919#L49">Client</a>
+					
+					
+				</h3>
+				<pre>func Client(conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, config *<a href="#Config">Config</a>) *<a href="#Conn">Conn</a></pre>
+				<p>Client 返回新的 TLS 客户端连接，以 conn 作为底层传输。config 不能为 nil；必须在 config 中设置 ServerName 或 InsecureSkipVerify。
+
+				
+			
+				<h3 id="Dial">func <a href="/src/crypto/tls/tls.go?s=5845:5907#L175">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(network, addr <a href="/pkg/builtin/#string">string</a>, config *<a href="#Config">Config</a>) (*<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial 使用 net.Dial 连接给定网络地址，然后发起 TLS 握手，返回建立的 TLS 连接。Dial 将 nil 配置视为零值配置；默认值请参阅 Config 文档。
+
+				
+
+
+<div id="example_Dial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+)
+
+func main() {
+	// 使用自定义根证书集合建立连接。
+
+	const rootPEM = `
+-- GlobalSign Root R2, valid until Dec 15, 2021
+-----BEGIN CERTIFICATE-----
+MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4G
+A1UECxMXR2xvYmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNp
+Z24xEzARBgNVBAMTCkdsb2JhbFNpZ24wHhcNMDYxMjE1MDgwMDAwWhcNMjExMjE1
+MDgwMDAwWjBMMSAwHgYDVQQLExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEG
+A1UEChMKR2xvYmFsU2lnbjETMBEGA1UEAxMKR2xvYmFsU2lnbjCCASIwDQYJKoZI
+hvcNAQEBBQADggEPADCCAQoCggEBAKbPJA6+Lm8omUVCxKs+IVSbC9N/hHD6ErPL
+v4dfxn+G07IwXNb9rfF73OX4YJYJkhD10FPe+3t+c4isUoh7SqbKSaZeqKeMWhG8
+eoLrvozps6yWJQeXSpkqBy+0Hne/ig+1AnwblrjFuTosvNYSuetZfeLQBoZfXklq
+tTleiDTsvHgMCJiEbKjNS7SgfQx5TfC4LcshytVsW33hoCmEofnTlEnLJGKRILzd
+C9XZzPnqJworc5HGnRusyMvo4KD0L5CLTfuwNhv2GXqF4G3yYROIXJ/gkwpRl4pa
+zq+r1feqCapgvdzZX99yqWATXgAByUr6P6TqBwMhAo6CygPCm48CAwEAAaOBnDCB
+mTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUm+IH
+V2ccHsBqBt5ZtJot39wZhi4wNgYDVR0fBC8wLTAroCmgJ4YlaHR0cDovL2NybC5n
+bG9iYWxzaWduLm5ldC9yb290LXIyLmNybDAfBgNVHSMEGDAWgBSb4gdXZxwewGoG
+3lm0mi3f3BmGLjANBgkqhkiG9w0BAQUFAAOCAQEAmYFThxxol4aR7OBKuEQLq4Gs
+J0/WwbgcQ3izDJr86iw8bmEbTUsp9Z8FHSbBuOmDAGJFtqkIk7mpM0sYmsL4h4hO
+291xNBrBVNpGP+DTKqttVCL1OmLNIG+6KYnX3ZHu01yiPqFbQfXf5WRDLenVOavS
+ot+3i9DAgBkcRcAtjOj4LaR0VknFBbVPFd5uRHg5h6h+u/N5GJG79G+dwfCMNYxd
+AfvDbbnvRG15RjF+Cv6pgsH/76tuIMRQyV+dTZsXjAzlAcmgQWpzU/qlULRuJQ/7
+TBj0/VLZjmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==
+-----END CERTIFICATE-----`
+
+	// 首先创建根证书集合。此示例中只有
+	// 一个根证书。也可以省略这一步，以使用
+	// 当前操作系统的默认根证书集合。
+	roots := x509.NewCertPool()
+	ok := roots.AppendCertsFromPEM([]byte(rootPEM))
+	if !ok {
+		panic("failed to parse root certificate")
+	}
+
+	conn, err := tls.Dial("tcp", "mail.google.com:443", &amp;tls.Config{
+		RootCAs: roots,
+	})
+	if err != nil {
+		panic("failed to connect: " + err.Error())
+	}
+	conn.Close()
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="DialWithDialer">func <a href="/src/crypto/tls/tls.go?s=4344:4436#L121">DialWithDialer</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func DialWithDialer(dialer *<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Dialer">Dialer</a>, network, addr <a href="/pkg/builtin/#string">string</a>, config *<a href="#Config">Config</a>) (*<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DialWithDialer 使用 dialer.Dial 连接给定网络地址，然后发起 TLS 握手，返回建立的 TLS 连接。dialer 中设置的超时时长或截止时间作用于连接建立和 TLS 握手的整个过程。
+<p>DialWithDialer 将 nil 配置视为零值配置；默认值请参阅 <a href="#Config">Config</a> 文档。
+<p>DialWithDialer 内部使用 context.Background；若要指定上下文，请使用 <a href="#Dialer.DialContext">Dialer.DialContext</a>，并将 NetDialer 设为所需的 dialer。
+
+				
+			
+				<h3 id="Server">func <a href="/src/crypto/tls/tls.go?s=1526:1574#L36">Server</a>
+					
+					
+				</h3>
+				<pre>func Server(conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, config *<a href="#Config">Config</a>) *<a href="#Conn">Conn</a></pre>
+				<p>Server 返回新的 TLS 服务器端连接，以 conn 作为底层传输。config 必须非 nil，且必须至少包含一个证书，或者设置 GetCertificate。
+
+				
+			
+
+			
+				<h3 id="Conn.Close">func (*Conn) <a href="/src/crypto/tls/conn.go?s=44974:45002#L1412">Close</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭连接。
+
+				
+			
+				<h3 id="Conn.CloseWrite">func (*Conn) <a href="/src/crypto/tls/conn.go?s=46197:46230#L1452">CloseWrite</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) CloseWrite() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>CloseWrite 关闭连接的写入方向。它只能在握手完成后调用，而且不会调用底层连接的 CloseWrite。多数调用方应直接使用 <a href="#Conn.Close">Conn.Close</a>。
+
+				
+			
+				<h3 id="Conn.ConnectionState">func (*Conn) <a href="/src/crypto/tls/conn.go?s=51153:51201#L1603">ConnectionState</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) ConnectionState() <a href="#ConnectionState">ConnectionState</a></pre>
+				<p>ConnectionState 返回连接的基本 TLS 信息。
+<p>返回的 <a href="#ConnectionState">ConnectionState</a> 只有在握手完成后才有意义，握手是否完成由 <a href="#ConnectionState.HandshakeComplete">ConnectionState.HandshakeComplete</a> 表示；在此之前，其字段尚未填充。首次调用 <a href="#Conn.Read">Conn.Read</a> 或 <a href="#Conn.Write">Conn.Write</a> 时会自动执行握手，也可以通过 <a href="#Conn.Handshake">Conn.Handshake</a> 显式触发。
+
+				
+			
+				<h3 id="Conn.Handshake">func (*Conn) <a href="/src/crypto/tls/conn.go?s=47403:47435#L1488">Handshake</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Handshake() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>如果尚未执行握手，Handshake 会执行客户端或服务器握手协议。
+<p>多数情况下无需显式调用 Handshake：首次 <a href="#Conn.Read">Conn.Read</a> 或 <a href="#Conn.Write">Conn.Write</a> 会自动调用它。
+<p>若要控制握手取消或设置握手超时，请改用 <a href="#Conn.HandshakeContext">Conn.HandshakeContext</a> 或 <a href="#Dialer">Dialer</a> 的 DialContext 方法。
+<p>为避免拒绝服务攻击，TLS 服务器或客户端发送的证书中，RSA 密钥大小最多为 8192 位。可以通过 GODEBUG 环境变量中的 tlsmaxrsasize 设置覆盖此限制（例如 GODEBUG=tlsmaxrsasize=4096）。
+
+				
+			
+				<h3 id="Conn.HandshakeContext">func (*Conn) <a href="/src/crypto/tls/conn.go?s=47993:48051#L1502">HandshakeContext</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) HandshakeContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>如果尚未执行握手，HandshakeContext 会执行客户端或服务器握手协议。
+<p>传入的 Context 必须非 nil。如果上下文在握手完成之前被取消，则中断握手并返回错误。握手完成后，取消上下文不会影响连接。
+<p>多数情况下无需显式调用 HandshakeContext：首次 <a href="#Conn.Read">Conn.Read</a> 或 <a href="#Conn.Write">Conn.Write</a> 会自动调用它。
+
+				
+			
+				<h3 id="Conn.LocalAddr">func (*Conn) <a href="/src/crypto/tls/conn.go?s=4677:4712#L121">LocalAddr</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) LocalAddr() <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Addr">Addr</a></pre>
+				<p>LocalAddr 返回本地网络地址。
+
+				
+			
+				<h3 id="Conn.NetConn">func (*Conn) <a href="/src/crypto/tls/conn.go?s=5934:5967#L153">NetConn</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) NetConn() <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a></pre>
+				<p>NetConn 返回 c 封装的底层连接。注意，直接读写此连接会破坏 TLS 会话。
+
+				
+			
+				<h3 id="Conn.OCSPResponse">func (*Conn) <a href="/src/crypto/tls/conn.go?s=52561:52597#L1646">OCSPResponse</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) OCSPResponse() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>OCSPResponse 返回 TLS 服务器装订的 OCSP 响应（如果有）。仅对客户端连接有效。
+
+				
+			
+				<h3 id="Conn.Read">func (*Conn) <a href="/src/crypto/tls/conn.go?s=43687:43729#L1368">Read</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 从连接读取数据。
+<p>由于 Read 会调用 <a href="#Conn.Handshake">Conn.Handshake</a>，如果握手尚未完成，为避免无限阻塞，必须在调用 Read 之前为 Read 和 <a href="#Conn.Write">Conn.Write</a> 都设置截止时间。参见 <a href="#Conn.SetDeadline">Conn.SetDeadline</a>、<a href="#Conn.SetReadDeadline">Conn.SetReadDeadline</a> 和 <a href="#Conn.SetWriteDeadline">Conn.SetWriteDeadline</a>。
+
+				
+			
+				<h3 id="Conn.RemoteAddr">func (*Conn) <a href="/src/crypto/tls/conn.go?s=4795:4831#L126">RemoteAddr</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) RemoteAddr() <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Addr">Addr</a></pre>
+				<p>RemoteAddr 返回远端网络地址。
+
+				
+			
+				<h3 id="Conn.SetDeadline">func (*Conn) <a href="/src/crypto/tls/conn.go?s=5129:5174#L133">SetDeadline</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) SetDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SetDeadline 设置连接的读写截止时间。t 为零值表示 <a href="#Conn.Read">Conn.Read</a> 和 <a href="#Conn.Write">Conn.Write</a> 不会超时。一旦 Write 超时，TLS 状态就已损坏，之后所有写入都会返回相同的错误。
+
+				
+			
+				<h3 id="Conn.SetReadDeadline">func (*Conn) <a href="/src/crypto/tls/conn.go?s=5341:5390#L139">SetReadDeadline</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) SetReadDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SetReadDeadline 设置底层连接的读取截止时间。t 为零值表示 <a href="#Conn.Read">Conn.Read</a> 不会超时。
+
+				
+			
+				<h3 id="Conn.SetWriteDeadline">func (*Conn) <a href="/src/crypto/tls/conn.go?s=5678:5728#L146">SetWriteDeadline</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) SetWriteDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SetWriteDeadline 设置底层连接的写入截止时间。t 为零值表示 <a href="#Conn.Write">Conn.Write</a> 不会超时。一旦 <a href="#Conn.Write">Conn.Write</a> 超时，TLS 状态就已损坏，之后所有写入都会返回相同的错误。
+
+				
+			
+				<h3 id="Conn.VerifyHostname">func (*Conn) <a href="/src/crypto/tls/conn.go?s=52856:52904#L1656">VerifyHostname</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) VerifyHostname(host <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>VerifyHostname 检查对端证书链是否适用于连接 host。如果适用，返回 nil；否则返回描述问题的错误。
+
+				
+			
+				<h3 id="Conn.Write">func (*Conn) <a href="/src/crypto/tls/conn.go?s=38804:38847#L1191">Write</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 向连接写入数据。
+<p>由于 Write 会调用 <a href="#Conn.Handshake">Conn.Handshake</a>，如果握手尚未完成，为避免无限阻塞，必须在调用 Write 之前为 <a href="#Conn.Read">Conn.Read</a> 和 Write 都设置截止时间。参见 <a href="#Conn.SetDeadline">Conn.SetDeadline</a>、<a href="#Conn.SetReadDeadline">Conn.SetReadDeadline</a> 和 <a href="#Conn.SetWriteDeadline">Conn.SetWriteDeadline</a>。
+
+				
+			
+		
+			
+			<h2 id="ConnectionState">type <a href="/src/crypto/tls/common.go?s=7425:11107#L242">ConnectionState</a>
+				
+				
+			</h2>
+			<p>ConnectionState 记录连接的基本 TLS 信息。
+
+			<pre>type ConnectionState struct {
+<span id="ConnectionState.Version"></span>    <span class="comment">// Version 是此连接使用的 TLS 版本，例如 VersionTLS12。</span>
+    Version <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// Go 1.3</span>
+
+<span id="ConnectionState.HandshakeComplete"></span>    <span class="comment">// 握手完成时，HandshakeComplete 为 true。</span>
+    HandshakeComplete <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="ConnectionState.DidResume"></span>    <span class="comment">// 如果此连接通过会话票据或类似机制从先前会话</span>
+    <span class="comment">// 成功恢复，DidResume 就为 true。</span>
+    DidResume <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.1</span>
+
+<span id="ConnectionState.CipherSuite"></span>    <span class="comment">// CipherSuite 是为此连接协商的密码套件，例如</span>
+    <span class="comment">// TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256、TLS_AES_128_GCM_SHA256。</span>
+    CipherSuite <a href="/pkg/builtin/#uint16">uint16</a>
+
+<span id="ConnectionState.CurveID"></span>    <span class="comment">// CurveID 是此连接使用的密钥交换机制。字段名</span>
+    <span class="comment">// 因历史原因仍称为椭圆曲线，参见 [CurveID]。如果使用传统</span>
+    <span class="comment">// RSA 密钥交换，此值为零。</span>
+    CurveID <a href="#CurveID">CurveID</a> <span class="comment">// Go 1.25</span>
+
+<span id="ConnectionState.NegotiatedProtocol"></span>    <span class="comment">// NegotiatedProtocol 是通过 ALPN 协商的应用协议。</span>
+    NegotiatedProtocol <a href="/pkg/builtin/#string">string</a>
+
+<span id="ConnectionState.NegotiatedProtocolIsMutual"></span>    <span class="comment">// NegotiatedProtocolIsMutual 曾用于表示双方都进行了 NPN 协商。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：此值始终为 true。</span>
+    NegotiatedProtocolIsMutual <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="ConnectionState.ServerName"></span>    <span class="comment">// ServerName 是客户端发送的服务器名称指示扩展的值。</span>
+    <span class="comment">// 在服务器端和客户端都可用。</span>
+    ServerName <a href="/pkg/builtin/#string">string</a>
+
+<span id="ConnectionState.PeerCertificates"></span>    <span class="comment">// PeerCertificates 是对端发送的已解析证书，</span>
+    <span class="comment">// 按发送顺序排列。第一个元素是用于验证</span>
+    <span class="comment">// 此连接的叶子证书。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在客户端，该列表不能为空。在服务器端，如果</span>
+    <span class="comment">// Config.ClientAuth 既不是 RequireAnyClientCert，也不是</span>
+    <span class="comment">// RequireAndVerifyClientCert，则可以为空。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不应修改 PeerCertificates 及其中的内容。</span>
+    PeerCertificates []*<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a>
+
+<span id="ConnectionState.VerifiedChains"></span>    <span class="comment">// VerifiedChains 是包含一个或多个证书链的列表，每条链的首个元素</span>
+    <span class="comment">// 为 PeerCertificates[0]，最后一个元素来自 Config.RootCAs（客户端）</span>
+    <span class="comment">// 或 Config.ClientCAs（服务器端）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 客户端在 Config.InsecureSkipVerify 为 false 时设置它。</span>
+    <span class="comment">// 服务器端在 Config.ClientAuth 为 VerifyClientCertIfGiven</span>
+    <span class="comment">// （且对端提供了证书）或 RequireAndVerifyClientCert 时设置它。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不应修改 VerifiedChains 及其中的内容。</span>
+    VerifiedChains [][]*<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a>
+
+<span id="ConnectionState.SignedCertificateTimestamps"></span>    <span class="comment">// SignedCertificateTimestamps 是对端通过 TLS 握手</span>
+    <span class="comment">// 为叶子证书提供的 SCT 列表（如果有）。</span>
+    SignedCertificateTimestamps [][]<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.5</span>
+
+<span id="ConnectionState.OCSPResponse"></span>    <span class="comment">// OCSPResponse 是对端为叶子证书提供的</span>
+    <span class="comment">// 装订在线证书状态协议（OCSP）响应（如果有）。</span>
+    OCSPResponse []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.5</span>
+
+<span id="ConnectionState.TLSUnique"></span>    <span class="comment">// TLSUnique 包含 "tls-unique" 通道绑定值（参见 RFC 5929</span>
+    <span class="comment">// 第 3 节）。对于 TLS 1.3 连接，以及不支持扩展主秘密</span>
+    <span class="comment">// （RFC 7627）的恢复连接，此值为 nil。</span>
+    TLSUnique []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.4</span>
+
+<span id="ConnectionState.ECHAccepted"></span>    <span class="comment">// ECHAccepted 表示客户端是否提出使用加密客户端 Hello，</span>
+    <span class="comment">// 且服务器接受了它。目前仅在客户端</span>
+    <span class="comment">// 支持 ECH。</span>
+    ECHAccepted <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.23</span>
+
+<span id="ConnectionState.HelloRetryRequest"></span>    <span class="comment">// HelloRetryRequest 表示：作为服务器时是否发送了 HelloRetryRequest，</span>
+    <span class="comment">// 或作为客户端时是否收到了 HelloRetryRequest。</span>
+    HelloRetryRequest <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.26</span>
+
+<span id="ConnectionState.LocalCertificate"></span>    <span class="comment">// LocalCertificate 是握手期间向对端提供的证书链（如果有）。</span>
+    <span class="comment">// 只有未通过恢复建立的连接（DidResume 为 false）</span>
+    <span class="comment">// 才会填充此字段。</span>
+    LocalCertificate [][]<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.27</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ConnectionState.ExportKeyingMaterial">func (*ConnectionState) <a href="/src/crypto/tls/common.go?s=11471:11576#L336">ExportKeyingMaterial</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (cs *<a href="#ConnectionState">ConnectionState</a>) ExportKeyingMaterial(label <a href="/pkg/builtin/#string">string</a>, context []<a href="/pkg/builtin/#byte">byte</a>, length <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ExportKeyingMaterial 按 RFC 5705 的定义，在新切片中返回 length 字节的导出密钥材料。如果 context 为 nil，则不将它作为种子的一部分。如果连接通过 Config.Renegotiation 配置为允许重新协商，或者连接既不支持 TLS 1.3，也不支持扩展主秘密（Extended Master Secret），此函数会返回错误。
+
+				
+			
+		
+			
+			<h2 id="CurveID">type <a href="/src/crypto/tls/common.go?s=4402:4421#L138">CurveID</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>CurveID 是 TLS 中用于标识密钥交换机制的类型。参见 <a href="https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8">https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8</a>。
+<p>在 TLS 1.2 中，此注册表只支持椭圆曲线。在 TLS 1.3 中，它被扩展为支持其他群，并重命名为 NamedGroup。参见 RFC 8446 第 4.2.7 节。此后，它又扩展为支持混合后量子 KEM 等其他机制。
+
+			<pre>type CurveID <a href="/pkg/builtin/#uint16">uint16</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="CurveP256">CurveP256</span>          <a href="#CurveID">CurveID</a> = 23
+    <span id="CurveP384">CurveP384</span>          <a href="#CurveID">CurveID</a> = 24
+    <span id="CurveP521">CurveP521</span>          <a href="#CurveID">CurveID</a> = 25
+    <span id="X25519">X25519</span>             <a href="#CurveID">CurveID</a> = 29
+    <span id="X25519MLKEM768">X25519MLKEM768</span>     <a href="#CurveID">CurveID</a> = 4588
+    <span id="SecP256r1MLKEM768">SecP256r1MLKEM768</span>  <a href="#CurveID">CurveID</a> = 4587
+    <span id="SecP384r1MLKEM1024">SecP384r1MLKEM1024</span> <a href="#CurveID">CurveID</a> = 4589
+    <span id="MLKEM1024">MLKEM1024</span>          <a href="#CurveID">CurveID</a> = 514
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CurveID.String">func (CurveID) <a href="/src/crypto/tls/common_string.go?s=2858:2890#L90">String</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (i <a href="#CurveID">CurveID</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Dialer">type <a href="/src/crypto/tls/tls.go?s=6077:6491#L181">Dialer</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<p>Dialer 根据给定配置及用于底层连接的 Dialer 建立 TLS 连接。
+
+			<pre>type Dialer struct {
+<span id="Dialer.NetDialer"></span>    <span class="comment">// NetDialer 是可选的拨号器，用于建立 TLS 连接的</span>
+    <span class="comment">// 底层 TCP 连接。</span>
+    <span class="comment">// nil NetDialer 等价于 net.Dialer 的零值。</span>
+    NetDialer *<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Dialer">Dialer</a>
+
+<span id="Dialer.Config"></span>    <span class="comment">// Config 是新连接使用的 TLS 配置。</span>
+    <span class="comment">// nil 配置等价于零值</span>
+    <span class="comment">// 配置；默认值请参阅 Config</span>
+    <span class="comment">// 文档。</span>
+    Config *<a href="#Config">Config</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dialer.Dial">func (*Dialer) <a href="/src/crypto/tls/tls.go?s=6780:6841#L201">Dial</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (d *<a href="#Dialer">Dialer</a>) Dial(network, addr <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial 连接给定网络地址并发起 TLS 握手，返回建立的 TLS 连接。
+<p>返回的 <a href="#Conn">Conn</a>（如果有）始终具有 *<a href="#Conn">Conn</a> 类型。
+<p>Dial 内部使用 context.Background；若要指定上下文，请使用 <a href="#Dialer.DialContext">Dialer.DialContext</a>。
+
+				
+			
+				<h3 id="Dialer.DialContext">func (*Dialer) <a href="/src/crypto/tls/tls.go?s=7443:7532#L221">DialContext</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (d *<a href="#Dialer">Dialer</a>) DialContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, network, addr <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DialContext 连接给定网络地址并发起 TLS 握手，返回建立的 TLS 连接。
+<p>传入的 Context 必须非 nil。如果上下文在连接建立完成之前到期，则返回错误。成功连接后，上下文到期不会影响连接。
+<p>返回的 <a href="#Conn">Conn</a>（如果有）始终具有 *<a href="#Conn">Conn</a> 类型。
+
+				
+			
+		
+			
+			<h2 id="ECHRejectionError">type <a href="/src/crypto/tls/ech.go?s=14624:14681#L478">ECHRejectionError</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<p>ECHRejectionError 是远端服务器拒绝 ECH 时返回的错误类型。如果服务器提供了用于重试的 ECHConfigList，RetryConfigList 字段就包含该列表。
+<p>客户端可以将 RetryConfigs 集合为空的 ECHRejectionError 视为来自服务器的安全信号。
+
+			<pre>type ECHRejectionError struct {
+<span id="ECHRejectionError.RetryConfigList"></span>    RetryConfigList []<a href="/pkg/builtin/#byte">byte</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ECHRejectionError.Error">func (*ECHRejectionError) <a href="/src/crypto/tls/ech.go?s=14683:14725#L482">Error</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (e *<a href="#ECHRejectionError">ECHRejectionError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="EncryptedClientHelloKey">type <a href="/src/crypto/tls/common.go?s=37221:38376#L916">EncryptedClientHelloKey</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>EncryptedClientHelloKey 保存与客户端已知的特定 ECH 配置关联的私钥。
+
+			<pre>type EncryptedClientHelloKey struct {
+<span id="EncryptedClientHelloKey.Config"></span>    <span class="comment">// Config 应为与 PrivateKey 关联、序列化后的 ECHConfig。</span>
+    <span class="comment">// 它必须与提供给客户端的配置逐字节一致。</span>
+    <span class="comment">// 配置所用的 KEM 必须为以下之一：</span>
+    <span class="comment">//</span>
+    <span class="comment">//   - DHKEM(P-256, HKDF-SHA256) (0x0010)</span>
+    <span class="comment">//   - DHKEM(P-384, HKDF-SHA384) (0x0011)</span>
+    <span class="comment">//   - DHKEM(P-521, HKDF-SHA512) (0x0012)</span>
+    <span class="comment">//   - DHKEM(X25519, HKDF-SHA256) (0x0020)</span>
+    <span class="comment">//   - ML-KEM-768 (0x0041)</span>
+    <span class="comment">//   - ML-KEM-1024 (0x0042)</span>
+    <span class="comment">//   - MLKEM768-P256 (0x0050)</span>
+    <span class="comment">//   - MLKEM1024-P384 (0x0051)</span>
+    <span class="comment">//   - MLKEM768-X25519 (0x647a)</span>
+    <span class="comment">//</span>
+    <span class="comment">// KDF 必须为以下之一：</span>
+    <span class="comment">//</span>
+    <span class="comment">//   - HKDF-SHA256 (0x0001)</span>
+    <span class="comment">//   - HKDF-SHA384 (0x0002)</span>
+    <span class="comment">//   - HKDF-SHA512 (0x0003)</span>
+    <span class="comment">//</span>
+    <span class="comment">// AEAD 必须为以下之一：</span>
+    <span class="comment">//</span>
+    <span class="comment">//   - AES-128-GCM (0x0001)</span>
+    <span class="comment">//   - AES-256-GCM (0x0002)</span>
+    <span class="comment">//   - ChaCha20Poly1305 (0x0003)</span>
+    <span class="comment">//</span>
+    Config []<a href="/pkg/builtin/#byte">byte</a>
+<span id="EncryptedClientHelloKey.PrivateKey"></span>    <span class="comment">// PrivateKey 应为序列化后的私钥，采用 Config 所用 KEM 对应的</span>
+    <span class="comment">// HPKE DeserializePrivateKey 所要求的格式（参见 RFC 9180）。</span>
+    PrivateKey []<a href="/pkg/builtin/#byte">byte</a>
+<span id="EncryptedClientHelloKey.SendAsRetry"></span>    <span class="comment">// SendAsRetry 表示当客户端请求 ECH 但被服务器拒绝时，</span>
+    <span class="comment">// 是否应将 Config 作为重试配置列表的一部分</span>
+    <span class="comment">// 发送。</span>
+    SendAsRetry <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QUICConfig">type <a href="/src/crypto/tls/quic.go?s=1145:1643#L41">QUICConfig</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>QUICConfig 用于配置 <a href="#QUICConn">QUICConn</a>。
+
+			<pre>type QUICConfig struct {
+<span id="QUICConfig.TLSConfig"></span>    TLSConfig *<a href="#Config">Config</a>
+
+<span id="QUICConfig.EnableSessionEvents"></span>    <span class="comment">// 将 EnableSessionEvents 设为 true，可以为客户端连接启用</span>
+    <span class="comment">// [QUICStoreSession] 和 [QUICResumeSession] 事件。</span>
+    <span class="comment">// 启用这些事件后，会话不会再自动</span>
+    <span class="comment">// 存入客户端会话缓存。</span>
+    <span class="comment">// 应用程序应通过 [QUICConn.StoreSession] 存储会话。</span>
+    EnableSessionEvents <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.23</span>
+
+<span id="QUICConfig.ClientHelloInfoConn"></span>    <span class="comment">// ClientHelloInfoConn 是用于 ClientHelloInfo.Conn 字段的 net.Conn。</span>
+    ClientHelloInfoConn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a> <span class="comment">// Go 1.27</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QUICConn">type <a href="/src/crypto/tls/quic.go?s=1041:1102#L34">QUICConn</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>QUICConn 表示按 RFC 9001 描述、使用 QUIC 实现作为底层传输的连接。
+<p>QUICConn 的方法不能安全地并发调用。
+
+			<pre>type QUICConn struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="QUICClient">func <a href="/src/crypto/tls/quic.go?s=6158:6203#L178">QUICClient</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func QUICClient(config *<a href="#QUICConfig">QUICConfig</a>) *<a href="#QUICConn">QUICConn</a></pre>
+				<p>QUICClient 返回新的 TLS 客户端连接，使用 QUICTransport 作为底层传输。config 不能为 nil。
+
+				
+			
+				<h3 id="QUICServer">func <a href="/src/crypto/tls/quic.go?s=6401:6446#L184">QUICServer</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func QUICServer(config *<a href="#QUICConfig">QUICConfig</a>) *<a href="#QUICConn">QUICConn</a></pre>
+				<p>QUICServer 返回新的 TLS 服务器端连接，使用 QUICTransport 作为底层传输。config 不能为 nil。
+
+				
+			
+
+			
+				<h3 id="QUICConn.Close">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=8458:8490#L252">Close</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭连接，并停止任何正在进行的握手。
+
+				
+			
+				<h3 id="QUICConn.ConnectionState">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=11449:11501#L349">ConnectionState</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) ConnectionState() <a href="#ConnectionState">ConnectionState</a></pre>
+				<p>ConnectionState 返回连接的基本 TLS 信息。
+
+				
+			
+				<h3 id="QUICConn.HandleData">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=8861:8936#L266">HandleData</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) HandleData(level <a href="#QUICEncryptionLevel">QUICEncryptionLevel</a>, data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>HandleData 处理从对端收到的握手字节。它可能产生连接事件，可以通过 <a href="#QUICConn.NextEvent">QUICConn.NextEvent</a> 读取。
+
+				
+			
+				<h3 id="QUICConn.NextEvent">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=7500:7540#L219">NextEvent</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) NextEvent() <a href="#QUICEvent">QUICEvent</a></pre>
+				<p>NextEvent 返回连接上发生的下一个事件。没有可用事件时，返回 Kind 为 <a href="#QUICNoEvent">QUICNoEvent</a> 的事件。
+
+				
+			
+				<h3 id="QUICConn.SendSessionTicket">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=10228:10301#L312">SendSessionTicket</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) SendSessionTicket(opts <a href="#QUICSessionTicketOptions">QUICSessionTicketOptions</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SendSessionTicket 向客户端发送会话票据。它会产生连接事件，可以通过 <a href="#QUICConn.NextEvent">QUICConn.NextEvent</a> 读取。目前只能调用一次。
+
+				
+			
+				<h3 id="QUICConn.SetTransportParameters">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=11784:11840#L357">SetTransportParameters</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) SetTransportParameters(params []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>SetTransportParameters 设置要发送给对端的传输参数。
+<p>服务器连接可以等到收到客户端的传输参数后，再设置自身传输参数。参见 <a href="#QUICTransportParametersRequired">QUICTransportParametersRequired</a>。
+
+				
+			
+				<h3 id="QUICConn.Start">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=7052:7103#L205">Start</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) Start(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Start 启动客户端或服务器握手协议。它可能产生连接事件，可以通过 <a href="#QUICConn.NextEvent">QUICConn.NextEvent</a> 读取。
+<p>Start 最多只能调用一次。
+
+				
+			
+				<h3 id="QUICConn.StoreSession">func (*QUICConn) <a href="/src/crypto/tls/quic.go?s=11023:11083#L334">StoreSession</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (q *<a href="#QUICConn">QUICConn</a>) StoreSession(session *<a href="#SessionState">SessionState</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>StoreSession 将之前通过 QUICStoreSession 事件收到的会话存入 ClientSessionCache。应用程序可以在存储会话之前处理其他事件，或修改 SessionState。
+
+				
+			
+		
+			
+			<h2 id="QUICEncryptionLevel">type <a href="/src/crypto/tls/quic.go?s=318:346#L6">QUICEncryptionLevel</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>QUICEncryptionLevel 表示用于传输握手消息的 QUIC 加密级别。
+
+			<pre>type QUICEncryptionLevel <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="QUICEncryptionLevel.String">func (QUICEncryptionLevel) <a href="/src/crypto/tls/quic.go?s=503:547#L15">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l <a href="#QUICEncryptionLevel">QUICEncryptionLevel</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="QUICEvent">type <a href="/src/crypto/tls/quic.go?s=4448:5013#L125">QUICEvent</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>QUICEvent 是 QUIC 连接上发生的事件。
+<p>事件类型由 Kind 字段指定。其他字段的内容取决于事件类型。
+
+			<pre>type QUICEvent struct {
+<span id="QUICEvent.Kind"></span>    Kind <a href="#QUICEventKind">QUICEventKind</a>
+
+    <span class="comment">// 对 QUICSetReadSecret、QUICSetWriteSecret 和 QUICWriteData 设置。</span>
+<span id="QUICEvent.Level"></span>    Level <a href="#QUICEncryptionLevel">QUICEncryptionLevel</a>
+
+    <span class="comment">// 对 QUICTransportParameters、QUICSetReadSecret、QUICSetWriteSecret 和 QUICWriteData 设置。</span>
+    <span class="comment">// 内容归 crypto/tls 所有，在下一次 NextEvent 调用之前有效。</span>
+<span id="QUICEvent.Data"></span>    Data []<a href="/pkg/builtin/#byte">byte</a>
+
+    <span class="comment">// 对 QUICSetReadSecret 和 QUICSetWriteSecret 设置。</span>
+<span id="QUICEvent.Suite"></span>    Suite <a href="/pkg/builtin/#uint16">uint16</a>
+
+    <span class="comment">// 对 QUICResumeSession 和 QUICStoreSession 设置。</span>
+<span id="QUICEvent.SessionState"></span>    SessionState *<a href="#SessionState">SessionState</a> <span class="comment">// Go 1.23</span>
+
+    <span class="comment">// 对 QUICErrorEvent 设置。</span>
+    <span class="comment">// 该错误会包装 AlertError。</span>
+<span id="QUICEvent.Err"></span>    Err <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.26</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QUICEventKind">type <a href="/src/crypto/tls/quic.go?s=1709:1731#L56">QUICEventKind</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>QUICEventKind 是 QUIC 连接上的操作类型。
+
+			<pre>type QUICEventKind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// QUICNoEvent 表示没有可用事件。</span>
+    <span id="QUICNoEvent">QUICNoEvent</span> <a href="#QUICEventKind">QUICEventKind</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// QUICSetReadSecret 和 QUICSetWriteSecret 提供给定加密级别</span>
+    <span class="comment">// 的读取和写入秘密值。</span>
+    <span class="comment">// 会设置 QUICEvent.Level、QUICEvent.Data 和 QUICEvent.Suite。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Initial 加密级别的秘密值由初始目标连接 ID</span>
+    <span class="comment">// 派生，不由 QUICConn 提供。</span>
+    <span id="QUICSetReadSecret">QUICSetReadSecret</span>
+    <span id="QUICSetWriteSecret">QUICSetWriteSecret</span>
+
+    <span class="comment">// QUICWriteData 提供要通过 CRYPTO 帧发送给对端的数据。</span>
+    <span class="comment">// 会设置 QUICEvent.Data。</span>
+    <span id="QUICWriteData">QUICWriteData</span>
+
+    <span class="comment">// QUICTransportParameters 提供对端的 QUIC 传输参数。</span>
+    <span class="comment">// 会设置 QUICEvent.Data。</span>
+    <span id="QUICTransportParameters">QUICTransportParameters</span>
+
+    <span class="comment">// QUICTransportParametersRequired 表示调用方必须提供</span>
+    <span class="comment">// 要发送给对端的 QUIC 传输参数。调用方应通过</span>
+    <span class="comment">// QUICConn.SetTransportParameters 设置传输参数，然后再次调用</span>
+    <span class="comment">// QUICConn.NextEvent。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果在调用 QUICConn.Start 之前设置了传输参数，</span>
+    <span class="comment">// 连接就绝不会产生 QUICTransportParametersRequired 事件。</span>
+    <span id="QUICTransportParametersRequired">QUICTransportParametersRequired</span>
+
+    <span class="comment">// QUICRejectedEarlyData 表示即使本端提出了 0-RTT 数据，</span>
+    <span class="comment">// 服务器仍拒绝接受。此事件在返回 QUICEncryptionLevelApplication</span>
+    <span class="comment">// 密钥之前返回。</span>
+    <span class="comment">// 此事件仅在客户端连接上发生。</span>
+    <span id="QUICRejectedEarlyData">QUICRejectedEarlyData</span>
+
+    <span class="comment">// QUICHandshakeDone 表示 TLS 握手已完成。</span>
+    <span id="QUICHandshakeDone">QUICHandshakeDone</span>
+
+    <span class="comment">// QUICResumeSession 表示客户端正在尝试恢复先前会话。</span>
+    <span class="comment">// 会设置 [QUICEvent.SessionState]。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于客户端连接，此事件在选定会话票据时发生。</span>
+    <span class="comment">// 对于服务器连接，此事件在收到客户端会话票据时发生。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 应用程序可以在下一次调用 [QUICConn.NextEvent] 之前，</span>
+    <span class="comment">// 将 [QUICEvent.SessionState.EarlyData] 设为 false，以拒绝 0-RTT，即使会话支持它。</span>
+    <span id="QUICResumeSession">QUICResumeSession</span>
+
+    <span class="comment">// QUICStoreSession 表示服务器提供了允许客户端</span>
+    <span class="comment">// 恢复会话的状态。</span>
+    <span class="comment">// 会设置 [QUICEvent.SessionState]。</span>
+    <span class="comment">// 应用程序应使用 [QUICConn.StoreSession] 存储 [SessionState]。</span>
+    <span class="comment">// 应用程序可以在存储之前修改 [SessionState]。</span>
+    <span class="comment">// 此事件仅在客户端连接上发生。</span>
+    <span id="QUICStoreSession">QUICStoreSession</span>
+
+    <span class="comment">// QUICErrorEvent 表示发生了致命错误。</span>
+    <span class="comment">// 握手无法继续，必须关闭连接。</span>
+    <span class="comment">// 会设置 QUICEvent.Err。</span>
+    <span id="QUICErrorEvent">QUICErrorEvent</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="QUICSessionTicketOptions">type <a href="/src/crypto/tls/quic.go?s=9904:10046#L303">QUICSessionTicketOptions</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			
+			<pre>type QUICSessionTicketOptions struct {
+<span id="QUICSessionTicketOptions.EarlyData"></span>    <span class="comment">// EarlyData 指定此票据是否可用于 0-RTT。</span>
+    EarlyData <a href="/pkg/builtin/#bool">bool</a>
+<span id="QUICSessionTicketOptions.Extra"></span>    Extra     [][]<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.23</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RecordHeaderError">type <a href="/src/crypto/tls/conn.go?s=18462:18933#L555">RecordHeaderError</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<p>TLS 记录头无效时，会返回 RecordHeaderError。
+
+			<pre>type RecordHeaderError struct {
+<span id="RecordHeaderError.Msg"></span>    <span class="comment">// Msg 包含描述错误、便于阅读的字符串。</span>
+    Msg <a href="/pkg/builtin/#string">string</a>
+<span id="RecordHeaderError.RecordHeader"></span>    <span class="comment">// RecordHeader 包含触发错误的五字节</span>
+    <span class="comment">// TLS 记录头。</span>
+    RecordHeader [5]<a href="/pkg/builtin/#byte">byte</a>
+<span id="RecordHeaderError.Conn"></span>    <span class="comment">// 当客户端发送的初始握手不像 TLS 时，</span>
+    <span class="comment">// Conn 提供底层 net.Conn。</span>
+    <span class="comment">// 如果已经进行过握手，或已向连接写入 TLS 警报，</span>
+    <span class="comment">// 则为 nil。</span>
+    Conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a> <span class="comment">// Go 1.12</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RecordHeaderError.Error">func (RecordHeaderError) <a href="/src/crypto/tls/conn.go?s=18935:18976#L568">Error</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (e <a href="#RecordHeaderError">RecordHeaderError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RenegotiationSupport">type <a href="/src/crypto/tls/common.go?s=20126:20155#L549">RenegotiationSupport</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>RenegotiationSupport 枚举对 TLS 重新协商的不同支持级别。TLS 重新协商是指在连接的首次握手之后再次握手。这会显著增加状态机的复杂性，并曾引发大量隐蔽的安全问题。本包不支持主动发起重新协商，但可以启用接受重新协商请求的支持。
+<p>即使启用，服务器也不能在不同握手之间改变身份（即叶子证书必须相同）。此外，不允许握手与应用数据传输并发进行，因此重新协商只能用于能够与之同步的协议，例如 HTTPS。
+<p>TLS 1.3 未定义重新协商。
+
+			<pre>type RenegotiationSupport <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// RenegotiateNever 禁用重新协商。</span>
+    <span id="RenegotiateNever">RenegotiateNever</span> <a href="#RenegotiationSupport">RenegotiationSupport</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// RenegotiateOnceAsClient 允许远端服务器在每个连接上</span>
+    <span class="comment">// 请求一次重新协商。</span>
+    <span id="RenegotiateOnceAsClient">RenegotiateOnceAsClient</span>
+
+    <span class="comment">// RenegotiateFreelyAsClient 允许远端服务器反复</span>
+    <span class="comment">// 请求重新协商。</span>
+    <span id="RenegotiateFreelyAsClient">RenegotiateFreelyAsClient</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SessionState">type <a href="/src/crypto/tls/ticket.go?s=373:3369#L11">SessionState</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>SessionState 是可恢复的会话。
+
+			<pre>type SessionState struct {
+
+<span id="SessionState.Extra"></span>    <span class="comment">// crypto/tls 忽略 Extra，但 [SessionState.Bytes] 会编码它，</span>
+    <span class="comment">// [ParseSessionState] 会解析它。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 这允许 [Config.UnwrapSession]/[Config.WrapSession] 及</span>
+    <span class="comment">// [ClientSessionCache] 的实现，在此会话之外一并</span>
+    <span class="comment">// 存储和读取额外数据。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 为允许协议栈的不同层共享此字段，</span>
+    <span class="comment">// 应用程序只能追加而不能替换，并且必须使用</span>
+    <span class="comment">// 即使顺序打乱仍能识别的条目（例如，以标识符和</span>
+    <span class="comment">// 版本前缀开头）。</span>
+    Extra [][]<a href="/pkg/builtin/#byte">byte</a>
+
+<span id="SessionState.EarlyData"></span>    <span class="comment">// EarlyData 表示票据是否可用于 QUIC 连接中的 0-RTT。</span>
+    <span class="comment">// 如果为 true，应用程序可以将其设为 false，</span>
+    <span class="comment">// 以便即使支持 0-RTT 也不提出使用。</span>
+    EarlyData <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseSessionState">func <a href="/src/crypto/tls/ticket.go?s=5572:5630#L177">ParseSessionState</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func ParseSessionState(data []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#SessionState">SessionState</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseSessionState 解析一个 <a href="#SessionState">SessionState</a>，其编码由 <a href="#SessionState.Bytes">SessionState.Bytes</a> 生成。
+
+				
+			
+
+			
+				<h3 id="SessionState.Bytes">func (*SessionState) <a href="/src/crypto/tls/ticket.go?s=3693:3739#L101">Bytes</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (s *<a href="#SessionState">SessionState</a>) Bytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Bytes 对会话（包括所有私有字段）进行编码，以便通过 <a href="#ParseSessionState">ParseSessionState</a> 解析。编码包含秘密值，对未来会话以及可能的过去会话的安全性至关重要。
+<p>具体编码应视为不透明数据，可能在不同 Go 版本之间发生不兼容变更。
+
+				
+			
+		
+			
+			<h2 id="SignatureScheme">type <a href="/src/crypto/tls/common.go?s=14324:14351#L401">SignatureScheme</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>SignatureScheme 标识 TLS 支持的签名算法。参见 RFC 8446 第 4.2.3 节。
+
+			<pre>type SignatureScheme <a href="/pkg/builtin/#uint16">uint16</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// RSASSA-PKCS1-v1_5 算法。</span>
+    <span id="PKCS1WithSHA256">PKCS1WithSHA256</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0401
+    <span id="PKCS1WithSHA384">PKCS1WithSHA384</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0501
+    <span id="PKCS1WithSHA512">PKCS1WithSHA512</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0601
+
+    <span class="comment">// 公钥 OID 为 rsaEncryption 的 RSASSA-PSS 算法。</span>
+    <span id="PSSWithSHA256">PSSWithSHA256</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0804
+    <span id="PSSWithSHA384">PSSWithSHA384</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0805
+    <span id="PSSWithSHA512">PSSWithSHA512</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0806
+
+    <span class="comment">// ECDSA 算法。只有在 TLS 1.3 中才限定为特定曲线。</span>
+    <span id="ECDSAWithP256AndSHA256">ECDSAWithP256AndSHA256</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0403
+    <span id="ECDSAWithP384AndSHA384">ECDSAWithP384AndSHA384</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0503
+    <span id="ECDSAWithP521AndSHA512">ECDSAWithP521AndSHA512</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0603
+
+    <span class="comment">// EdDSA 算法。</span>
+    <span id="Ed25519">Ed25519</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0807
+
+    <span class="comment">// ML-DSA 算法。</span>
+    <span id="MLDSA44">MLDSA44</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0904
+    <span id="MLDSA65">MLDSA65</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0905
+    <span id="MLDSA87">MLDSA87</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0906
+
+    <span class="comment">// TLS 1.2 的传统签名和哈希算法。</span>
+    <span id="PKCS1WithSHA1">PKCS1WithSHA1</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0201
+    <span id="ECDSAWithSHA1">ECDSAWithSHA1</span> <a href="#SignatureScheme">SignatureScheme</a> = 0x0203
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SignatureScheme.String">func (SignatureScheme) <a href="/src/crypto/tls/common_string.go?s=1390:1430#L36">String</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (i <a href="#SignatureScheme">SignatureScheme</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+		<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/crypto/tls/tls.go?s=874:1144#L11" style="float: left;">&#x261e;</a> <p>crypto/tls 包只实现了针对 CBC 模式加密的 Lucky13 攻击的部分防护措施，且仅限于 SHA1 变体。参见 <a href="http://www.isg.rhul.ac.uk/tls/TLStiming.pdf">http://www.isg.rhul.ac.uk/tls/TLStiming.pdf</a> 和 <a href="https://www.imperialviolet.org/2013/02/04/luckythirteen.html">https://www.imperialviolet.org/2013/02/04/luckythirteen.html</a>。
+</li>
+		
+		</ul>
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="fipsonly/">fipsonly</a>
+					</td>
+				
+					<td class="pkg-synopsis">fipsonly 包将所有 TLS 配置限制为经 FIPS 批准的设置。（特殊构建文档保留英文。）</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

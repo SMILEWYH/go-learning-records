@@ -1,0 +1,424 @@
+<!--{
+  "Title": "crypto/ecdsa 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package ecdsa</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/ecdsa"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ecdsa 包实现 <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">FIPS 186-5</a> 定义的椭圆曲线数字签名算法。
+<p>本包生成的签名不是确定性的，但会将熵与私钥及消息混合，因此在随机源失效时仍可达到相同的安全级别。
+<p>只要使用的 <a href="/pkg/crypto/elliptic/#Curve">elliptic.Curve</a> 来自 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a>，涉及私钥的操作就使用常量时间算法实现。
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/ecdsa&#34;
+	&#34;crypto/elliptic&#34;
+	&#34;crypto/rand&#34;
+	&#34;crypto/sha256&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		panic(err)
+	}
+
+	msg := &#34;hello, world&#34;
+	hash := sha256.Sum256([]byte(msg))
+
+	sig, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf(&#34;signature: %x\n&#34;, sig)
+
+	valid := ecdsa.VerifyASN1(&amp;privateKey.PublicKey, hash[:], sig)
+	fmt.Println(&#34;signature verified:&#34;, valid)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Sign">func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error)</a></dd>
+			
+				<dd><a href="#SignASN1">func SignASN1(r io.Reader, priv *PrivateKey, hash []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Verify">func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool</a></dd>
+			
+				<dd><a href="#VerifyASN1">func VerifyASN1(pub *PublicKey, hash, sig []byte) bool</a></dd>
+			
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GenerateKey">func GenerateKey(c elliptic.Curve, r io.Reader) (*PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseRawPrivateKey">func ParseRawPrivateKey(curve elliptic.Curve, data []byte) (*PrivateKey, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Bytes">func (priv *PrivateKey) Bytes() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.ECDH">func (priv *PrivateKey) ECDH() (*ecdh.PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Equal">func (priv *PrivateKey) Equal(x crypto.PrivateKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Public">func (priv *PrivateKey) Public() crypto.PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Sign">func (priv *PrivateKey) Sign(random io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error)</a></dd>
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseUncompressedPublicKey">func ParseUncompressedPublicKey(curve elliptic.Curve, data []byte) (*PublicKey, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Bytes">func (pub *PublicKey) Bytes() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.ECDH">func (pub *PublicKey) ECDH() (*ecdh.PublicKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Equal">func (pub *PublicKey) Equal(x crypto.PublicKey) bool</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/ecdsa/ecdsa.go">ecdsa.go</a>
+			
+				<a href="/src/crypto/ecdsa/ecdsa_legacy.go">ecdsa_legacy.go</a>
+			
+				<a href="/src/crypto/ecdsa/notboring.go">notboring.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Sign">func <a href="/src/crypto/ecdsa/ecdsa_legacy.go?s=2154:2237#L59">Sign</a>
+				
+				
+			</h2>
+			<pre>func Sign(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash []<a href="/pkg/builtin/#byte">byte</a>) (r, s *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Sign 使用私钥 priv 对哈希值签名（此值应由较长的消息经哈希计算得到）。如果哈希值长度超过私钥所用曲线的阶的位数，就将其截断到该长度。签名以一对整数返回。多数应用程序应使用 <a href="#SignASN1">SignASN1</a>，而不是直接处理 r、s。
+<p>签名是随机化的。自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+
+			
+		
+			
+			<h2 id="SignASN1">func <a href="/src/crypto/ecdsa/ecdsa.go?s=14610:14683#L381">SignASN1</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func SignASN1(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>SignASN1 使用私钥 priv 对哈希值签名（此值应由较长的消息经哈希计算得到）。如果哈希值长度超过私钥所用曲线的阶的位数，就将其截断到该长度。它返回 ASN.1 编码的签名。
+<p>签名是随机化的。自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+
+			
+		
+			
+			<h2 id="Verify">func <a href="/src/crypto/ecdsa/ecdsa_legacy.go?s=4136:4196#L139">Verify</a>
+				
+				
+			</h2>
+			<pre>func Verify(pub *<a href="#PublicKey">PublicKey</a>, hash []<a href="/pkg/builtin/#byte">byte</a>, r, s *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Verify 使用公钥 pub 验证 r、s 所表示的 hash 的签名，返回值表示签名是否有效。多数应用程序应使用 VerifyASN1，而不是直接处理 r、s。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+		
+			
+			<h2 id="VerifyASN1">func <a href="/src/crypto/ecdsa/ecdsa.go?s=18489:18543#L499">VerifyASN1</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func VerifyASN1(pub *<a href="#PublicKey">PublicKey</a>, hash, sig []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>VerifyASN1 使用公钥 pub 验证 hash 的 ASN.1 编码签名 sig，返回值表示签名是否有效。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+		
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/ecdsa/ecdsa.go?s=6199:6698#L158">PrivateKey</a>
+				
+				
+			</h2>
+			<p>PrivateKey 表示 ECDSA 私钥。
+
+			<pre>type PrivateKey struct {
+    <a href="#PublicKey">PublicKey</a>
+
+<span id="PrivateKey.D"></span>    <span class="comment">// D 是私钥的标量值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：修改原始值可能产生无效密钥，</span>
+    <span class="comment">// 并使内部优化失效；此外，[big.Int] 方法</span>
+    <span class="comment">// 不适合处理密码学值。要编码和解码</span>
+    <span class="comment">// PrivateKey 值，请使用 [PrivateKey.Bytes] 和 [ParseRawPrivateKey]，或</span>
+    <span class="comment">// [crypto/x509.MarshalPKCS8PrivateKey] 和 [crypto/x509.ParsePKCS8PrivateKey]。</span>
+    <span class="comment">// 对于 ECDH，请使用 [crypto/ecdh]。</span>
+    D *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="GenerateKey">func <a href="/src/crypto/ecdsa/ecdsa.go?s=12876:12944#L335">GenerateKey</a>
+					
+					
+				</h3>
+				<pre>func GenerateKey(c <a href="/pkg/crypto/elliptic/">elliptic</a>.<a href="/pkg/crypto/elliptic/#Curve">Curve</a>, r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GenerateKey 为指定曲线生成新的 ECDSA 私钥。
+<p>自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+
+				
+			
+				<h3 id="ParseRawPrivateKey">func <a href="/src/crypto/ecdsa/ecdsa.go?s=8840:8919#L236">ParseRawPrivateKey</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func ParseRawPrivateKey(curve <a href="/pkg/crypto/elliptic/">elliptic</a>.<a href="/pkg/crypto/elliptic/#Curve">Curve</a>, data []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseRawPrivateKey 解析按 SEC 1 第 2.0 版第 2.3.6 节编码为定长大端整数的私钥（有时称为原始格式）。如果该值未约减到曲线阶的模范围内，或为零，则返回错误。
+<p>curve 必须是 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a> 之一，否则 ParseRawPrivateKey 返回错误。
+<p>ParseRawPrivateKey 接受的格式与 <a href="/pkg/crypto/ecdh/#Curve.NewPrivateKey">ecdh.Curve.NewPrivateKey</a> 对 NIST 曲线接受的格式相同，但返回 <a href="#PrivateKey">PrivateKey</a>，而非 <a href="/pkg/crypto/ecdh/#PrivateKey">ecdh.PrivateKey</a>。
+<p>注意，私钥更常使用 ASN.1 或 PKCS#8 格式编码，可以用 <a href="/pkg/crypto/x509/#ParseECPrivateKey">crypto/x509.ParseECPrivateKey</a> 或 <a href="/pkg/crypto/x509/#ParsePKCS8PrivateKey">crypto/x509.ParsePKCS8PrivateKey</a>（配合 <a href="/pkg/encoding/pem/">encoding/pem</a>）解析。
+
+				
+			
+
+			
+				<h3 id="PrivateKey.Bytes">func (*PrivateKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=10428:10475#L275">Bytes</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Bytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Bytes 按 SEC 1 第 2.0 版第 2.3.6 节将私钥编码为定长大端整数（有时称为原始格式）。私钥无效时返回错误。
+<p>PrivateKey.Curve 必须是 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a> 之一，否则 Bytes 返回错误。
+<p>Bytes 返回的格式与 <a href="/pkg/crypto/ecdh/#PrivateKey.Bytes">ecdh.PrivateKey.Bytes</a> 对 NIST 曲线返回的格式相同。
+<p>注意，私钥更常使用 ASN.1 或 PKCS#8 格式编码，可以用 <a href="/pkg/crypto/x509/#MarshalECPrivateKey">crypto/x509.MarshalECPrivateKey</a> 或 <a href="/pkg/crypto/x509/#MarshalPKCS8PrivateKey">crypto/x509.MarshalPKCS8PrivateKey</a>（配合 <a href="/pkg/encoding/pem/">encoding/pem</a>）生成。
+
+				
+			
+				<h3 id="PrivateKey.ECDH">func (*PrivateKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=6900:6956#L175">ECDH</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) ECDH() (*<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ECDH 以 <a href="/pkg/crypto/ecdh/#PrivateKey">ecdh.PrivateKey</a> 形式返回 k。如果密钥按 <a href="/pkg/crypto/ecdh/#Curve.NewPrivateKey">ecdh.Curve.NewPrivateKey</a> 的定义无效，或者 Curve 不受 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 支持，则返回错误。
+
+				
+			
+				<h3 id="PrivateKey.Equal">func (*PrivateKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=7646:7701#L208">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 priv 和 x 是否具有相同的值。
+<p>Curve 的比较方式详见 <a href="#PublicKey.Equal">PublicKey.Equal</a>。
+
+				
+			
+				<h3 id="PrivateKey.Public">func (*PrivateKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=7444:7493#L201">Public</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Public() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a></pre>
+				<p>Public 返回 priv 对应的公钥。
+
+				
+			
+				<h3 id="PrivateKey.Sign">func (*PrivateKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=12042:12143#L313">Sign</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Sign(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, digest []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#SignerOpts">SignerOpts</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Sign 使用私钥 priv 对哈希值签名（此值应由较长消息经 opts.HashFunc() 计算得到）。如果哈希值长度超过私钥所用曲线的阶的位数，就将其截断到该长度。与 <a href="#SignASN1">SignASN1</a> 一样，它返回 ASN.1 编码的签名。
+<p>如果 random 非 nil，签名就是随机化的。多数应用程序应将 <a href="/pkg/crypto/rand/#Reader">crypto/rand.Reader</a> 作为 random；但除非设置 GODEBUG=cryptocustomrand=1，否则始终使用安全的随机字节源，忽略实际传入的 Reader。此 GODEBUG 设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+<p>如果 random 为 nil，Sign 将按照 RFC 6979 生成确定性签名。生成确定性签名时，opts.HashFunc() 必须是用于生成 digest 的函数，且 priv.Curve 必须是 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a> 之一。
+
+				
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/ecdsa/ecdsa.go?s=1262:1891#L32">PublicKey</a>
+				
+				
+			</h2>
+			<p>PublicKey 表示 ECDSA 公钥。
+
+			<pre>type PublicKey struct {
+    <a href="/pkg/crypto/elliptic/">elliptic</a>.<a href="/pkg/crypto/elliptic/#Curve">Curve</a>
+
+<span id="PublicKey.X"></span>    <span class="comment">// X、Y 是公钥点的坐标。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：修改原始坐标可能产生无效密钥，</span>
+    <span class="comment">// 并使内部优化失效；此外，[big.Int] 方法</span>
+    <span class="comment">// 不适合处理密码学值。要编码和解码</span>
+    <span class="comment">// PublicKey 值，请使用 [PublicKey.Bytes] 和 [ParseUncompressedPublicKey]，</span>
+    <span class="comment">// 或 [crypto/x509.MarshalPKIXPublicKey] 和 [crypto/x509.ParsePKIXPublicKey]。</span>
+    <span class="comment">// 对于 ECDH，请使用 [crypto/ecdh]。对于更底层的椭圆曲线运算，</span>
+    <span class="comment">// 请使用 filippo.io/nistec 等第三方模块。</span>
+    X, Y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseUncompressedPublicKey">func <a href="/src/crypto/ecdsa/ecdsa.go?s=4047:4133#L97">ParseUncompressedPublicKey</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func ParseUncompressedPublicKey(curve <a href="/pkg/crypto/elliptic/">elliptic</a>.<a href="/pkg/crypto/elliptic/#Curve">Curve</a>, data []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseUncompressedPublicKey 解析按 SEC 1 第 2.0 版第 2.3.3 节编码为未压缩点的公钥（也称为 X9.62 未压缩格式）。如果点不是未压缩形式、不在曲线上，或为无穷远点，则返回错误。
+<p>curve 必须是 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a> 之一，否则 ParseUncompressedPublicKey 返回错误。
+<p>ParseUncompressedPublicKey 接受的格式与 <a href="/pkg/crypto/ecdh/#Curve.NewPublicKey">ecdh.Curve.NewPublicKey</a> 对 NIST 曲线接受的格式相同，但返回 <a href="#PublicKey">PublicKey</a>，而非 <a href="/pkg/crypto/ecdh/#PublicKey">ecdh.PublicKey</a>。
+<p>注意，公钥更常使用 DER（或 PEM）格式编码，可以用 <a href="/pkg/crypto/x509/#ParsePKIXPublicKey">crypto/x509.ParsePKIXPublicKey</a>（配合 <a href="/pkg/encoding/pem/">encoding/pem</a>）解析。
+
+				
+			
+
+			
+				<h3 id="PublicKey.Bytes">func (*PublicKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=5540:5585#L134">Bytes</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (pub *<a href="#PublicKey">PublicKey</a>) Bytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Bytes 按 SEC 1 第 2.0 版第 2.3.3 节将公钥编码为未压缩点（也称为 X9.62 未压缩格式）。公钥无效时返回错误。
+<p>PublicKey.Curve 必须是 <a href="/pkg/crypto/elliptic/#P224">elliptic.P224</a>、<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a>、<a href="/pkg/crypto/elliptic/#P384">elliptic.P384</a> 或 <a href="/pkg/crypto/elliptic/#P521">elliptic.P521</a> 之一，否则 Bytes 返回错误。
+<p>Bytes 返回的格式与 <a href="/pkg/crypto/ecdh/#PublicKey.Bytes">ecdh.PublicKey.Bytes</a> 对 NIST 曲线返回的格式相同。
+<p>注意，公钥更常使用 DER（或 PEM）格式编码，可以用 <a href="/pkg/crypto/x509/#MarshalPKIXPublicKey">crypto/x509.MarshalPKIXPublicKey</a>（配合 <a href="/pkg/encoding/pem/">encoding/pem</a>）生成。
+
+				
+			
+				<h3 id="PublicKey.ECDH">func (*PublicKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=2243:2296#L53">ECDH</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (pub *<a href="#PublicKey">PublicKey</a>) ECDH() (*<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ECDH 以 <a href="/pkg/crypto/ecdh/#PublicKey">ecdh.PublicKey</a> 形式返回 k。如果密钥按 <a href="/pkg/crypto/ecdh/#Curve.NewPublicKey">ecdh.Curve.NewPublicKey</a> 的定义无效，或者 Curve 不受 crypto/ecdh 支持，则返回错误。
+
+				
+			
+				<h3 id="PublicKey.Equal">func (*PublicKey) <a href="/src/crypto/ecdsa/ecdsa.go?s=2809:2861#L70">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (pub *<a href="#PublicKey">PublicKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 pub 和 x 是否具有相同的值。
+<p>只有具有相同 Curve 值的两个密钥才被视为值相同。例如，<a href="/pkg/crypto/elliptic/#P256">elliptic.P256</a> 和 elliptic.P256().Params() 是不同的值，因为后者是通用的非常量时间实现。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

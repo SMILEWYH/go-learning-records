@@ -1,0 +1,1215 @@
+<!--{
+	"Title": "Go 垃圾回收器指南",
+	"Path":  "/doc/gc-guide",
+  	"Breadcrumb": true
+}-->
+
+<!--
+NOTE: In this document and others in this directory, the convention is to
+set fixed-width phrases with non-fixed-width spaces, as in
+<code>hello</code> <code>world</code>.
+Do not send CLs removing the interior tags from such phrases.
+-->
+
+<style>
+.gc-guide-graph {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.gc-guide-graph-controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.gc-guide-graph-controls div {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  padding-left: 5px;
+  padding-right: 5px;
+  height: 24px;
+}
+
+.gc-guide-counter {
+  display: block;
+  overflow-x: hidden; /* Prevent automatic resizing, which makes the input jittery. */
+  width: 10em; /* Never contains more than 10 characters. */
+}
+
+.gc-guide-equation {
+  display: block;
+  text-align: center;
+}
+
+.gc-guide-note {
+  margin-left: 3em;
+}
+</style>
+
+<h2 id="Introduction">简介</h2>
+
+<p>
+本指南通过介绍 Go 垃圾回收器，帮助有经验的 Go 用户更好地理解应用程序的开销，并说明如何利用这些知识改善资源使用效率。阅读本文不需要预先了解垃圾回收，但需要熟悉 Go 编程语言。
+</p>
+
+<p>
+Go 语言负责安排 Go 值的存储。大多数情况下，开发者无需关心这些值存储在哪里、为什么存在那里，甚至不必关心是否需要实际存储。然而在实践中，这些值往往需要放在计算机的<b>物理内存</b>中，而物理内存是有限资源。因此必须谨慎管理并回收内存，避免 Go 程序运行时将其耗尽。按需分配和回收内存，是 Go 实现的职责。
+</p>
+
+<p>
+自动回收内存也称为<b>垃圾回收</b>。从总体上看，<i>垃圾回收器</i>（简称 GC）负责识别不再需要的内存，并代替应用程序回收它。Go 标准工具链提供的运行时库会随每个应用程序一起交付，其中就包含垃圾回收器。
+</p>
+
+<p>
+注意，<a href="/ref/spec">Go 语言规范</a>并不保证存在本文所描述的垃圾回收器，只规定 Go 值的底层存储由语言自行管理。规范有意不作限制，以允许使用完全不同的内存管理技术。
+</p>
+
+<p>
+因此，本文介绍的是 Go 编程语言的一种具体实现，<i>未必适用于其他实现</i>。具体而言，本文适用于标准工具链，即 <code>gc</code> Go 编译器及其工具。Gccgo 和 Gollvm 使用非常相似的 GC 实现，因此许多概念同样适用，但细节可能不同。
+</p>
+
+<p>
+本文会持续更新，以尽量反映最新的 Go 版本。当前文档描述的是 Go 1.19 时的垃圾回收器。
+</p>
+
+
+<h3 id="Where_Go_Values_Live">Go 值存储在哪里</h3>
+
+<p>
+深入 GC 之前，先讨论不需要由 GC 管理的内存。
+</p>
+
+<p>
+例如，局部变量中存储的非指针 Go 值，很可能完全不由 GC 管理；Go 会将内存分配与创建它们时的<a href="/ref/spec#Declarations_and_scope">词法作用域</a>关联起来。这通常比依赖 GC 更高效，因为编译器能够提前确定内存何时可以释放，并生成执行清理的机器指令。这种方式通常称为“栈分配”，因为存储空间位于 goroutine 栈上。
+</p>
+
+<p>
+如果编译器无法确定某个 Go 值的生命周期，无法以上述方式分配内存，就称该值<i>逃逸到堆</i>。当 Go 值总得放在<i>某个地方</i>时，“堆”可以理解为通用的分配区域。堆上分配通常称为“动态内存分配”，因为编译器和运行时对内存如何使用、何时能够清理所能作出的假设都很有限。GC 正是在这里发挥作用：专门识别并清理动态分配的内存。
+</p>
+
+<p>
+Go 值逃逸到堆的原因有很多，例如大小需要动态确定。假设一个切片的初始长度由变量而不是常量决定，其底层数组就可能需要在堆上分配。还要注意，逃逸具有传递性：如果指向某个 Go 值的引用被写入另一个已确定会逃逸的值，那么被引用的值也必须逃逸。
+</p>
+
+<p>
+某个值是否逃逸，取决于它的使用上下文以及 Go 编译器的逃逸分析算法。试图精确列举所有逃逸情形既困难又不稳妥，因为算法本身相当复杂，还会随 Go 版本变化。有关如何判断哪些值发生逃逸，请参阅<a href="#Eliminating_heap_allocations">消除堆分配</a>一节。
+</p>
+
+<h3 id="Tracing_Garbage_Collection">追踪式垃圾回收</h3>
+
+<p>
+垃圾回收可以指多种自动回收内存的方法，例如引用计数。本文所说的垃圾回收特指<b>追踪式垃圾回收</b>：沿指针逐层追踪，识别仍在使用、也称为<b>存活</b>的对象。
+</p>
+
+<p>
+下面更严格地定义这些术语。
+</p>
+
+<ul>
+	<li>
+		<p>
+<b>对象</b>——动态分配的一块内存，包含一个或多个 Go 值。
+</p>
+	</li>
+	<li>
+		<p>
+<b>指针</b>——引用对象中某个值的内存地址。它不仅包括 <code>*T</code> 形式的 Go 值，还包括内置 Go 值的组成部分。字符串、切片、通道、映射和接口值都包含 GC 必须追踪的内存地址。
+</p>
+	</li>
+</ul>
+
+<p>
+对象以及对象之间的指针共同构成<b>对象图</b>。GC 从程序的<b>根</b>开始遍历对象图，以识别存活内存。根是指向程序确定仍在使用的对象的指针，例如局部变量和全局变量中的指针。遍历对象图的过程称为<b>扫描</b>。Go 文档还常提到对象是否<b>可达</b>，意思就是扫描过程能否发现它。还要注意，<a href="#Finalizers_cleanups_and_weak_pointers">除一种例外情况之外</a>，内存一旦不可达，就会一直保持不可达。
+</p>
+
+<p>
+所有追踪式 GC 都采用这一基本算法，区别在于发现存活内存后如何处理。Go GC 采用标记—清扫技术：为了记录进度，会将遇到的值<b>标记</b>为存活。追踪完成后，GC 遍历堆中的全部内存，将<i>未被</i>标记的内存重新置为可分配状态。这一过程称为<b>清扫</b>。
+</p>
+
+<p>
+另一种你可能熟悉的技术，是将对象<i>移动</i>到新的内存区域，并在原处留下转发指针，之后据此更新应用中的所有相关指针。这种会移动对象的 GC 称为<b>移动式</b> GC；Go 使用的是<b>非移动式</b> GC。
+</p>
+
+<h2 id="The_GC_cycle">GC 周期</h2>
+
+<p>
+Go GC 采用标记—清扫算法，因此主要分为标记和清扫两个阶段。这个看似重复的描述包含一个重要事实：在追踪完<i>全部</i>内存之前，不能将内存释放用于重新分配，因为可能仍有尚未扫描的指针使某个对象存活。因此，清扫必须与标记完全分开。没有 GC 工作时，GC 也可能处于关闭状态。GC 不断在清扫、关闭和标记三个阶段之间循环，这就是 <b>GC 周期</b>。为便于本文讨论，将一个周期视为从清扫开始，随后关闭，再进行标记。
+</p>
+
+<p>
+接下来几节建立对 GC 开销的直观理解，帮助用户根据自身需求调整 GC 参数。
+</p>
+
+<h3 id="Understanding_costs">理解开销</h3>
+
+<p>
+GC 本身是建立在更复杂系统之上的复杂软件。试图理解并调整它时，很容易陷入细节。本节提供一个推理框架，用于理解 Go GC 的开销及其调节参数。
+</p>
+
+<p>
+先考虑一个由三条简单假设建立的 GC 开销模型。
+</p>
+
+<ol>
+	<li>
+		<p>
+GC 只涉及两类资源：物理内存和 CPU 时间。
+</p>
+	</li>
+	<li>
+		<p>
+GC 的内存开销由存活堆内存、标记阶段之前新分配的堆内存，以及元数据空间构成。即使元数据大小与前两项成正比，它相对而言也很小。
+</p>
+		<p class="gc-guide-equation">
+<i>第 N 个周期的 GC 内存开销 = 第 N-1 个周期的存活堆 + 新分配的堆内存</i>
+</p>
+		<p>
+存活堆内存是上一个 GC 周期判定仍然存活的内存；新堆内存则是当前周期中分配的任何内存，到周期结束时可能存活，也可能不再存活。任一时刻有多少内存存活，是程序本身的属性，不是 GC 能直接控制的。
+</p>
+	</li>
+	<li>
+		<p>
+模型将 GC 的 CPU 开销分为每个周期的固定开销，以及与存活堆大小成正比的边际开销。
+</p>
+		<p class="gc-guide-equation">
+<i>第 N 个周期的 GC CPU 时间 = 每周期固定 CPU 时间开销 + 每字节平均 CPU 时间开销 × 第 N 个周期发现的存活堆内存</i>
+</p>
+		<p>
+每周期固定 CPU 时间开销包括每轮执行固定次数的工作，例如为下一轮 GC 初始化数据结构。这部分开销通常很小，列出只是为了使模型完整。
+</p>
+		<p>
+GC 的主要 CPU 开销来自标记和扫描，对应模型中的边际开销。平均标记和扫描开销不仅取决于 GC 实现，也取决于程序行为。例如，指针越多，GC 工作量越大，因为至少需要访问程序中的全部指针。链表和树等结构也更难并行遍历，从而提高每字节的平均开销。
+</p>
+		<p>
+这个模型忽略了清扫开销。清扫开销与总堆内存成正比，包括已经死亡、需要重新置为可分配状态的内存。对 Go 当前的 GC 实现而言，清扫远快于标记和扫描，相比之下开销可以忽略。
+</p>
+	</li>
+</ol>
+
+<p>
+这个模型虽然简单，却能准确概括 GC 的主要开销。它也说明，垃圾回收器的<i>总 CPU 开销</i>取决于给定时间内执行了多少个 GC 周期。模型还揭示了 GC 中基本的时间与空间权衡。
+</p>
+
+<p>
+要理解这一点，可以考虑一个受限但有用的场景：<b>稳态</b>。从 GC 的角度看，应用的稳态具有以下属性：
+</p>
+
+<ul>
+	<li>
+		<p>
+应用分配新内存的速率保持不变，以字节/秒计。
+</p>
+		<p>
+这意味着从 GC 看，应用负载随时间大致保持相同。例如，对 Web 服务而言，请求速率稳定，请求类型在统计上相似，每个请求的平均生命周期也大致不变。
+</p>
+	</li>
+	<li>
+		<p>
+GC 的边际开销保持不变。
+</p>
+		<p>
+这意味着对象图的统计属性，例如对象大小分布、指针数量和数据结构的平均深度，在各个周期之间保持相同。
+</p>
+	</li>
+</ul>
+
+<p>
+来看一个例子。假设应用处于稳态，以 10 MiB/s 分配内存，而 GC 的扫描速度为 100 MiB/CPU 秒（这里只是示例数值）。稳态并不要求存活堆大小固定，但为简化讨论，假设它始终为 10 MiB，并且 GC 的固定开销为零。接下来调整 GC 周期的间隔。
+</p>
+
+<p>
+假设恰好每经过 1 CPU 秒执行一轮 GC。到每轮结束时，应用会额外分配 10 MiB 内存，总堆大小达到 20 MiB。每轮 GC 扫描 10 MiB 存活堆需要 0.1 CPU 秒，因此 CPU 开销为 10%。注意，GC 只需遍历存活堆，而不是整个堆。（存活堆大小固定，并不意味着新分配内存全部死亡，而是 GC 执行后，新旧堆内存中<i>各有一部分</i>死亡，最终每轮发现的存活内存都是 10 MiB。）
+</p>
+
+<p>
+现在降低 GC 频率，改为每 2 CPU 秒执行一轮。稳态应用在此期间分配 20 MiB，因此每轮总堆大小为 30 MiB。但每轮 GC 扫描 10 MiB 存活内存<i>仍只需 0.1 CPU 秒</i>。这里仍假设，无论分配多少内存，存活堆大小都不变。因此，GC 开销从 10% 降到 5%，代价是内存使用量增加 50%。
+</p>
+
+<p>
+这就是前面提到的时间与空间权衡。<b>GC 频率</b>是关键：GC 越频繁，内存使用越少，反之亦然。那么 GC 究竟多久执行一次？在 Go 中，决定何时启动 GC 是用户能够控制的主要参数。
+</p>
+
+<h3 id="GOGC">GOGC</h3>
+
+<p>
+总体而言，GOGC 决定 GC 的 CPU 开销与内存开销之间的权衡。
+</p>
+
+<p>
+每轮 GC 结束后，GOGC 会决定下一轮的目标堆大小，也就是下一轮总堆大小的目标值。GC 的目标是在总堆大小超过该值之前完成回收。总堆大小等于上一轮结束时的存活堆大小，加上此后应用新分配的堆内存。目标堆内存定义为：
+</p>
+
+<p class="gc-guide-equation">
+<i>目标堆内存 = 存活堆 +（存活堆 + GC 根）× GOGC / 100</i>
+</p>
+
+<p>
+例如，一个 Go 程序的存活堆为 8 MiB，goroutine 栈为 1 MiB，全局变量中的指针为 1 MiB。GOGC 为 100 时，下一轮 GC 前允许新分配的内存是 10 MiB，即 10 MiB 工作量的 100%，总堆占用为 18 MiB。GOGC 为 50 时，新分配量是其 50%，即 5 MiB；为 200 时则是 200%，即 20 MiB。
+</p>
+
+<p class="gc-guide-note">
+注意：从 Go 1.18 开始，GOGC 才将根集合计算在内，此前只计算存活堆。通常 goroutine 栈占用较小，存活堆是 GC 工作量的主要来源；但对拥有数十万个 goroutine 的程序，原来的计算方式会作出不合理判断。
+</p>
+
+<p>
+堆目标控制 GC 频率：目标越大，GC 就能等待更久再开始下一次标记，反之亦然。精确公式有助于估算，但理解 GOGC 时最好抓住它的核心作用：在 GC CPU 与内存的权衡中选定一个位置。关键结论是：<b>GOGC 翻倍会使额外堆内存开销翻倍，同时使 GC CPU 开销大致减半</b>，反之亦然。完整解释见<a href="#Additional_notes_on_GOGC">附录</a>。
+</p>
+
+<p class="gc-guide-note">
+注意：目标堆大小只是目标，GC 周期可能因多种原因无法恰好在该点完成。例如，一次足够大的堆分配就可能直接超过目标。还有一些原因来自实际 GC 实现，超出了本文目前采用的<a href="#Understanding_costs">GC 模型</a>。更多说明见<a href="#Latency">延迟</a>一节，完整细节可查阅<a href="#Additional_resources">其他资源</a>。
+</p>
+
+<p>
+GOGC 可以通过所有 Go 程序都会识别的 <code>GOGC</code> 环境变量配置，也可以通过 <code>runtime/debug</code> 包的 <a href="https://pkg.go.dev/runtime/debug#SetGCPercent"><code>SetGCPercent</code></a> API 设置。
+</p>
+
+<p>
+设置 <code>GOGC=off</code> 或调用 <code>SetGCPercent(-1)</code>，还可以完全关闭 GC，前提是<a href="#Memory_limit">内存限制</a>没有介入。从概念上说，这相当于将 GOGC 设为无穷大，因为触发 GC 之前允许新分配的内存没有上限。
+</p>
+
+<p>
+为了更好理解上述内容，可以尝试下方基于<a href="#Understanding_costs">GC 开销模型</a>的交互图。图中程序除 GC 之外的工作需要 10 秒 CPU 时间。第一秒执行初始化，存活堆增长，随后进入稳态。应用总共分配 200 MiB，任一时刻有 20 MiB 存活。模型假设相关 GC 工作只来自存活堆，并假设应用不使用其他内存——后一点在现实中并不成立。
+</p>
+
+<p>
+拖动滑块调整 GOGC，观察总运行时长和 GC 开销的变化。新堆内存下降到零时，一轮 GC 结束。这段下降时间包含第 N 轮的标记阶段和第 N+1 轮的清扫阶段。本文所有可视化都假定 GC 执行时应用暂停，因此 GC CPU 开销完全体现为新堆内存下降到零所需的时间。这只是为了简化图示，背后的理解仍然适用。横轴会调整，以始终显示程序的完整 CPU 运行时间。注意，GC 使用额外 CPU 时间会增加总时长。
+</p>
+
+<div class="gc-guide-graph" data-workload='[
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 9.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00}
+]' data-config='{
+	"fixedCost": 0.04,
+	"otherMem": 0,
+	"GOGC": "graph1-gogc",
+	"memoryLimit": 100000
+}'></div>
+<div class="gc-guide-graph-controls">
+	<div>
+		GOGC
+		<input type="range" min="0" max="10" step="0.005" value="6.64" id="graph1-gogc">
+		<div class="gc-guide-counter" id="graph1-gogc-display"></div>
+	</div>
+</div>
+
+<p>
+GC 总会带来一定的 CPU 开销和峰值内存开销。GOGC 增大时，CPU 开销降低，而峰值内存按存活堆大小的比例增加；GOGC 减小时，峰值内存需求降低，但 CPU 开销增加。
+</p>
+
+<p class="gc-guide-note">
+注意：图中展示的是 CPU 时间，而不是程序完成所需的实际经过时间。如果程序只使用一个 CPU 且始终充分利用它，两者相等。现实程序往往运行在多核系统上，也并非始终用满 CPU；此时 GC 对实际经过时间的影响会更小。
+</p>
+
+<p class="gc-guide-note">
+注意：Go GC 的最小总堆大小为 4 MiB。如果 GOGC 算出的目标小于此值，会向上调整到 4 MiB。图中体现了这一细节。
+</p>
+
+<p>
+下面是更动态、更接近实际的例子。应用不计 GC 仍需 10 CPU 秒完成，但在中途，稳态分配速率大幅增加，第一阶段的存活堆大小也有所变化。它展示了存活堆变化时的稳态形态，以及分配速率提高如何让 GC 周期更加频繁。
+</p>
+
+<div class="gc-guide-graph" data-workload='[
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.50},
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.50, "oldDeathRate": 0.00},
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.50},
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.50, "oldDeathRate": 0.00},
+	{"duration": 5.0, "allocRate": 200, "scanRate": 1024, "newSurvivalRate": 0.02, "oldDeathRate": 1.00}
+]' data-config='{
+	"fixedCost": 0.04,
+	"otherMem": 0,
+	"GOGC": "graph2-gogc",
+	"memoryLimit": 100000
+}'></div>
+<div class="gc-guide-graph-controls">
+	<div>
+		GOGC
+		<input type="range" min="0" max="10" step="0.005" value="6.64" id="graph2-gogc">
+		<div class="gc-guide-counter" id="graph2-gogc-display"></div>
+	</div>
+</div>
+
+<h3 id="Memory_limit">内存限制</h3>
+
+<p>
+在 Go 1.19 之前，GOGC 是唯一可用于调整 GC 行为的参数。它适合表达开销权衡，却没有考虑可用内存是有限的。设想存活堆短暂出现峰值：GC 会选择与该存活堆成比例的总堆大小，因此必须按存活堆的<i>峰值</i>配置 GOGC，即使通常情况下更高的 GOGC 才能带来更好的权衡。
+</p>
+
+<p>
+下图展示了这种短暂堆峰值的情况。
+</p>
+
+<div class="gc-guide-graph" data-workload='[
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 4.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.50},
+	{"duration": 3.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00}
+]' data-config='{
+	"fixedCost": 0.04,
+	"otherMem": 0,
+	"GOGC": "graph3-gogc",
+	"memoryLimit": 100000
+}'></div>
+<div class="gc-guide-graph-controls">
+	<div>
+		GOGC
+		<input type="range" min="0" max="10" step="0.005" value="6.64" id="graph3-gogc">
+		<div class="gc-guide-counter" id="graph3-gogc-display"></div>
+	</div>
+</div>
+
+<p>
+如果示例负载运行在可用内存略高于 60 MiB 的容器中，GOGC 就不能超过 100，即使其他 GC 周期都有足够内存可以利用更大的堆。某些应用中，这种短暂峰值很少出现且难以预测，可能造成偶发、难以避免且代价高昂的内存耗尽。
+</p>
+
+<p>
+因此，Go 1.19 增加了运行时内存限制。可以通过所有 Go 程序都会识别的 <code>GOMEMLIMIT</code> 环境变量配置，也可以调用 <code>runtime/debug</code> 包中的 <code>SetMemoryLimit</code> 函数。
+</p>
+
+<p>
+该限制为 <i>Go 运行时可使用的内存总量</i>设定上限。所涵盖内存用 <a href="https://pkg.go.dev/runtime#MemStats"><code>runtime.MemStats</code></a> 的字段表示为：
+</p>
+
+<p>
+<code>Sys</code> <code>-</code> <code>HeapReleased</code>
+</p>
+
+<p>
+等价地，使用 <a href="https://pkg.go.dev/runtime/metrics"><code>runtime/metrics</code></a> 包的指标表示为：
+</p>
+
+<p>
+<code>/memory/classes/total:bytes</code> <code>-</code> <code>/memory/classes/heap/released:bytes</code>
+</p>
+
+<p>
+Go GC 能够直接控制使用的堆内存量，因此会根据内存限制以及 Go 运行时的其他内存占用来设置总堆大小。
+</p>
+
+<p>
+下图使用 GOGC 一节中同一个单阶段稳态负载，但额外加入 Go 运行时的 10 MiB 开销，并允许调整内存限制。试着同时改变 GOGC 和内存限制，观察结果。
+</p>
+
+<div class="gc-guide-graph" data-workload='[
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0},
+	{"duration": 9.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0}
+]' data-config='{
+	"fixedCost": 0.04,
+	"otherMem": 10,
+	"GOGC": "graph4-gogc",
+	"memoryLimit": "graph4-memlimit"
+}'></div>
+<div class="gc-guide-graph-controls">
+	<div>
+		GOGC
+		<input type="range" min="0" max="10" step="0.005" value="6.64" id="graph4-gogc">
+		<div class="gc-guide-counter" id="graph4-gogc-display"></div>
+	</div>
+	<div>
+		内存限制
+		<input type="range" min="1" max="100" step="0.5" value="100" id="graph4-memlimit">
+		<div class="gc-guide-counter" id="graph4-memlimit-display"></div>
+	</div>
+</div>
+
+<p>
+当内存限制低于 GOGC 决定的内存峰值时（GOGC 为 100 时是 42 MiB），GC 会更频繁地运行，以将峰值控制在限制以内。
+</p>
+
+<p>
+回到前面的短暂堆峰值示例，通过设置内存限制并提高 GOGC，可以同时得到两方面好处：避免突破内存限制，并提高资源利用效率。请尝试下面的交互图。
+</p>
+
+<div class="gc-guide-graph" data-workload='[
+	{"duration": 1.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 4.0, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 1.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00},
+	{"duration": 0.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.50},
+	{"duration": 3.5, "allocRate": 20, "scanRate": 1024, "newSurvivalRate": 0.00, "oldDeathRate": 0.00}
+]' data-config='{
+	"fixedCost": 0.04,
+	"otherMem": 0,
+	"GOGC": "graph5-gogc",
+	"memoryLimit": "graph5-memlimit"
+}'></div>
+<div class="gc-guide-graph-controls">
+	<div>
+		GOGC
+		<input type="range" min="0" max="10" step="0.005" value="6.64" id="graph5-gogc">
+		<div class="gc-guide-counter" id="graph5-gogc-display"></div>
+	</div>
+	<div>
+		内存限制
+		<input type="range" min="1" max="100" step="0.5" value="100" id="graph5-memlimit">
+		<div class="gc-guide-counter" id="graph5-memlimit-display"></div>
+	</div>
+</div>
+
+<p>
+在某些 GOGC 和内存限制组合下，内存使用峰值会止于限制值，但程序其他执行阶段仍遵循 GOGC 所设定的总堆大小规则。
+</p>
+
+<p>
+由此还有一个值得注意的结论：即使将 GOGC 设为 off，内存限制仍会生效。这种配置实际上<i>最大化了资源利用效率</i>，因为 GC 只会以维持内存限制所需的最低频率运行。此时，程序<i>整个</i>执行过程中，堆都会增长到接近内存限制。
+</p>
+
+<p>
+内存限制虽然强大，但<b>使用它并非没有代价</b>，也不能取代 GOGC 的作用。
+</p>
+
+<p>
+如果存活堆增长到让总内存使用逼近限制，会发生什么？在上面的稳态图中，先关闭 GOGC，再不断降低内存限制。你会看到应用总运行时间开始无限增长，因为 GC 不停执行，试图维持一个根本无法满足的限制。
+</p>
+
+<p>
+程序因持续 GC 而无法正常推进，称为<b>抖动（thrashing）</b>。它非常危险，实际上会让程序停滞。更糟的是，它可能恰好由我们试图通过 GOGC 避免的情况触发：足够大的短暂堆峰值，可能使程序无限期停滞。在短暂峰值图中，将内存限制降至约 30 MiB 或更低，就会发现最差表现正是从峰值出现时开始的。
+</p>
+
+<p>
+很多情况下，无限期停滞比内存耗尽更糟，因为后者通常会更快失败。
+</p>
+
+<p>
+因此，内存限制被定义为<b>软限制</b>。Go 运行时不保证在所有情况下都遵守限制，只承诺作出合理努力。允许突破限制对避免抖动至关重要：它给 GC 留了退出途径，可以让内存超过限制，避免把过多时间耗在 GC 上。
+</p>
+
+<p>
+其内部实现是限制 GC 在某个时间窗口内可使用的 CPU 时间比例，并对极短的 CPU 使用峰值保留一定滞后余量。目前上限约为 50%，窗口为 <code>2 * GOMAXPROCS</code> CPU 秒。限制 GC CPU 时间会推迟回收工作，同时 Go 程序可能继续分配新堆内存，甚至超过内存限制。
+</p>
+
+<p>
+50% GC CPU 上限的出发点，是控制内存充足时对程序的最坏影响。如果误将内存限制设得太低，程序最多大约慢一倍，因为 GC 最多占用其 50% 的 CPU 时间。
+</p>
+
+<p class="gc-guide-note">
+注意：本页可视化没有模拟 GC CPU 上限。
+</p>
+
+<h4 id="Suggested_uses">使用建议</h4>
+
+<p>
+内存限制是有用的工具，Go 运行时也会缓解误用造成的最坏影响，但仍需谨慎使用。下面列出它最适用的场景，以及可能弊大于利的情况。
+</p>
+
+<ul>
+	<li>
+		<p>
+<b>建议：</b>当 Go 程序的执行环境完全由你控制，而且它独占某组资源时，利用内存限制。例如，容器内存限制这类资源预留。
+</p>
+		<p>
+典型例子是将 Web 服务部署到可用内存固定的容器中。
+</p>
+		<p>
+<b>此时，一个实用经验是额外预留 5%～10% 的余量，容纳 Go 运行时无法感知的内存占用。</b>
+</p>
+	</li>
+	<li>
+		<p>
+<b>建议：</b>根据条件变化实时调整内存限制。
+</p>
+		<p>
+例如，cgo 程序中的 C 库可能暂时需要大量额外内存。
+</p>
+	</li>
+	<li>
+		<p>
+<b>不建议：</b>如果 Go 程序可能与其他基本独立的程序共享有限内存，不要在设置内存限制的同时将 GOGC 设为 off。可以保留内存限制，以抑制不理想的瞬时峰值，但应为常规情况选择较小、合理的 GOGC 值。
+</p>
+		<p>
+为同一环境中的其他程序“预留”内存看似诱人，但除非各程序完全同步，例如 Go 程序调用子进程后一直阻塞等待，否则两者难免同时需要更多内存，结果会更不可靠。让 Go 程序在不需要时少用内存，整体更稳妥。这也适用于内存超额承诺场景，即一台机器上所有容器的内存限制之和超过物理内存总量。
+</p>
+	</li>
+	<li>
+		<p>
+<b>不建议：</b>部署到你无法控制的执行环境时，不要在程序内设置内存限制，尤其当程序内存使用量与输入规模成正比时。
+</p>
+		<p>
+例如命令行工具或桌面应用。不清楚输入规模和系统可用内存时，把限制写死在程序中，可能造成难以理解的崩溃和性能下降。而有经验的最终用户始终可以自行设置内存限制。
+</p>
+	</li>
+	<li>
+		<p>
+<b>不建议：</b>程序已经接近运行环境的内存上限时，不要依靠设置内存限制来避免内存耗尽。
+</p>
+		<p>
+这实际上将内存耗尽风险替换为严重变慢的风险。即使 Go 努力缓解抖动，通常也不划算。此时更有效的做法是提高环境内存上限，<i>然后</i>再考虑设置内存限制；或降低 GOGC，其开销权衡比依赖抖动缓解机制更加明确。
+</p>
+	</li>
+</ul>
+
+<h3 id="Latency">延迟</h3>
+
+<p>
+本文图示都假设 GC 执行时应用暂停。确实存在这种实现，称为“全局暂停”（stop-the-world，STW）GC。
+</p>
+
+<p>
+但 Go GC 并非完全采用全局暂停，它的大部分工作与应用并发进行，主要目的是降低应用<i>延迟</i>，即单个计算单元（例如 Web 请求）的端到端时长。此前本文主要考虑<i>吞吐量</i>，例如每秒处理多少请求。<a href="#The_GC_cycle">GC 周期</a>一节的例子关注程序总 CPU 时间，但对 Web 服务而言，这个总时长的意义有限。吞吐量仍很重要，但单个请求的延迟往往更重要。
+</p>
+
+<p>
+从延迟角度看，全局暂停 GC 的标记和清扫可能持续较长时间，其间应用以及处理中请求都无法继续推进。Go GC 则避免让全局暂停时间与堆大小成正比，并让核心追踪算法与应用并发执行。（从算法上看，暂停更受 GOMAXPROCS 影响；实际中通常主要取决于停止运行中 goroutine 所需的时间。）并发回收也有代价，实践中往往比对应的全局暂停 GC 吞吐量更低。但要强调，<i>低延迟本身并不必然意味着低吞吐量</i>，Go GC 的延迟与吞吐量一直都在改善。
+</p>
+
+<p>
+Go 当前 GC 的并发性质，并不影响前面结论，因为这些结论都不依赖这一设计选择。在吞吐量层面，GC 频率仍是平衡 CPU 时间与内存的主要方式；对延迟同样如此，因为 GC 的大部分开销发生在标记阶段。
+</p>
+
+<p>
+因此，关键结论是：<b>降低 GC 频率也可能改善延迟</b>。这不仅适用于提高 GOGC 或内存限制等参数调整，也适用于<a href="#Optimization_guide">优化指南</a>中的方法。
+</p>
+
+<p>
+不过，延迟通常比吞吐量更难理解，因为它取决于程序每时每刻的具体执行，而不只是开销总和。因此，延迟与 GC 频率之间的关系没那么直接。下面列出可能引入延迟的来源，供深入研究。
+</p>
+
+<ol>
+	<li>
+		GC 在标记和清扫阶段之间切换时发生的短暂全局暂停。
+	</li>
+	<li>
+		标记阶段 GC 占用 25% 的 CPU 资源，从而产生调度延迟。
+	</li>
+	<li>
+		分配速率较高时，用户 goroutine 需要协助 GC。
+	</li>
+	<li>
+		标记阶段写入指针需要额外工作。
+	</li>
+	<li>
+		为了扫描根，正在运行的 goroutine 必须暂停。
+	</li>
+</ol>
+
+<p>
+除指针写入所需的额外工作外，这些延迟来源都可以在<a href="/doc/diagnostics#execution-tracer">执行追踪</a>中观察到。
+</p>
+
+<h3 id="Finalizers_cleanups_and_weak_pointers">终结器、清理回调与弱指针</h2>
+
+<p>
+垃圾回收用有限内存营造出无限内存的使用体验：程序分配内存，却不必显式释放。相比直接手动管理内存，这使 API 和并发算法更简单。（某些手动管理内存的语言使用“智能指针”或编译期所有权跟踪来确保对象释放，但这些机制会深入影响该语言的 API 设计惯例。）
+</p>
+
+<p>
+只有存活对象——从全局变量或某个 goroutine 中的计算可达的对象——才能影响程序行为。对象不可达、也就是“死亡”之后，GC 可以在任意时间安全回收它，因此能实现包括 Go 当前追踪式设计在内的多种 GC。对象死亡不是语言层面可观察的事件。
+</p>
+
+<p>
+不过，Go 运行时库提供了三种打破这种抽象的功能：<a href="/pkg/runtime#AddCleanup">清理回调（cleanup）</a>、<a href="/pkg/weak#Pointer">弱指针</a>和<a href="/pkg/runtime#SetFinalizer">终结器（finalizer）</a>。它们都提供某种观察并响应对象死亡的方式，而终结器甚至能让对象复活。这无疑会增加 Go 程序和 GC 实现的复杂度，但这些功能在许多场景确有价值，Go 程序也一直在使用并从中受益。
+</p>
+
+<p>
+每项功能的细节见对应包文档：<a href="/pkg/runtime#AddCleanup">runtime.AddCleanup</a>、<a href="/pkg/weak#Pointer">weak.Pointer</a>、<a href="/pkg/runtime#SetFinalizer">runtime.SetFinalizer</a>。下面给出使用建议、常见问题，以及测试这些功能的方法。
+</p>
+
+<h4 id="General_advice">一般建议</h4>
+
+<ul>
+	<li>
+		<p>
+<b>编写单元测试。</b>
+</p>
+		<p>
+清理回调、弱指针和终结器的确切时机难以预测。即使连续运行很多次看似正常，也很容易遗漏细微错误。为这些机制<a href="#Testing_object_death">编写测试</a>可能棘手，但正因为使用细节复杂，测试才格外重要。
+</p>
+	</li>
+	<li>
+		<p>
+<b>避免在普通 Go 代码中直接使用这些功能。</b>
+</p>
+		<p>
+这些是底层功能，具有微妙的限制和行为。例如，既不保证程序退出时执行清理回调或终结器，也不保证它们一定执行。API 文档中冗长的说明本身就值得警惕。绝大多数 Go 代码只适合间接利用这些功能，直接使用并无益处。
+</p>
+	</li>
+	<li>
+		<p>
+<b>在包内部封装这些机制的使用。</b>
+</p>
+		<p>
+尽可能不要让这些机制泄露到包的公共 API 中，而应提供难以误用或无法误用的接口。例如，不要要求用户为 C 分配的内存自行注册释放回调，而应编写包装包，在内部隐藏这一细节。
+</p>
+	</li>
+	<li>
+		<p>
+<b>将带有终结器、清理回调或弱指针的对象限制在创建并配置它们的包内部访问。</b>
+</p>
+		<p>
+这与上一条有关，但值得单独强调，因为它能大幅降低误用风险。例如，<a href="/pkg/unique">unique 包</a>内部使用弱指针，却完整封装了被弱引用的对象。应用其他部分无法修改这些值，只能通过 <a href="/pkg/unique#Handle.Value">Value 方法</a>获得副本，从而为用户保留无需关心回收的内存抽象。
+</p>
+	</li>
+	<li>
+		<p>
+<b>尽可能以确定性方式清理非内存资源，将终结器和清理回调用作兜底。</b>
+</p>
+		<p>
+清理回调和终结器适合管理内存资源，例如 C 等外部分配的内存，或对 <code>mmap</code> 映射的引用。C 的 malloc 分配的内存最终必须由 C 的 free 释放。为包装 C 内存的对象设置调用 <code>free</code> 的终结器，是让垃圾回收最终触发 C 内存释放的合理方式。
+</p>
+		<p>
+但文件描述符等非内存资源，往往受到 Go 运行时并不了解的系统限制。此外，包作者通常无法控制具体 Go 程序的垃圾回收时机，例如 GC 频率由 <a href="#GOGC">GOGC</a> 控制，而运维人员可能设置不同数值。两者结合意味着，清理回调和终结器不适合作为释放非内存资源的唯一机制。
+</p>
+		<p>
+如果包的 API 包装了非内存资源，应考虑提供显式 API，例如 <code>Close</code> 方法，以确定性地释放资源，而不是仅通过清理回调或终结器依赖 GC。更适合将这些机制用作处理编程疏漏的尽力兜底：像 <a href="/pkg/os#File">os.File</a> 一样继续清理资源，或向用户报告未能显式清理的问题。
+</p>
+	</li>
+	<li>
+		<p>
+<b>优先使用清理回调，而不是终结器。</b>
+</p>
+		<p>
+最初加入终结器，是为了简化 Go 与 C 之间的接口，以及清理非内存资源。预期做法是把终结器设置在拥有 C 内存或其他资源的包装对象上，Go 代码不再使用对象时释放资源。这部分解释了终结器为什么适用范围狭窄、每个对象只能有一个终结器，以及只能绑定到对象的首字节。这些限制已经妨碍了一些用途，例如包想为传入对象缓存内部信息，却无法在对象消失后清理这些信息。
+</p>
+		<p>
+更严重的是，终结器会让关联对象<a href="https://en.wikipedia.org/wiki/Object_resurrection">复活</a>，以便把对象传给终结函数，而且对象还可能继续存活，因此终结器低效且容易出错。这意味着，如果对象处于引用环中，就永远无法释放；对象背后的内存也至少要等到下一轮 GC 才能复用。
+</p>
+		<p>
+不过，正因为终结器会让对象复活，它的执行顺序比清理回调更加明确。因此，对于具有复杂销毁顺序要求的数据结构，终结器仍可能有用，尽管这种情况很少见。
+</p>
+		<p>
+对于其他用途，在 Go 1.24 及更新版本中建议使用清理回调，因为它比终结器更灵活、更高效，也更不容易出错。
+</p>
+	</li>
+</ul>
+
+<h4 id="Common_cleanup_issues">清理回调的常见问题</h4>
+
+<ul>
+	<li>
+		<p>
+注册了清理回调的对象，不能从清理函数本身可达，例如不能被它通过闭包捕获的局部变量引用。否则对象无法回收，清理回调也永远不会执行。
+</p>
+	</li>
+<pre>
+f := new(myFile)
+f.fd = syscall.Open(...)
+runtime.AddCleanup(f, func(fd int) {
+	syscall.Close(f.fd) // Mistake: We reference f, so this cleanup won't run!
+}, f.fd)
+</pre>
+	<li>
+		<p>
+注册了清理回调的对象，也不能从传给清理函数的参数可达。否则对象无法回收，清理回调永远不会执行。
+</p>
+	</li>
+<pre>
+f := new(myFile)
+f.fd = syscall.Open(...)
+runtime.AddCleanup(f, func(f *myFile) {
+	syscall.Close(f.fd)
+}, f) // Mistake: We reference f, so this cleanup wouldn't ever run. This specific case also panics.
+</pre>
+	<li>
+		<p>
+终结器有明确定义的执行顺序，清理回调则没有；多个清理回调还可能并发执行。
+</p>
+
+    </li>
+    <li>
+        <p>
+耗时较长的清理回调应创建 goroutine，避免阻塞其他清理回调的执行。
+</p>
+	</li>
+	<li>
+		<p>
+<code>runtime.GC</code> 只等待不可达对象的清理回调全部入队，不等待它们执行完成。
+</p>
+	</li>
+</ul>
+
+<h4 id="Common_weak_pointer_issues">弱指针的常见问题</h4>
+
+<ul>
+	<li>
+		<p>
+弱指针的 <code>Value</code> 方法可能在意想不到的时刻开始返回 <code>nil</code>。调用 <code>Value</code> 后始终检查 <code>nil</code>，并准备相应的后备处理。
+</p>
+	</li>
+	<li>
+		<p>
+弱指针作为映射键时，不影响映射值的可达性。因此，若弱指针键指向的对象也可以从对应映射值到达，该对象仍会被视为可达。
+</p>
+	</li>
+</ul>
+
+<h4 id="Common_finalizer_issues">终结器的常见问题</h4>
+
+<ul>
+	<li>
+		<p>
+带终结器的对象不能通过任何路径从自身再次可达，也就是不能位于引用环中，否则对象无法回收，终结器永远不会运行。
+</p>
+	</li>
+<pre>
+f := new(myCycle)
+f.self = f // Mistake: f is reachable from f, so this finalizer would never run.
+runtime.SetFinalizer(f, func(f *myCycle) {
+	...
+})
+</pre>
+	<li>
+		<p>
+带终结器的对象不能从终结函数本身可达，例如不能通过闭包捕获的局部变量引用，否则对象无法回收，终结器永远不会运行。
+</p>
+	</li>
+<pre>
+f := new(myFile)
+f.fd = syscall.Open(...)
+runtime.SetFinalizer(f, func(_ *myFile) {
+	syscall.Close(f.fd) // Mistake: We reference the outer f, so this cleanup won't run!
+})
+</pre>
+	<li>
+		<p>
+如果一条对象引用链上的每个对象都带有终结器，例如链表，全部清理完至少需要与链长相同次数的 GC 周期。应让终结器关联关系尽量浅！
+</p>
+	</li>
+<pre>
+// Mistake: reclaiming this linked list will take at least 10 GC cycles.
+node := new(linkedListNode)
+for range 10 {
+	tmp := new(linkedListNode)
+	tmp.next = node
+	node = tmp
+	runtime.SetFinalizer(node, func(node *linkedListNode) {
+		...
+	})
+}
+</pre>
+	<li>
+		<p>
+避免为跨包边界返回的对象设置终结器，否则包用户可能调用 <code>runtime.SetFinalizer</code> 修改返回对象的终结器，形成你未曾预料、但用户可能依赖的行为。
+</p>
+	</li>
+    <li>
+        <p>
+耗时较长的终结器应创建新的 goroutine，避免阻塞其他终结器。
+</p>
+    </li>
+	<li>
+		<p>
+<code>runtime.GC</code> 只等待不可达对象的终结器全部入队，不等待它们执行完成。
+</p>
+	</li>
+</ul>
+
+<h4 id="Testing_object_death">测试对象死亡</h4>
+
+<p>
+为使用这些机制的代码编写测试，有时会比较棘手。以下建议有助于编写稳健的测试。
+</p>
+
+<ul>
+	<li>
+		避免将这类测试与其他测试并行运行。尽可能提高确定性，并明确掌握每个时刻的整体状态，会很有帮助。
+	</li>
+	<li>
+		进入测试时，使用 <code>runtime.GC</code> 建立基线。使用 <code>runtime.GC</code> 使弱指针变为 <code>nil</code>，并将清理回调和终结器加入待执行队列。
+	</li>
+	<li>
+		<p>
+<code>runtime.GC</code> 不等待清理回调和终结器执行，只负责将其入队。
+</p>
+		<p>
+最稳健的做法是在测试中注入等待清理回调或终结器完成的方式。例如，测试向它们传入一个可选通道，在执行结束时向通道发送信号。如果难以做到，也可以循环检查清理后的某个状态。例如，<code>os</code> 的测试会在文件变为不可达后，循环调用 <code>runtime.Gosched</code> 并检查文件是否已关闭。
+</p>
+	</li>
+	<li>
+		<p>
+测试终结器时，如果存在带终结器的对象链，至少需要调用与测试能创建的最深链长度相同次数的 <code>runtime.GC</code>，才能确保所有终结器运行。
+</p>
+	</li>
+	<li>
+		<p>
+在竞争检测模式下测试，以发现并发清理回调之间，以及清理回调、终结器与其余代码之间的数据竞争。
+</p>
+	</li>
+</ul>
+
+<!-- TODO: Add a short section about non-steady-state behavior. -->
+
+<h3 id="Additional_resources">其他资源</h3>
+
+<p>
+前面的信息虽然准确，但尚不足以完整解释 Go GC 设计中的所有开销与权衡。如需深入，请参阅以下资源。
+</p>
+
+<ul>
+	<li>
+		<a href="https://gchandbook.org/">垃圾回收手册（The GC Handbook）</a>&mdash;关于垃圾回收器设计的优秀综合资料和参考书。
+	</li>
+	<li>
+		<a href="https://google.github.io/tcmalloc/design.html">TCMalloc</a>&mdash;C/C++ 内存分配器 TCMalloc 的设计文档，Go 内存分配器以它为基础。
+	</li>
+	<li>
+		<a href="/blog/go15gc">Go 1.5 GC 发布介绍</a>&mdash;介绍 Go 1.5 并发 GC 的博客文章，更详细地说明了算法。
+	</li>
+	<li>
+		<a href="/blog/ismmkeynote">Getting to Go</a>&mdash;深入介绍截至 2018 年 Go GC 设计演进的演讲。
+	</li>
+	<li>
+		<a href="https://docs.google.com/document/d/1wmjrocXIWTr1JxU-3EQBI6BK6KgtiFArkG47XK73xIQ/edit">Go 1.5 并发 GC 节奏控制</a>&mdash;介绍如何确定并发标记阶段启动时机的设计文档。
+	</li>
+	<li>
+		<a href="/issue/30333">更智能的内存归还</a>&mdash;改进 Go 运行时向操作系统归还内存方式的设计文档。
+	</li>
+	<li>
+		<a href="/issue/35112">可扩展的页分配器</a>&mdash;改进 Go 运行时管理从操作系统获得的内存的设计文档。
+	</li>
+	<li>
+		<a href="/issue/44167">GC 节奏控制器重新设计（Go 1.18）</a>&mdash;改进并发标记启动时机算法的设计文档。
+	</li>
+	<li>
+		<a href="/issue/48409">软内存限制（Go 1.19）</a>&mdash;软内存限制的设计文档。
+	</li>
+</ul>
+
+<h2 id="A_note_about_virtual_memory">关于虚拟内存</h2>
+
+<p>
+本指南主要关注 GC 的物理内存使用，但一个常见问题是：它具体指什么，与虚拟内存有何区别？后者通常在 <code>top</code> 等工具中显示为“VSS”。
+</p>
+
+<p>
+物理内存是大多数计算机中实际 RAM 芯片上的内存。<a href="https://en.wikipedia.org/wiki/Virtual_memory">虚拟内存</a>是操作系统在物理内存之上提供的抽象，用来隔离不同程序。程序通常也可以预留完全不映射到物理地址的虚拟地址空间。
+</p>
+
+<p>
+<b>由于虚拟内存只是操作系统维护的映射，预留大量尚未映射到物理内存的虚拟地址空间，通常成本很低。</b>
+</p>
+
+<p>
+Go 运行时在以下方面依赖这一特性：
+</p>
+
+<ul>
+	<li>
+		<p>
+Go 运行时不会删除它映射的虚拟内存，而是通过大多数操作系统提供的特殊操作，显式释放与某段虚拟内存关联的物理内存资源。
+</p>
+
+		<p>
+这一技术用于管理<a href="#Memory_limit">内存限制</a>，并将运行时不再需要的内存归还操作系统。Go 运行时还会在后台持续释放不再需要的内存。更多信息见<a href="#Additional_resources">其他资源</a>。
+</p>
+	</li>
+	<li>
+		<p>
+在 32 位平台上，Go 运行时会提前为堆预留 128 MiB 到 512 MiB 地址空间，以减轻碎片问题。
+</p>
+	</li>
+	<li>
+		<p>
+若干内部数据结构会预留较大的虚拟地址空间。在 64 位平台上，这些结构通常至少占用约 700 MiB 虚拟地址空间；在 32 位平台上则可以忽略。
+</p>
+	</li>
+</ul>
+
+<p>
+因此，<code>top</code> 中的“VSS”等虚拟内存指标，通常不太适合用于理解 Go 程序的内存占用。应更多关注“RSS”等更直接反映物理内存使用的指标。
+</p>
+
+<h2 id="Optimization_guide">优化指南</h2>
+
+<h3 id="Identifying_costs">识别开销</h3>
+
+<p>
+优化 Go 应用与 GC 的交互之前，首先应确认 GC 确实是主要开销来源。
+</p>
+
+</p>
+Go 生态提供多种工具，用于识别开销并优化应用。简要概览见<a href="/doc/diagnostics">诊断指南</a>。这里重点介绍部分工具及其合理使用顺序，以理解 GC 的影响与行为。
+</p>
+
+<ol>
+	<li>
+		<p>
+<b>CPU 性能剖析</b>
+</p>
+
+		<p>
+可以从 <a href="https://pkg.go.dev/runtime/pprof#hdr-Profiling_a_Go_program">CPU 性能剖析</a>开始。它能概览 CPU 时间花在哪里，不过不熟悉的人可能难以判断 GC 在具体应用中占多大比重。好在通常只需了解 `runtime` 包中各个函数的含义。下面列出有助于解读 CPU 剖析结果的部分函数。
+</p>
+
+		<p>
+注意，下列函数并非叶子函数，因此未必出现在 <code>pprof</code> 默认的 <code>top</code> 输出中。可改用 <code>top -cum</code>，或直接对这些函数使用 <code>list</code>，重点查看累计百分比。
+</p>
+	</li>
+
+	<ul>
+		<li>
+			<p>
+<b><code>runtime.gcBgMarkWorker</code></b>：后台标记工作 goroutine 的入口。这里的耗时随 GC 频率以及对象图的大小、复杂度增加，代表应用花在标记和扫描上的基础时间。
+</p>
+			<p>
+这些 goroutine 中会调用 <code>runtime.gcDrainMarkWorkerDedicated</code>、<code>runtime.gcDrainMarkWorkerFractional</code> 和 <code>runtime.gcDrainMarkWorkerIdle</code>，分别表示不同工作类型。应用较空闲时，GC 会利用额外的空闲 CPU 加快工作，体现为 <code>runtime.gcDrainMarkWorkerIdle</code>。因此它可能占较大比例的 CPU 样本，但 GC 认为这些资源本来就是空闲的。应用更忙时，空闲工作线程的 CPU 时间会下降。常见例子是应用完全运行在一个 goroutine 中，而 <code>GOMAXPROCS</code> 大于 1。
+</p>
+		</li>
+		<li>
+			<p>
+<b><code>runtime.mallocgc</code></b>：堆内存分配器的入口。这里累计时间较高（超过 15%），通常表明内存分配很多。
+</p>
+		</li>
+		<li>
+			<p>
+<b><code>runtime.gcAssistAlloc</code></b>：goroutine 进入该函数，贡献部分执行时间协助 GC 扫描和标记。这里累计时间较高（超过 5%），通常说明应用分配速度超过 GC 处理能力，GC 对应用影响较大。这部分也是应用用于标记和扫描的时间。它包含在 <code>runtime.mallocgc</code> 调用树中，因此也会增加后者的累计开销。
+</p>
+		</li>
+	</ul>
+
+	<li>
+		<p>
+<b>执行追踪</b>
+</p>
+
+		<p>
+CPU 性能剖析适合了解总体时间分布，但不太适合揭示细微、偶发或专门与延迟相关的开销。执行追踪</a>则能细致展示 Go 程序一小段时间内的执行情况，记录多种 GC 相关事件，让你直接观察具体执行路径以及应用与 GC 的交互。在追踪查看器中，所有 GC 事件都有清晰标记。
+</p>
+
+		<p>
+如何开始使用执行追踪，请参阅 <a href="https://pkg.go.dev/runtime/trace"><code>runtime/trace</code> 包文档</a>。
+</p>
+	</li>
+
+	<li>
+		<p>
+<b>GC 追踪</b>
+</p>
+
+		<p>
+如果其他方法仍不足以解释问题，Go GC 还提供几种专门追踪方式，能够更深入地观察其行为。追踪直接输出到标准错误流，每个 GC 周期一行，通过所有 Go 程序识别的 <code>GODEBUG</code> 环境变量配置。它们主要用于调试 GC 本身，需要熟悉实现细节，但偶尔也能帮助理解具体 GC 行为。
+</p>
+
+		<p>
+设置 <code>GODEBUG=gctrace=1</code> 可启用基本 GC 追踪。输出格式见 <a href="https://pkg.go.dev/runtime#hdr-Environment_Variables"><code>runtime</code> 包文档的环境变量部分</a>。
+</p>
+
+		<p>
+设置 <code>GODEBUG=gcpacertrace=1</code> 可启用补充的“节奏控制器追踪”（pacer trace），提供更深层信息。解读它需要理解 GC 的节奏控制器，参见<a href="#Additional_resources">其他资源</a>，此处不展开。
+</p>
+	</li>
+</ol>
+
+<h3 id="Eliminating_heap_allocations">消除堆分配</h3>
+
+<p>
+降低 GC 开销的一种方法，是从一开始就减少交给 GC 管理的值。下面的技术可能带来很大的性能改善，因为正如 <a href="#GOGC">GOGC 一节</a>所示，Go 程序的分配速率是决定 GC 频率的主要因素，而 GC 频率是本文的核心开销指标。
+</p>
+
+<h4 id="Heap_profiling">堆内存剖析</h4>
+
+<p>
+<a href="#Identifying_costs">确认 GC 是显著开销来源</a>之后，减少堆分配的下一步是找出主要分配点。内存剖析，也就是堆内存剖析，对此很有用。入门方法见<a href="https://pkg.go.dev/runtime/pprof#hdr-Profiling_a_Go_program">相关文档</a>。
+</p>
+
+<p>
+内存剖析通过分配发生时的调用栈，指出程序中堆分配的来源。每份剖析可以从四个角度统计内存。
+</p>
+
+<ul>
+	<li><code>inuse_objects</code>&mdash;按分配来源统计存活对象数量。</li>
+	<li><code>inuse_space</code>&mdash;按分配来源统计存活对象占用的字节数。</li>
+	<li><code>alloc_objects</code>&mdash;统计程序启动以来累计分配的对象数量。</li>
+	<li><code>alloc_space</code>&mdash;统计程序启动以来累计分配的内存总量。</li>
+</ul>
+
+<p>
+可通过 <code>pprof</code> 的 <code>-sample_index</code> 标志切换视图，或在交互模式下使用 <code>sample_index</code> 选项。
+</p>
+
+<p class="gc-guide-note">
+注意：内存剖析默认只对部分堆对象采样，不会记录每一次堆分配，但足以定位热点。调整采样率请参阅 <a href="https://pkg.go.dev/runtime#pkg-variables"><code>runtime.MemProfileRate</code></a>。
+</p>
+
+<p>
+为了减少 GC 开销，<code>alloc_space</code> 通常最有用，因为它直接对应分配速率，能够指出优化收益最大的分配热点。
+</p>
+
+<h4 id="Escape_analysis">逃逸分析</h4>
+
+<p>
+通过<a href="#Heap_profiling">堆剖析</a>找到候选分配点后，如何消除它们？关键是利用 Go 编译器的逃逸分析，让编译器为内存选择更高效的位置，例如 goroutine 栈。Go 编译器能够说明为什么判定某个值逃逸到堆。掌握原因后，就可以调整源码组织，改变分析结果。这往往是最难的部分，但不在本文范围内。
+</p>
+
+<p>
+获取逃逸分析信息最简单的方式，是使用编译器支持的调试标志，以文本形式输出对某个包应用或未应用的优化，包括值是否逃逸。尝试以下命令，其中 <code>[package]</code> 是 Go 包路径。
+</p>
+
+<pre>
+$ go build -gcflags=-m=3 [package]
+</pre>
+
+<p>
+这些信息也可以在支持 LSP 的编辑器中以代码标注显示，通过代码操作启用。例如，在 VS Code 中执行“Source Action... > Show compiler optimization details”，为当前包开启诊断；也可以运行“Go: Toggle compiler optimization details”。使用以下配置控制显示哪些标注：
+</p>
+
+<ol>
+	<li>
+	将 <a href="https://github.com/golang/vscode-go/wiki/settings#uidiagnosticannotations"><code>ui.diagnostic.annotations</code> 配置为包含 <code>escape</code></a>，以显示逃逸分析标注。
+	</li>
+</ol>
+
+<p>
+此外，Go 编译器也提供机器可读的 JSON 格式信息，可据此构建自定义工具。详情见 <a href="https://cs.opensource.google/go/go/+/master:src/cmd/compile/internal/logopt/log_opts.go;l=25;drc=351e0f4083779d8ac91c05afebded42a302a6893">Go 源代码中的文档</a>。
+<p>
+
+<h3 id="Implementation-specific_optimizations">针对实现细节的优化</h3>
+
+<p>
+Go GC 对存活内存的结构特征很敏感，因为复杂的对象与指针图既限制并行度，也增加回收工作。因此，GC 针对一些常见结构进行了专门优化。下面列出与性能优化最直接相关的几项。
+</p>
+
+<p class="gc-guide-note">
+注意：下面的优化可能掩盖代码意图、降低可读性，也可能无法在未来 Go 版本中持续有效。最好仅在最重要的位置使用，可通过<a href="#Identifying_costs">识别开销</a>一节中的工具定位这些位置。
+</p>
+
+<ul>
+	<li>
+		<p>
+不含指针的值会与其他值分开存放。
+</p>
+		<p>
+因此，如果数据结构并非必须包含指针，去掉指针可能减少 GC 对 CPU 缓存的压力。例如，用索引代替指针的数据结构，虽然类型表达不如指针清晰，却可能有更好性能。只有明确发现对象图复杂、GC 在标记和扫描上耗时很多时，才值得这样做。
+</p>
+	</li>
+	<li>
+		<p>
+GC 扫描一个值时，到其中最后一个指针就会停止。
+</p>
+		<p>
+因此，将结构体中的指针字段集中放在开头可能有益。只有明确发现应用大量时间花在标记和扫描上时，才值得这样做。（理论上编译器可以自动重排，但目前尚未实现，结构体字段仍按源码中的顺序排列。）
+</p>
+	</li>
+</ul>
+
+<p>
+此外，GC 必须处理几乎每一个遇到的指针，因此例如使用切片索引代替指针，也有助于降低 GC 开销。
+</p>
+
+<h3 id="Linux_transparent_huge_pages">Linux 透明大页（THP）</h3>
+
+<p>
+程序访问内存时，CPU 需要将使用的<a href="#A_note_about_virtual_memory">虚拟内存</a>地址转换为实际数据所在的物理地址。它通过查询操作系统维护的“页表”完成转换。页表表示虚拟到物理内存的映射，每个条目对应一块不可再分的物理内存，称为页。
+</p>
+
+<p>
+透明大页（THP）是 Linux 的一项功能，可透明地将连续虚拟内存区域背后的普通物理页替换为更大的内存块，也就是大页。更大的内存块意味着用更少页表条目就能表示同一区域，改善页表查询效率；但如果只用到大页的一小部分，也会浪费更多内存。
+</p>
+
+<p>
+在 Linux 生产环境运行 Go 程序时，启用透明大页可能改善吞吐量和延迟，代价是增加内存占用。小堆应用通常受益不大，额外内存甚至可能达到 50%；大堆应用（1 GiB 以上）则往往获益明显，吞吐量最多可改善约 10%，而额外内存仅约 1%～2% 或更少。无论哪种情况，都应了解 THP 配置并通过实验验证。
+</p>
+
+<p>
+可修改 <code>/sys/kernel/mm/transparent_hugepage/enabled</code>，在 Linux 中启用或禁用透明大页。详情见 <a href="https://www.kernel.org/doc/html/next/admin-guide/mm/transhuge.html">Linux 官方管理指南</a>。如果选择在生产环境启用透明大页，建议为 Go 程序使用以下附加设置。
+</p>
+
+<ul>
+	<li>
+		<p>
+将 <code>/sys/kernel/mm/transparent_hugepage/defrag</code> 设为 <code>defer</code> 或 <code>defer+madvise</code>。<br /><br />此设置控制 Linux 内核将普通页合并为大页的积极程度。<code>defer</code> 表示在后台延后合并；更积极的设置可能让内存紧张的系统停顿，并损害应用延迟。<code>defer+madvise</code> 与 <code>defer</code> 类似，但对显式请求大页、依赖大页性能的其他应用更友好。
+</p>
+	</li>
+	<li>
+		<p id="Linux_THP_max_ptes_none_workaround">
+将 <code>/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none</code> 设为 <code>0</code>。<br /><br />此设置控制 Linux 内核守护进程为分配大页可额外分配多少普通页。默认值极为积极，经常会<a href="https://bugzilla.kernel.org/show_bug.cgi?id=93111">抵消 Go 运行时归还内存给操作系统的工作</a>。Go 1.21 之前，运行时尝试缓解默认设置的负面影响，但会付出 CPU 开销。Go 1.21 及更新版本配合 Linux 6.2 及更新版本时，运行时不再修改大页状态。<br /><br />如果升级到 Go 1.21.1 或更新版本后发现内存占用增加，可以尝试此设置，通常能够解决。另外，也可以通过 <a href="/pkg/golang.org/x/sys/unix#Prctl"><code>Prctl</code> 函数</a>和 <code>PR_SET_THP_DISABLE</code> 在进程级禁用大页，或设置 <code>GODEBUG=disablethp=1</code> 禁用堆内存大页（原文说明该选项将加入 Go 1.21.6 和 Go 1.22）。注意，该 <code>GODEBUG</code> 设置可能在未来版本移除。
+</p>
+	</li>
+</ul>
+
+<h2 id="Appendix">附录</h2>
+
+<h3 id="Additional_notes_on_GOGC">GOGC 的补充说明</h3>
+
+<p>
+<a href="#GOGC">GOGC 一节</a>提到，GOGC 翻倍会使额外堆内存开销翻倍，并使 GC CPU 开销减半。下面用数学方式解释。
+</p>
+
+<p>
+首先，堆目标针对的是总堆大小。但存活堆由应用决定，因此该目标主要影响新分配的堆内存。
+</p>
+
+<p class="gc-guide-equation">
+<i>目标堆内存 = 存活堆 +（存活堆 + GC 根）× GOGC / 100</i>
+</p>
+
+<p class="gc-guide-equation">
+<i>总堆内存 = 存活堆 + 新堆内存</i>
+</p>
+
+<p class="gc-guide-equation">
+<i> &rArr; </i>
+</p>
+
+<p class="gc-guide-equation">
+<i>新堆内存 =（存活堆 + GC 根）× GOGC / 100</i>
+</p>
+
+<p>
+因此，GOGC 翻倍会让应用每个周期允许新分配的堆内存翻倍，这正是额外堆内存开销。注意，<i>存活堆 + GC 根</i>近似表示 GC 需要扫描的内存量。
+</p>
+
+<p>
+再看 GC CPU 开销。在时间段 T 内，总开销可以分解为每周期开销乘以 GC 频率，再乘以 T。
+</p>
+
+<p class="gc-guide-equation">
+<i>GC 总 CPU 开销 = 每周期 GC CPU 开销 × GC 频率 × T</i>
+</p>
+
+<p>
+每周期 GC CPU 开销可由<a href="#Understanding_costs">GC 模型</a>推导：
+</p>
+
+<p class="gc-guide-equation">
+<i>每周期 GC CPU 开销 =（存活堆 + GC 根）× 每字节开销 + 固定开销</i>
+</p>
+
+<p>
+标记和扫描占主导，因此这里忽略清扫阶段开销。
+</p>
+
+<p>
+稳态下分配速率和每字节开销固定，因此可以从新堆内存推导 GC 频率：
+</p>
+
+<p class="gc-guide-equation">
+<i>GC 频率 = 分配速率 / 新堆内存 = 分配速率 /（（存活堆 + GC 根）× GOGC / 100）</i>
+</p>
+
+<p>
+合并后，得到完整的总开销公式：
+</p>
+
+<p class="gc-guide-equation">
+<i>GC 总 CPU 开销 = 分配速率 /（（存活堆 + GC 根）× GOGC / 100）×（（存活堆 + GC 根）× 每字节开销 + 固定开销）× T</i>
+</p>
+
+<p>
+对于足够大的堆，也就是大多数情况，GC 周期的边际开销远大于固定开销，因此总 CPU 开销公式可大幅简化。
+</p>
+
+<p class="gc-guide-equation">
+<i>GC 总 CPU 开销 = 分配速率 /（GOGC / 100）× 每字节开销 × T</i>
+</p>
+
+<p>
+从简化公式可见，GOGC 翻倍，GC 总 CPU 开销就减半。（本文可视化模拟了固定开销，因此图中 GOGC 翻倍时，CPU 开销不会恰好减半。）此外，GC CPU 开销主要由分配速率与扫描内存的每字节成本决定。具体如何降低这些开销，请参阅<a href="#Optimization_guide">优化指南</a>。
+</p>
+
+<p class="gc-guide-note">
+注意，存活堆大小与 GC 实际需要扫描的内存量存在差异：同样大小的存活堆，结构不同会带来不同 CPU 开销，但内存开销相同，因此权衡也不同。这也是为什么堆结构属于稳态定义的一部分。理论上，堆目标只包含可扫描的存活堆，能更接近实际扫描量；但当可扫描部分很小、整体存活堆却很大时，这种做法会产生不良行为。
+</p>
+
+<script src="/js/d3.js"></script>
+<script async src="/doc/gc-guide.js"></script>

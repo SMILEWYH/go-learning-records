@@ -1,0 +1,804 @@
+<!--{
+  "Title": "debug/pe 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>debug/pe 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "debug/pe"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>pe 包提供对 PE（Microsoft Windows 可移植可执行文件）文件的访问。<h3 id="hdr-Security">安全性</h3>
+<p>本包未针对恶意输入进行安全加固，也不属于 <a href="/security/policy">https://go.dev/security/policy</a> 的适用范围。特别是，解析目标文件时只会进行基本验证。因此，解析不可信输入时应保持谨慎，因为解析格式错误的文件可能消耗大量资源，或引发 panic。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+			
+				
+				<dd><a href="#COFFSymbol">type COFFSymbol</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#COFFSymbol.FullName">func (sym *COFFSymbol) FullName(st StringTable) (string, error)</a></dd>
+				
+			
+				
+				<dd><a href="#COFFSymbolAuxFormat5">type COFFSymbolAuxFormat5</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DataDirectory">type DataDirectory</a></dd>
+				
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFile">func NewFile(r io.ReaderAt) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(name string) (*File, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.COFFSymbolReadSectionDefAux">func (f *File) COFFSymbolReadSectionDefAux(idx int) (*COFFSymbolAuxFormat5, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Close">func (f *File) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.DWARF">func (f *File) DWARF() (*dwarf.Data, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ImportedLibraries">func (f *File) ImportedLibraries() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ImportedSymbols">func (f *File) ImportedSymbols() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Section">func (f *File) Section(name string) *Section</a></dd>
+				
+			
+				
+				<dd><a href="#FileHeader">type FileHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FormatError">type FormatError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatError.Error">func (e *FormatError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#ImportDirectory">type ImportDirectory</a></dd>
+				
+				
+			
+				
+				<dd><a href="#OptionalHeader32">type OptionalHeader32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#OptionalHeader64">type OptionalHeader64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reloc">type Reloc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Section">type Section</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Section.Data">func (s *Section) Data() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Section.Open">func (s *Section) Open() io.ReadSeeker</a></dd>
+				
+			
+				
+				<dd><a href="#SectionHeader">type SectionHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SectionHeader32">type SectionHeader32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StringTable">type StringTable</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StringTable.String">func (st StringTable) String(start uint32) (string, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Symbol">type Symbol</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/debug/pe/file.go">file.go</a>
+			
+				<a href="/src/debug/pe/pe.go">pe.go</a>
+			
+				<a href="/src/debug/pe/section.go">section.go</a>
+			
+				<a href="/src/debug/pe/string.go">string.go</a>
+			
+				<a href="/src/debug/pe/symbol.go">symbol.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span id="IMAGE_FILE_MACHINE_UNKNOWN">IMAGE_FILE_MACHINE_UNKNOWN</span>     = 0x0
+    <span id="IMAGE_FILE_MACHINE_AM33">IMAGE_FILE_MACHINE_AM33</span>        = 0x1d3
+    <span id="IMAGE_FILE_MACHINE_AMD64">IMAGE_FILE_MACHINE_AMD64</span>       = 0x8664
+    <span id="IMAGE_FILE_MACHINE_ARM">IMAGE_FILE_MACHINE_ARM</span>         = 0x1c0
+    <span id="IMAGE_FILE_MACHINE_ARMNT">IMAGE_FILE_MACHINE_ARMNT</span>       = 0x1c4
+    <span id="IMAGE_FILE_MACHINE_ARM64">IMAGE_FILE_MACHINE_ARM64</span>       = 0xaa64
+    <span id="IMAGE_FILE_MACHINE_EBC">IMAGE_FILE_MACHINE_EBC</span>         = 0xebc
+    <span id="IMAGE_FILE_MACHINE_I386">IMAGE_FILE_MACHINE_I386</span>        = 0x14c
+    <span id="IMAGE_FILE_MACHINE_IA64">IMAGE_FILE_MACHINE_IA64</span>        = 0x200
+    <span id="IMAGE_FILE_MACHINE_LOONGARCH32">IMAGE_FILE_MACHINE_LOONGARCH32</span> = 0x6232
+    <span id="IMAGE_FILE_MACHINE_LOONGARCH64">IMAGE_FILE_MACHINE_LOONGARCH64</span> = 0x6264
+    <span id="IMAGE_FILE_MACHINE_M32R">IMAGE_FILE_MACHINE_M32R</span>        = 0x9041
+    <span id="IMAGE_FILE_MACHINE_MIPS16">IMAGE_FILE_MACHINE_MIPS16</span>      = 0x266
+    <span id="IMAGE_FILE_MACHINE_MIPSFPU">IMAGE_FILE_MACHINE_MIPSFPU</span>     = 0x366
+    <span id="IMAGE_FILE_MACHINE_MIPSFPU16">IMAGE_FILE_MACHINE_MIPSFPU16</span>   = 0x466
+    <span id="IMAGE_FILE_MACHINE_POWERPC">IMAGE_FILE_MACHINE_POWERPC</span>     = 0x1f0
+    <span id="IMAGE_FILE_MACHINE_POWERPCFP">IMAGE_FILE_MACHINE_POWERPCFP</span>   = 0x1f1
+    <span id="IMAGE_FILE_MACHINE_R4000">IMAGE_FILE_MACHINE_R4000</span>       = 0x166
+    <span id="IMAGE_FILE_MACHINE_SH3">IMAGE_FILE_MACHINE_SH3</span>         = 0x1a2
+    <span id="IMAGE_FILE_MACHINE_SH3DSP">IMAGE_FILE_MACHINE_SH3DSP</span>      = 0x1a3
+    <span id="IMAGE_FILE_MACHINE_SH4">IMAGE_FILE_MACHINE_SH4</span>         = 0x1a6
+    <span id="IMAGE_FILE_MACHINE_SH5">IMAGE_FILE_MACHINE_SH5</span>         = 0x1a8
+    <span id="IMAGE_FILE_MACHINE_THUMB">IMAGE_FILE_MACHINE_THUMB</span>       = 0x1c2
+    <span id="IMAGE_FILE_MACHINE_WCEMIPSV2">IMAGE_FILE_MACHINE_WCEMIPSV2</span>   = 0x169
+    <span id="IMAGE_FILE_MACHINE_RISCV32">IMAGE_FILE_MACHINE_RISCV32</span>     = 0x5032
+    <span id="IMAGE_FILE_MACHINE_RISCV64">IMAGE_FILE_MACHINE_RISCV64</span>     = 0x5064
+    <span id="IMAGE_FILE_MACHINE_RISCV128">IMAGE_FILE_MACHINE_RISCV128</span>    = 0x5128
+)</pre>
+			
+				<p>IMAGE_DIRECTORY_ENTRY 常量。<pre>const (
+    <span id="IMAGE_DIRECTORY_ENTRY_EXPORT">IMAGE_DIRECTORY_ENTRY_EXPORT</span>         = 0
+    <span id="IMAGE_DIRECTORY_ENTRY_IMPORT">IMAGE_DIRECTORY_ENTRY_IMPORT</span>         = 1
+    <span id="IMAGE_DIRECTORY_ENTRY_RESOURCE">IMAGE_DIRECTORY_ENTRY_RESOURCE</span>       = 2
+    <span id="IMAGE_DIRECTORY_ENTRY_EXCEPTION">IMAGE_DIRECTORY_ENTRY_EXCEPTION</span>      = 3
+    <span id="IMAGE_DIRECTORY_ENTRY_SECURITY">IMAGE_DIRECTORY_ENTRY_SECURITY</span>       = 4
+    <span id="IMAGE_DIRECTORY_ENTRY_BASERELOC">IMAGE_DIRECTORY_ENTRY_BASERELOC</span>      = 5
+    <span id="IMAGE_DIRECTORY_ENTRY_DEBUG">IMAGE_DIRECTORY_ENTRY_DEBUG</span>          = 6
+    <span id="IMAGE_DIRECTORY_ENTRY_ARCHITECTURE">IMAGE_DIRECTORY_ENTRY_ARCHITECTURE</span>   = 7
+    <span id="IMAGE_DIRECTORY_ENTRY_GLOBALPTR">IMAGE_DIRECTORY_ENTRY_GLOBALPTR</span>      = 8
+    <span id="IMAGE_DIRECTORY_ENTRY_TLS">IMAGE_DIRECTORY_ENTRY_TLS</span>            = 9
+    <span id="IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG">IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG</span>    = 10
+    <span id="IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT">IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT</span>   = 11
+    <span id="IMAGE_DIRECTORY_ENTRY_IAT">IMAGE_DIRECTORY_ENTRY_IAT</span>            = 12
+    <span id="IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT">IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT</span>   = 13
+    <span id="IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR">IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR</span> = 14
+)</pre>
+			
+				<p>IMAGE_FILE_HEADER.Characteristics 的取值。这些值可以组合使用。<pre>const (
+    <span id="IMAGE_FILE_RELOCS_STRIPPED">IMAGE_FILE_RELOCS_STRIPPED</span>         = 0x0001
+    <span id="IMAGE_FILE_EXECUTABLE_IMAGE">IMAGE_FILE_EXECUTABLE_IMAGE</span>        = 0x0002
+    <span id="IMAGE_FILE_LINE_NUMS_STRIPPED">IMAGE_FILE_LINE_NUMS_STRIPPED</span>      = 0x0004
+    <span id="IMAGE_FILE_LOCAL_SYMS_STRIPPED">IMAGE_FILE_LOCAL_SYMS_STRIPPED</span>     = 0x0008
+    <span id="IMAGE_FILE_AGGRESIVE_WS_TRIM">IMAGE_FILE_AGGRESIVE_WS_TRIM</span>       = 0x0010
+    <span id="IMAGE_FILE_LARGE_ADDRESS_AWARE">IMAGE_FILE_LARGE_ADDRESS_AWARE</span>     = 0x0020
+    <span id="IMAGE_FILE_BYTES_REVERSED_LO">IMAGE_FILE_BYTES_REVERSED_LO</span>       = 0x0080
+    <span id="IMAGE_FILE_32BIT_MACHINE">IMAGE_FILE_32BIT_MACHINE</span>           = 0x0100
+    <span id="IMAGE_FILE_DEBUG_STRIPPED">IMAGE_FILE_DEBUG_STRIPPED</span>          = 0x0200
+    <span id="IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP">IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP</span> = 0x0400
+    <span id="IMAGE_FILE_NET_RUN_FROM_SWAP">IMAGE_FILE_NET_RUN_FROM_SWAP</span>       = 0x0800
+    <span id="IMAGE_FILE_SYSTEM">IMAGE_FILE_SYSTEM</span>                  = 0x1000
+    <span id="IMAGE_FILE_DLL">IMAGE_FILE_DLL</span>                     = 0x2000
+    <span id="IMAGE_FILE_UP_SYSTEM_ONLY">IMAGE_FILE_UP_SYSTEM_ONLY</span>          = 0x4000
+    <span id="IMAGE_FILE_BYTES_REVERSED_HI">IMAGE_FILE_BYTES_REVERSED_HI</span>       = 0x8000
+)</pre>
+			
+				<p>OptionalHeader64.Subsystem 和 OptionalHeader32.Subsystem 的取值。<pre>const (
+    <span id="IMAGE_SUBSYSTEM_UNKNOWN">IMAGE_SUBSYSTEM_UNKNOWN</span>                  = 0
+    <span id="IMAGE_SUBSYSTEM_NATIVE">IMAGE_SUBSYSTEM_NATIVE</span>                   = 1
+    <span id="IMAGE_SUBSYSTEM_WINDOWS_GUI">IMAGE_SUBSYSTEM_WINDOWS_GUI</span>              = 2
+    <span id="IMAGE_SUBSYSTEM_WINDOWS_CUI">IMAGE_SUBSYSTEM_WINDOWS_CUI</span>              = 3
+    <span id="IMAGE_SUBSYSTEM_OS2_CUI">IMAGE_SUBSYSTEM_OS2_CUI</span>                  = 5
+    <span id="IMAGE_SUBSYSTEM_POSIX_CUI">IMAGE_SUBSYSTEM_POSIX_CUI</span>                = 7
+    <span id="IMAGE_SUBSYSTEM_NATIVE_WINDOWS">IMAGE_SUBSYSTEM_NATIVE_WINDOWS</span>           = 8
+    <span id="IMAGE_SUBSYSTEM_WINDOWS_CE_GUI">IMAGE_SUBSYSTEM_WINDOWS_CE_GUI</span>           = 9
+    <span id="IMAGE_SUBSYSTEM_EFI_APPLICATION">IMAGE_SUBSYSTEM_EFI_APPLICATION</span>          = 10
+    <span id="IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER">IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER</span>  = 11
+    <span id="IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER">IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER</span>       = 12
+    <span id="IMAGE_SUBSYSTEM_EFI_ROM">IMAGE_SUBSYSTEM_EFI_ROM</span>                  = 13
+    <span id="IMAGE_SUBSYSTEM_XBOX">IMAGE_SUBSYSTEM_XBOX</span>                     = 14
+    <span id="IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION">IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION</span> = 16
+)</pre>
+			
+				<p>OptionalHeader64.DllCharacteristics 和 OptionalHeader32.DllCharacteristics 的取值。这些值可以组合使用。<pre>const (
+    <span id="IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA">IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA</span>       = 0x0020
+    <span id="IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE">IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE</span>          = 0x0040
+    <span id="IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY">IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY</span>       = 0x0080
+    <span id="IMAGE_DLLCHARACTERISTICS_NX_COMPAT">IMAGE_DLLCHARACTERISTICS_NX_COMPAT</span>             = 0x0100
+    <span id="IMAGE_DLLCHARACTERISTICS_NO_ISOLATION">IMAGE_DLLCHARACTERISTICS_NO_ISOLATION</span>          = 0x0200
+    <span id="IMAGE_DLLCHARACTERISTICS_NO_SEH">IMAGE_DLLCHARACTERISTICS_NO_SEH</span>                = 0x0400
+    <span id="IMAGE_DLLCHARACTERISTICS_NO_BIND">IMAGE_DLLCHARACTERISTICS_NO_BIND</span>               = 0x0800
+    <span id="IMAGE_DLLCHARACTERISTICS_APPCONTAINER">IMAGE_DLLCHARACTERISTICS_APPCONTAINER</span>          = 0x1000
+    <span id="IMAGE_DLLCHARACTERISTICS_WDM_DRIVER">IMAGE_DLLCHARACTERISTICS_WDM_DRIVER</span>            = 0x2000
+    <span id="IMAGE_DLLCHARACTERISTICS_GUARD_CF">IMAGE_DLLCHARACTERISTICS_GUARD_CF</span>              = 0x4000
+    <span id="IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE">IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE</span> = 0x8000
+)</pre>
+			
+				<p>节特征标志。<pre>const (
+    <span id="IMAGE_SCN_CNT_CODE">IMAGE_SCN_CNT_CODE</span>               = 0x00000020
+    <span id="IMAGE_SCN_CNT_INITIALIZED_DATA">IMAGE_SCN_CNT_INITIALIZED_DATA</span>   = 0x00000040
+    <span id="IMAGE_SCN_CNT_UNINITIALIZED_DATA">IMAGE_SCN_CNT_UNINITIALIZED_DATA</span> = 0x00000080
+    <span id="IMAGE_SCN_LNK_COMDAT">IMAGE_SCN_LNK_COMDAT</span>             = 0x00001000
+    <span id="IMAGE_SCN_MEM_DISCARDABLE">IMAGE_SCN_MEM_DISCARDABLE</span>        = 0x02000000
+    <span id="IMAGE_SCN_MEM_EXECUTE">IMAGE_SCN_MEM_EXECUTE</span>            = 0x20000000
+    <span id="IMAGE_SCN_MEM_READ">IMAGE_SCN_MEM_READ</span>               = 0x40000000
+    <span id="IMAGE_SCN_MEM_WRITE">IMAGE_SCN_MEM_WRITE</span>              = 0x80000000
+)</pre>
+			
+				<p>这些常量构成 AuxFormat5 中 Selection 字段的所有可能取值。<pre>const (
+    <span id="IMAGE_COMDAT_SELECT_NODUPLICATES">IMAGE_COMDAT_SELECT_NODUPLICATES</span> = 1
+    <span id="IMAGE_COMDAT_SELECT_ANY">IMAGE_COMDAT_SELECT_ANY</span>          = 2
+    <span id="IMAGE_COMDAT_SELECT_SAME_SIZE">IMAGE_COMDAT_SELECT_SAME_SIZE</span>    = 3
+    <span id="IMAGE_COMDAT_SELECT_EXACT_MATCH">IMAGE_COMDAT_SELECT_EXACT_MATCH</span>  = 4
+    <span id="IMAGE_COMDAT_SELECT_ASSOCIATIVE">IMAGE_COMDAT_SELECT_ASSOCIATIVE</span>  = 5
+    <span id="IMAGE_COMDAT_SELECT_LARGEST">IMAGE_COMDAT_SELECT_LARGEST</span>      = 6
+)</pre>
+			
+				
+				<pre>const <span id="COFFSymbolSize">COFFSymbolSize</span> = 18</pre>
+			
+		
+		
+		
+		
+			
+			<h2 id="COFFSymbol">type <a href="/src/debug/pe/symbol.go?s=341:528#L9">COFFSymbol</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>COFFSymbol 表示一条 COFF 符号表记录。<pre>type COFFSymbol struct {
+<span id="COFFSymbol.Name"></span>    Name               [8]<a href="/pkg/builtin/#uint8">uint8</a>
+<span id="COFFSymbol.Value"></span>    Value              <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="COFFSymbol.SectionNumber"></span>    SectionNumber      <a href="/pkg/builtin/#int16">int16</a>
+<span id="COFFSymbol.Type"></span>    Type               <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="COFFSymbol.StorageClass"></span>    StorageClass       <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="COFFSymbol.NumberOfAuxSymbols"></span>    NumberOfAuxSymbols <a href="/pkg/builtin/#uint8">uint8</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="COFFSymbol.FullName">func (*COFFSymbol) <a href="/src/debug/pe/symbol.go?s=3410:3473#L104">FullName</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (sym *<a href="#COFFSymbol">COFFSymbol</a>) FullName(st <a href="#StringTable">StringTable</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>FullName 查找符号 sym 的实际名称。名称通常存储在 sym.Name 中，但如果名称超过 8 个字符，则改为存储在 COFF 字符串表 st 中。<h2 id="COFFSymbolAuxFormat5">type <a href="/src/debug/pe/symbol.go?s=4970:5179#L157">COFFSymbolAuxFormat5</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>COFFSymbolAuxFormat5 描述附加在节定义符号上的辅助符号应有的格式。PE 格式定义了多种辅助符号格式：格式 1 用于函数定义，格式 2 用于 .be 和 .ef 符号，依此类推。格式 5 保存与节定义关联的额外信息，包括重定位条目数、行号条目数和 COMDAT 信息。详情参见 <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-format-5-section-definitions">https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-format-5-section-definitions</a>。<pre>type COFFSymbolAuxFormat5 struct {
+<span id="COFFSymbolAuxFormat5.Size"></span>    Size           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="COFFSymbolAuxFormat5.NumRelocs"></span>    NumRelocs      <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="COFFSymbolAuxFormat5.NumLineNumbers"></span>    NumLineNumbers <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="COFFSymbolAuxFormat5.Checksum"></span>    Checksum       <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="COFFSymbolAuxFormat5.SecNum"></span>    SecNum         <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="COFFSymbolAuxFormat5.Selection"></span>    Selection      <a href="/pkg/builtin/#uint8">uint8</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DataDirectory">type <a href="/src/debug/pe/pe.go?s=403:478#L7">DataDirectory</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			
+			<pre>type DataDirectory struct {
+<span id="DataDirectory.VirtualAddress"></span>    VirtualAddress <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DataDirectory.Size"></span>    Size           <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="File">type <a href="/src/debug/pe/file.go?s=787:1132#L22">File</a>
+				
+				
+			</h2>
+			<p>File 表示一个已打开的 PE 文件。<pre>type File struct {
+    <a href="#FileHeader">FileHeader</a>
+<span id="File.OptionalHeader"></span>    OptionalHeader <a href="/pkg/builtin/#any">any</a> <span class="comment">// 类型为 *OptionalHeader32 或 *OptionalHeader64；Go 1.3 中加入</span>
+<span id="File.Sections"></span>    Sections       []*<a href="#Section">Section</a>
+<span id="File.Symbols"></span>    Symbols        []*<a href="#Symbol">Symbol</a>    <span class="comment">// 已移除辅助符号记录的 COFF 符号；Go 1.1 中加入</span>
+<span id="File.COFFSymbols"></span>    COFFSymbols    []<a href="#COFFSymbol">COFFSymbol</a> <span class="comment">// 所有 COFF 符号（包括辅助符号记录）；Go 1.8 中加入</span>
+<span id="File.StringTable"></span>    StringTable    <a href="#StringTable">StringTable</a> <span class="comment">// Go 1.8</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFile">func <a href="/src/debug/pe/file.go?s=1888:1930#L63">NewFile</a>
+					
+					
+				</h3>
+				<pre>func NewFile(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewFile 创建一个新的 <a href="#File">File</a>，用于访问底层读取器中的 PE 二进制文件。<h3 id="Open">func <a href="/src/debug/pe/file.go?s=1219:1256#L34">Open</a>
+					
+					
+				</h3>
+				<pre>func Open(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 使用 <a href="/pkg/os/#Open">os.Open</a> 打开指定名称的文件，并准备将其作为 PE 二进制文件使用。<h3 id="File.COFFSymbolReadSectionDefAux">func (*File) <a href="/src/debug/pe/symbol.go?s=6196:6278#L187">COFFSymbolReadSectionDefAux</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) COFFSymbolReadSectionDefAux(idx <a href="/pkg/builtin/#int">int</a>) (*<a href="#COFFSymbolAuxFormat5">COFFSymbolAuxFormat5</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>COFFSymbolReadSectionDefAux 返回节定义符号的辅助信息块（包括 COMDAT 信息）。这里的 idx 是该 File 的主 <a href="#COFFSymbol">COFFSymbol</a> 数组中节符号的索引。返回值是指向相应辅助符号结构体的指针。更多信息参见：<p>辅助符号：<a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-symbol-records">https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-symbol-records</a>
+COMDAT 节：<a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#comdat-sections-object-only">https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#comdat-sections-object-only</a>
+节定义的辅助信息：<a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-format-5-section-definitions">https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#auxiliary-format-5-section-definitions</a><h3 id="File.Close">func (*File) <a href="/src/debug/pe/file.go?s=1554:1582#L51">Close</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#File">File</a>。如果该 <a href="#File">File</a> 是直接使用 <a href="#NewFile">NewFile</a> 创建的，而非通过 <a href="#Open">Open</a> 打开，则 Close 不起作用。<h3 id="File.DWARF">func (*File) <a href="/src/debug/pe/file.go?s=5673:5716#L207">DWARF</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) DWARF() (*<a href="/pkg/debug/dwarf/">dwarf</a>.<a href="/pkg/debug/dwarf/#Data">Data</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="File.ImportedLibraries">func (*File) <a href="/src/debug/pe/file.go?s=12247:12299#L455">ImportedLibraries</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ImportedLibraries() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportedLibraries 返回二进制文件 f 引用的、预期在动态链接时与该二进制文件链接的所有库的名称。<h3 id="File.ImportedSymbols">func (*File) <a href="/src/debug/pe/file.go?s=8149:8199#L319">ImportedSymbols</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ImportedSymbols() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportedSymbols 返回二进制文件 f 引用的、预期在动态加载时由其他库提供的所有符号的名称。它不返回弱符号。<h3 id="File.Section">func (*File) <a href="/src/debug/pe/file.go?s=5538:5582#L198">Section</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Section(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Section">Section</a></pre>
+				<p>Section 返回具有指定名称的第一个节；如果不存在这样的节，则返回 nil。<h2 id="FileHeader">type <a href="/src/debug/pe/pe.go?s=172:401#L1">FileHeader</a>
+				
+				
+			</h2>
+			
+			<pre>type FileHeader struct {
+<span id="FileHeader.Machine"></span>    Machine              <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="FileHeader.NumberOfSections"></span>    NumberOfSections     <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="FileHeader.TimeDateStamp"></span>    TimeDateStamp        <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.PointerToSymbolTable"></span>    PointerToSymbolTable <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.NumberOfSymbols"></span>    NumberOfSymbols      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.SizeOfOptionalHeader"></span>    SizeOfOptionalHeader <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="FileHeader.Characteristics"></span>    Characteristics      <a href="/pkg/builtin/#uint16">uint16</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FormatError">type <a href="/src/debug/pe/file.go?s=12466:12493#L463">FormatError</a>
+				
+				
+			</h2>
+			<p>FormatError 未被使用。保留此类型是为了兼容性。<pre>type FormatError struct {
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FormatError.Error">func (*FormatError) <a href="/src/debug/pe/file.go?s=12495:12531#L466">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#FormatError">FormatError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ImportDirectory">type <a href="/src/debug/pe/file.go?s=7771:7950#L305">ImportDirectory</a>
+				
+				
+			</h2>
+			
+			<pre>type ImportDirectory struct {
+<span id="ImportDirectory.OriginalFirstThunk"></span>    OriginalFirstThunk <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="ImportDirectory.TimeDateStamp"></span>    TimeDateStamp      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="ImportDirectory.ForwarderChain"></span>    ForwarderChain     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="ImportDirectory.Name"></span>    Name               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="ImportDirectory.FirstThunk"></span>    FirstThunk         <a href="/pkg/builtin/#uint32">uint32</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="OptionalHeader32">type <a href="/src/debug/pe/pe.go?s=480:1637#L12">OptionalHeader32</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			
+			<pre>type OptionalHeader32 struct {
+<span id="OptionalHeader32.Magic"></span>    Magic                       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MajorLinkerVersion"></span>    MajorLinkerVersion          <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="OptionalHeader32.MinorLinkerVersion"></span>    MinorLinkerVersion          <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="OptionalHeader32.SizeOfCode"></span>    SizeOfCode                  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfInitializedData"></span>    SizeOfInitializedData       <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfUninitializedData"></span>    SizeOfUninitializedData     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.AddressOfEntryPoint"></span>    AddressOfEntryPoint         <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.BaseOfCode"></span>    BaseOfCode                  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.BaseOfData"></span>    BaseOfData                  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.ImageBase"></span>    ImageBase                   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SectionAlignment"></span>    SectionAlignment            <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.FileAlignment"></span>    FileAlignment               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.MajorOperatingSystemVersion"></span>    MajorOperatingSystemVersion <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MinorOperatingSystemVersion"></span>    MinorOperatingSystemVersion <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MajorImageVersion"></span>    MajorImageVersion           <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MinorImageVersion"></span>    MinorImageVersion           <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MajorSubsystemVersion"></span>    MajorSubsystemVersion       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.MinorSubsystemVersion"></span>    MinorSubsystemVersion       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.Win32VersionValue"></span>    Win32VersionValue           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfImage"></span>    SizeOfImage                 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfHeaders"></span>    SizeOfHeaders               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.CheckSum"></span>    CheckSum                    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.Subsystem"></span>    Subsystem                   <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.DllCharacteristics"></span>    DllCharacteristics          <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader32.SizeOfStackReserve"></span>    SizeOfStackReserve          <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfStackCommit"></span>    SizeOfStackCommit           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfHeapReserve"></span>    SizeOfHeapReserve           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.SizeOfHeapCommit"></span>    SizeOfHeapCommit            <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.LoaderFlags"></span>    LoaderFlags                 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.NumberOfRvaAndSizes"></span>    NumberOfRvaAndSizes         <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader32.DataDirectory"></span>    DataDirectory               [16]<a href="#DataDirectory">DataDirectory</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="OptionalHeader64">type <a href="/src/debug/pe/pe.go?s=1639:2760#L46">OptionalHeader64</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			
+			<pre>type OptionalHeader64 struct {
+<span id="OptionalHeader64.Magic"></span>    Magic                       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MajorLinkerVersion"></span>    MajorLinkerVersion          <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="OptionalHeader64.MinorLinkerVersion"></span>    MinorLinkerVersion          <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="OptionalHeader64.SizeOfCode"></span>    SizeOfCode                  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.SizeOfInitializedData"></span>    SizeOfInitializedData       <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.SizeOfUninitializedData"></span>    SizeOfUninitializedData     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.AddressOfEntryPoint"></span>    AddressOfEntryPoint         <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.BaseOfCode"></span>    BaseOfCode                  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.ImageBase"></span>    ImageBase                   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="OptionalHeader64.SectionAlignment"></span>    SectionAlignment            <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.FileAlignment"></span>    FileAlignment               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.MajorOperatingSystemVersion"></span>    MajorOperatingSystemVersion <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MinorOperatingSystemVersion"></span>    MinorOperatingSystemVersion <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MajorImageVersion"></span>    MajorImageVersion           <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MinorImageVersion"></span>    MinorImageVersion           <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MajorSubsystemVersion"></span>    MajorSubsystemVersion       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.MinorSubsystemVersion"></span>    MinorSubsystemVersion       <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.Win32VersionValue"></span>    Win32VersionValue           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.SizeOfImage"></span>    SizeOfImage                 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.SizeOfHeaders"></span>    SizeOfHeaders               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.CheckSum"></span>    CheckSum                    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.Subsystem"></span>    Subsystem                   <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.DllCharacteristics"></span>    DllCharacteristics          <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="OptionalHeader64.SizeOfStackReserve"></span>    SizeOfStackReserve          <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="OptionalHeader64.SizeOfStackCommit"></span>    SizeOfStackCommit           <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="OptionalHeader64.SizeOfHeapReserve"></span>    SizeOfHeapReserve           <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="OptionalHeader64.SizeOfHeapCommit"></span>    SizeOfHeapCommit            <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="OptionalHeader64.LoaderFlags"></span>    LoaderFlags                 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.NumberOfRvaAndSizes"></span>    NumberOfRvaAndSizes         <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="OptionalHeader64.DataDirectory"></span>    DataDirectory               [16]<a href="#DataDirectory">DataDirectory</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reloc">type <a href="/src/debug/pe/section.go?s=1205:1301#L37">Reloc</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Reloc 表示一个 PE COFF 重定位条目。每个节都有自己的重定位列表。<pre>type Reloc struct {
+<span id="Reloc.VirtualAddress"></span>    VirtualAddress   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Reloc.SymbolTableIndex"></span>    SymbolTableIndex <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Reloc.Type"></span>    Type             <a href="/pkg/builtin/#uint16">uint16</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Section">type <a href="/src/debug/pe/section.go?s=2270:2595#L75">Section</a>
+				
+				
+			</h2>
+			<p>Section 提供对 PE COFF 节的访问。<pre>type Section struct {
+    <a href="#SectionHeader">SectionHeader</a>
+<span id="Section.Relocs"></span>    Relocs []<a href="#Reloc">Reloc</a> <span class="comment">// Go 1.8</span>
+
+    <span class="comment">// 嵌入 ReaderAt 以提供 ReadAt 方法。</span>
+    <span class="comment">// 不直接嵌入 SectionReader，</span>
+    <span class="comment">// 以避免引入 Read 和 Seek 方法。</span>
+    <span class="comment">// 如果调用方需要 Read 和 Seek，必须使用</span>
+    <span class="comment">// Open()，以避免与其他调用方</span>
+    <span class="comment">// 争用定位偏移量。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Section.Data">func (*Section) <a href="/src/debug/pe/section.go?s=2758:2798#L93">Data</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Section">Section</a>) Data() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Data 读取并返回 PE 节 s 的内容。<p>如果 s.Offset 为 0，则该节没有内容，Data 将始终返回非 nil 错误。<h3 id="Section.Open">func (*Section) <a href="/src/debug/pe/section.go?s=3037:3075#L101">Open</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Section">Section</a>) Open() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadSeeker">ReadSeeker</a></pre>
+				<p>Open 返回一个新的 ReadSeeker，用于读取 PE 节 s。<p>如果 s.Offset 为 0，则该节没有内容，对返回的读取器的所有调用都会返回非 nil 错误。<h2 id="SectionHeader">type <a href="/src/debug/pe/section.go?s=1902:2221#L61">SectionHeader</a>
+				
+				
+			</h2>
+			<p>SectionHeader 与 <a href="#SectionHeader32">SectionHeader32</a> 类似，但将 Name 字段替换为 Go 字符串。<pre>type SectionHeader struct {
+<span id="SectionHeader.Name"></span>    Name                 <a href="/pkg/builtin/#string">string</a>
+<span id="SectionHeader.VirtualSize"></span>    VirtualSize          <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.VirtualAddress"></span>    VirtualAddress       <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Size"></span>    Size                 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Offset"></span>    Offset               <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.PointerToRelocations"></span>    PointerToRelocations <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.PointerToLineNumbers"></span>    PointerToLineNumbers <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.NumberOfRelocations"></span>    NumberOfRelocations  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="SectionHeader.NumberOfLineNumbers"></span>    NumberOfLineNumbers  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="SectionHeader.Characteristics"></span>    Characteristics      <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SectionHeader32">type <a href="/src/debug/pe/section.go?s=306:629#L6">SectionHeader32</a>
+				
+				
+			</h2>
+			<p>SectionHeader32 表示实际的 PE COFF 节头。<pre>type SectionHeader32 struct {
+<span id="SectionHeader32.Name"></span>    Name                 [8]<a href="/pkg/builtin/#uint8">uint8</a>
+<span id="SectionHeader32.VirtualSize"></span>    VirtualSize          <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.VirtualAddress"></span>    VirtualAddress       <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.SizeOfRawData"></span>    SizeOfRawData        <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.PointerToRawData"></span>    PointerToRawData     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.PointerToRelocations"></span>    PointerToRelocations <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.PointerToLineNumbers"></span>    PointerToLineNumbers <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader32.NumberOfRelocations"></span>    NumberOfRelocations  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="SectionHeader32.NumberOfLineNumbers"></span>    NumberOfLineNumbers  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="SectionHeader32.Characteristics"></span>    Characteristics      <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StringTable">type <a href="/src/debug/pe/string.go?s=501:524#L16">StringTable</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>StringTable 是一个 COFF 字符串表。<pre>type StringTable []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StringTable.String">func (StringTable) <a href="/src/debug/pe/string.go?s=1468:1526#L49">String</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (st <a href="#StringTable">StringTable</a>) String(start <a href="/pkg/builtin/#uint32">uint32</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>String 从 COFF 字符串表 st 的偏移量 start 处提取字符串。<h2 id="Symbol">type <a href="/src/debug/pe/symbol.go?s=4287:4417#L141">Symbol</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Symbol 与 <a href="#COFFSymbol">COFFSymbol</a> 类似，但将 Name 字段替换为 Go 字符串。Symbol 也没有 NumberOfAuxSymbols 字段。<pre>type Symbol struct {
+<span id="Symbol.Name"></span>    Name          <a href="/pkg/builtin/#string">string</a>
+<span id="Symbol.Value"></span>    Value         <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Symbol.SectionNumber"></span>    SectionNumber <a href="/pkg/builtin/#int16">int16</a>
+<span id="Symbol.Type"></span>    Type          <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="Symbol.StorageClass"></span>    StorageClass  <a href="/pkg/builtin/#uint8">uint8</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,85 @@
+<!--{
+  "Title": "covdata 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>covdata 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Covdata 用于处理第二代覆盖率测试输出文件并生成报告。这些文件来自应用程序或集成测试的运行。例如：
+<pre>$ mkdir ./profiledir
+$ go build -cover -o myapp.exe .
+$ GOCOVERDIR=./profiledir ./myapp.exe &lt;arguments&gt;
+$ ls ./profiledir
+covcounters.cce1b350af34b6d0fb59cc1725f0ee27.821598.1663006712821344241
+covmeta.cce1b350af34b6d0fb59cc1725f0ee27
+$
+</pre>
+<p>通过“go tool covdata &lt;mode&gt;”运行 covdata，其中 mode 是子命令，用于选择具体的报告、合并或数据处理操作。各模式说明如下（原文此处写作“go tool cover &lt;mode&gt; -help”；查看 covdata 模式的具体用法应运行“go tool covdata &lt;mode&gt; -help”）：
+<p>1. 报告每个已采集包中被覆盖语句的百分比。
+<pre>$ go tool covdata percent -i=profiledir
+cov-example/p	coverage: 41.1% of statements
+main	coverage: 87.5% of statements
+$
+</pre>
+<p>2. 报告已采集包的导入路径。
+<pre>$ go tool covdata pkglist -i=profiledir
+cov-example/p
+main
+$
+</pre>
+<p>3. 按函数报告语句覆盖百分比：
+<pre>$ go tool covdata func -i=profiledir
+cov-example/p/p.go:12:		emptyFn			0.0%
+cov-example/p/p.go:32:		Small			100.0%
+cov-example/p/p.go:47:		Medium			90.9%
+...
+$
+</pre>
+<p>4. 将覆盖率数据转换为旧式文本格式：
+<pre>$ go tool covdata textfmt -i=profiledir -o=cov.txt
+$ head cov.txt
+mode: set
+cov-example/p/p.go:12.22,13.2 0 0
+cov-example/p/p.go:15.31,16.2 1 0
+cov-example/p/p.go:16.3,18.3 0 0
+cov-example/p/p.go:19.3,21.3 0 0
+...
+$ go tool cover -html=cov.txt
+$
+</pre>
+<p>5. 合并多份覆盖率数据：
+<pre>$ go tool covdata merge -i=indir1,indir2 -o=outdir -modpaths=github.com/go-delve/delve
+$
+</pre>
+<p>6. 从一份覆盖率数据中减去另一份。
+<pre>$ go tool covdata subtract -i=indir1,indir2 -o=outdir
+$
+</pre>
+<p>7. 求多份覆盖率数据的交集。
+<pre>$ go tool covdata intersect -i=indir1,indir2 -o=outdir
+$
+</pre>
+<p>8. 转储覆盖率数据以便调试。
+<pre>$ go tool covdata debugdump -i=indir
+&lt;human readable output&gt;
+$
+</pre>
+
+	
+
+	
+
+
+
+
+</article>

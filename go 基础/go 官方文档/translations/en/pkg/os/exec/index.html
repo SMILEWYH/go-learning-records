@@ -1,0 +1,1313 @@
+<!--{
+  "Title": "os/exec package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package exec</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "os/exec"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package exec runs external commands. It wraps os.StartProcess to make it
+easier to remap stdin and stdout, connect I/O with pipes, and do other
+adjustments.
+<p>Unlike the &quot;system&quot; library call from C and other languages, the
+os/exec package intentionally does not invoke the system shell and
+does not expand any glob patterns or handle other expansions,
+pipelines, or redirections typically done by shells. The package
+behaves more like C&apos;s &quot;exec&quot; family of functions. To expand glob
+patterns, either call the shell directly, taking care to escape any
+dangerous input, or use the <a href="/pkg/path/filepath/">path/filepath</a> package&apos;s Glob function.
+To expand environment variables, use package os&apos;s ExpandEnv.
+<p>Note that the examples in this package assume a Unix system.
+They may not run on Windows, and they do not run in the Go Playground
+used by go.dev and pkg.go.dev.
+<h3 id="hdr-Executables_in_the_current_directory">Executables in the current directory</h3>
+<p>The functions <a href="#Command">Command</a> and <a href="#LookPath">LookPath</a> look for a program
+in the directories listed in the current path, following the
+conventions of the host operating system.
+Operating systems have for decades included the current
+directory in this search, sometimes implicitly and sometimes
+configured explicitly that way by default.
+Modern practice is that including the current directory
+is usually unexpected and often leads to security problems.
+<p>To avoid those security problems, as of Go 1.19, this package will not resolve a program
+using an implicit or explicit path entry relative to the current directory.
+That is, if you run <a href="#LookPath">LookPath</a>(&quot;go&quot;), it will not successfully return
+./go on Unix nor .\go.exe on Windows, no matter how the path is configured.
+Instead, if the usual path algorithms would result in that answer,
+these functions return an error err satisfying <a href="/pkg/errors/#Is">errors.Is</a>(err, <a href="#ErrDot">ErrDot</a>).
+<p>For example, consider these two program snippets:
+<pre>path, err := exec.LookPath(&quot;prog&quot;)
+if err != nil {
+	log.Fatal(err)
+}
+use(path)
+</pre>
+<p>and
+<pre>cmd := exec.Command(&quot;prog&quot;)
+if err := cmd.Run(); err != nil {
+	log.Fatal(err)
+}
+</pre>
+<p>These will not find and run ./prog or .\prog.exe,
+no matter how the current path is configured.
+<p>Code that always wants to run a program from the current directory
+can be rewritten to say &quot;./prog&quot; instead of &quot;prog&quot;.
+<p>Code that insists on including results from relative path entries
+can instead override the error using an errors.Is check:
+<pre>path, err := exec.LookPath(&quot;prog&quot;)
+if errors.Is(err, exec.ErrDot) {
+	err = nil
+}
+if err != nil {
+	log.Fatal(err)
+}
+use(path)
+</pre>
+<p>and
+<pre>cmd := exec.Command(&quot;prog&quot;)
+if errors.Is(cmd.Err, exec.ErrDot) {
+	cmd.Err = nil
+}
+if err := cmd.Run(); err != nil {
+	log.Fatal(err)
+}
+</pre>
+<p>Setting the environment variable GODEBUG=execerrdot=0
+disables generation of ErrDot entirely, temporarily restoring the pre-Go 1.19
+behavior for programs that are unable to apply more targeted fixes.
+A future version of Go may remove support for this variable.
+<p>Before adding such overrides, make sure you understand the
+security implications of doing so.
+See <a href="/blog/path-security">https://go.dev/blog/path-security</a> for more information.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#LookPath">func LookPath(file string) (string, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Cmd">type Cmd</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Command">func Command(name string, arg ...string) *Cmd</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommandContext">func CommandContext(ctx context.Context, name string, arg ...string) *Cmd</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.CombinedOutput">func (c *Cmd) CombinedOutput() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.Environ">func (c *Cmd) Environ() []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.Output">func (c *Cmd) Output() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.Run">func (c *Cmd) Run() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.Start">func (c *Cmd) Start() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.StderrPipe">func (c *Cmd) StderrPipe() (io.ReadCloser, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.StdinPipe">func (c *Cmd) StdinPipe() (io.WriteCloser, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.StdoutPipe">func (c *Cmd) StdoutPipe() (io.ReadCloser, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.String">func (c *Cmd) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cmd.Wait">func (c *Cmd) Wait() error</a></dd>
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e *Error) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Unwrap">func (e *Error) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#ExitError">type ExitError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ExitError.Error">func (e *ExitError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_CombinedOutput">Cmd.CombinedOutput</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_Environ">Cmd.Environ</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_Output">Cmd.Output</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_Run">Cmd.Run</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_Start">Cmd.Start</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_StderrPipe">Cmd.StderrPipe</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_StdinPipe">Cmd.StdinPipe</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cmd_StdoutPipe">Cmd.StdoutPipe</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Command">Command</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CommandContext">CommandContext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Command_environment">Command (Environment)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LookPath">LookPath</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/os/exec/exec.go">exec.go</a>
+			
+				<a href="/src/os/exec/exec_unix.go">exec_unix.go</a>
+			
+				<a href="/src/os/exec/lookpath.go">lookpath.go</a>
+			
+				<a href="/src/os/exec/lp_unix.go">lp_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrDot indicates that a path lookup resolved to an executable
+in the current directory due to ‘.’ being in the path, either
+implicitly or explicitly. See the package documentation for details.
+<p>Note that functions in this package do not return ErrDot directly.
+Code should use errors.Is(err, ErrDot), not err == ErrDot,
+to test whether a returned error err is due to this condition.
+
+				<pre>var <span id="ErrDot">ErrDot</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;cannot run executable found relative to current directory&#34;)</pre>
+			
+				<p>ErrNotFound is the error resulting if a path search failed to find an executable file.
+
+				<pre>var <span id="ErrNotFound">ErrNotFound</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;executable file not found in $PATH&#34;)</pre>
+			
+				<p>ErrWaitDelay is returned by <a href="#Cmd.Wait">Cmd.Wait</a> if the process exits with a
+successful status code but its output pipes are not closed before the
+command&apos;s WaitDelay expires.
+
+				<pre>var <span id="ErrWaitDelay">ErrWaitDelay</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;exec: WaitDelay expired before I/O complete&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="LookPath">func <a href="/src/os/exec/lookpath.go?s=1211:1253#L18">LookPath</a>
+				
+				
+			</h2>
+			<pre>func LookPath(file <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>LookPath searches for an executable named file in the current path,
+following the conventions of the host operating system.
+If file contains a slash, it is tried directly and the default path is not consulted.
+Otherwise, on success the result is an absolute path.
+<p>LookPath returns an error satisfying <a href="/pkg/errors/#Is">errors.Is</a>(err, <a href="#ErrDot">ErrDot</a>)
+if the resolved path is relative to the current directory.
+See the package documentation for more details.
+<p>LookPath looks for an executable named file in the
+directories named by the PATH environment variable,
+except as described below.
+<ul>
+<li>On Windows, the file must have an extension named by
+the PATHEXT environment variable.
+When PATHEXT is unset, the file must have
+a &quot;.com&quot;, &quot;.exe&quot;, &quot;.bat&quot;, or &quot;.cmd&quot; extension.
+<li>On Plan 9, LookPath consults the path environment variable.
+If file begins with &quot;/&quot;, &quot;#&quot;, &quot;./&quot;, or &quot;../&quot;, it is tried
+directly and the path is not consulted.
+<li>On Wasm, LookPath always returns an error.
+</ul>
+
+			
+
+
+<div id="example_LookPath" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	path, err := exec.LookPath(&#34;fortune&#34;)
+	if err != nil {
+		log.Fatal(&#34;installing fortune is in your future&#34;)
+	}
+	fmt.Printf(&#34;fortune is available at %s\n&#34;, path)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Cmd">type <a href="/src/os/exec/exec.go?s=4685:14875#L138">Cmd</a>
+				
+				
+			</h2>
+			<p>Cmd represents an external command being prepared or run.
+<p>A Cmd cannot be reused after calling its <a href="#Cmd.Start">Cmd.Start</a>, <a href="#Cmd.Run">Cmd.Run</a>,
+<a href="#Cmd.Output">Cmd.Output</a>, or <a href="#Cmd.CombinedOutput">Cmd.CombinedOutput</a> methods.
+
+			<pre>type Cmd struct {
+<span id="Cmd.Path"></span>    <span class="comment">// Path is the path of the command to run.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This is the only field that must be set to a non-zero</span>
+    <span class="comment">// value. If Path is relative, it is evaluated relative</span>
+    <span class="comment">// to Dir.</span>
+    Path <a href="/pkg/builtin/#string">string</a>
+
+<span id="Cmd.Args"></span>    <span class="comment">// Args holds command line arguments, including the command as Args[0].</span>
+    <span class="comment">// If the Args field is empty or nil, Run uses {Path}.</span>
+    <span class="comment">//</span>
+    <span class="comment">// In typical use, both Path and Args are set by calling Command.</span>
+    Args []<a href="/pkg/builtin/#string">string</a>
+
+<span id="Cmd.Env"></span>    <span class="comment">// Env specifies the environment of the process.</span>
+    <span class="comment">// Each entry is of the form &#34;key=value&#34;.</span>
+    <span class="comment">// If Env is nil, the new process uses the current process&#39;s</span>
+    <span class="comment">// environment.</span>
+    <span class="comment">// If Env contains duplicate environment keys, only the last</span>
+    <span class="comment">// value in the slice for each duplicate key is used.</span>
+    <span class="comment">// As a special case on Windows, SYSTEMROOT is always added if</span>
+    <span class="comment">// missing and not explicitly set to the empty string.</span>
+    <span class="comment">//</span>
+    <span class="comment">// See also the Dir field, which may set PWD in the environment.</span>
+    Env []<a href="/pkg/builtin/#string">string</a>
+
+<span id="Cmd.Dir"></span>    <span class="comment">// Dir specifies the working directory of the command.</span>
+    <span class="comment">// If Dir is the empty string, Run runs the command in the</span>
+    <span class="comment">// calling process&#39;s current directory.</span>
+    <span class="comment">//</span>
+    <span class="comment">// On Unix systems, the value of Dir also determines the</span>
+    <span class="comment">// child process&#39;s PWD environment variable if not otherwise</span>
+    <span class="comment">// specified. A Unix process represents its working directory</span>
+    <span class="comment">// not by name but as an implicit reference to a node in the</span>
+    <span class="comment">// file tree. So, if the child process obtains its working</span>
+    <span class="comment">// directory by calling a function such as C&#39;s getcwd, which</span>
+    <span class="comment">// computes the canonical name by walking up the file tree, it</span>
+    <span class="comment">// will not recover the original value of Dir if that value</span>
+    <span class="comment">// was an alias involving symbolic links. However, if the</span>
+    <span class="comment">// child process calls Go&#39;s [os.Getwd] or GNU C&#39;s</span>
+    <span class="comment">// get_current_dir_name, and the value of PWD is an alias for</span>
+    <span class="comment">// the current directory, those functions will return the</span>
+    <span class="comment">// value of PWD, which matches the value of Dir.</span>
+    Dir <a href="/pkg/builtin/#string">string</a>
+
+<span id="Cmd.Stdin"></span>    <span class="comment">// Stdin specifies the process&#39;s standard input.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If Stdin is nil, the process reads from the null device (os.DevNull).</span>
+    <span class="comment">//</span>
+    <span class="comment">// If Stdin is an *os.File, the process&#39;s standard input is connected</span>
+    <span class="comment">// directly to that file.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Otherwise, during the execution of the command a separate</span>
+    <span class="comment">// goroutine reads from Stdin and delivers that data to the command</span>
+    <span class="comment">// over a pipe. In this case, Wait does not complete until the goroutine</span>
+    <span class="comment">// stops copying, either because it has reached the end of Stdin</span>
+    <span class="comment">// (EOF or a read error), or because writing to the pipe returned an error,</span>
+    <span class="comment">// or because a nonzero WaitDelay was set and expired.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Regardless of WaitDelay, Wait can block until a Read from</span>
+    <span class="comment">// Stdin completes. If you need to use a blocking io.Reader,</span>
+    <span class="comment">// use the StdinPipe method to get a pipe, copy from the Reader</span>
+    <span class="comment">// to the pipe, and arrange to close the Reader after Wait returns.</span>
+    Stdin <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+
+<span id="Cmd.Stdout"></span>    <span class="comment">// Stdout and Stderr specify the process&#39;s standard output and error.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If either is nil, Run connects the corresponding file descriptor</span>
+    <span class="comment">// to the null device (os.DevNull).</span>
+    <span class="comment">//</span>
+    <span class="comment">// If either is an *os.File, the corresponding output from the process</span>
+    <span class="comment">// is connected directly to that file.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Otherwise, during the execution of the command a separate goroutine</span>
+    <span class="comment">// reads from the process over a pipe and delivers that data to the</span>
+    <span class="comment">// corresponding Writer. In this case, Wait does not complete until the</span>
+    <span class="comment">// goroutine reaches EOF or encounters an error or a nonzero WaitDelay</span>
+    <span class="comment">// expires.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Regardless of WaitDelay, Wait can block until a Write to</span>
+    <span class="comment">// Stdout or Stderr completes. If you need to use a blocking io.Writer,</span>
+    <span class="comment">// use the StdoutPipe or StderrPipe method to get a pipe,</span>
+    <span class="comment">// copy from the pipe to the Writer, and arrange to close the</span>
+    <span class="comment">// Writer after Wait returns.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If Stdout and Stderr are the same writer, and have a type that can</span>
+    <span class="comment">// be compared with ==, at most one goroutine at a time will call Write.</span>
+    Stdout <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+<span id="Cmd.Stderr"></span>    Stderr <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+
+<span id="Cmd.ExtraFiles"></span>    <span class="comment">// ExtraFiles specifies additional open files to be inherited by the</span>
+    <span class="comment">// new process. It does not include standard input, standard output, or</span>
+    <span class="comment">// standard error. If non-nil, entry i becomes file descriptor 3+i.</span>
+    <span class="comment">//</span>
+    <span class="comment">// ExtraFiles is not supported on Windows.</span>
+    ExtraFiles []*<a href="/pkg/os/">os</a>.<a href="/pkg/os/#File">File</a>
+
+<span id="Cmd.SysProcAttr"></span>    <span class="comment">// SysProcAttr holds optional, operating system-specific attributes.</span>
+    <span class="comment">// Run passes it to os.StartProcess as the os.ProcAttr&#39;s Sys field.</span>
+    SysProcAttr *<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#SysProcAttr">SysProcAttr</a>
+
+<span id="Cmd.Process"></span>    <span class="comment">// Process is the underlying process, once started.</span>
+    Process *<a href="/pkg/os/">os</a>.<a href="/pkg/os/#Process">Process</a>
+
+<span id="Cmd.ProcessState"></span>    <span class="comment">// ProcessState contains information about an exited process.</span>
+    <span class="comment">// If the process was started successfully, Wait or Run will</span>
+    <span class="comment">// populate its ProcessState when the command completes.</span>
+    ProcessState *<a href="/pkg/os/">os</a>.<a href="/pkg/os/#ProcessState">ProcessState</a>
+
+<span id="Cmd.Err"></span>    Err <a href="/pkg/builtin/#error">error</a> <span class="comment">// LookPath error, if any; added in Go 1.19</span>
+
+    <span class="comment">// If Cancel is non-nil, the command must have been created with</span>
+    <span class="comment">// CommandContext and Cancel will be called when the command&#39;s</span>
+    <span class="comment">// Context is done. By default, CommandContext sets Cancel to</span>
+    <span class="comment">// call the Kill method on the command&#39;s Process.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Typically a custom Cancel will send a signal to the command&#39;s</span>
+    <span class="comment">// Process, but it may instead take other actions to initiate cancellation,</span>
+    <span class="comment">// such as closing a stdin or stdout pipe or sending a shutdown request on a</span>
+    <span class="comment">// network socket.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If the command exits with a success status after Cancel is</span>
+    <span class="comment">// called, and Cancel does not return an error equivalent to</span>
+    <span class="comment">// os.ErrProcessDone, then Wait and similar methods will return a non-nil</span>
+    <span class="comment">// error: either an error wrapping the one returned by Cancel,</span>
+    <span class="comment">// or the error from the Context.</span>
+    <span class="comment">// (If the command exits with a non-success status, or Cancel</span>
+    <span class="comment">// returns an error that wraps os.ErrProcessDone, Wait and similar methods</span>
+    <span class="comment">// continue to return the command&#39;s usual exit status.)</span>
+    <span class="comment">//</span>
+    <span class="comment">// If Cancel is set to nil, nothing will happen immediately when the command&#39;s</span>
+    <span class="comment">// Context is done, but a nonzero WaitDelay will still take effect. That may</span>
+    <span class="comment">// be useful, for example, to work around deadlocks in commands that do not</span>
+    <span class="comment">// support shutdown signals but are expected to always finish quickly.</span>
+    <span class="comment">//</span>
+<span id="Cmd.Cancel"></span>    <span class="comment">// Cancel will not be called if Start returns a non-nil error.</span>
+    Cancel func() <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.20</span>
+
+    <span class="comment">// If WaitDelay is non-zero, it bounds the time spent waiting on two sources</span>
+    <span class="comment">// of unexpected delay in Wait: a child process that fails to exit after the</span>
+    <span class="comment">// associated Context is canceled, and a child process that exits but leaves</span>
+    <span class="comment">// its I/O pipes unclosed.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The WaitDelay timer starts when either the associated Context is done or a</span>
+    <span class="comment">// call to Wait observes that the child process has exited, whichever occurs</span>
+    <span class="comment">// first. When the delay has elapsed, the command shuts down the child process</span>
+    <span class="comment">// and/or its I/O pipes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If the child process has failed to exit — perhaps because it ignored or</span>
+    <span class="comment">// failed to receive a shutdown signal from a Cancel function, or because no</span>
+    <span class="comment">// Cancel function was set — then it will be terminated using os.Process.Kill.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Then, if the I/O pipes communicating with the child process are still open,</span>
+    <span class="comment">// those pipes are closed in order to unblock any goroutines currently blocked</span>
+    <span class="comment">// on Read or Write calls.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If pipes are closed due to WaitDelay, no Cancel call has occurred,</span>
+    <span class="comment">// and the command has otherwise exited with a successful status, Wait and</span>
+    <span class="comment">// similar methods will return ErrWaitDelay instead of nil.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If WaitDelay is zero (the default), I/O pipes will be read until EOF,</span>
+    <span class="comment">// which might not occur until orphaned subprocesses of the command have</span>
+    <span class="comment">// also closed their descriptors for the pipes.</span>
+<span id="Cmd.WaitDelay"></span>    WaitDelay <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a> <span class="comment">// Go 1.20</span>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Command">func <a href="/src/os/exec/exec.go?s=16589:16634#L405">Command</a>
+					
+					
+				</h3>
+				<pre>func Command(name <a href="/pkg/builtin/#string">string</a>, arg ...<a href="/pkg/builtin/#string">string</a>) *<a href="#Cmd">Cmd</a></pre>
+				<p>Command returns the <a href="#Cmd">Cmd</a> struct to execute the named program with
+the given arguments.
+<p>It sets only the Path and Args in the returned structure.
+<p>If name contains no path separators, Command uses <a href="#LookPath">LookPath</a> to
+resolve name to a complete path if possible. Otherwise it uses name
+directly as Path.
+<p>The returned Cmd&apos;s Args field is constructed from the command name
+followed by the elements of arg, so arg should not include the
+command name itself. For example, Command(&quot;echo&quot;, &quot;hello&quot;).
+Args[0] is always name, not the possibly resolved Path.
+<p>On Windows, processes receive the whole command line as a single string
+and do their own parsing. Command combines and quotes Args into a command
+line string with an algorithm compatible with applications using
+CommandLineToArgvW (which is the most common way). Notable exceptions are
+msiexec.exe and cmd.exe (and thus, all batch files), which have a different
+unquoting algorithm. In these or other similar cases, you can do the
+quoting yourself and provide the full command line in SysProcAttr.CmdLine,
+leaving Args empty.
+
+				
+
+
+<div id="example_Command" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;tr&#34;, &#34;a-z&#34;, &#34;A-Z&#34;)
+	cmd.Stdin = strings.NewReader(&#34;some input&#34;)
+	var out strings.Builder
+	cmd.Stdout = &amp;out
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;in all caps: %q\n&#34;, out.String())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Command_environment" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Environment)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Environment)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;prog&#34;)
+	cmd.Env = append(os.Environ(),
+		&#34;FOO=duplicate_value&#34;, // ignored
+		&#34;FOO=actual_value&#34;,    // this value is used
+	)
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="CommandContext">func <a href="/src/os/exec/exec.go?s=19241:19314#L485">CommandContext</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func CommandContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, name <a href="/pkg/builtin/#string">string</a>, arg ...<a href="/pkg/builtin/#string">string</a>) *<a href="#Cmd">Cmd</a></pre>
+				<p>CommandContext is like <a href="#Command">Command</a> but includes a context.
+<p>The provided context is used to interrupt the process
+(by calling cmd.Cancel or <a href="/pkg/os/#Process.Kill">os.Process.Kill</a>)
+if the context becomes done before the command completes on its own.
+<p>CommandContext sets the command&apos;s Cancel function to invoke the Kill method
+on its Process, and leaves its WaitDelay unset. The caller may change the
+cancellation behavior by modifying those fields before starting the command.
+
+				
+
+
+<div id="example_CommandContext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;os/exec&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	if err := exec.CommandContext(ctx, &#34;sleep&#34;, &#34;5&#34;).Run(); err != nil {
+		// This will fail after 100 milliseconds. The 5 second sleep
+		// will be interrupted.
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Cmd.CombinedOutput">func (*Cmd) <a href="/src/os/exec/exec.go?s=35147:35193#L1041">CombinedOutput</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) CombinedOutput() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CombinedOutput runs the command and returns its combined standard
+output and standard error.
+
+				
+
+
+<div id="example_Cmd_CombinedOutput" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;sh&#34;, &#34;-c&#34;, &#34;echo stdout; echo 1&gt;&amp;2 stderr&#34;)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, stdoutStderr)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.Environ">func (*Cmd) <a href="/src/os/exec/exec.go?s=41605:41637#L1244">Environ</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) Environ() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>Environ returns a copy of the environment in which the command would be run
+as it is currently configured.
+
+				
+
+
+<div id="example_Cmd_Environ" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;pwd&#34;)
+
+	// Set Dir before calling cmd.Environ so that it will include an
+	// updated PWD variable (on platforms where that is used).
+	cmd.Dir = &#34;..&#34;
+	cmd.Env = append(cmd.Environ(), &#34;POSIXLY_CORRECT=1&#34;)
+
+	out, err := cmd.Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, out)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.Output">func (*Cmd) <a href="/src/os/exec/exec.go?s=34610:34648#L1018">Output</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) Output() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Output runs the command and returns its standard output.
+Any returned error will usually be of type <a href="#ExitError">*ExitError</a>.
+If c.Stderr was nil and the returned error is of type
+<a href="#ExitError">*ExitError</a>, Output populates the Stderr field of the
+returned error.
+
+				
+
+
+<div id="example_Cmd_Output" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	out, err := exec.Command(&#34;date&#34;).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;The date is %s\n&#34;, out)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.Run">func (*Cmd) <a href="/src/os/exec/exec.go?s=22835:22860#L629">Run</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) Run() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Run starts the specified command and waits for it to complete.
+<p>The returned error is nil if the command runs, has no problems
+copying stdin, stdout, and stderr, and exits with a zero exit
+status.
+<p>If the command starts but does not complete successfully, the error is of
+type <a href="#ExitError">*ExitError</a>. Other error types may be returned for other situations.
+<p>If the calling goroutine has locked the operating system thread
+with <a href="/pkg/runtime/#LockOSThread">runtime.LockOSThread</a> and modified any inheritable OS-level
+thread state (for example, Linux or Plan 9 name spaces), the new
+process will inherit the caller&apos;s thread state.
+
+				
+
+
+<div id="example_Cmd_Run" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;sleep&#34;, &#34;1&#34;)
+	log.Printf(&#34;Running command and waiting for it to finish...&#34;)
+	err := cmd.Run()
+	log.Printf(&#34;Command finished with error: %v&#34;, err)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.Start">func (*Cmd) <a href="/src/os/exec/exec.go?s=23208:23235#L642">Start</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) Start() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Start starts the specified command but does not wait for it to complete.
+<p>If Start returns successfully, the c.Process field will be set.
+<p>After a successful call to Start the <a href="#Cmd.Wait">Cmd.Wait</a> method must be called in
+order to release associated system resources.
+
+				
+
+
+<div id="example_Cmd_Start" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;sleep&#34;, &#34;5&#34;)
+	err := cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf(&#34;Waiting for command to finish...&#34;)
+	err = cmd.Wait()
+	log.Printf(&#34;Command finished with error: %v&#34;, err)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.StderrPipe">func (*Cmd) <a href="/src/os/exec/exec.go?s=37539:37588#L1111">StderrPipe</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) StderrPipe() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>StderrPipe returns a pipe that will be connected to the command&apos;s
+standard error when the command starts.
+<p><a href="#Cmd.Wait">Cmd.Wait</a> will close the pipe after seeing the command exit, so most callers
+need not close the pipe themselves. It is thus incorrect to call Wait
+before all reads from the pipe have completed.
+For the same reason, it is incorrect to use <a href="#Cmd.Run">Cmd.Run</a> when using StderrPipe.
+See the StdoutPipe example for idiomatic usage.
+
+				
+
+
+<div id="example_Cmd_StderrPipe" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;sh&#34;, &#34;-c&#34;, &#34;echo stdout; echo 1&gt;&amp;2 stderr&#34;)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	slurp, _ := io.ReadAll(stderr)
+	fmt.Printf(&#34;%s\n&#34;, slurp)
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.StdinPipe">func (*Cmd) <a href="/src/os/exec/exec.go?s=35826:35875#L1061">StdinPipe</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) StdinPipe() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>StdinPipe returns a pipe that will be connected to the command&apos;s
+standard input when the command starts.
+The pipe will be closed automatically after <a href="#Cmd.Wait">Cmd.Wait</a> sees the command exit.
+A caller need only call Close to force the pipe to close sooner.
+For example, if the command being run will not exit until standard input
+is closed, the caller must close the pipe.
+
+				
+
+
+<div id="example_Cmd_StdinPipe" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;cat&#34;)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		defer stdin.Close()
+		io.WriteString(stdin, &#34;values written to stdin are passed to cmd&#39;s standard input&#34;)
+	}()
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, out)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.StdoutPipe">func (*Cmd) <a href="/src/os/exec/exec.go?s=36676:36725#L1086">StdoutPipe</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) StdoutPipe() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>StdoutPipe returns a pipe that will be connected to the command&apos;s
+standard output when the command starts.
+<p><a href="#Cmd.Wait">Cmd.Wait</a> will close the pipe after seeing the command exit, so most callers
+need not close the pipe themselves. It is thus incorrect to call Wait
+before all reads from the pipe have completed.
+For the same reason, it is incorrect to call <a href="#Cmd.Run">Cmd.Run</a> when using StdoutPipe.
+See the example for idiomatic usage.
+
+				
+
+
+<div id="example_Cmd_StdoutPipe" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os/exec&#34;
+)
+
+func main() {
+	cmd := exec.Command(&#34;echo&#34;, &#34;-n&#34;, `{&#34;Name&#34;: &#34;Bob&#34;, &#34;Age&#34;: 32}`)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	var person struct {
+		Name string
+		Age  int
+	}
+	if err := json.NewDecoder(stdout).Decode(&amp;person); err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s is %d years old\n&#34;, person.Name, person.Age)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Cmd.String">func (*Cmd) <a href="/src/os/exec/exec.go?s=19690:19719#L501">String</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String returns a human-readable description of c.
+It is intended only for debugging.
+In particular, it is not suitable for use as input to a shell.
+The output of String may vary across Go releases.
+
+				
+			
+				<h3 id="Cmd.Wait">func (*Cmd) <a href="/src/os/exec/exec.go?s=32138:32164#L926">Wait</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cmd">Cmd</a>) Wait() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Wait waits for the command to exit and waits for any copying to
+stdin or copying from stdout or stderr to complete.
+<p>The command must have been started by <a href="#Cmd.Start">Cmd.Start</a>.
+<p>The returned error is nil if the command runs, has no problems
+copying stdin, stdout, and stderr, and exits with a zero exit
+status.
+<p>If the command fails to run or doesn&apos;t complete successfully, the
+error is of type <a href="#ExitError">*ExitError</a>. Other error types may be
+returned for I/O problems.
+<p>If any of c.Stdin, c.Stdout or c.Stderr are not an <a href="/pkg/os/#File">*os.File</a>, Wait also waits
+for the respective I/O loop copying to or from the process to complete.
+<p>Wait must not be called concurrently from multiple goroutines.
+A custom Cmd.Cancel function should not call Wait.
+<p>Wait releases any resources associated with the <a href="#Cmd">Cmd</a>.
+
+				
+			
+		
+			
+			<h2 id="Error">type <a href="/src/os/exec/exec.go?s=3706:3840#L102">Error</a>
+				
+				
+			</h2>
+			<p>Error is returned by <a href="#LookPath">LookPath</a> when it fails to classify a file as an
+executable.
+
+			<pre>type Error struct {
+<span id="Error.Name"></span>    <span class="comment">// Name is the file name for which the error occurred.</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Error.Err"></span>    <span class="comment">// Err is the underlying error.</span>
+    Err <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (*Error) <a href="/src/os/exec/exec.go?s=3842:3872#L109">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Error.Unwrap">func (*Error) <a href="/src/os/exec/exec.go?s=3942:3972#L113">Unwrap</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ExitError">type <a href="/src/os/exec/exec.go?s=30719:31235#L886">ExitError</a>
+				
+				
+			</h2>
+			<p>An ExitError reports an unsuccessful exit by a command.
+
+			<pre>type ExitError struct {
+    *<a href="/pkg/os/">os</a>.<a href="/pkg/os/#ProcessState">ProcessState</a>
+
+<span id="ExitError.Stderr"></span>    <span class="comment">// Stderr holds a subset of the standard error output from the</span>
+    <span class="comment">// Cmd.Output method if standard error was not otherwise being</span>
+    <span class="comment">// collected.</span>
+    <span class="comment">//</span>
+    <span class="comment">// If the error output is long, Stderr may contain only a prefix</span>
+    <span class="comment">// and suffix of the output, with the middle replaced with</span>
+    <span class="comment">// text about the number of omitted bytes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Stderr is provided for debugging, for inclusion in error messages.</span>
+    <span class="comment">// Users with other needs should redirect Cmd.Stderr as needed.</span>
+    Stderr []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// Go 1.6</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ExitError.Error">func (*ExitError) <a href="/src/os/exec/exec.go?s=31237:31271#L902">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#ExitError">ExitError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

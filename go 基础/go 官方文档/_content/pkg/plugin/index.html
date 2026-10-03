@@ -1,0 +1,170 @@
+<!--{
+  "Title": "plugin 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>plugin 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "plugin"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>plugin 包实现 Go 插件的加载和符号解析。<p>插件是一个包含导出函数和变量的 Go main 包，使用以下方式构建：<pre>go build -buildmode=plugin
+</pre>
+<p>首次打开插件时，会调用所有尚未包含在程序中的包的 init 函数。不会运行 main 函数。插件只初始化一次，且无法关闭。<h3 id="hdr-Warnings">注意事项</h3>
+<p>在执行期间动态加载应用的一部分（例如根据用户定义的配置），在某些设计中可能是有用的基础能力。尤其是，应用与动态加载的函数可以直接共享数据结构，因此插件可能使不同部分之间的集成具有很高性能。<p>不过，插件机制有许多显著缺点，设计时应仔细考虑。例如：<ul>
+<li><p>目前只有 Linux、FreeBSD 和 macOS 支持插件，因此它们不适合要求可移植性的应用。<li><p>Go 竞态检测器对插件的支持较差。即使简单的竞态条件也可能无法自动检测。更多信息见 <a href="/issue/24245">https://go.dev/issue/24245</a>。<li><p>使用插件的应用可能需要仔细配置，以确保程序各部分位于文件系统（或容器镜像）中的正确位置。相比之下，由单个静态可执行文件组成的应用部署起来很直接。<li><p>如果某些包可能在应用开始运行很久之后才初始化，就更难分析程序的初始化过程。<li><p>加载插件的应用中的缺陷可能被攻击者利用，加载危险或不可信的库。<li><p>除非程序的所有部分（应用及全部插件）都使用完全相同的工具链版本、相同的构建标签，以及某些标志和环境变量的相同值进行编译，否则很可能在运行时崩溃。<li><p>除非应用与插件的所有共同依赖都由完全相同的源代码构建，否则也很可能发生类似的崩溃问题。<li><p>这些限制合在一起意味着，实际上应用及其插件必须由同一个人或系统组件统一构建。在这种情况下，让该人员或组件生成以空白标识符导入所需插件集合的 Go 源文件，再按通常方式编译静态可执行文件，可能更简单。</ul>
+<p>因此，许多用户认为传统的进程间通信（IPC）机制，例如套接字、管道、远程过程调用（RPC）、共享内存映射或文件系统操作，尽管有性能开销，却可能更加合适。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Plugin">type Plugin</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(path string) (*Plugin, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Plugin.Lookup">func (p *Plugin) Lookup(symName string) (Symbol, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Symbol">type Symbol</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/plugin/plugin.go">plugin.go</a>
+			
+				<a href="/src/plugin/plugin_dlopen.go">plugin_dlopen.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Plugin">type <a href="/src/plugin/plugin.go?s=3274:3448#L63">Plugin</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Plugin 是已加载的 Go 插件。<pre>type Plugin struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Open">func <a href="/src/plugin/plugin.go?s=3613:3652#L73">Open</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func Open(path <a href="/pkg/builtin/#string">string</a>) (*<a href="#Plugin">Plugin</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 打开一个 Go 插件。如果某个路径已经打开过，则返回已有的 *<a href="#Plugin">Plugin</a>。此函数可由多个 goroutine 安全地并发使用。<h3 id="Plugin.Lookup">func (*Plugin) <a href="/src/plugin/plugin.go?s=3894:3949#L81">Lookup</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (p *<a href="#Plugin">Plugin</a>) Lookup(symName <a href="/pkg/builtin/#string">string</a>) (<a href="#Symbol">Symbol</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lookup 在插件 p 中查找名为 symName 的符号。符号可以是任何导出的变量或函数。如果找不到符号，则返回错误。此方法可由多个 goroutine 安全地并发使用。<h2 id="Symbol">type <a href="/src/plugin/plugin.go?s=4570:4585#L114">Symbol</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Symbol 是指向变量或函数的指针。<p>例如，以下定义的插件：<pre>package main
+
+import &quot;fmt&quot;
+
+var V int
+
+func F() { fmt.Printf(&quot;Hello, number %d\n&quot;, V) }
+</pre>
+<p>可以使用 <a href="#Open">Open</a> 函数加载，然后访问导出的包符号 V 和 F：<pre>p, err := plugin.Open(&quot;plugin_name.so&quot;)
+if err != nil {
+	panic(err)
+}
+v, err := p.Lookup(&quot;V&quot;)
+if err != nil {
+	panic(err)
+}
+f, err := p.Lookup(&quot;F&quot;)
+if err != nil {
+	panic(err)
+}
+*v.(*int) = 7
+f.(func())() // 打印 "Hello, number 7"
+</pre>
+
+			<pre>type Symbol <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

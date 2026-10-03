@@ -1,0 +1,292 @@
+<!--{
+  "Title": "encoding/pem 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package pem</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/pem"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>pem 包实现了 PEM 数据编码，它起源于 Privacy Enhanced Mail。目前，PEM 编码最常用于 TLS 密钥和证书。参见 RFC 1421。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Encode">func Encode(out io.Writer, b *Block) error</a></dd>
+			
+				<dd><a href="#EncodeToMemory">func EncodeToMemory(b *Block) []byte</a></dd>
+			
+			
+				
+				<dd><a href="#Block">type Block</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decode">func Decode(data []byte) (p *Block, rest []byte)</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Decode">Decode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Encode">Encode</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/pem/pem.go">pem.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Encode">func <a href="/src/encoding/pem/pem.go?s=6650:6692#L245">Encode</a>
+				
+				
+			</h2>
+			<pre>func Encode(out <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, b *<a href="#Block">Block</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Encode 将 b 的 PEM 编码写入 out。
+
+			
+
+
+<div id="example_Encode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/pem&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	block := &amp;pem.Block{
+		Type: &#34;MESSAGE&#34;,
+		Headers: map[string]string{
+			&#34;Animal&#34;: &#34;Gopher&#34;,
+		},
+		Bytes: []byte(&#34;test&#34;),
+	}
+
+	if err := pem.Encode(os.Stdout, block); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>-----BEGIN MESSAGE-----
+Animal: Gopher
+
+dGVzdA==
+-----END MESSAGE-----
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncodeToMemory">func <a href="/src/encoding/pem/pem.go?s=8465:8501#L319">EncodeToMemory</a>
+				
+				
+			</h2>
+			<pre>func EncodeToMemory(b *<a href="#Block">Block</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>EncodeToMemory 返回 b 的 PEM 编码。
+<p>如果 b 的头部无效、无法编码，EncodeToMemory 会返回 nil。如果需要报告这种错误的详细信息，应使用 <a href="#Encode">Encode</a>。
+
+			
+		
+		
+			
+			<h2 id="Block">type <a href="/src/encoding/pem/pem.go?s=673:938#L19">Block</a>
+				
+				
+			</h2>
+			<p>Block 表示一个 PEM 编码的结构。
+<p>其编码形式为：
+<pre>-----BEGIN Type-----
+Headers
+base64-encoded Bytes
+-----END Type-----
+</pre>
+<p>其中 <a href="#Block.Headers">Block.Headers</a> 是一组 Key: Value 行，可以为空。
+
+			<pre>type Block struct {
+<span id="Block.Type"></span>    Type    <a href="/pkg/builtin/#string">string</a>            <span class="comment">// 类型，取自起始标记（例如 "RSA PRIVATE KEY"）。</span>
+<span id="Block.Headers"></span>    Headers map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a> <span class="comment">// 可选的头部。</span>
+<span id="Block.Bytes"></span>    Bytes   []<a href="/pkg/builtin/#byte">byte</a>            <span class="comment">// 内容解码后的字节。通常是 DER 编码的 ASN.1 结构。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Decode">func <a href="/src/encoding/pem/pem.go?s=2625:2673#L79">Decode</a>
+					
+					
+				</h3>
+				<pre>func Decode(data []<a href="/pkg/builtin/#byte">byte</a>) (p *<a href="#Block">Block</a>, rest []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>Decode 在输入中查找下一个 PEM 格式的块（证书、私钥等），并返回该块和剩余输入。如果未找到 PEM 数据，p 为 nil，rest 返回全部输入。块必须从行首开始，并在行尾结束。
+
+				
+
+
+<div id="example_Decode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/x509&#34;
+	&#34;encoding/pem&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	var pubPEMData = []byte(`
+-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAlRuRnThUjU8/prwYxbty
+WPT9pURI3lbsKMiB6Fn/VHOKE13p4D8xgOCADpdRagdT6n4etr9atzDKUSvpMtR3
+CP5noNc97WiNCggBjVWhs7szEe8ugyqF23XwpHQ6uV1LKH50m92MbOWfCtjU9p/x
+qhNpQQ1AZhqNy5Gevap5k8XzRmjSldNAFZMY7Yv3Gi&#43;nyCwGwpVtBUwhuLzgNFK/
+yDtw2WcWmUU7NuC8Q6MWvPebxVtCfVp/iQU6q60yyt6aGOBkhAX0LpKAEhKidixY
+nP9PNVBvxgu3XZ4P36gZV6&#43;ummKdBVnc3NqwBLu5&#43;CcdRdusmHPHd5pHf4/38Z3/
+6qU2a/fPvWzceVTEgZ47QjFMTCTmCwNt29cvi7zZeQzjtwQgn4ipN9NibRH/Ax/q
+TbIzHfrJ1xa2RteWSdFjwtxi9C20HUkjXSeI4YlzQMH0fPX6KCE7aVePTOnB69I/
+a9/q96DiXZajwlpq3wFctrs1oXqBp5DVrCIj8hU2wNgB7LtQ1mCtsYz//heai0K9
+PhE4X6hiE0YmeAZjR0uHl8M/5aW9xCoJ72&#43;12kKpWAa0SFRWLy6FejNYCYpkupVJ
+yecLk/4L1W0l6jQQZnWErXZYe0PNFcmwGXy1Rep83kfBRNKRy5tvocalLlwXLdUk
+AIU&#43;2GKjyT3iMuzZxxFxPFMCAwEAAQ==
+-----END PUBLIC KEY-----
+and some more`)
+
+	block, rest := pem.Decode(pubPEMData)
+	if block == nil || block.Type != &#34;PUBLIC KEY&#34; {
+		log.Fatal(&#34;failed to decode PEM block containing public key&#34;)
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;Got a %T, with remaining data: %q&#34;, pub, rest)
+}
+</textarea></div>
+        <div class="output"><pre>Got a *rsa.PublicKey, with remaining data: &#34;and some more&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

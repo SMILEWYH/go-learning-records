@@ -1,0 +1,1718 @@
+<!--{
+  "Title": "sort 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>sort 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "sort"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>sort 包提供对切片和用户定义的集合进行排序的基本功能。<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf(&#34;%s: %d&#34;, p.Name, p.Age)
+}
+
+// ByAge 根据 Age 字段
+// 为 []Person 实现 sort.Interface。
+type ByAge []Person
+
+func (a ByAge) Len() int           { return len(a) }
+func (a ByAge) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByAge) Less(i, j int) bool { return a[i].Age &lt; a[j].Age }
+
+func main() {
+	people := []Person{
+		{&#34;Bob&#34;, 31},
+		{&#34;John&#34;, 42},
+		{&#34;Michael&#34;, 17},
+		{&#34;Jenny&#34;, 26},
+	}
+
+	fmt.Println(people)
+	// 对切片排序有两种方式。第一种是为切片类型
+	// 定义一组方法，如 ByAge，
+	// 然后调用 sort.Sort。第一个示例采用这种方法。
+	sort.Sort(ByAge(people))
+	fmt.Println(people)
+
+	// 另一种方式是使用 sort.Slice，并提供自定义 Less
+	// 函数，该函数可以是闭包。在这种情况下，
+	// 不需要定义方法。（即使定义了，
+	// 也会被忽略。）这里我们按相反顺序重新排序：请将
+	// 此闭包与 ByAge.Less 比较。
+	sort.Slice(people, func(i, j int) bool {
+		return people[i].Age &gt; people[j].Age
+	})
+	fmt.Println(people)
+
+}
+</textarea></div>
+        <div class="output"><pre>[Bob: 31 John: 42 Michael: 17 Jenny: 26]
+[Michael: 17 Jenny: 26 Bob: 31 John: 42]
+[John: 42 Bob: 31 Jenny: 26 Michael: 17]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__sortKeys" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (SortKeys)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (SortKeys)</span></p>
+    <p>Example_sortKeys 演示如何使用可编程的排序规则对结构体类型排序。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+// 定义几个类型，以明确计量单位。
+type earthMass float64
+type au float64
+
+// Planet 定义太阳系天体的属性。
+type Planet struct {
+	name     string
+	mass     earthMass
+	distance au
+}
+
+// By 是一种“less”函数类型，用于定义其 Planet 参数的顺序。
+type By func(p1, p2 *Planet) bool
+
+// Sort 是函数类型 By 的方法，它按照该函数对参数切片排序。
+func (by By) Sort(planets []Planet) {
+	ps := &amp;planetSorter{
+		planets: planets,
+		by:      by, // Sort 方法的接收者是定义排序顺序的函数（闭包）。
+	}
+	sort.Sort(ps)
+}
+
+// planetSorter 将 By 函数与待排序的 Planet 切片组合起来。
+type planetSorter struct {
+	planets []Planet
+	by      func(p1, p2 *Planet) bool // 在 Less 方法中使用的闭包。
+}
+
+// Len 是 sort.Interface 的一部分。
+func (s *planetSorter) Len() int {
+	return len(s.planets)
+}
+
+// Swap 是 sort.Interface 的一部分。
+func (s *planetSorter) Swap(i, j int) {
+	s.planets[i], s.planets[j] = s.planets[j], s.planets[i]
+}
+
+// Less 是 sort.Interface 的一部分，其实现调用排序器中的“by”闭包。
+func (s *planetSorter) Less(i, j int) bool {
+	return s.by(&amp;s.planets[i], &amp;s.planets[j])
+}
+
+var planets = []Planet{
+	{&#34;Mercury&#34;, 0.055, 0.4},
+	{&#34;Venus&#34;, 0.815, 0.7},
+	{&#34;Earth&#34;, 1.0, 1.0},
+	{&#34;Mars&#34;, 0.107, 1.5},
+}
+
+// Example_sortKeys 演示如何使用可编程的排序规则对结构体类型排序。
+func main() {
+	// 用于确定 Planet 结构体顺序的闭包。
+	name := func(p1, p2 *Planet) bool {
+		return p1.name &lt; p2.name
+	}
+	mass := func(p1, p2 *Planet) bool {
+		return p1.mass &lt; p2.mass
+	}
+	distance := func(p1, p2 *Planet) bool {
+		return p1.distance &lt; p2.distance
+	}
+	decreasingDistance := func(p1, p2 *Planet) bool {
+		return distance(p2, p1)
+	}
+
+	// 按照不同规则对行星排序。
+	By(name).Sort(planets)
+	fmt.Println(&#34;By name:&#34;, planets)
+
+	By(mass).Sort(planets)
+	fmt.Println(&#34;By mass:&#34;, planets)
+
+	By(distance).Sort(planets)
+	fmt.Println(&#34;By distance:&#34;, planets)
+
+	By(decreasingDistance).Sort(planets)
+	fmt.Println(&#34;By decreasing distance:&#34;, planets)
+
+}
+</textarea></div>
+        <div class="output"><pre>By name: [{Earth 1 1} {Mars 0.107 1.5} {Mercury 0.055 0.4} {Venus 0.815 0.7}]
+By mass: [{Mercury 0.055 0.4} {Mars 0.107 1.5} {Venus 0.815 0.7} {Earth 1 1}]
+By distance: [{Mercury 0.055 0.4} {Venus 0.815 0.7} {Earth 1 1} {Mars 0.107 1.5}]
+By decreasing distance: [{Mars 0.107 1.5} {Earth 1 1} {Venus 0.815 0.7} {Mercury 0.055 0.4}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__sortMultiKeys" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (SortMultiKeys)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (SortMultiKeys)</span></p>
+    <p>Example_sortMultiKeys 演示如何在比较中使用不同的多字段组合，对结构体类型排序。我们将多个 “Less” 函数串联起来，每个函数只比较一个字段。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+// Change 是源代码变更记录，记录用户、语言和变更大小。
+type Change struct {
+	user     string
+	language string
+	lines    int
+}
+
+type lessFunc func(p1, p2 *Change) bool
+
+// multiSorter 实现 Sort 接口，对其中的变更排序。
+type multiSorter struct {
+	changes []Change
+	less    []lessFunc
+}
+
+// Sort 根据传给 OrderedBy 的 less 函数对参数切片排序。
+func (ms *multiSorter) Sort(changes []Change) {
+	ms.changes = changes
+	sort.Sort(ms)
+}
+
+// OrderedBy 返回一个 Sorter，它依次使用各个 less 函数排序。
+// 调用其 Sort 方法即可对数据排序。
+func OrderedBy(less ...lessFunc) *multiSorter {
+	return &amp;multiSorter{
+		less: less,
+	}
+}
+
+// Len 是 sort.Interface 的一部分。
+func (ms *multiSorter) Len() int {
+	return len(ms.changes)
+}
+
+// Swap 是 sort.Interface 的一部分。
+func (ms *multiSorter) Swap(i, j int) {
+	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
+}
+
+// Less 是 sort.Interface 的一部分。它依次调用
+// 各个 less 函数，直到找到能够区分
+// 两个元素的比较结果（其中一个小于另一个）。注意，每次调用可能
+// 对每个 less 函数调用两次。我们可以让函数返回
+// -1、0、1，减少调用次数以提高效率：
+// 留待读者练习。
+func (ms *multiSorter) Less(i, j int) bool {
+	p, q := &amp;ms.changes[i], &amp;ms.changes[j]
+	// 尝试最后一个比较函数以外的所有函数。
+	var k int
+	for k = 0; k &lt; len(ms.less)-1; k&#43;&#43; {
+		less := ms.less[k]
+		switch {
+		case less(p, q):
+			// p &lt; q，因此可以确定结果。
+			return true
+		case less(q, p):
+			// p &gt; q，因此可以确定结果。
+			return false
+		}
+		// p == q；尝试下一个比较函数。
+	}
+	// 到这里的所有比较结果都是“相等”，因此直接返回
+	// 最后一个比较函数的结果。
+	return ms.less[k](p, q)
+}
+
+var changes = []Change{
+	{&#34;gri&#34;, &#34;Go&#34;, 100},
+	{&#34;ken&#34;, &#34;C&#34;, 150},
+	{&#34;glenda&#34;, &#34;Go&#34;, 200},
+	{&#34;rsc&#34;, &#34;Go&#34;, 200},
+	{&#34;r&#34;, &#34;Go&#34;, 100},
+	{&#34;ken&#34;, &#34;Go&#34;, 200},
+	{&#34;dmr&#34;, &#34;C&#34;, 100},
+	{&#34;r&#34;, &#34;C&#34;, 150},
+	{&#34;gri&#34;, &#34;Smalltalk&#34;, 80},
+}
+
+// Example_sortMultiKeys 演示如何在比较中使用不同的
+// 多字段组合对结构体类型排序。我们将多个“Less”函数串联起来，
+// 每个函数只比较一个字段。
+func main() {
+	// 用于确定 Change 结构体顺序的闭包。
+	user := func(c1, c2 *Change) bool {
+		return c1.user &lt; c2.user
+	}
+	language := func(c1, c2 *Change) bool {
+		return c1.language &lt; c2.language
+	}
+	increasingLines := func(c1, c2 *Change) bool {
+		return c1.lines &lt; c2.lines
+	}
+	decreasingLines := func(c1, c2 *Change) bool {
+		return c1.lines &gt; c2.lines // 注意：&gt; 表示降序。
+	}
+
+	// 简单用法：按用户排序。
+	OrderedBy(user).Sort(changes)
+	fmt.Println(&#34;By user:&#34;, changes)
+
+	// 更多示例。
+	OrderedBy(user, increasingLines).Sort(changes)
+	fmt.Println(&#34;By user,&lt;lines:&#34;, changes)
+
+	OrderedBy(user, decreasingLines).Sort(changes)
+	fmt.Println(&#34;By user,&gt;lines:&#34;, changes)
+
+	OrderedBy(language, increasingLines).Sort(changes)
+	fmt.Println(&#34;By language,&lt;lines:&#34;, changes)
+
+	OrderedBy(language, increasingLines, user).Sort(changes)
+	fmt.Println(&#34;By language,&lt;lines,user:&#34;, changes)
+
+}
+</textarea></div>
+        <div class="output"><pre>By user: [{dmr C 100} {glenda Go 200} {gri Go 100} {gri Smalltalk 80} {ken C 150} {ken Go 200} {r Go 100} {r C 150} {rsc Go 200}]
+By user,&lt;lines: [{dmr C 100} {glenda Go 200} {gri Smalltalk 80} {gri Go 100} {ken C 150} {ken Go 200} {r Go 100} {r C 150} {rsc Go 200}]
+By user,&gt;lines: [{dmr C 100} {glenda Go 200} {gri Go 100} {gri Smalltalk 80} {ken Go 200} {ken C 150} {r C 150} {r Go 100} {rsc Go 200}]
+By language,&lt;lines: [{dmr C 100} {ken C 150} {r C 150} {gri Go 100} {r Go 100} {glenda Go 200} {ken Go 200} {rsc Go 200} {gri Smalltalk 80}]
+By language,&lt;lines,user: [{dmr C 100} {ken C 150} {r C 150} {gri Go 100} {r Go 100} {glenda Go 200} {ken Go 200} {rsc Go 200} {gri Smalltalk 80}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__sortWrapper" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (SortWrapper)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (SortWrapper)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+type Grams int
+
+func (g Grams) String() string { return fmt.Sprintf(&#34;%dg&#34;, int(g)) }
+
+type Organ struct {
+	Name   string
+	Weight Grams
+}
+
+type Organs []*Organ
+
+func (s Organs) Len() int      { return len(s) }
+func (s Organs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+// ByName 通过提供 Less 方法，并使用嵌入的 Organs 值的 Len 和
+// Swap 方法来实现 sort.Interface。
+type ByName struct{ Organs }
+
+func (s ByName) Less(i, j int) bool { return s.Organs[i].Name &lt; s.Organs[j].Name }
+
+// ByWeight 通过提供 Less 方法，并使用嵌入的 Organs 值的 Len 和
+// Swap 方法来实现 sort.Interface。
+type ByWeight struct{ Organs }
+
+func (s ByWeight) Less(i, j int) bool { return s.Organs[i].Weight &lt; s.Organs[j].Weight }
+
+func main() {
+	s := []*Organ{
+		{&#34;brain&#34;, 1340},
+		{&#34;heart&#34;, 290},
+		{&#34;liver&#34;, 1494},
+		{&#34;pancreas&#34;, 131},
+		{&#34;prostate&#34;, 62},
+		{&#34;spleen&#34;, 162},
+	}
+
+	sort.Sort(ByWeight{s})
+	fmt.Println(&#34;Organs by weight:&#34;)
+	printOrgans(s)
+
+	sort.Sort(ByName{s})
+	fmt.Println(&#34;Organs by name:&#34;)
+	printOrgans(s)
+
+}
+
+func printOrgans(s []*Organ) {
+	for _, o := range s {
+		fmt.Printf(&#34;%-8s (%v)\n&#34;, o.Name, o.Weight)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Organs by weight:
+prostate (62g)
+pancreas (131g)
+spleen   (162g)
+heart    (290g)
+brain    (1340g)
+liver    (1494g)
+Organs by name:
+brain    (1340g)
+heart    (290g)
+liver    (1494g)
+pancreas (131g)
+prostate (62g)
+spleen   (162g)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Find">func Find(n int, cmp func(int) int) (i int, found bool)</a></dd>
+			
+				<dd><a href="#Float64s">func Float64s(x []float64)</a></dd>
+			
+				<dd><a href="#Float64sAreSorted">func Float64sAreSorted(x []float64) bool</a></dd>
+			
+				<dd><a href="#Ints">func Ints(x []int)</a></dd>
+			
+				<dd><a href="#IntsAreSorted">func IntsAreSorted(x []int) bool</a></dd>
+			
+				<dd><a href="#IsSorted">func IsSorted(data Interface) bool</a></dd>
+			
+				<dd><a href="#Search">func Search(n int, f func(int) bool) int</a></dd>
+			
+				<dd><a href="#SearchFloat64s">func SearchFloat64s(a []float64, x float64) int</a></dd>
+			
+				<dd><a href="#SearchInts">func SearchInts(a []int, x int) int</a></dd>
+			
+				<dd><a href="#SearchStrings">func SearchStrings(a []string, x string) int</a></dd>
+			
+				<dd><a href="#Slice">func Slice(x any, less func(i, j int) bool)</a></dd>
+			
+				<dd><a href="#SliceIsSorted">func SliceIsSorted(x any, less func(i, j int) bool) bool</a></dd>
+			
+				<dd><a href="#SliceStable">func SliceStable(x any, less func(i, j int) bool)</a></dd>
+			
+				<dd><a href="#Sort">func Sort(data Interface)</a></dd>
+			
+				<dd><a href="#Stable">func Stable(data Interface)</a></dd>
+			
+				<dd><a href="#Strings">func Strings(x []string)</a></dd>
+			
+				<dd><a href="#StringsAreSorted">func StringsAreSorted(x []string) bool</a></dd>
+			
+			
+				
+				<dd><a href="#Float64Slice">type Float64Slice</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Slice.Len">func (x Float64Slice) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Slice.Less">func (x Float64Slice) Less(i, j int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Slice.Search">func (p Float64Slice) Search(x float64) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Slice.Sort">func (x Float64Slice) Sort()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Slice.Swap">func (x Float64Slice) Swap(i, j int)</a></dd>
+				
+			
+				
+				<dd><a href="#IntSlice">type IntSlice</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IntSlice.Len">func (x IntSlice) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IntSlice.Less">func (x IntSlice) Less(i, j int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IntSlice.Search">func (p IntSlice) Search(x int) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IntSlice.Sort">func (x IntSlice) Sort()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IntSlice.Swap">func (x IntSlice) Swap(i, j int)</a></dd>
+				
+			
+				
+				<dd><a href="#Interface">type Interface</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reverse">func Reverse(data Interface) Interface</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StringSlice">type StringSlice</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StringSlice.Len">func (x StringSlice) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringSlice.Less">func (x StringSlice) Less(i, j int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringSlice.Search">func (p StringSlice) Search(x string) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringSlice.Sort">func (x StringSlice) Sort()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringSlice.Swap">func (x StringSlice) Swap(i, j int)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Find">Find</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float64s">Float64s</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Float64sAreSorted">Float64sAreSorted</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ints">Ints</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IntsAreSorted">IntsAreSorted</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Reverse">Reverse</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Search">Search</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SearchFloat64s">SearchFloat64s</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SearchInts">SearchInts</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SearchStrings">SearchStrings</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Search_descendingOrder">Search (DescendingOrder)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Slice">Slice</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SliceIsSorted">SliceIsSorted</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SliceStable">SliceStable</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Strings">Strings</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__sortKeys">包 (SortKeys)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__sortMultiKeys">包 (SortMultiKeys)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__sortWrapper">包 (SortWrapper)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/sort/search.go">search.go</a>
+			
+				<a href="/src/sort/slice.go">slice.go</a>
+			
+				<a href="/src/sort/sort.go">sort.go</a>
+			
+				<a href="/src/sort/zsortfunc.go">zsortfunc.go</a>
+			
+				<a href="/src/sort/zsortinterface.go">zsortinterface.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Find">func <a href="/src/sort/search.go?s=3760:3815#L89">Find</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Find(n <a href="/pkg/builtin/#int">int</a>, cmp func(<a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a>) (i <a href="/pkg/builtin/#int">int</a>, found <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Find 使用二分查找，查找并返回 [0, n) 中满足 cmp(i) &lt;= 0 的最小索引 i。如果不存在这样的索引 i，Find 返回 i = n。当 i &lt; n 且 cmp(i) == 0 时，返回值 found 为 true。Find 只会对 [0, n) 范围内的 i 调用 cmp(i)。<p>为支持二分查找，Find 要求：在该范围的前缀部分 cmp(i) &gt; 0，中间部分 cmp(i) == 0，后缀部分 cmp(i) &lt; 0。（各个子范围都可以为空。）通常可以这样满足此条件：将 cmp(i) 解释为目标值 t 与底层可索引数据结构 x 的第 i 个元素之间的比较；当 t &lt; x[i]、t == x[i]、t &gt; x[i] 时，分别返回小于 0、等于 0、大于 0 的值。<p>例如，要在已排序、支持随机访问的字符串列表中查找某个字符串：<pre>i, found := sort.Find(x.Len(), func(i int) int {
+    return strings.Compare(target, x.At(i))
+})
+if found {
+    fmt.Printf(&quot;found %s at entry %d\n&quot;, target, i)
+} else {
+    fmt.Printf(&quot;%s not found, would insert at %d&quot;, target, i)
+}
+</pre>
+
+			
+
+
+<div id="example_Find" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例演示如何在按升序排列的列表中查找字符串。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	a := []string{&#34;apple&#34;, &#34;banana&#34;, &#34;lemon&#34;, &#34;mango&#34;, &#34;pear&#34;, &#34;strawberry&#34;}
+
+	for _, x := range []string{&#34;banana&#34;, &#34;orange&#34;} {
+		i, found := sort.Find(len(a), func(i int) int {
+			return strings.Compare(x, a[i])
+		})
+		if found {
+			fmt.Printf(&#34;found %s at index %d\n&#34;, x, i)
+		} else {
+			fmt.Printf(&#34;%s not found, would insert at %d\n&#34;, x, i)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>found banana at index 1
+orange not found, would insert at 4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Float64s">func <a href="/src/sort/sort.go?s=5673:5699#L166">Float64s</a>
+				
+				
+			</h2>
+			<pre>func Float64s(x []<a href="/pkg/builtin/#float64">float64</a>)</pre>
+			<p>Float64s 按升序对 float64 切片排序。非数（NaN）值排在其他值之前。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#Sort">slices.Sort</a>。<div id="example_Float64s" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []float64{5.2, -1.3, 0.7, -3.8, 2.6} // 未排序
+	sort.Float64s(s)
+	fmt.Println(s)
+
+	s = []float64{math.Inf(1), math.NaN(), math.Inf(-1), 0.0} // 未排序
+	sort.Float64s(s)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>[-3.8 -1.3 0.7 2.6 5.2]
+[NaN -Inf 0 +Inf]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Float64sAreSorted">func <a href="/src/sort/sort.go?s=6316:6356#L182">Float64sAreSorted</a>
+				
+				
+			</h2>
+			<pre>func Float64sAreSorted(x []<a href="/pkg/builtin/#float64">float64</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Float64sAreSorted 报告切片 x 是否按升序排列，且非数（NaN）值排在所有其他值之前。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#IsSorted">slices.IsSorted</a>。<div id="example_Float64sAreSorted" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []float64{0.7, 1.3, 2.6, 3.8, 5.2} // 按升序排列
+	fmt.Println(sort.Float64sAreSorted(s))
+
+	s = []float64{5.2, 3.8, 2.6, 1.3, 0.7} // 按降序排列
+	fmt.Println(sort.Float64sAreSorted(s))
+
+	s = []float64{5.2, 1.3, 0.7, 3.8, 2.6} // 未排序
+	fmt.Println(sort.Float64sAreSorted(s))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Ints">func <a href="/src/sort/sort.go?s=5444:5462#L160">Ints</a>
+				
+				
+			</h2>
+			<pre>func Ints(x []<a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>Ints 按升序对 int 切片排序。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#Sort">slices.Sort</a>。<div id="example_Ints" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []int{5, 2, 6, 3, 1, 4} // 未排序
+	sort.Ints(s)
+	fmt.Println(s)
+}
+</textarea></div>
+        <div class="output"><pre>[1 2 3 4 5 6]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IntsAreSorted">func <a href="/src/sort/sort.go?s=6040:6072#L176">IntsAreSorted</a>
+				
+				
+			</h2>
+			<pre>func IntsAreSorted(x []<a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IntsAreSorted 报告切片 x 是否按升序排列。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#IsSorted">slices.IsSorted</a>。<div id="example_IntsAreSorted" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []int{1, 2, 3, 4, 5, 6} // 按升序排列
+	fmt.Println(sort.IntsAreSorted(s))
+
+	s = []int{6, 5, 4, 3, 2, 1} // 按降序排列
+	fmt.Println(sort.IntsAreSorted(s))
+
+	s = []int{3, 2, 4, 1, 5} // 未排序
+	fmt.Println(sort.IntsAreSorted(s))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IsSorted">func <a href="/src/sort/sort.go?s=3296:3330#L100">IsSorted</a>
+				
+				
+			</h2>
+			<pre>func IsSorted(data <a href="#Interface">Interface</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsSorted 报告 data 是否已排序。<p>注意：在许多情况下，较新的 <a href="/pkg/slices/#IsSortedFunc">slices.IsSortedFunc</a> 函数更易用，运行速度也更快。<h2 id="Search">func <a href="/src/sort/search.go?s=2243:2283#L48">Search</a>
+				
+				
+			</h2>
+			<pre>func Search(n <a href="/pkg/builtin/#int">int</a>, f func(<a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Search 使用二分查找，查找并返回 [0, n) 中使 f(i) 为 true 的最小索引 i，前提是在 [0, n) 范围内，f(i) == true 意味着 f(i+1) == true。也就是说，Search 要求 f 在输入范围 [0, n) 的某个前缀部分（可以为空）为 false，随后在剩余部分（也可以为空）为 true；Search 返回第一个使其为 true 的索引。如果不存在这样的索引，Search 返回 n。（注意，“未找到”时的返回值并非 strings.Index 等函数使用的 -1。）Search 只会对 [0, n) 范围内的 i 调用 f(i)。<p>Search 的常见用途是在数组或切片等已排序且可索引的数据结构中，查找值 x 的索引 i。这时参数 f 通常是一个闭包，它捕获待查找的值，以及该数据结构的索引方式和排序方式。<p>例如，对于按升序排列的切片 data，调用 Search(len(data), func(i int) bool { return data[i] &gt;= 23 }) 会返回满足 data[i] &gt;= 23 的最小索引 i。如果调用方想知道切片中是否存在 23，还必须单独检查 data[i] == 23。<p>查找按降序排列的数据时，应使用 &lt;= 运算符代替 &gt;= 运算符。<p>将上述示例补全后，下面的代码尝试在按升序排列的整数切片 data 中查找值 x：<pre>x := 23
+i := sort.Search(len(data), func(i int) bool { return data[i] &gt;= x })
+if i &lt; len(data) &amp;&amp; data[i] == x {
+	// x 位于 data[i]
+} else {
+	// data 中不存在 x，
+	// 但 i 是应插入它的索引。
+}
+</pre>
+<p>再看一个更有趣的例子：这个程序会猜出你想的数字：<pre>func GuessingGame() {
+	var s string
+	fmt.Printf(&quot;Pick an integer from 0 to 100.\n&quot;)
+	answer := sort.Search(100, func(i int) bool {
+		fmt.Printf(&quot;Is your number &lt;= %d? &quot;, i)
+		fmt.Scanf(&quot;%s&quot;, &amp;s)
+		return s != &quot;&quot; &amp;&amp; s[0] == &apos;y&apos;
+	})
+	fmt.Printf(&quot;Your number is %d.\n&quot;, answer)
+}
+</pre>
+
+			
+
+
+<div id="example_Search" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例演示如何在按升序排列的列表中查找。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	a := []int{1, 3, 6, 10, 15, 21, 28, 36, 45, 55}
+	x := 6
+
+	i := sort.Search(len(a), func(i int) bool { return a[i] &gt;= x })
+	if i &lt; len(a) &amp;&amp; a[i] == x {
+		fmt.Printf(&#34;found %d at index %d in %v\n&#34;, x, i, a)
+	} else {
+		fmt.Printf(&#34;%d not found in %v\n&#34;, x, a)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>found 6 at index 2 in [1 3 6 10 15 21 28 36 45 55]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Search_descendingOrder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (DescendingOrder)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (DescendingOrder)</span></p>
+    <p>此示例演示如何在按降序排列的列表中查找。方法与在升序列表中查找相同，只需将条件反转。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	a := []int{55, 45, 36, 28, 21, 15, 10, 6, 3, 1}
+	x := 6
+
+	i := sort.Search(len(a), func(i int) bool { return a[i] &lt;= x })
+	if i &lt; len(a) &amp;&amp; a[i] == x {
+		fmt.Printf(&#34;found %d at index %d in %v\n&#34;, x, i, a)
+	} else {
+		fmt.Printf(&#34;%d not found in %v\n&#34;, x, a)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>found 6 at index 7 in [55 45 36 28 21 15 10 6 3 1]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SearchFloat64s">func <a href="/src/sort/search.go?s=4884:4931#L121">SearchFloat64s</a>
+				
+				
+			</h2>
+			<pre>func SearchFloat64s(a []<a href="/pkg/builtin/#float64">float64</a>, x <a href="/pkg/builtin/#float64">float64</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SearchFloat64s 在已排序的 float64 切片中查找 x，并按照 <a href="#Search">Search</a> 的规定返回索引。如果 x 不存在，返回值是应插入 x 的索引（可能为 len(a)）。该切片必须按升序排列。<div id="example_SearchFloat64s" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例演示如何在按升序排列的列表中查找 float64 值。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	a := []float64{1.0, 2.0, 3.3, 4.6, 6.1, 7.2, 8.0}
+
+	x := 2.0
+	i := sort.SearchFloat64s(a, x)
+	fmt.Printf(&#34;found %g at index %d in %v\n&#34;, x, i, a)
+
+	x = 0.5
+	i = sort.SearchFloat64s(a, x)
+	fmt.Printf(&#34;%g not found, can be inserted at index %d in %v\n&#34;, x, i, a)
+}
+</textarea></div>
+        <div class="output"><pre>found 2 at index 1 in [1 2 3.3 4.6 6.1 7.2 8]
+0.5 not found, can be inserted at index 0 in [1 2 3.3 4.6 6.1 7.2 8]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SearchInts">func <a href="/src/sort/search.go?s=4532:4567#L113">SearchInts</a>
+				
+				
+			</h2>
+			<pre>func SearchInts(a []<a href="/pkg/builtin/#int">int</a>, x <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SearchInts 在已排序的 int 切片中查找 x，并按照 <a href="#Search">Search</a> 的规定返回索引。如果 x 不存在，返回值是应插入 x 的索引（可能为 len(a)）。该切片必须按升序排列。<div id="example_SearchInts" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例演示如何在按升序排列的列表中查找 int 值。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	a := []int{1, 2, 3, 4, 6, 7, 8}
+
+	x := 2
+	i := sort.SearchInts(a, x)
+	fmt.Printf(&#34;found %d at index %d in %v\n&#34;, x, i, a)
+
+	x = 5
+	i = sort.SearchInts(a, x)
+	fmt.Printf(&#34;%d not found, can be inserted at index %d in %v\n&#34;, x, i, a)
+}
+</textarea></div>
+        <div class="output"><pre>found 2 at index 1 in [1 2 3 4 6 7 8]
+5 not found, can be inserted at index 4 in [1 2 3 4 6 7 8]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SearchStrings">func <a href="/src/sort/search.go?s=5244:5288#L129">SearchStrings</a>
+				
+				
+			</h2>
+			<pre>func SearchStrings(a []<a href="/pkg/builtin/#string">string</a>, x <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SearchStrings 在已排序的字符串切片中查找 x，并按照 Search 的规定返回索引。如果 x 不存在，返回值是应插入 x 的索引（可能为 len(a)）。该切片必须按升序排列。<div id="example_SearchStrings" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例演示如何在按升序排列的列表中查找字符串。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	a := []string{&#34;apple&#34;, &#34;banana&#34;, &#34;cherry&#34;, &#34;date&#34;, &#34;fig&#34;, &#34;grape&#34;}
+
+	x := &#34;banana&#34;
+	i := sort.SearchStrings(a, x)
+	fmt.Printf(&#34;found %s at index %d in %v\n&#34;, x, i, a)
+
+	x = &#34;coconut&#34;
+	i = sort.SearchStrings(a, x)
+	fmt.Printf(&#34;%s not found, can be inserted at index %d in %v\n&#34;, x, i, a)
+
+}
+</textarea></div>
+        <div class="output"><pre>found banana at index 1 in [apple banana cherry date fig grape]
+coconut not found, can be inserted at index 3 in [apple banana cherry date fig grape]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Slice">func <a href="/src/sort/slice.go?s=673:716#L14">Slice</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Slice(x <a href="/pkg/builtin/#any">any</a>, less func(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Slice 根据提供的 less 函数对切片 x 排序。如果 x 不是切片，则会引发 panic。<p>此排序不保证稳定：相等元素的相对顺序可能与原顺序相反。要进行稳定排序，请使用 <a href="#SliceStable">SliceStable</a>。<p>less 函数必须满足与 Interface 类型的 Less 方法相同的要求。<p>注意：在许多情况下，较新的 <a href="/pkg/slices/#SortFunc">slices.SortFunc</a> 函数更易用，运行速度也更快。<div id="example_Slice" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	people := []struct {
+		Name string
+		Age  int
+	}{
+		{&#34;Gopher&#34;, 7},
+		{&#34;Alice&#34;, 55},
+		{&#34;Vera&#34;, 24},
+		{&#34;Bob&#34;, 75},
+	}
+	sort.Slice(people, func(i, j int) bool { return people[i].Name &lt; people[j].Name })
+	fmt.Println(&#34;By name:&#34;, people)
+
+	sort.Slice(people, func(i, j int) bool { return people[i].Age &lt; people[j].Age })
+	fmt.Println(&#34;By age:&#34;, people)
+}
+</textarea></div>
+        <div class="output"><pre>By name: [{Alice 55} {Bob 75} {Gopher 7} {Vera 24}]
+By age: [{Gopher 7} {Vera 24} {Alice 55} {Bob 75}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SliceIsSorted">func <a href="/src/sort/slice.go?s=1658:1714#L42">SliceIsSorted</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func SliceIsSorted(x <a href="/pkg/builtin/#any">any</a>, less func(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>SliceIsSorted 报告切片 x 是否已按照提供的 less 函数排序。如果 x 不是切片，则会引发 panic。<p>注意：在许多情况下，较新的 <a href="/pkg/slices/#IsSortedFunc">slices.IsSortedFunc</a> 函数更易用，运行速度也更快。<div id="example_SliceIsSorted" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	numbers := []int{1, 2, 3, 4, 5, 6}
+
+	isSortedAsc := sort.SliceIsSorted(numbers, func(i, j int) bool {
+		return numbers[i] &lt; numbers[j]
+	})
+	fmt.Printf(&#34;%v sorted ascending: %t\n&#34;, numbers, isSortedAsc)
+
+	numbersDesc := []int{6, 5, 4, 3, 2, 1}
+
+	isSortedDesc := sort.SliceIsSorted(numbersDesc, func(i, j int) bool {
+		return numbersDesc[i] &gt; numbersDesc[j]
+	})
+	fmt.Printf(&#34;%v sorted descending: %t\n&#34;, numbers, isSortedDesc)
+
+	unsortedNumbers := []int{1, 3, 2, 4, 5}
+
+	isSortedUnsorted := sort.SliceIsSorted(unsortedNumbers, func(i, j int) bool {
+		return unsortedNumbers[i] &lt; unsortedNumbers[j]
+	})
+	fmt.Printf(&#34;%v unsorted slice sorted: %t\n&#34;, unsortedNumbers, isSortedUnsorted)
+
+}
+</textarea></div>
+        <div class="output"><pre>[1 2 3 4 5 6] sorted ascending: true
+[1 2 3 4 5 6] sorted descending: true
+[1 3 2 4 5] unsorted slice sorted: false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SliceStable">func <a href="/src/sort/slice.go?s=1255:1304#L31">SliceStable</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func SliceStable(x <a href="/pkg/builtin/#any">any</a>, less func(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>SliceStable 使用提供的 less 函数对切片 x 排序，并保持相等元素的原始顺序。如果 x 不是切片，则会引发 panic。<p>less 函数必须满足与 Interface 类型的 Less 方法相同的要求。<p>注意：在许多情况下，较新的 <a href="/pkg/slices/#SortStableFunc">slices.SortStableFunc</a> 函数更易用，运行速度也更快。<div id="example_SliceStable" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+
+	people := []struct {
+		Name string
+		Age  int
+	}{
+		{&#34;Alice&#34;, 25},
+		{&#34;Elizabeth&#34;, 75},
+		{&#34;Alice&#34;, 75},
+		{&#34;Bob&#34;, 75},
+		{&#34;Alice&#34;, 75},
+		{&#34;Bob&#34;, 25},
+		{&#34;Colin&#34;, 25},
+		{&#34;Elizabeth&#34;, 25},
+	}
+
+	// 按姓名排序，保持原始顺序
+	sort.SliceStable(people, func(i, j int) bool { return people[i].Name &lt; people[j].Name })
+	fmt.Println(&#34;By name:&#34;, people)
+
+	// 按年龄排序，保持姓名顺序
+	sort.SliceStable(people, func(i, j int) bool { return people[i].Age &lt; people[j].Age })
+	fmt.Println(&#34;By age,name:&#34;, people)
+
+}
+</textarea></div>
+        <div class="output"><pre>By name: [{Alice 25} {Alice 75} {Alice 75} {Bob 75} {Bob 25} {Colin 25} {Elizabeth 75} {Elizabeth 25}]
+By age,name: [{Alice 25} {Bob 25} {Colin 25} {Elizabeth 25} {Alice 75} {Alice 75} {Bob 75} {Elizabeth 75}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sort">func <a href="/src/sort/sort.go?s=1947:1972#L40">Sort</a>
+				
+				
+			</h2>
+			<pre>func Sort(data <a href="#Interface">Interface</a>)</pre>
+			<p>Sort 按 Less 方法确定的升序对 data 排序。它调用一次 data.Len 来确定 n，并调用 O(n*log(n)) 次 data.Less 和 data.Swap。此排序不保证稳定。<p>注意：在许多情况下，较新的 <a href="/pkg/slices/#SortFunc">slices.SortFunc</a> 函数更易用，运行速度也更快。<h2 id="Stable">func <a href="/src/sort/sort.go?s=8504:8531#L223">Stable</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func Stable(data <a href="#Interface">Interface</a>)</pre>
+			<p>Stable 按 Less 方法确定的升序对 data 排序，同时保持相等元素的原始顺序。<p>它调用一次 data.Len 来确定 n，调用 O(n*log(n)) 次 data.Less，以及 O(n*log(n)*log(n)) 次 data.Swap。<p>注意：在许多情况下，较新的 slices.SortStableFunc 函数更易用，运行速度也更快。<h2 id="Strings">func <a href="/src/sort/sort.go?s=5846:5870#L171">Strings</a>
+				
+				
+			</h2>
+			<pre>func Strings(x []<a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Strings 按升序对字符串切片排序。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#Sort">slices.Sort</a>。<div id="example_Strings" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []string{&#34;Go&#34;, &#34;Bravo&#34;, &#34;Gopher&#34;, &#34;Alpha&#34;, &#34;Grin&#34;, &#34;Delta&#34;}
+	sort.Strings(s)
+	fmt.Println(s)
+}
+</textarea></div>
+        <div class="output"><pre>[Alpha Bravo Delta Go Gopher Grin]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="StringsAreSorted">func <a href="/src/sort/sort.go?s=6540:6578#L187">StringsAreSorted</a>
+				
+				
+			</h2>
+			<pre>func StringsAreSorted(x []<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>StringsAreSorted 报告切片 x 是否按升序排列。<p>注意：从 Go 1.22 开始，此函数仅调用 <a href="/pkg/slices/#IsSorted">slices.IsSorted</a>。<h2 id="Float64Slice">type <a href="/src/sort/sort.go?s=4014:4041#L124">Float64Slice</a>
+				
+				
+			</h2>
+			<p>Float64Slice 为 []float64 实现 Interface，按升序排序，并将非数（NaN）值排在其他值之前。<pre>type Float64Slice []<a href="/pkg/builtin/#float64">float64</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Float64Slice.Len">func (Float64Slice) <a href="/src/sort/sort.go?s=4043:4074#L126">Len</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#Float64Slice">Float64Slice</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				
+				
+			
+				<h3 id="Float64Slice.Less">func (Float64Slice) <a href="/src/sort/sort.go?s=4482:4523#L134">Less</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#Float64Slice">Float64Slice</a>) Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Less 按照 sort 的 Interface 要求，报告 x[i] 是否应排在 x[j] 之前。注意，浮点比较本身并不是传递关系：对于非数（NaN）值，它不能给出一致的顺序。此 Less 实现通过以下方式将 NaN 值排在所有其他值之前：<pre>x[i] &lt; x[j] || (math.IsNaN(x[i]) &amp;&amp; !math.IsNaN(x[j]))
+</pre>
+
+				
+			
+				<h3 id="Float64Slice.Search">func (Float64Slice) <a href="/src/sort/search.go?s=5579:5622#L137">Search</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#Float64Slice">Float64Slice</a>) Search(x <a href="/pkg/builtin/#float64">float64</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Search 返回对接收者和 x 应用 <a href="#SearchFloat64s">SearchFloat64s</a> 的结果。<h3 id="Float64Slice.Sort">func (Float64Slice) <a href="/src/sort/sort.go?s=4831:4859#L143">Sort</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#Float64Slice">Float64Slice</a>) Sort()</pre>
+				<p>Sort 是一个便捷方法：x.Sort() 调用 Sort(x)。<h3 id="Float64Slice.Swap">func (Float64Slice) <a href="/src/sort/sort.go?s=4580:4616#L135">Swap</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#Float64Slice">Float64Slice</a>) Swap(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="IntSlice">type <a href="/src/sort/sort.go?s=3568:3587#L113">IntSlice</a>
+				
+				
+			</h2>
+			<p>IntSlice 为 []int 添加 Interface 的方法，按升序排序。<pre>type IntSlice []<a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IntSlice.Len">func (IntSlice) <a href="/src/sort/sort.go?s=3589:3616#L115">Len</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#IntSlice">IntSlice</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				
+				
+			
+				<h3 id="IntSlice.Less">func (IntSlice) <a href="/src/sort/sort.go?s=3645:3682#L116">Less</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#IntSlice">IntSlice</a>) Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="IntSlice.Search">func (IntSlice) <a href="/src/sort/search.go?s=5433:5468#L134">Search</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#IntSlice">IntSlice</a>) Search(x <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Search 返回对接收者和 x 应用 <a href="#SearchInts">SearchInts</a> 的结果。<h3 id="IntSlice.Sort">func (IntSlice) <a href="/src/sort/sort.go?s=3830:3854#L120">Sort</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#IntSlice">IntSlice</a>) Sort()</pre>
+				<p>Sort 是一个便捷方法：x.Sort() 调用 Sort(x)。<h3 id="IntSlice.Swap">func (IntSlice) <a href="/src/sort/sort.go?s=3706:3738#L117">Swap</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#IntSlice">IntSlice</a>) Swap(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Interface">type <a href="/src/sort/sort.go?s=498:1624#L7">Interface</a>
+				
+				
+			</h2>
+			<p>实现了 Interface 的类型可以使用本包中的例程进行排序。这些方法通过整数索引引用底层集合中的元素。<pre>type Interface interface {
+    <span class="comment">// Len 是集合中的元素数量。</span>
+    Len() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Less 报告索引为 i 的元素</span>
+    <span class="comment">// 是否必须排在索引为 j 的元素之前。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 Less(i, j) 和 Less(j, i) 均为 false，</span>
+    <span class="comment">// 则索引为 i 和 j 的元素被视为相等。</span>
+    <span class="comment">// Sort 可以在最终结果中以任意顺序放置相等元素，</span>
+    <span class="comment">// 而 Stable 会保持相等元素在输入中的原始顺序。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Less 必须描述严格弱序（[Strict Weak Ordering]）。例如：</span>
+    <span class="comment">//  - 如果 Less(i, j) 和 Less(j, k) 均为 true，则 Less(i, k) 也必须为 true。</span>
+    <span class="comment">//  - 如果 Less(i, j) 和 Less(j, k) 均为 false，则 Less(i, k) 也必须为 false。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意，浮点比较（float32 或 float64 值上的 &lt; 运算符）</span>
+    <span class="comment">// 在涉及非数（NaN）值时并不构成严格弱序。</span>
+    <span class="comment">// 浮点值的正确实现请参见 Float64Slice.Less。</span>
+    <span class="comment">//</span>
+    <span class="comment">// [Strict Weak Ordering]: https://en.wikipedia.org/wiki/Weak_ordering#Strict_weak_orderings</span>
+    Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Swap 交换索引为 i 和 j 的元素。</span>
+    Swap(i, j <a href="/pkg/builtin/#int">int</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Reverse">func <a href="/src/sort/sort.go?s=3074:3112#L92">Reverse</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func Reverse(data <a href="#Interface">Interface</a>) <a href="#Interface">Interface</a></pre>
+				<p>Reverse 返回 data 的反向排序规则。<div id="example_Reverse" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sort&#34;
+)
+
+func main() {
+	s := []int{5, 2, 6, 3, 1, 4} // 未排序
+	sort.Sort(sort.Reverse(sort.IntSlice(s)))
+	fmt.Println(s)
+}
+</textarea></div>
+        <div class="output"><pre>[6 5 4 3 2 1]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="StringSlice">type <a href="/src/sort/sort.go?s=4964:4989#L146">StringSlice</a>
+				
+				
+			</h2>
+			<p>StringSlice 为 []string 添加 Interface 的方法，按升序排序。<pre>type StringSlice []<a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StringSlice.Len">func (StringSlice) <a href="/src/sort/sort.go?s=4991:5021#L148">Len</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#StringSlice">StringSlice</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				
+				
+			
+				<h3 id="StringSlice.Less">func (StringSlice) <a href="/src/sort/sort.go?s=5050:5090#L149">Less</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#StringSlice">StringSlice</a>) Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="StringSlice.Search">func (StringSlice) <a href="/src/sort/search.go?s=5736:5777#L140">Search</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#StringSlice">StringSlice</a>) Search(x <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Search 返回对接收者和 x 应用 <a href="#SearchStrings">SearchStrings</a> 的结果。<h3 id="StringSlice.Sort">func (StringSlice) <a href="/src/sort/sort.go?s=5241:5268#L153">Sort</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#StringSlice">StringSlice</a>) Sort()</pre>
+				<p>Sort 是一个便捷方法：x.Sort() 调用 Sort(x)。<h3 id="StringSlice.Swap">func (StringSlice) <a href="/src/sort/sort.go?s=5114:5149#L150">Swap</a>
+					
+					
+				</h3>
+				<pre>func (x <a href="#StringSlice">StringSlice</a>) Swap(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

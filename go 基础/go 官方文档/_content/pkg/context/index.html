@@ -1,0 +1,896 @@
+<!--{
+  "Title": "context 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>context 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "context"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>context 包定义 Context 类型，用于跨 API 边界和进程传递截止时间、取消信号及其他请求作用域内的值。
+<p>服务器收到请求时应创建一个 <a href="#Context">Context</a>，向其他服务器发起调用时应接受一个 Context。两者之间的函数调用链必须传递该 Context，也可以用 <a href="#WithCancel">WithCancel</a>、<a href="#WithDeadline">WithDeadline</a>、<a href="#WithTimeout">WithTimeout</a> 或 <a href="#WithValue">WithValue</a> 创建的派生 Context 替换它。
+<p>可以取消 Context，以表示与它关联的工作应停止。带截止时间的 Context 会在超过截止时间后被取消。某个 Context 被取消时，所有由它派生的 Context 也都会被取消。
+<p><a href="#WithCancel">WithCancel</a>、<a href="#WithDeadline">WithDeadline</a> 和 <a href="#WithTimeout">WithTimeout</a> 函数接受一个父 Context，并返回一个派生的子 Context 和一个 <a href="#CancelFunc">CancelFunc</a>。调用 CancelFunc 会直接取消该子 Context 及其所有后代，移除父 Context 对它的引用，并停止所有关联的定时器。如果未调用 CancelFunc，子 Context 及其后代会发生资源泄漏，直到父 Context 被取消。go vet 工具会检查所有控制流路径是否都使用了 CancelFunc。
+<p><a href="#WithCancelCause">WithCancelCause</a> 函数返回一个 <a href="#CancelCauseFunc">CancelCauseFunc</a>，它接受一个错误，并将其记录为取消原因。<a href="#WithDeadlineCause">WithDeadlineCause</a> 和 <a href="#WithTimeoutCause">WithTimeoutCause</a> 接受一个原因，在截止时间到达时使用。在已取消的上下文或它的任何子上下文上调用 <a href="#Cause">Cause</a>，可以取得该原因。如果没有指定原因，Cause(ctx) 返回与 ctx.Err() 相同的值。
+<p>使用 Context 的程序应遵循以下规则，以保持各包接口的一致性，并使静态分析工具能够检查上下文的传递：
+<p>不要将 Context 存储在结构体类型中，而应将其显式传给每个需要它的函数。更多讨论参见 <a href="/blog/context-and-structs">https://go.dev/blog/context-and-structs</a>。Context 应为第一个参数，通常命名为 ctx：
+<pre>func DoSomething(ctx context.Context, arg Arg) error {
+	// ……使用 ctx……
+}
+</pre>
+<p>即使函数允许，也不要传入 nil <a href="#Context">Context</a>。如果不确定应使用哪个 Context，请传入 <a href="#TODO">context.TODO</a>。
+<p>仅将上下文中的值用于跨进程和 API 传递的请求作用域数据，不要用它们传递函数的可选参数。
+<p>同一个 Context 可以传给在不同 goroutine（轻量级协程）中运行的函数；多个 goroutine 同时使用 Context 是安全的。
+<p>使用 Context 的服务器示例代码参见 <a href="/blog/context">https://go.dev/blog/context</a>。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AfterFunc">func AfterFunc(ctx Context, f func()) (stop func() bool)</a></dd>
+			
+				<dd><a href="#Cause">func Cause(c Context) error</a></dd>
+			
+				<dd><a href="#WithCancel">func WithCancel(parent Context) (ctx Context, cancel CancelFunc)</a></dd>
+			
+				<dd><a href="#WithCancelCause">func WithCancelCause(parent Context) (ctx Context, cancel CancelCauseFunc)</a></dd>
+			
+				<dd><a href="#WithDeadline">func WithDeadline(parent Context, d time.Time) (Context, CancelFunc)</a></dd>
+			
+				<dd><a href="#WithDeadlineCause">func WithDeadlineCause(parent Context, d time.Time, cause error) (Context, CancelFunc)</a></dd>
+			
+				<dd><a href="#WithTimeout">func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)</a></dd>
+			
+				<dd><a href="#WithTimeoutCause">func WithTimeoutCause(parent Context, timeout time.Duration, cause error) (Context, CancelFunc)</a></dd>
+			
+			
+				
+				<dd><a href="#CancelCauseFunc">type CancelCauseFunc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CancelFunc">type CancelFunc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Context">type Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Background">func Background() Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TODO">func TODO() Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithValue">func WithValue(parent Context, key, val any) Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithoutCancel">func WithoutCancel(parent Context) Context</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_AfterFunc_cond">AfterFunc (Cond)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AfterFunc_connection">AfterFunc (Connection)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AfterFunc_merge">AfterFunc (Merge)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithCancel">WithCancel</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithDeadline">WithDeadline</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithTimeout">WithTimeout</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WithValue">WithValue</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/context/context.go">context.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>当上下文因截止时间到达之外的原因被取消时，<a href="#Context.Err">Context.Err</a> 返回的错误为 Canceled。
+
+				<pre>var <span id="Canceled">Canceled</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;context canceled&#34;)</pre>
+			
+				<p>当上下文因截止时间到达而被取消时，<a href="#Context.Err">Context.Err</a> 返回的错误为 DeadlineExceeded。
+
+				<pre>var <span id="DeadlineExceeded">DeadlineExceeded</span> <a href="/pkg/builtin/#error">error</a> = deadlineExceededError{}</pre>
+			
+		
+		
+			
+			<h2 id="AfterFunc">func <a href="/src/context/context.go?s=12394:12450#L316">AfterFunc</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func AfterFunc(ctx <a href="#Context">Context</a>, f func()) (stop func() <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>AfterFunc 安排在 ctx 被取消后，在独立的 goroutine 中调用 f。如果 ctx 已被取消，AfterFunc 会立即在独立的 goroutine 中调用 f。
+<p>对同一个上下文多次调用 AfterFunc，各次调用相互独立，不会相互替换。
+<p>调用返回的 stop 函数，会解除 ctx 与 f 的关联。如果这次调用成功阻止 f 运行，则返回 true。如果 stop 返回 false，则可能是上下文已被取消，f 已在独立的 goroutine 中启动；也可能是 f 之前已被停止。stop 函数返回前不会等待 f 完成。如果调用方需要知道 f 是否完成，必须显式与 f 协调。
+<p>如果 ctx 具有 &quot;AfterFunc(func()) func() bool&quot; 方法，AfterFunc 会使用该方法安排调用。
+
+			
+
+
+<div id="example_AfterFunc_cond" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Cond)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Cond)</span></p>
+    <p>本示例使用 AfterFunc 定义一个等待 sync.Cond 的函数，并在上下文被取消时停止等待。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+)
+
+func main() {
+	waitOnCond := func(ctx context.Context, cond *sync.Cond, conditionMet func() bool) error {
+		stopf := context.AfterFunc(ctx, func() {
+			// 此处需要获取 cond.L，确保下面的 Broadcast
+			// 不会发生在调用 Wait 之前，否则会
+			// 丢失信号并造成死锁。
+			cond.L.Lock()
+			defer cond.L.Unlock()
+
+			// 如果多个 goroutine 同时等待 cond，
+			// 必须确保当前这个 goroutine 能被唤醒。
+			// 因此需要对所有 goroutine 调用 Broadcast，
+			// 这会将它们全部唤醒。
+			//
+			// 如果有 N 个并发的 waitOnCond 调用，每个 goroutine
+			// 都会无效地唤醒 O(N) 个尚未就绪的其他 goroutine，
+			// 因而总 CPU 开销为 O(N²)。
+			cond.Broadcast()
+		})
+		defer stopf()
+
+		// 因为使用 Broadcast 而非 Signal 唤醒，其他 goroutine 的
+		// 上下文被取消也可能解除本次 Wait 的阻塞，
+		// 所以需要在循环中检查，确保 ctx 确实已被取消。
+		for !conditionMet() {
+			cond.Wait()
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+		}
+
+		return nil
+	}
+
+	cond := sync.NewCond(new(sync.Mutex))
+
+	var wg sync.WaitGroup
+	for range 4 {
+		wg.Go(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+			defer cancel()
+
+			cond.L.Lock()
+			defer cond.L.Unlock()
+
+			err := waitOnCond(ctx, cond, func() bool { return false })
+			fmt.Println(err)
+		})
+	}
+	wg.Wait()
+
+}
+</textarea></div>
+        <div class="output"><pre>context deadline exceeded
+context deadline exceeded
+context deadline exceeded
+context deadline exceeded
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_AfterFunc_connection" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Connection)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Connection)</span></p>
+    <p>本示例使用 AfterFunc 定义一个从 net.Conn 读取数据的函数，并在上下文被取消时停止读取。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"time"
+)
+
+func main() {
+	readFromConn := func(ctx context.Context, conn net.Conn, b []byte) (n int, err error) {
+		stopc := make(chan struct{})
+		stop := context.AfterFunc(ctx, func() {
+			conn.SetReadDeadline(time.Now())
+			close(stopc)
+		})
+		n, err = conn.Read(b)
+		if !stop() {
+			// AfterFunc 已启动。
+			// 等待它完成，再重置 Conn 的截止时间。
+			&lt;-stopc
+			conn.SetReadDeadline(time.Time{})
+			return n, ctx.Err()
+		}
+		return n, err
+	}
+
+	listener, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer listener.Close()
+
+	conn, err := net.Dial(listener.Addr().Network(), listener.Addr().String())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+	defer cancel()
+
+	b := make([]byte, 1024)
+	_, err = readFromConn(ctx, conn, b)
+	fmt.Println(err)
+
+}
+</textarea></div>
+        <div class="output"><pre>context deadline exceeded
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_AfterFunc_merge" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Merge)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Merge)</span></p>
+    <p>本示例使用 AfterFunc 定义一个合并两个 Context 的取消信号的函数。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+)
+
+func main() {
+	// mergeCancel 返回包含 ctx 中的值的上下文，
+	// 当 ctx 或 cancelCtx 任意一个被取消时，它也会被取消。
+	mergeCancel := func(ctx, cancelCtx context.Context) (context.Context, context.CancelFunc) {
+		ctx, cancel := context.WithCancelCause(ctx)
+		stop := context.AfterFunc(cancelCtx, func() {
+			cancel(context.Cause(cancelCtx))
+		})
+		return ctx, func() {
+			stop()
+			cancel(context.Canceled)
+		}
+	}
+
+	ctx1, cancel1 := context.WithCancelCause(context.Background())
+	defer cancel1(errors.New("ctx1 canceled"))
+
+	ctx2, cancel2 := context.WithCancelCause(context.Background())
+
+	mergedCtx, mergedCancel := mergeCancel(ctx1, ctx2)
+	defer mergedCancel()
+
+	cancel2(errors.New("ctx2 canceled"))
+	&lt;-mergedCtx.Done()
+	fmt.Println(context.Cause(mergedCtx))
+
+}
+</textarea></div>
+        <div class="output"><pre>ctx2 canceled
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Cause">func <a href="/src/context/context.go?s=11128:11155#L279">Cause</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func Cause(c <a href="#Context">Context</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Cause 返回一个非 nil 错误，说明 c 被取消的原因。c 或其某个父上下文首次被取消时，会设置该原因。如果这次取消由 CancelCauseFunc(err) 调用触发，则 <a href="#Cause">Cause</a> 返回 err；否则，Cause(c) 返回与 c.Err() 相同的值。如果 c 尚未被取消，Cause 返回 nil。
+
+			
+		
+			
+			<h2 id="WithCancel">func <a href="/src/context/context.go?s=9106:9170#L231">WithCancel</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func WithCancel(parent <a href="#Context">Context</a>) (ctx <a href="#Context">Context</a>, cancel <a href="#CancelFunc">CancelFunc</a>)</pre>
+			<p>WithCancel 返回一个指向父上下文的派生上下文，但具有新的 Done 通道。当返回的 cancel 函数被调用，或父上下文的 Done 通道被关闭时，返回上下文的 Done 通道会关闭，以先发生者为准。
+<p>取消此上下文会释放与其关联的资源，因此，在此 <a href="#Context">Context</a> 中运行的操作一旦完成，代码就应调用 cancel。
+
+			
+
+
+<div id="example_WithCancel" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例展示如何使用可取消的上下文防止 goroutine 泄漏。在示例函数结束前，gen 启动的 goroutine 会返回，不会发生泄漏。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"fmt"
+)
+
+func main() {
+	// gen 在单独的 goroutine 中生成整数，
+	// 并将它们发送到返回的通道。
+	// gen 的调用者在消费完所需整数后，
+	// 需要取消上下文，以免泄漏
+	// gen 在内部启动的 goroutine。
+	gen := func(ctx context.Context) &lt;-chan int {
+		dst := make(chan int)
+		n := 1
+		go func() {
+			for {
+				select {
+				case &lt;-ctx.Done():
+					return // 返回，避免泄漏 goroutine
+				case dst &lt;- n:
+					n++
+				}
+			}
+		}()
+		return dst
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // 消费完所需整数后取消
+
+	for n := range gen(ctx) {
+		fmt.Println(n)
+		if n == 5 {
+			break
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre>1
+2
+3
+4
+5
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WithCancelCause">func <a href="/src/context/context.go?s=10438:10512#L259">WithCancelCause</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func WithCancelCause(parent <a href="#Context">Context</a>) (ctx <a href="#Context">Context</a>, cancel <a href="#CancelCauseFunc">CancelCauseFunc</a>)</pre>
+			<p>WithCancelCause 的行为类似于 <a href="#WithCancel">WithCancel</a>，但返回 <a href="#CancelCauseFunc">CancelCauseFunc</a>，而非 <a href="#CancelFunc">CancelFunc</a>。以非 nil 错误（即“原因”）调用 cancel，会将该错误记录在 ctx 中，之后可以通过 Cause(ctx) 取得。以 nil 调用 cancel，会将原因设置为 Canceled。
+<p>用法示例：
+<pre>ctx, cancel := context.WithCancelCause(parent)
+cancel(myError)
+ctx.Err() // 返回 context.Canceled
+context.Cause(ctx) // 返回 myError
+</pre>
+
+			
+		
+			
+			<h2 id="WithDeadline">func <a href="/src/context/context.go?s=19796:19864#L616">WithDeadline</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func WithDeadline(parent <a href="#Context">Context</a>, d <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) (<a href="#Context">Context</a>, <a href="#CancelFunc">CancelFunc</a>)</pre>
+			<p>WithDeadline 返回一个指向父上下文的派生上下文，但将截止时间调整为不晚于 d。如果父上下文的截止时间已早于 d，则 WithDeadline(parent, d) 在语义上等价于 parent。当截止时间到达、返回的 cancel 函数被调用，或父上下文的 Done 通道被关闭时，返回的 <a href="#Context.Done">Context.Done</a> 通道会关闭，以最先发生者为准。
+<p>取消此上下文会释放与其关联的资源，因此，在此 <a href="#Context">Context</a> 中运行的操作一旦完成，代码就应调用 cancel。
+
+			
+
+
+<div id="example_WithDeadline" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例将一个带指定截止时间的上下文传给阻塞函数，告知该函数应在到达截止时间时立即放弃工作。
+</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code">d := time.Now().Add(shortDuration)
+ctx, cancel := context.WithDeadline(context.Background(), d)
+
+<span class="comment">// 即使 ctx 最终会过期，也应始终调用其取消函数。</span>
+<span class="comment">// 否则，可能会让此上下文及其父上下文</span>
+<span class="comment">// 存活得比实际需要更久。</span>
+defer cancel()
+
+select {
+case &lt;-neverReady:
+    fmt.Println(&#34;ready&#34;)
+case &lt;-ctx.Done():
+    fmt.Println(ctx.Err())
+}
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">context deadline exceeded
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WithDeadlineCause">func <a href="/src/context/context.go?s=20096:20182#L623">WithDeadlineCause</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func WithDeadlineCause(parent <a href="#Context">Context</a>, d <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, cause <a href="/pkg/builtin/#error">error</a>) (<a href="#Context">Context</a>, <a href="#CancelFunc">CancelFunc</a>)</pre>
+			<p>WithDeadlineCause 的行为类似于 <a href="#WithDeadline">WithDeadline</a>，但在超过截止时间时，还会设置返回 Context 的取消原因。返回的 <a href="#CancelFunc">CancelFunc</a> 不会设置该原因。
+
+			
+		
+			
+			<h2 id="WithTimeout">func <a href="/src/context/context.go?s=22222:22299#L694">WithTimeout</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func WithTimeout(parent <a href="#Context">Context</a>, timeout <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>) (<a href="#Context">Context</a>, <a href="#CancelFunc">CancelFunc</a>)</pre>
+			<p>WithTimeout 返回 WithDeadline(parent, time.Now().Add(timeout))。
+<p>取消此上下文会释放与其关联的资源，因此，在此 <a href="#Context">Context</a> 中运行的操作一旦完成，代码就应调用 cancel：
+<pre>func slowOperationWithTimeout(ctx context.Context) (Result, error) {
+	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()  // 若 slowOperation 在超时前完成，则释放资源
+	return slowOperation(ctx)
+}
+</pre>
+
+			
+
+
+<div id="example_WithTimeout" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例将一个带超时时间的上下文传给阻塞函数，告知该函数应在超时时间到达后放弃工作。
+</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 传入带超时的上下文，告诉阻塞函数</span>
+<span class="comment">// 应在超时后放弃工作。</span>
+ctx, cancel := context.WithTimeout(context.Background(), shortDuration)
+defer cancel()
+
+select {
+case &lt;-neverReady:
+    fmt.Println(&#34;ready&#34;)
+case &lt;-ctx.Done():
+    fmt.Println(ctx.Err()) <span class="comment">// 输出 "context deadline exceeded"</span>
+}
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">context deadline exceeded
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WithTimeoutCause">func <a href="/src/context/context.go?s=22536:22631#L701">WithTimeoutCause</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func WithTimeoutCause(parent <a href="#Context">Context</a>, timeout <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>, cause <a href="/pkg/builtin/#error">error</a>) (<a href="#Context">Context</a>, <a href="#CancelFunc">CancelFunc</a>)</pre>
+			<p>WithTimeoutCause 的行为类似于 <a href="#WithTimeout">WithTimeout</a>，但在超时时间到达时，还会设置返回 Context 的取消原因。返回的 <a href="#CancelFunc">CancelFunc</a> 不会设置该原因。
+
+			
+		
+		
+			
+			<h2 id="CancelCauseFunc">type <a href="/src/context/context.go?s=9940:9978#L246">CancelCauseFunc</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>CancelCauseFunc 的行为类似于 <a href="#CancelFunc">CancelFunc</a>，但还会设置取消原因。在已取消的 Context 或它的任何派生 Context 上调用 <a href="#Cause">Cause</a>，可以取得该原因。
+<p>如果上下文已被取消，CancelCauseFunc 不会设置原因。例如，假设 childContext 派生自 parentContext：
+<ul>
+<li>如果 parentContext 先以 cause1 被取消，之后 childContext 才以 cause2 被取消，则 Cause(parentContext) == Cause(childContext) == cause1。
+<li>如果 childContext 先以 cause2 被取消，之后 parentContext 才以 cause1 被取消，则 Cause(parentContext) == cause1，而 Cause(childContext) == cause2。
+</ul>
+
+			<pre>type CancelCauseFunc func(cause <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="CancelFunc">type <a href="/src/context/context.go?s=8643:8665#L222">CancelFunc</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>CancelFunc 通知操作放弃工作，但不会等待工作停止。多个 goroutine 可以同时调用 CancelFunc。首次调用之后，后续调用不执行任何操作。
+
+			<pre>type CancelFunc func()</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Context">type <a href="/src/context/context.go?s=3081:6643#L62">Context</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Context 用于跨 API 边界传递截止时间、取消信号及其他值。
+<p>多个 goroutine 可以同时调用 Context 的方法。
+
+			<pre>type Context interface {
+    <span class="comment">// Deadline 返回应当取消代表此上下文执行的工作的时间。</span>
+    <span class="comment">// 未设置截止时间时，返回 ok==false。</span>
+    <span class="comment">// 连续调用 Deadline 会得到相同的结果。</span>
+    Deadline() (deadline <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// Done 返回一个通道，当代表此上下文执行的工作应被取消时，</span>
+    <span class="comment">// 此通道会关闭。如果此上下文永远不会被取消，Done 可能返回 nil。</span>
+    <span class="comment">// 连续调用 Done 会返回相同的值。</span>
+    <span class="comment">// Done 通道可能在取消函数返回后才异步关闭。</span>
+    <span class="comment">//</span>
+    <span class="comment">// WithCancel 安排在调用 cancel 时关闭 Done；</span>
+    <span class="comment">// WithDeadline 安排在截止时间到达时关闭 Done；</span>
+    <span class="comment">// WithTimeout 安排在超时时关闭 Done。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Done 用于 select 语句：</span>
+    <span class="comment">//</span>
+    <span class="comment">//  // Stream 用 DoSomething 生成值并发送到 out，</span>
+    <span class="comment">//  // 直到 DoSomething 返回错误或 ctx.Done 被关闭。</span>
+    <span class="comment">//  func Stream(ctx context.Context, out chan&lt;- Value) error {</span>
+    <span class="comment">//  	for {</span>
+    <span class="comment">//  		v, err := DoSomething(ctx)</span>
+    <span class="comment">//  		if err != nil {</span>
+    <span class="comment">//  			return err</span>
+    <span class="comment">//  		}</span>
+    <span class="comment">//  		select {</span>
+    <span class="comment">//  		case &lt;-ctx.Done():</span>
+    <span class="comment">//  			return ctx.Err()</span>
+    <span class="comment">//  		case out &lt;- v:</span>
+    <span class="comment">//  		}</span>
+    <span class="comment">//  	}</span>
+    <span class="comment">//  }</span>
+    <span class="comment">//</span>
+    <span class="comment">// 更多使用 Done 通道实现取消的示例，</span>
+    <span class="comment">// 参见 https://go.dev/blog/pipelines。</span>
+    Done() &lt;-chan struct{}
+
+    <span class="comment">// 如果 Done 尚未关闭，Err 返回 nil。</span>
+    <span class="comment">// 如果 Done 已关闭，Err 返回非 nil 错误说明原因：</span>
+    <span class="comment">// 超过上下文截止时间时为 DeadlineExceeded，</span>
+    <span class="comment">// 因其他原因取消上下文时为 Canceled。</span>
+    <span class="comment">// Err 返回非 nil 错误后，后续调用都会返回相同的错误。</span>
+    Err() <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// Value 返回此上下文中与 key 关联的值；若不存在，则返回 nil。</span>
+    <span class="comment">// 使用相同的 key 连续调用 Value，会返回相同的结果。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 上下文值仅应用于跨进程和 API 边界传递的请求作用域数据，</span>
+    <span class="comment">// 不应用于向函数传递可选参数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 键标识 Context 中的一个特定值。需要在 Context 中保存值的函数，</span>
+    <span class="comment">// 通常用全局变量定义一个键，再将其传给 context.WithValue 和 Context.Value。</span>
+    <span class="comment">// 键可以是任何支持相等比较的类型；包应为键定义未导出的类型，以避免冲突。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 定义 Context 键的包应为该键对应的值提供类型安全的访问函数：</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// user 包定义保存在 Context 中的 User 类型。</span>
+    <span class="comment">// 	package user</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	import "context"</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// User 是保存在 Context 中的值的类型。</span>
+    <span class="comment">// 	type User struct {...}</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// key 是本包所定义的键使用的未导出类型。</span>
+    <span class="comment">// 	// 这可以避免与其他包定义的键发生冲突。</span>
+    <span class="comment">// 	type key int</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// userKey 是 Context 中 user.User 值所用的键。</span>
+    <span class="comment">// 	// 它未被导出；使用者通过 user.NewContext 和 user.FromContext</span>
+    <span class="comment">// 	// 访问值，而不直接使用此键。</span>
+    <span class="comment">// 	var userKey key</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// NewContext 返回携带值 u 的新 Context。</span>
+    <span class="comment">// 	func NewContext(ctx context.Context, u *User) context.Context {</span>
+    <span class="comment">// 		return context.WithValue(ctx, userKey, u)</span>
+    <span class="comment">// 	}</span>
+    <span class="comment">//</span>
+    <span class="comment">// 	// FromContext 返回 ctx 中存储的 User 值（如果存在）。</span>
+    <span class="comment">// 	func FromContext(ctx context.Context) (*User, bool) {</span>
+    <span class="comment">// 		u, ok := ctx.Value(userKey).(*User)</span>
+    <span class="comment">// 		return u, ok</span>
+    <span class="comment">// 	}</span>
+    Value(key <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#any">any</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Background">func <a href="/src/context/context.go?s=8058:8083#L206">Background</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func Background() <a href="#Context">Context</a></pre>
+				<p>Background 返回一个非 nil 的空 <a href="#Context">Context</a>。它永远不会被取消，不包含任何值，也没有截止时间。通常用于 main 函数、初始化和测试，也用作传入请求的顶层 Context。
+
+				
+			
+				<h3 id="TODO">func <a href="/src/context/context.go?s=8353:8372#L214">TODO</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func TODO() <a href="#Context">Context</a></pre>
+				<p>TODO 返回一个非 nil 的空 <a href="#Context">Context</a>。如果不确定该使用哪个 Context，或 Context 尚不可用（因为外围函数尚未扩展为接受 Context 参数），代码应使用 context.TODO。
+
+				
+			
+				<h3 id="WithValue">func <a href="/src/context/context.go?s=23409:23461#L718">WithValue</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func WithValue(parent <a href="#Context">Context</a>, key, val <a href="/pkg/builtin/#any">any</a>) <a href="#Context">Context</a></pre>
+				<p>WithValue 返回一个指向父 Context 的派生上下文。在派生上下文中，与 key 关联的值为 val。
+<p>仅将上下文中的值用于跨进程和 API 传递的请求作用域数据，不要用它们传递函数的可选参数。
+<p>提供的 key 必须可比较，且不应使用 string 或其他内置类型，以避免使用 context 的不同包之间发生冲突。WithValue 的使用者应为键定义自己的类型。为避免赋值给 interface{} 时发生内存分配，上下文键的具体类型通常使用 struct{}。另一种方式是让导出的上下文键变量的静态类型为指针或接口。
+
+				
+
+
+<div id="example_WithValue" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例展示如何将值传入上下文，以及在值存在时如何取出它。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	type favContextKey string
+
+	f := func(ctx context.Context, k favContextKey) {
+		if v := ctx.Value(k); v != nil {
+			fmt.Println(&#34;found value:&#34;, v)
+			return
+		}
+		fmt.Println(&#34;key not found:&#34;, k)
+	}
+
+	k := favContextKey(&#34;language&#34;)
+	ctx := context.WithValue(context.Background(), k, &#34;Go&#34;)
+
+	f(ctx, k)
+	f(ctx, favContextKey(&#34;color&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>found value: Go
+key not found: color
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="WithoutCancel">func <a href="/src/context/context.go?s=18626:18668#L576">WithoutCancel</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func WithoutCancel(parent <a href="#Context">Context</a>) <a href="#Context">Context</a></pre>
+				<p>WithoutCancel 返回一个指向父上下文的派生上下文，父上下文被取消时它不会被取消。返回的上下文没有 Deadline 或 Err，其 Done 通道为 nil。在它上面调用 <a href="#Cause">Cause</a> 返回 nil。
+
+				
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

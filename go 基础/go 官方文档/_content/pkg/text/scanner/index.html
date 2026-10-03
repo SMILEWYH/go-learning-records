@@ -1,0 +1,536 @@
+<!--{
+  "Title": "text/scanner 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>text/scanner 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "text/scanner"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>scanner 包为 UTF-8 编码文本提供扫描器和词法分析器。它通过 io.Reader 接受源文本，随后可反复调用 Scan 函数将其划分为词法单元。为与现有工具兼容，不允许使用 NUL 字符。如果源文本的第一个字符是 UTF-8 编码的字节序标记（BOM），则将其丢弃。<p>默认情况下，<a href="#Scanner">Scanner</a> 跳过空白和 Go 注释，并识别 Go 语言规范定义的所有字面量。可以对其定制，使它仅识别这些字面量的子集，或识别不同的标识符字符和空白字符。<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strings&#34;
+	&#34;text/scanner&#34;
+)
+
+func main() {
+	const src = `
+// This is scanned code.
+if a &gt; 10 {
+	someParsable = text
+}`
+
+	var s scanner.Scanner
+	s.Init(strings.NewReader(src))
+	s.Filename = &#34;example&#34;
+	for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+		fmt.Printf(&#34;%s: %s\n&#34;, s.Position, s.TokenText())
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>example:3:1: if
+example:3:4: a
+example:3:6: &gt;
+example:3:8: 10
+example:3:11: {
+example:4:2: someParsable
+example:4:15: =
+example:4:17: text
+example:5:1: }
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__isIdentRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (IsIdentRune)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (IsIdentRune)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strings&#34;
+	&#34;text/scanner&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	const src = &#34;%var1 var2%&#34;
+
+	var s scanner.Scanner
+	s.Init(strings.NewReader(src))
+	s.Filename = &#34;default&#34;
+
+	for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+		fmt.Printf(&#34;%s: %s\n&#34;, s.Position, s.TokenText())
+	}
+
+	fmt.Println()
+	s.Init(strings.NewReader(src))
+	s.Filename = &#34;percent&#34;
+
+	// 将开头的 '%' 视为标识符的一部分
+	s.IsIdentRune = func(ch rune, i int) bool {
+		return ch == &#39;%&#39; &amp;&amp; i == 0 || unicode.IsLetter(ch) || unicode.IsDigit(ch) &amp;&amp; i &gt; 0
+	}
+
+	for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+		fmt.Printf(&#34;%s: %s\n&#34;, s.Position, s.TokenText())
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>default:1:1: %
+default:1:2: var1
+default:1:7: var2
+default:1:11: %
+
+percent:1:1: %var1
+percent:1:7: var2
+percent:1:11: %
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__mode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Mode)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Mode)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strings&#34;
+	&#34;text/scanner&#34;
+)
+
+func main() {
+	const src = `
+    // Comment begins at column 5.
+
+This line should not be included in the output.
+
+/*
+This multiline comment
+should be extracted in
+its entirety.
+*/
+`
+
+	var s scanner.Scanner
+	s.Init(strings.NewReader(src))
+	s.Filename = &#34;comments&#34;
+	s.Mode ^= scanner.SkipComments // 不跳过注释
+
+	for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+		txt := s.TokenText()
+		if strings.HasPrefix(txt, &#34;//&#34;) || strings.HasPrefix(txt, &#34;/*&#34;) {
+			fmt.Printf(&#34;%s: %s\n&#34;, s.Position, txt)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>comments:2:5: // Comment begins at column 5.
+comments:6:1: /*
+This multiline comment
+should be extracted in
+its entirety.
+*/
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__whitespace" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Whitespace)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Whitespace)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strings&#34;
+	&#34;text/scanner&#34;
+)
+
+func main() {
+	// 以制表符分隔的值
+	const src = `aa	ab	ac	ad
+ba	bb	bc	bd
+ca	cb	cc	cd
+da	db	dc	dd`
+
+	var (
+		col, row int
+		s        scanner.Scanner
+		tsv      [4][4]string // 对上面的示例而言足够大
+	)
+	s.Init(strings.NewReader(src))
+	s.Whitespace ^= 1&lt;&lt;&#39;\t&#39; | 1&lt;&lt;&#39;\n&#39; // 不跳过制表符和换行符
+
+	for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+		switch tok {
+		case &#39;\n&#39;:
+			row&#43;&#43;
+			col = 0
+		case &#39;\t&#39;:
+			col&#43;&#43;
+		default:
+			tsv[row][col] = s.TokenText()
+		}
+	}
+
+	fmt.Print(tsv)
+
+}
+</textarea></div>
+        <div class="output"><pre>[[aa ab ac ad] [ba bb bc bd] [ca cb cc cd] [da db dc dd]]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#TokenString">func TokenString(tok rune) string</a></dd>
+			
+			
+				
+				<dd><a href="#Position">type Position</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Position.IsValid">func (pos *Position) IsValid() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Position.String">func (pos Position) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Init">func (s *Scanner) Init(src io.Reader) *Scanner</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Next">func (s *Scanner) Next() rune</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Peek">func (s *Scanner) Peek() rune</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Pos">func (s *Scanner) Pos() (pos Position)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Scan">func (s *Scanner) Scan() rune</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.TokenText">func (s *Scanner) TokenText() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__isIdentRune">包 (IsIdentRune)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__mode">包 (Mode)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__whitespace">包 (Whitespace)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/text/scanner/scanner.go">scanner.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>用于控制词法单元识别的预定义模式位。例如，要将 <a href="#Scanner">Scanner</a> 配置为仅识别（Go）标识符、整数并跳过注释，可将其 Mode 字段设为：<pre>ScanIdents | ScanInts | ScanComments | SkipComments
+</pre>
+<p>除了在设置 SkipComments 时会跳过注释之外，未识别的词法单元不会被忽略。扫描器会返回相应的单个字符（也可能是较小的词法单元）。例如，如果模式为 ScanIdents（未启用 ScanStrings），字符串 &quot;foo&quot; 会被扫描为词法单元序列 &apos;&quot;&apos; <a href="#Ident">Ident</a> &apos;&quot;&apos;。<p>使用 GoTokens 可以将 Scanner 配置为接受所有 Go 字面量词法单元（包括 Go 标识符）。注释会被跳过。<pre>const (
+    <span id="ScanIdents">ScanIdents</span>     = 1 &lt;&lt; -<a href="#Ident">Ident</a>
+    <span id="ScanInts">ScanInts</span>       = 1 &lt;&lt; -<a href="#Int">Int</a>
+    <span id="ScanFloats">ScanFloats</span>     = 1 &lt;&lt; -<a href="#Float">Float</a> <span class="comment">// 包括整数和十六进制浮点数</span>
+    <span id="ScanChars">ScanChars</span>      = 1 &lt;&lt; -<a href="#Char">Char</a>
+    <span id="ScanStrings">ScanStrings</span>    = 1 &lt;&lt; -<a href="#String">String</a>
+    <span id="ScanRawStrings">ScanRawStrings</span> = 1 &lt;&lt; -<a href="#RawString">RawString</a>
+    <span id="ScanComments">ScanComments</span>   = 1 &lt;&lt; -<a href="#Comment">Comment</a>
+    <span id="SkipComments">SkipComments</span>   = 1 &lt;&lt; -skipComment <span class="comment">// 如果与 ScanComments 一起设置，则将注释视为空白</span>
+    <span id="GoTokens">GoTokens</span>       = <a href="#ScanIdents">ScanIdents</a> | <a href="#ScanFloats">ScanFloats</a> | <a href="#ScanChars">ScanChars</a> | <a href="#ScanStrings">ScanStrings</a> | <a href="#ScanRawStrings">ScanRawStrings</a> | <a href="#ScanComments">ScanComments</a> | <a href="#SkipComments">SkipComments</a>
+)</pre>
+			
+				<p>Scan 的结果是这些词法单元之一或一个 Unicode 字符。<pre>const (
+    <span id="EOF">EOF</span> = -(<a href="/pkg/builtin/#iota">iota</a> + 1)
+    <span id="Ident">Ident</span>
+    <span id="Int">Int</span>
+    <span id="Float">Float</span>
+    <span id="Char">Char</span>
+    <span id="String">String</span>
+    <span id="RawString">RawString</span>
+    <span id="Comment">Comment</span>
+)</pre>
+			
+				<p>GoWhitespace 是 <a href="#Scanner">Scanner</a> 的 Whitespace 字段的默认值，它选中了 Go 的空白字符。<pre>const <span id="GoWhitespace">GoWhitespace</span> = 1&lt;&lt;&#39;\t&#39; | 1&lt;&lt;&#39;\n&#39; | 1&lt;&lt;&#39;\r&#39; | 1&lt;&lt;&#39; &#39;</pre>
+			
+		
+		
+		
+			
+			<h2 id="TokenString">func <a href="/src/text/scanner/scanner.go?s=3224:3257#L92">TokenString</a>
+				
+				
+			</h2>
+			<pre>func TokenString(tok <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>TokenString 返回词法单元或 Unicode 字符的可打印字符串表示。<h2 id="Position">type <a href="/src/text/scanner/scanner.go?s=990:1221#L18">Position</a>
+				
+				
+			</h2>
+			<p>Position 表示源文本中的位置。当 Line &gt; 0 时，位置有效。<pre>type Position struct {
+<span id="Position.Filename"></span>    Filename <a href="/pkg/builtin/#string">string</a> <span class="comment">// 文件名（如果有）</span>
+<span id="Position.Offset"></span>    Offset   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 字节偏移，从 0 开始</span>
+<span id="Position.Line"></span>    Line     <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 行号，从 1 开始</span>
+<span id="Position.Column"></span>    Column   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 列号，从 1 开始（按每行字符数计）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Position.IsValid">func (*Position) <a href="/src/text/scanner/scanner.go?s=1273:1308#L26">IsValid</a>
+					
+					
+				</h3>
+				<pre>func (pos *<a href="#Position">Position</a>) IsValid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告位置是否有效。<h3 id="Position.String">func (Position) <a href="/src/text/scanner/scanner.go?s=1334:1369#L28">String</a>
+					
+					
+				</h3>
+				<pre>func (pos <a href="#Position">Position</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Scanner">type <a href="/src/text/scanner/scanner.go?s=3673:6208#L106">Scanner</a>
+				
+				
+			</h2>
+			<p>Scanner 实现从 <a href="/pkg/io/#Reader">io.Reader</a> 读取 Unicode 字符和词法单元。<pre>type Scanner struct {
+
+<span id="Scanner.Error"></span>    <span class="comment">// 每遇到一个错误都会调用 Error。如果未设置 Error</span>
+    <span class="comment">// 函数，则向 os.Stderr 报告错误。</span>
+    Error func(s *<a href="#Scanner">Scanner</a>, msg <a href="/pkg/builtin/#string">string</a>)
+
+<span id="Scanner.ErrorCount"></span>    <span class="comment">// 每遇到一个错误，ErrorCount 加 1。</span>
+    ErrorCount <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Mode 字段控制识别哪些词法单元。例如，</span>
+    <span class="comment">// 要识别整数，可设置 Mode 中的 ScanInts 位。</span>
+    <span class="comment">// 可以随时修改此字段。</span>
+<span id="Scanner.Mode"></span>    Mode <a href="/pkg/builtin/#uint">uint</a>
+
+    <span class="comment">// Whitespace 字段控制哪些字符被识别为空白。</span>
+    <span class="comment">// 要将字符 ch &lt;= ' ' 识别为空白，</span>
+    <span class="comment">// 应设置 Whitespace 的第 ch 位（对于 ch &gt; ' ' 的值，</span>
+    <span class="comment">// Scanner 的行为未定义）。可以随时修改此字段。</span>
+<span id="Scanner.Whitespace"></span>    Whitespace <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="Scanner.IsIdentRune"></span>    <span class="comment">// IsIdentRune 是一个谓词，控制哪些字符可以</span>
+    <span class="comment">// 作为标识符中的第 i 个 rune。有效字符的集合</span>
+    <span class="comment">// 不得与空白字符集合相交。</span>
+    <span class="comment">// 如果未设置 IsIdentRune 函数，则接受常规 Go 标识符。</span>
+    <span class="comment">// 可以随时修改此字段。</span>
+    IsIdentRune func(ch <a href="/pkg/builtin/#rune">rune</a>, i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.4</span>
+
+    <span class="comment">// 最近扫描的词法单元的起始位置，由 Scan 设置。</span>
+    <span class="comment">// 调用 Init 或 Next 会使该位置失效（Line == 0）。</span>
+    <span class="comment">// Scanner 始终不会修改 Filename 字段。</span>
+    <span class="comment">// 如果通过 Error 报告错误时 Position 无效，</span>
+    <span class="comment">// 则扫描器不在词法单元内部。此时可以调用 Pos 获取</span>
+    <span class="comment">// 错误位置，或获取紧随最近扫描的</span>
+    <span class="comment">// 词法单元之后的位置。</span>
+    <a href="#Position">Position</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Scanner.Init">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=6434:6480#L171">Init</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Init(src <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Scanner">Scanner</a></pre>
+				<p>Init 使用新源文本初始化 <a href="#Scanner">Scanner</a> 并返回 s。<a href="#Scanner.Error">Scanner.Error</a> 设为 nil，<a href="#Scanner.ErrorCount">Scanner.ErrorCount</a> 设为 0，<a href="#Scanner.Mode">Scanner.Mode</a> 设为 <a href="#GoTokens">GoTokens</a>，<a href="#Scanner.Whitespace">Scanner.Whitespace</a> 设为 <a href="#GoWhitespace">GoWhitespace</a>。<h3 id="Scanner.Next">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=9759:9788#L294">Next</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Next() <a href="/pkg/builtin/#rune">rune</a></pre>
+				<p>Next 读取并返回下一个 Unicode 字符。在源文本末尾返回 <a href="#EOF">EOF</a>。如果 s.Error 非 nil，则调用它报告读取错误；否则向 <a href="/pkg/os/#Stderr">os.Stderr</a> 打印错误消息。Next 不更新 [Scanner.Position] 字段；应使用 <a href="#Scanner.Pos">Scanner.Pos</a>() 获取当前位置。<h3 id="Scanner.Peek">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=10122:10151#L307">Peek</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Peek() <a href="/pkg/builtin/#rune">rune</a></pre>
+				<p>Peek 返回源文本中的下一个 Unicode 字符，但不推进扫描器。如果扫描器的位置位于源文本的最后一个字符，则返回 <a href="#EOF">EOF</a>。<h3 id="Scanner.Pos">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=19575:19613#L738">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Pos() (pos <a href="#Position">Position</a>)</pre>
+				<p>Pos 返回紧随上次 <a href="#Scanner.Next">Scanner.Next</a> 或 <a href="#Scanner.Scan">Scanner.Scan</a> 调用所返回字符或词法单元之后的字符位置。最近扫描的词法单元的起始位置应使用 [Scanner.Position] 字段获取。<h3 id="Scanner.Scan">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=17441:17470#L636">Scan</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Scan() <a href="/pkg/builtin/#rune">rune</a></pre>
+				<p>Scan 从源文本读取并返回下一个词法单元或 Unicode 字符。它只识别在 <a href="#Scanner.Mode">Scanner.Mode</a> 中设置了相应位 (1&lt;&lt;-t) 的词法单元 t。在源文本末尾返回 <a href="#EOF">EOF</a>。如果 s.Error 非 nil，则调用它报告扫描错误（读取错误和词法单元错误）；否则向 <a href="/pkg/os/#Stderr">os.Stderr</a> 打印错误消息。<h3 id="Scanner.TokenText">func (*Scanner) <a href="/src/text/scanner/scanner.go?s=20175:20211#L760">TokenText</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) TokenText() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>TokenText 返回最近扫描的词法单元对应的字符串。在调用 <a href="#Scanner.Scan">Scanner.Scan</a> 之后，以及在 <a href="#Scanner.Error">Scanner.Error</a> 调用期间有效。</article>

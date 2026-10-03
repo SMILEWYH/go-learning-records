@@ -1,0 +1,603 @@
+<!--{
+  "Title": "expvar package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package expvar</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "expvar"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package expvar provides a standardized interface to public variables, such
+as operation counters in servers. It exposes these variables via HTTP at
+/debug/vars in JSON format. As of Go 1.22, the /debug/vars request must
+use GET.
+<p>Operations to set or modify these public variables are atomic.
+<p>In addition to adding the HTTP handler, this package registers the
+following variables:
+<pre>cmdline   os.Args
+memstats  runtime.Memstats
+</pre>
+<p>The package is sometimes only imported for the side effect of
+registering its HTTP handler and the above variables. To use it
+this way, link this package into your program:
+<pre>import _ &quot;expvar&quot;
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Do">func Do(f func(KeyValue))</a></dd>
+			
+				<dd><a href="#Handler">func Handler() http.Handler</a></dd>
+			
+				<dd><a href="#Publish">func Publish(name string, v Var)</a></dd>
+			
+			
+				
+				<dd><a href="#Float">type Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFloat">func NewFloat(name string) *Float</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Add">func (v *Float) Add(delta float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Set">func (v *Float) Set(value float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.String">func (v *Float) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Value">func (v *Float) Value() float64</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.String">func (f Func) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Value">func (f Func) Value() any</a></dd>
+				
+			
+				
+				<dd><a href="#Int">type Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewInt">func NewInt(name string) *Int</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Add">func (v *Int) Add(delta int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Set">func (v *Int) Set(value int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.String">func (v *Int) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Value">func (v *Int) Value() int64</a></dd>
+				
+			
+				
+				<dd><a href="#KeyValue">type KeyValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMap">func NewMap(name string) *Map</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Add">func (v *Map) Add(key string, delta int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.AddFloat">func (v *Map) AddFloat(key string, delta float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Delete">func (v *Map) Delete(key string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Do">func (v *Map) Do(f func(KeyValue))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Get">func (v *Map) Get(key string) Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Init">func (v *Map) Init() *Map</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Set">func (v *Map) Set(key string, av Var)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.String">func (v *Map) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#String">type String</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewString">func NewString(name string) *String</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#String.Set">func (v *String) Set(value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String.String">func (v *String) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String.Value">func (v *String) Value() string</a></dd>
+				
+			
+				
+				<dd><a href="#Var">type Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Get">func Get(name string) Var</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/expvar/expvar.go">expvar.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Do">func <a href="/src/expvar/expvar.go?s=7799:7824#L344">Do</a>
+				
+				
+			</h2>
+			<pre>func Do(f func(<a href="#KeyValue">KeyValue</a>))</pre>
+			<p>Do calls f for each exported variable.
+The global variable map is locked during the iteration,
+but existing entries may be concurrently updated.
+
+			
+		
+			
+			<h2 id="Handler">func <a href="/src/expvar/expvar.go?s=8140:8167#L356">Handler</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Handler() <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+			<p>Handler returns the expvar HTTP Handler.
+<p>This is only needed to install the handler in a non-standard location.
+
+			
+		
+			
+			<h2 id="Publish">func <a href="/src/expvar/expvar.go?s=6845:6877#L299">Publish</a>
+				
+				
+			</h2>
+			<pre>func Publish(name <a href="/pkg/builtin/#string">string</a>, v <a href="#Var">Var</a>)</pre>
+			<p>Publish declares a named exported variable. This should be called from a
+package&apos;s init function when it creates its Vars. If the name is already
+registered then this will log.Panic.
+
+			
+		
+		
+			
+			<h2 id="Float">type <a href="/src/expvar/expvar.go?s=1888:1926#L69">Float</a>
+				
+				
+			</h2>
+			<p>Float is a 64-bit float variable that satisfies the <a href="#Var">Var</a> interface.
+
+			<pre>type Float struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFloat">func <a href="/src/expvar/expvar.go?s=7389:7422#L323">NewFloat</a>
+					
+					
+				</h3>
+				<pre>func NewFloat(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Float">Float</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Float.Add">func (*Float) <a href="/src/expvar/expvar.go?s=2228:2262#L86">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Add(delta <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>Add adds delta to v.
+
+				
+			
+				<h3 id="Float.Set">func (*Float) <a href="/src/expvar/expvar.go?s=2471:2505#L99">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Set(value <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>Set sets v to value.
+
+				
+			
+				<h3 id="Float.String">func (*Float) <a href="/src/expvar/expvar.go?s=2006:2037#L77">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Float.Value">func (*Float) <a href="/src/expvar/expvar.go?s=1928:1959#L73">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Value() <a href="/pkg/builtin/#float64">float64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Func">type <a href="/src/expvar/expvar.go?s=6466:6486#L282">Func</a>
+				
+				
+			</h2>
+			<p>Func implements <a href="#Var">Var</a> by calling the function
+and formatting the returned value using JSON.
+
+			<pre>type Func func() <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Func.String">func (Func) <a href="/src/expvar/expvar.go?s=6531:6560#L288">String</a>
+					
+					
+				</h3>
+				<pre>func (f <a href="#Func">Func</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Func.Value">func (Func) <a href="/src/expvar/expvar.go?s=6488:6513#L284">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (f <a href="#Func">Func</a>) Value() <a href="/pkg/builtin/#any">any</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Int">type <a href="/src/expvar/expvar.go?s=1460:1495#L44">Int</a>
+				
+				
+			</h2>
+			<p>Int is a 64-bit integer variable that satisfies the <a href="#Var">Var</a> interface.
+
+			<pre>type Int struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewInt">func <a href="/src/expvar/expvar.go?s=7311:7340#L317">NewInt</a>
+					
+					
+				</h3>
+				<pre>func NewInt(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Int">Int</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Int.Add">func (*Int) <a href="/src/expvar/expvar.go?s=1710:1740#L60">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Add(delta <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				
+				
+			
+				<h3 id="Int.Set">func (*Int) <a href="/src/expvar/expvar.go?s=1762:1792#L64">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Set(value <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				
+				
+			
+				<h3 id="Int.String">func (*Int) <a href="/src/expvar/expvar.go?s=1549:1578#L52">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Int.Value">func (*Int) <a href="/src/expvar/expvar.go?s=1497:1524#L48">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Value() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="KeyValue">type <a href="/src/expvar/expvar.go?s=2776:2825#L111">KeyValue</a>
+				
+				
+			</h2>
+			<p>KeyValue represents a single entry in a <a href="#Map">Map</a>.
+
+			<pre>type KeyValue struct {
+<span id="KeyValue.Key"></span>    Key   <a href="/pkg/builtin/#string">string</a>
+<span id="KeyValue.Value"></span>    Value <a href="#Var">Var</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Map">type <a href="/src/expvar/expvar.go?s=2622:2724#L104">Map</a>
+				
+				
+			</h2>
+			<p>Map is a string-to-Var map variable that satisfies the <a href="#Var">Var</a> interface.
+
+			<pre>type Map struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewMap">func <a href="/src/expvar/expvar.go?s=7473:7502#L329">NewMap</a>
+					
+					
+				</h3>
+				<pre>func NewMap(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Map">Map</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Map.Add">func (*Map) <a href="/src/expvar/expvar.go?s=4697:4739#L199">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Add(key <a href="/pkg/builtin/#string">string</a>, delta <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Add adds delta to the *<a href="#Int">Int</a> value stored under the given map key.
+
+				
+			
+				<h3 id="Map.AddFloat">func (*Map) <a href="/src/expvar/expvar.go?s=5032:5081#L216">AddFloat</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) AddFloat(key <a href="/pkg/builtin/#string">string</a>, delta <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>AddFloat adds delta to the *<a href="#Float">Float</a> value stored under the given map key.
+
+				
+			
+				<h3 id="Map.Delete">func (*Map) <a href="/src/expvar/expvar.go?s=5349:5381#L233">Delete</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Delete(key <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Delete deletes the given key from the map.
+
+				
+			
+				<h3 id="Map.Do">func (*Map) <a href="/src/expvar/expvar.go?s=5686:5720#L246">Do</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Do(f func(<a href="#KeyValue">KeyValue</a>))</pre>
+				<p>Do calls f for each entry in the map.
+The map is locked during the iteration,
+but existing entries may be concurrently updated.
+
+				
+			
+				<h3 id="Map.Get">func (*Map) <a href="/src/expvar/expvar.go?s=4179:4212#L178">Get</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="#Var">Var</a></pre>
+				
+				
+			
+				<h3 id="Map.Init">func (*Map) <a href="/src/expvar/expvar.go?s=3749:3774#L158">Init</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Init() *<a href="#Map">Map</a></pre>
+				<p>Init removes all keys from the map.
+
+				
+			
+				<h3 id="Map.Set">func (*Map) <a href="/src/expvar/expvar.go?s=4270:4307#L184">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Set(key <a href="/pkg/builtin/#string">string</a>, av <a href="#Var">Var</a>)</pre>
+				
+				
+			
+				<h3 id="Map.String">func (*Map) <a href="/src/expvar/expvar.go?s=2827:2856#L116">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="String">type <a href="/src/expvar/expvar.go?s=5932:5980#L257">String</a>
+				
+				
+			</h2>
+			<p>String is a string variable, and satisfies the <a href="#Var">Var</a> interface.
+
+			<pre>type String struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewString">func <a href="/src/expvar/expvar.go?s=7558:7593#L335">NewString</a>
+					
+					
+				</h3>
+				<pre>func NewString(name <a href="/pkg/builtin/#string">string</a>) *<a href="#String">String</a></pre>
+				
+				
+			
+
+			
+				<h3 id="String.Set">func (*String) <a href="/src/expvar/expvar.go?s=6310:6344#L276">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) Set(value <a href="/pkg/builtin/#string">string</a>)</pre>
+				
+				
+			
+				<h3 id="String.String">func (*String) <a href="/src/expvar/expvar.go?s=6150:6182#L268">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String implements the <a href="#Var">Var</a> interface. To get the unquoted string
+use <a href="#String.Value">String.Value</a>.
+
+				
+			
+				<h3 id="String.Value">func (*String) <a href="/src/expvar/expvar.go?s=5982:6013#L261">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) Value() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Var">type <a href="/src/expvar/expvar.go?s=1054:1260#L31">Var</a>
+				
+				
+			</h2>
+			<p>Var is an abstract type for all exported variables.
+
+			<pre>type Var interface {
+    <span class="comment">// String returns a valid JSON value for the variable.</span>
+    <span class="comment">// Types with String methods that do not return valid JSON</span>
+    <span class="comment">// (such as time.Time) must not be used as a Var.</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Get">func <a href="/src/expvar/expvar.go?s=7194:7219#L311">Get</a>
+					
+					
+				</h3>
+				<pre>func Get(name <a href="/pkg/builtin/#string">string</a>) <a href="#Var">Var</a></pre>
+				<p>Get retrieves a named exported variable. It returns nil if the name has
+not been registered.
+
+				
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,268 @@
+<!--{
+  "Title": "testing/fstest package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package fstest</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/fstest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package fstest implements support for testing implementations and users of file systems.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#TestFS">func TestFS(fsys fs.FS, expected ...string) error</a></dd>
+			
+			
+				
+				<dd><a href="#MapFS">type MapFS</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Glob">func (fsys MapFS) Glob(pattern string) ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Lstat">func (fsys MapFS) Lstat(name string) (fs.FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Open">func (fsys MapFS) Open(name string) (fs.File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadDir">func (fsys MapFS) ReadDir(name string) ([]fs.DirEntry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadFile">func (fsys MapFS) ReadFile(name string) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadLink">func (fsys MapFS) ReadLink(name string) (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Stat">func (fsys MapFS) Stat(name string) (fs.FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Sub">func (fsys MapFS) Sub(dir string) (fs.FS, error)</a></dd>
+				
+			
+				
+				<dd><a href="#MapFile">type MapFile</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/fstest/mapfs.go">mapfs.go</a>
+			
+				<a href="/src/testing/fstest/testfs.go">testfs.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="TestFS">func <a href="/src/testing/fstest/testfs.go?s=1232:1281#L29">TestFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func TestFS(fsys <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, expected ...<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>TestFS tests a file system implementation.
+It walks the entire tree of files in fsys,
+opening and checking that each file behaves correctly.
+Symbolic links are not followed,
+but their Lstat values are checked
+if the file system implements <a href="/pkg/io/fs/#ReadLinkFS">fs.ReadLinkFS</a>.
+It also checks that the file system contains at least the expected files.
+As a special case, if no expected files are listed, fsys must be empty.
+Otherwise, fsys must contain at least the listed files; it can also contain others.
+The contents of fsys must not change concurrently with TestFS.
+<p>If TestFS finds any misbehaviors, it returns either the first error or a
+list of errors. Use <a href="/pkg/errors/#Is">errors.Is</a> or <a href="/pkg/errors/#AsType">errors.AsType</a> to inspect.
+<p>Typical usage inside a test is:
+<pre>if err := fstest.TestFS(myFS, &quot;file/that/should/be/present&quot;); err != nil {
+	t.Fatal(err)
+}
+</pre>
+
+			
+		
+		
+			
+			<h2 id="MapFS">type <a href="/src/testing/fstest/mapfs.go?s=1235:1265#L23">MapFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>A MapFS is a simple in-memory file system for use in tests,
+represented as a map from path names (arguments to Open)
+to information about the files, directories, or symbolic links they represent.
+<p>The map need not include parent directories for files contained
+in the map; those will be synthesized if needed.
+But a directory can still be included by setting the <a href="#MapFile.Mode">MapFile.Mode</a>&apos;s <a href="/pkg/io/fs/#ModeDir">fs.ModeDir</a> bit;
+this may be necessary for detailed control over the directory&apos;s <a href="/pkg/io/fs/#FileInfo">fs.FileInfo</a>
+or to create an empty directory.
+<p>File system operations read directly from the map,
+so that the file system can be changed by editing the map as needed.
+An implication is that file system operations must not run concurrently
+with changes to the map, which would be a race.
+Another implication is that opening or reading a directory requires
+iterating over the entire map, so a MapFS should typically be used with not more
+than a few hundred entries or directory reads.
+
+			<pre>type MapFS map[<a href="/pkg/builtin/#string">string</a>]*<a href="#MapFile">MapFile</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MapFS.Glob">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=7037:7093#L220">Glob</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Glob(pattern <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.Lstat">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=5314:5371#L160">Lstat</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Lstat(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lstat returns a FileInfo describing the named file.
+If the file is a symbolic link, the returned FileInfo describes the symbolic link.
+Lstat makes no attempt to follow the link.
+
+				
+			
+				<h3 id="MapFS.Open">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=1688:1740#L38">Open</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open opens the named file after following any symbolic links.
+
+				
+			
+				<h3 id="MapFS.ReadDir">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6931:6992#L216">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.ReadFile">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6732:6787#L208">ReadFile</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.ReadLink">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=4796:4851#L146">ReadLink</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadLink(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadLink returns the destination of the named symbolic link.
+
+				
+			
+				<h3 id="MapFS.Stat">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6833:6889#L212">Stat</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Stat(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.Sub">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=7221:7269#L230">Sub</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Sub(dir <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="MapFile">type <a href="/src/testing/fstest/mapfs.go?s=1318:1526#L26">MapFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>A MapFile describes a single file in a <a href="#MapFS">MapFS</a>.
+
+			<pre>type MapFile struct {
+<span id="MapFile.Data"></span>    Data    []<a href="/pkg/builtin/#byte">byte</a>      <span class="comment">// file content or symlink destination</span>
+<span id="MapFile.Mode"></span>    Mode    <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a> <span class="comment">// fs.FileInfo.Mode</span>
+<span id="MapFile.ModTime"></span>    ModTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>   <span class="comment">// fs.FileInfo.ModTime</span>
+<span id="MapFile.Sys"></span>    Sys     <a href="/pkg/builtin/#any">any</a>         <span class="comment">// fs.FileInfo.Sys</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,896 @@
+<!--{
+  "Title": "encoding/binary 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package binary</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/binary"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>binary 包实现了数值与字节序列之间的简单转换，以及变长整数（varint）的编码和解码。
+<p>数值转换通过读写固定大小的值实现。固定大小的值可以是固定大小的算术类型（bool、int8、uint8、int16、float32、complex64 等），也可以是仅包含固定大小值的数组或结构体。
+<p>varint 函数使用变长编码对单个整数值进行编码和解码；较小的值所需字节更少。相关规范见 <a href="https://developers.google.com/protocol-buffers/docs/encoding">https://developers.google.com/protocol-buffers/docs/encoding</a>。
+<p>本包优先考虑简单性，而非效率。需要高性能序列化，尤其是处理大型数据结构的使用者，应考虑更完善的方案，如 <a href="/pkg/encoding/gob/">encoding/gob</a> 包或用于 Protocol Buffers 的 <a href="/pkg/google.golang.org/protobuf/">google.golang.org/protobuf</a>。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Append">func Append(buf []byte, order ByteOrder, data any) ([]byte, error)</a></dd>
+			
+				<dd><a href="#AppendUvarint">func AppendUvarint(buf []byte, x uint64) []byte</a></dd>
+			
+				<dd><a href="#AppendVarint">func AppendVarint(buf []byte, x int64) []byte</a></dd>
+			
+				<dd><a href="#Decode">func Decode(buf []byte, order ByteOrder, data any) (int, error)</a></dd>
+			
+				<dd><a href="#Encode">func Encode(buf []byte, order ByteOrder, data any) (int, error)</a></dd>
+			
+				<dd><a href="#PutUvarint">func PutUvarint(buf []byte, x uint64) int</a></dd>
+			
+				<dd><a href="#PutVarint">func PutVarint(buf []byte, x int64) int</a></dd>
+			
+				<dd><a href="#Read">func Read(r io.Reader, order ByteOrder, data any) error</a></dd>
+			
+				<dd><a href="#ReadUvarint">func ReadUvarint(r io.ByteReader) (uint64, error)</a></dd>
+			
+				<dd><a href="#ReadVarint">func ReadVarint(r io.ByteReader) (int64, error)</a></dd>
+			
+				<dd><a href="#Size">func Size(v any) int</a></dd>
+			
+				<dd><a href="#Uvarint">func Uvarint(buf []byte) (uint64, int)</a></dd>
+			
+				<dd><a href="#Varint">func Varint(buf []byte) (int64, int)</a></dd>
+			
+				<dd><a href="#Write">func Write(w io.Writer, order ByteOrder, data any) error</a></dd>
+			
+			
+				
+				<dd><a href="#AppendByteOrder">type AppendByteOrder</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ByteOrder">type ByteOrder</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_ByteOrder_get">ByteOrder (Get)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ByteOrder_put">ByteOrder (Put)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_PutUvarint">PutUvarint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_PutVarint">PutVarint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Read">Read</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Read_multi">Read (Multi)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Uvarint">Uvarint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Varint">Varint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Write">Write</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Write_multi">Write (Multi)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/binary/binary.go">binary.go</a>
+			
+				<a href="/src/encoding/binary/native_endian_little.go">native_endian_little.go</a>
+			
+				<a href="/src/encoding/binary/varint.go">varint.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>MaxVarintLenN 是一个 N 位整数经 varint 编码后的最大长度。
+
+				<pre>const (
+    <span id="MaxVarintLen16">MaxVarintLen16</span> = 3
+    <span id="MaxVarintLen32">MaxVarintLen32</span> = 5
+    <span id="MaxVarintLen64">MaxVarintLen64</span> = 10
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>BigEndian 是 <a href="#ByteOrder">ByteOrder</a> 和 <a href="#AppendByteOrder">AppendByteOrder</a> 的大端字节序实现。
+
+				<pre>var <span id="BigEndian">BigEndian</span> bigEndian</pre>
+			
+				<p>LittleEndian 是 <a href="#ByteOrder">ByteOrder</a> 和 <a href="#AppendByteOrder">AppendByteOrder</a> 的小端字节序实现。
+
+				<pre>var <span id="LittleEndian">LittleEndian</span> littleEndian</pre>
+			
+				<p>NativeEndian 是 <a href="#ByteOrder">ByteOrder</a> 和 <a href="#AppendByteOrder">AppendByteOrder</a> 的本机字节序实现。
+
+				<pre>var <span id="NativeEndian">NativeEndian</span> nativeEndian</pre>
+			
+		
+		
+			
+			<h2 id="Append">func <a href="/src/encoding/binary/binary.go?s=13032:13098#L460">Append</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func Append(buf []<a href="/pkg/builtin/#byte">byte</a>, order <a href="#ByteOrder">ByteOrder</a>, data <a href="/pkg/builtin/#any">any</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Append 将 data 的二进制表示追加到 buf。buf 可以为 nil，此时会分配新的缓冲区。可接受的数据类型见 <a href="#Write">Write</a>。它返回包含 data 的缓冲区（可能已扩展）或一个错误。
+
+			
+		
+			
+			<h2 id="AppendUvarint">func <a href="/src/encoding/binary/varint.go?s=1604:1651#L31">AppendUvarint</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func AppendUvarint(buf []<a href="/pkg/builtin/#byte">byte</a>, x <a href="/pkg/builtin/#uint64">uint64</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendUvarint 将 x 的 varint 编码形式（与 <a href="#PutUvarint">PutUvarint</a> 生成的形式相同）追加到 buf，并返回扩展后的缓冲区。
+
+			
+		
+			
+			<h2 id="AppendVarint">func <a href="/src/encoding/binary/varint.go?s=2903:2948#L81">AppendVarint</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func AppendVarint(buf []<a href="/pkg/builtin/#byte">byte</a>, x <a href="/pkg/builtin/#int64">int64</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendVarint 将 x 的 varint 编码形式（与 <a href="#PutVarint">PutVarint</a> 生成的形式相同）追加到 buf，并返回扩展后的缓冲区。
+
+			
+		
+			
+			<h2 id="Decode">func <a href="/src/encoding/binary/binary.go?s=8718:8781#L287">Decode</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func Decode(buf []<a href="/pkg/builtin/#byte">byte</a>, order <a href="#ByteOrder">ByteOrder</a>, data <a href="/pkg/builtin/#any">any</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Decode 按给定的字节序将 buf 中的二进制数据解码到 data。如果 buf 太小，则返回错误；否则返回从 buf 消耗的字节数。
+
+			
+		
+			
+			<h2 id="Encode">func <a href="/src/encoding/binary/binary.go?s=12166:12229#L430">Encode</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func Encode(buf []<a href="/pkg/builtin/#byte">byte</a>, order <a href="#ByteOrder">ByteOrder</a>, data <a href="/pkg/builtin/#any">any</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Encode 按给定的字节序将 data 的二进制表示编码到 buf。如果 buf 太小，则返回错误；否则返回写入 buf 的字节数。
+
+			
+		
+			
+			<h2 id="PutUvarint">func <a href="/src/encoding/binary/varint.go?s=1885:1926#L41">PutUvarint</a>
+				
+				
+			</h2>
+			<pre>func PutUvarint(buf []<a href="/pkg/builtin/#byte">byte</a>, x <a href="/pkg/builtin/#uint64">uint64</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>PutUvarint 将一个 uint64 编码到 buf，并返回写入的字节数。如果缓冲区太小，PutUvarint 会引发 panic。
+
+			
+
+
+<div id="example_PutUvarint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	buf := make([]byte, binary.MaxVarintLen64)
+
+	for _, x := range []uint64{1, 2, 127, 128, 255, 256} {
+		n := binary.PutUvarint(buf, x)
+		fmt.Printf(&#34;%x\n&#34;, buf[:n])
+	}
+}
+</textarea></div>
+        <div class="output"><pre>01
+02
+7f
+8001
+ff01
+8002
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="PutVarint">func <a href="/src/encoding/binary/varint.go?s=3166:3205#L91">PutVarint</a>
+				
+				
+			</h2>
+			<pre>func PutVarint(buf []<a href="/pkg/builtin/#byte">byte</a>, x <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>PutVarint 将一个 int64 编码到 buf，并返回写入的字节数。如果缓冲区太小，PutVarint 会引发 panic。
+
+			
+
+
+<div id="example_PutVarint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	buf := make([]byte, binary.MaxVarintLen64)
+
+	for _, x := range []int64{-65, -64, -2, -1, 0, 1, 2, 63, 64} {
+		n := binary.PutVarint(buf, x)
+		fmt.Printf(&#34;%x\n&#34;, buf[:n])
+	}
+}
+</textarea></div>
+        <div class="output"><pre>8101
+7f
+03
+01
+00
+02
+04
+7e
+8001
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Read">func <a href="/src/encoding/binary/binary.go?s=7796:7851#L248">Read</a>
+				
+				
+			</h2>
+			<pre>func Read(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, order <a href="#ByteOrder">ByteOrder</a>, data <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Read 从 r 读取结构化的二进制数据并写入 data。data 必须是指向固定大小值的指针，或由固定大小值组成的切片。从 r 读取的字节按指定字节序解码，并依次写入 data 的各个字段。解码布尔值时，零字节解码为 false，其他任何非零字节解码为 true。读入结构体时，会跳过空白字段名（_）对应的字段数据；也就是说，可以使用空白字段名进行填充。读入结构体时，所有非空白字段都必须是导出的，否则 Read 可能引发 panic。
+<p>只有一个字节也没读到时，错误才会是 <a href="/pkg/io/#EOF">io.EOF</a>。如果读入部分但尚未读完全部字节时遇到 <a href="/pkg/io/#EOF">io.EOF</a>，Read 会返回 <a href="/pkg/io/#ErrUnexpectedEOF">io.ErrUnexpectedEOF</a>。
+
+			
+
+
+<div id="example_Read" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var pi float64
+	b := []byte{0x18, 0x2d, 0x44, 0x54, 0xfb, 0x21, 0x09, 0x40}
+	buf := bytes.NewReader(b)
+	err := binary.Read(buf, binary.LittleEndian, &amp;pi)
+	if err != nil {
+		fmt.Println(&#34;binary.Read failed:&#34;, err)
+	}
+	fmt.Print(pi)
+}
+</textarea></div>
+        <div class="output"><pre>3.141592653589793
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Read_multi" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Multi)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Multi)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	b := []byte{0x18, 0x2d, 0x44, 0x54, 0xfb, 0x21, 0x09, 0x40, 0xff, 0x01, 0x02, 0x03, 0xbe, 0xef}
+	r := bytes.NewReader(b)
+
+	var data struct {
+		PI   float64
+		Uate uint8
+		Mine [3]byte
+		Too  uint16
+	}
+
+	if err := binary.Read(r, binary.LittleEndian, &amp;data); err != nil {
+		fmt.Println(&#34;binary.Read failed:&#34;, err)
+	}
+
+	fmt.Println(data.PI)
+	fmt.Println(data.Uate)
+	fmt.Printf(&#34;% x\n&#34;, data.Mine)
+	fmt.Println(data.Too)
+}
+</textarea></div>
+        <div class="output"><pre>3.141592653589793
+255
+01 02 03
+61374
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadUvarint">func <a href="/src/encoding/binary/varint.go?s=4103:4152#L120">ReadUvarint</a>
+				
+				
+			</h2>
+			<pre>func ReadUvarint(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ByteReader">ByteReader</a>) (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadUvarint 从 r 读取一个编码后的无符号整数，并以 uint64 返回。只有一个字节也没读到时，错误才会是 <a href="/pkg/io/#EOF">io.EOF</a>。如果读入部分但尚未读完全部字节时遇到 <a href="/pkg/io/#EOF">io.EOF</a>，ReadUvarint 会返回 <a href="/pkg/io/#ErrUnexpectedEOF">io.ErrUnexpectedEOF</a>。
+
+			
+		
+			
+			<h2 id="ReadVarint">func <a href="/src/encoding/binary/varint.go?s=4784:4831#L147">ReadVarint</a>
+				
+				
+			</h2>
+			<pre>func ReadVarint(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ByteReader">ByteReader</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadVarint 从 r 读取一个编码后的有符号整数，并以 int64 返回。只有一个字节也没读到时，错误才会是 <a href="/pkg/io/#EOF">io.EOF</a>。如果读入部分但尚未读完全部字节时遇到 <a href="/pkg/io/#EOF">io.EOF</a>，ReadVarint 会返回 <a href="/pkg/io/#ErrUnexpectedEOF">io.ErrUnexpectedEOF</a>。
+
+			
+		
+			
+			<h2 id="Size">func <a href="/src/encoding/binary/binary.go?s=15769:15789#L587">Size</a>
+				
+				
+			</h2>
+			<pre>func Size(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Size 返回 <a href="#Write">Write</a> 对值 v 编码时会生成的字节数。v 必须是固定大小的值、由固定大小值组成的切片，或指向此类数据的指针。如果 v 不属于这些情况，Size 返回 -1。
+
+			
+		
+			
+			<h2 id="Uvarint">func <a href="/src/encoding/binary/varint.go?s=2340:2378#L58">Uvarint</a>
+				
+				
+			</h2>
+			<pre>func Uvarint(buf []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>Uvarint 从 buf 解码一个 uint64，并返回该值和读取的字节数（&gt; 0）。如果发生错误，返回值为 0，字节数 n 为 &lt;= 0，其含义为：
+<ul>
+<li>n == 0：buf 太小；
+<li>n &lt; 0：值超过 64 位（溢出），-n 是读取的字节数。
+</ul>
+
+			
+
+
+<div id="example_Uvarint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	inputs := [][]byte{
+		{0x01},
+		{0x02},
+		{0x7f},
+		{0x80, 0x01},
+		{0xff, 0x01},
+		{0x80, 0x02},
+	}
+	for _, b := range inputs {
+		x, n := binary.Uvarint(b)
+		if n != len(b) {
+			fmt.Println(&#34;Uvarint did not consume all of in&#34;)
+		}
+		fmt.Println(x)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>1
+2
+127
+128
+255
+256
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Varint">func <a href="/src/encoding/binary/varint.go?s=3611:3647#L105">Varint</a>
+				
+				
+			</h2>
+			<pre>func Varint(buf []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>Varint 从 buf 解码一个 int64，并返回该值和读取的字节数（&gt; 0）。如果发生错误，返回值为 0，字节数 n 为 &lt;= 0，其含义如下：
+<ul>
+<li>n == 0：buf 太小；
+<li>n &lt; 0：值超过 64 位（溢出），-n 是读取的字节数。
+</ul>
+
+			
+
+
+<div id="example_Varint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	inputs := [][]byte{
+		{0x81, 0x01},
+		{0x7f},
+		{0x03},
+		{0x01},
+		{0x00},
+		{0x02},
+		{0x04},
+		{0x7e},
+		{0x80, 0x01},
+	}
+	for _, b := range inputs {
+		x, n := binary.Varint(b)
+		if n != len(b) {
+			fmt.Println(&#34;Varint did not consume all of in&#34;)
+		}
+		fmt.Println(x)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>-65
+-64
+-2
+-1
+0
+1
+2
+63
+64
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Write">func <a href="/src/encoding/binary/binary.go?s=11359:11415#L400">Write</a>
+				
+				
+			</h2>
+			<pre>func Write(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, order <a href="#ByteOrder">ByteOrder</a>, data <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Write 将 data 的二进制表示写入 w。data 必须是固定大小的值、由固定大小值组成的切片，或指向此类数据的指针。布尔值编码为一个字节：true 为 1，false 为 0。写入 w 的字节依次取自 data 的各个字段，并按指定的字节序编码。写入结构体时，空白字段名（_）对应的字段会写入零值。
+
+			
+
+
+<div id="example_Write" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	buf := new(bytes.Buffer)
+	var pi float64 = math.Pi
+	err := binary.Write(buf, binary.LittleEndian, pi)
+	if err != nil {
+		fmt.Println(&#34;binary.Write failed:&#34;, err)
+	}
+	fmt.Printf(&#34;% x&#34;, buf.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>18 2d 44 54 fb 21 09 40
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Write_multi" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Multi)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Multi)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	buf := new(bytes.Buffer)
+	var data = []any{
+		uint16(61374),
+		int8(-54),
+		uint8(254),
+	}
+	for _, v := range data {
+		err := binary.Write(buf, binary.LittleEndian, v)
+		if err != nil {
+			fmt.Println(&#34;binary.Write failed:&#34;, err)
+		}
+	}
+	fmt.Printf(&#34;%x&#34;, buf.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>beefcafe
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="AppendByteOrder">type <a href="/src/encoding/binary/binary.go?s=1734:1896#L43">AppendByteOrder</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>AppendByteOrder 指定如何将 16、32 或 64 位无符号整数追加到字节切片。
+<p>它由 <a href="#LittleEndian">LittleEndian</a>、<a href="#BigEndian">BigEndian</a> 和 <a href="#NativeEndian">NativeEndian</a> 实现。
+
+			<pre>type AppendByteOrder interface {
+    AppendUint16([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint16">uint16</a>) []<a href="/pkg/builtin/#byte">byte</a>
+    AppendUint32([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint32">uint32</a>) []<a href="/pkg/builtin/#byte">byte</a>
+    AppendUint64([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint64">uint64</a>) []<a href="/pkg/builtin/#byte">byte</a>
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ByteOrder">type <a href="/src/encoding/binary/binary.go?s=1358:1553#L29">ByteOrder</a>
+				
+				
+			</h2>
+			<p>ByteOrder 指定如何将字节切片转换为 16、32 或 64 位无符号整数。
+<p>它由 <a href="#LittleEndian">LittleEndian</a>、<a href="#BigEndian">BigEndian</a> 和 <a href="#NativeEndian">NativeEndian</a> 实现。
+
+			<pre>type ByteOrder interface {
+    Uint16([]<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint16">uint16</a>
+    Uint32([]<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint32">uint32</a>
+    Uint64([]<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint64">uint64</a>
+    PutUint16([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint16">uint16</a>)
+    PutUint32([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint32">uint32</a>)
+    PutUint64([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#uint64">uint64</a>)
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_ByteOrder_get" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Get)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Get)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	b := []byte{0xe8, 0x03, 0xd0, 0x07}
+	x1 := binary.LittleEndian.Uint16(b[0:])
+	x2 := binary.LittleEndian.Uint16(b[2:])
+	fmt.Printf(&#34;%#04x %#04x\n&#34;, x1, x2)
+}
+</textarea></div>
+        <div class="output"><pre>0x03e8 0x07d0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_ByteOrder_put" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Put)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Put)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/binary&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint16(b[0:], 0x03e8)
+	binary.LittleEndian.PutUint16(b[2:], 0x07d0)
+	fmt.Printf(&#34;% x\n&#34;, b)
+}
+</textarea></div>
+        <div class="output"><pre>e8 03 d0 07
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,438 @@
+<!--{
+  "Title": "log/syslog package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package syslog</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "log/syslog"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package syslog provides a simple interface to the system log
+service. It can send messages to the syslog daemon using UNIX
+domain sockets, UDP or TCP.
+<p>Only one call to Dial is necessary. On write failures,
+the syslog client will attempt to reconnect to the server
+and write again.
+<p>The syslog package is frozen and is not accepting new features.
+Some external packages provide more functionality. See:
+<pre>https://godoc.org/?q=syslog
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#NewLogger">func NewLogger(p Priority, logFlag int) (*log.Logger, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Priority">type Priority</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(network, raddr string, priority Priority, tag string) (*Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(priority Priority, tag string) (*Writer, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Alert">func (w *Writer) Alert(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Crit">func (w *Writer) Crit(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Debug">func (w *Writer) Debug(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Emerg">func (w *Writer) Emerg(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Err">func (w *Writer) Err(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Info">func (w *Writer) Info(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Notice">func (w *Writer) Notice(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Warning">func (w *Writer) Warning(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (w *Writer) Write(b []byte) (int, error)</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Dial">Dial</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/log/syslog/doc.go">doc.go</a>
+			
+				<a href="/src/log/syslog/syslog.go">syslog.go</a>
+			
+				<a href="/src/log/syslog/syslog_unix.go">syslog_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="NewLogger">func <a href="/src/log/syslog/syslog.go?s=7505:7565#L302">NewLogger</a>
+				
+				
+			</h2>
+			<pre>func NewLogger(p <a href="#Priority">Priority</a>, logFlag <a href="/pkg/builtin/#int">int</a>) (*<a href="/pkg/log/">log</a>.<a href="/pkg/log/#Logger">Logger</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewLogger creates a <a href="/pkg/log/#Logger">log.Logger</a> whose output is written to the
+system log service with the specified priority, a combination of
+the syslog facility and severity. The logFlag argument is the flag
+set passed through to <a href="/pkg/log/#New">log.New</a> to create the Logger.
+
+			
+		
+		
+			
+			<h2 id="Priority">type <a href="/src/log/syslog/syslog.go?s=527:544#L14">Priority</a>
+				
+				
+			</h2>
+			<p>The Priority is a combination of the syslog facility and
+severity. For example, <a href="#LOG_ALERT">LOG_ALERT</a> | <a href="#LOG_FTP">LOG_FTP</a> sends an alert severity
+message from the FTP facility. The default severity is <a href="#LOG_EMERG">LOG_EMERG</a>;
+the default facility is <a href="#LOG_KERN">LOG_KERN</a>.
+
+			<pre>type Priority <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+
+    <span class="comment">// From /usr/include/sys/syslog.h.</span>
+    <span class="comment">// These are the same on Linux, BSD, and OS X.</span>
+    <span id="LOG_EMERG">LOG_EMERG</span> <a href="#Priority">Priority</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="LOG_ALERT">LOG_ALERT</span>
+    <span id="LOG_CRIT">LOG_CRIT</span>
+    <span id="LOG_ERR">LOG_ERR</span>
+    <span id="LOG_WARNING">LOG_WARNING</span>
+    <span id="LOG_NOTICE">LOG_NOTICE</span>
+    <span id="LOG_INFO">LOG_INFO</span>
+    <span id="LOG_DEBUG">LOG_DEBUG</span>
+)</pre>
+			
+				
+				<pre>const (
+
+    <span class="comment">// From /usr/include/sys/syslog.h.</span>
+    <span class="comment">// These are the same up to LOG_FTP on Linux, BSD, and OS X.</span>
+    <span id="LOG_KERN">LOG_KERN</span> <a href="#Priority">Priority</a> = <a href="/pkg/builtin/#iota">iota</a> &lt;&lt; 3
+    <span id="LOG_USER">LOG_USER</span>
+    <span id="LOG_MAIL">LOG_MAIL</span>
+    <span id="LOG_DAEMON">LOG_DAEMON</span>
+    <span id="LOG_AUTH">LOG_AUTH</span>
+    <span id="LOG_SYSLOG">LOG_SYSLOG</span>
+    <span id="LOG_LPR">LOG_LPR</span>
+    <span id="LOG_NEWS">LOG_NEWS</span>
+    <span id="LOG_UUCP">LOG_UUCP</span>
+    <span id="LOG_CRON">LOG_CRON</span>
+    <span id="LOG_AUTHPRIV">LOG_AUTHPRIV</span>
+    <span id="LOG_FTP">LOG_FTP</span>
+
+    <span id="LOG_LOCAL0">LOG_LOCAL0</span>
+    <span id="LOG_LOCAL1">LOG_LOCAL1</span>
+    <span id="LOG_LOCAL2">LOG_LOCAL2</span>
+    <span id="LOG_LOCAL3">LOG_LOCAL3</span>
+    <span id="LOG_LOCAL4">LOG_LOCAL4</span>
+    <span id="LOG_LOCAL5">LOG_LOCAL5</span>
+    <span id="LOG_LOCAL6">LOG_LOCAL6</span>
+    <span id="LOG_LOCAL7">LOG_LOCAL7</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/log/syslog/syslog.go?s=1279:1438#L66">Writer</a>
+				
+				
+			</h2>
+			<p>A Writer is a connection to a syslog server.
+
+			<pre>type Writer struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dial">func <a href="/src/log/syslog/syslog.go?s=2750:2830#L108">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(network, raddr <a href="/pkg/builtin/#string">string</a>, priority <a href="#Priority">Priority</a>, tag <a href="/pkg/builtin/#string">string</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial establishes a connection to a log daemon by connecting to
+address raddr on the specified network. Each write to the returned
+writer sends a log message with the facility and severity
+(from priority) and tag. If tag is empty, the <a href="/pkg/os/#Args">os.Args</a>[0] is used.
+If network is empty, Dial will connect to the local syslog server.
+Otherwise, see the documentation for net.Dial for valid values
+of network and raddr.
+
+				
+
+
+<div id="example_Dial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;log/syslog&#34;
+)
+
+func main() {
+	sysLog, err := syslog.Dial(&#34;tcp&#34;, &#34;localhost:1234&#34;,
+		syslog.LOG_WARNING|syslog.LOG_DAEMON, &#34;demotag&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Fprintf(sysLog, &#34;This is a daemon warning with demotag.&#34;)
+	sysLog.Emerg(&#34;And this is a daemon emergency with demotag.&#34;)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="New">func <a href="/src/log/syslog/syslog.go?s=2223:2279#L97">New</a>
+					
+					
+				</h3>
+				<pre>func New(priority <a href="#Priority">Priority</a>, tag <a href="/pkg/builtin/#string">string</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>New establishes a new connection to the system log daemon. Each
+write to the returned writer sends a log message with the given
+priority (a combination of the syslog facility and severity) and
+prefix tag. If tag is empty, the <a href="/pkg/os/#Args">os.Args</a>[0] is used.
+
+				
+			
+
+			
+				<h3 id="Writer.Alert">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4513:4551#L193">Alert</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Alert(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Alert logs a message with severity <a href="#LOG_ALERT">LOG_ALERT</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Close">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4076:4106#L172">Close</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes a connection to the syslog daemon.
+
+				
+			
+				<h3 id="Writer.Crit">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4699:4736#L200">Crit</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Crit(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Crit logs a message with severity <a href="#LOG_CRIT">LOG_CRIT</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Debug">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5637:5675#L235">Debug</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Debug(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Debug logs a message with severity <a href="#LOG_DEBUG">LOG_DEBUG</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Emerg">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4325:4363#L186">Emerg</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Emerg(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Emerg logs a message with severity <a href="#LOG_EMERG">LOG_EMERG</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Err">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4881:4917#L207">Err</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Err(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err logs a message with severity <a href="#LOG_ERR">LOG_ERR</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Info">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5451:5488#L228">Info</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Info(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Info logs a message with severity <a href="#LOG_INFO">LOG_INFO</a>, ignoring the severity
+passed to New.
+
+				
+			
+				<h3 id="Writer.Notice">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5263:5302#L221">Notice</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Notice(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Notice logs a message with severity <a href="#LOG_NOTICE">LOG_NOTICE</a>, ignoring the
+severity passed to New.
+
+				
+			
+				<h3 id="Writer.Warning">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5069:5109#L214">Warning</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Warning(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Warning logs a message with severity <a href="#LOG_WARNING">LOG_WARNING</a>, ignoring the
+severity passed to New.
+
+				
+			
+				<h3 id="Writer.Write">func (*Writer) <a href="/src/log/syslog/syslog.go?s=3927:3972#L167">Write</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write sends a log message to the syslog daemon.
+
+				
+			
+		
+	
+
+	
+		<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/log/syslog/doc.go?s=641:874#L9" style="float: left;">&#x261e;</a> <p>This package is not implemented on Windows. As the
+syslog package is frozen, Windows users are encouraged to
+use a package outside of the standard library. For background,
+see <a href="/golang.org/issue/1108">https://golang.org/issue/1108</a>.
+</li>
+		
+		<li><a href="/src/log/syslog/doc.go?s=876:934#L14" style="float: left;">&#x261e;</a> <p>This package is not implemented on Plan 9.
+</li>
+		
+		<li><a href="/src/log/syslog/doc.go?s=936:1244#L16" style="float: left;">&#x261e;</a> <p>As of Darwin&apos;s macOS 12.X (Monterey), Apple&apos;s syslog daemon no
+longer listens on a UNIX domain socket and instead now uses their proprietary
+Apple Unified Logging (AUL) system, hence this package will no longer work.
+Please see <a href="https://developer.apple.com/documentation/os/logging">https://developer.apple.com/documentation/os/logging</a>.
+</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

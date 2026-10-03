@@ -1,0 +1,813 @@
+<!--{
+  "Title": "math/rand 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>math/rand 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "math/rand"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>rand 包实现适用于模拟等任务的伪随机数生成器，但不应将其用于安全敏感的工作。<p>随机数由 <a href="#Source">Source</a> 生成，通常包装在 <a href="#Rand">Rand</a> 中。这两种类型同一时间都应仅由一个 goroutine 使用；多个 goroutine 共享时需要某种同步机制。<p>顶层函数（例如 <a href="#Float64">Float64</a> 和 <a href="#Int">Int</a>）可以安全地由多个 goroutine 并发使用。<p>无论如何设置种子，本包的输出都可能很容易被预测。对于适用于安全敏感工作的随机数，请参阅 crypto/rand 包。<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+)
+
+func main() {
+	answers := []string{
+		&#34;It is certain&#34;,
+		&#34;It is decidedly so&#34;,
+		&#34;Without a doubt&#34;,
+		&#34;Yes definitely&#34;,
+		&#34;You may rely on it&#34;,
+		&#34;As I see it yes&#34;,
+		&#34;Most likely&#34;,
+		&#34;Outlook good&#34;,
+		&#34;Yes&#34;,
+		&#34;Signs point to yes&#34;,
+		&#34;Reply hazy try again&#34;,
+		&#34;Ask again later&#34;,
+		&#34;Better not tell you now&#34;,
+		&#34;Cannot predict now&#34;,
+		&#34;Concentrate and ask again&#34;,
+		&#34;Don&#39;t count on it&#34;,
+		&#34;My reply is no&#34;,
+		&#34;My sources say no&#34;,
+		&#34;Outlook not so good&#34;,
+		&#34;Very doubtful&#34;,
+	}
+	fmt.Println(&#34;Magic 8-Ball says:&#34;, answers[rand.Intn(len(answers))])
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__rand" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Rand)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Rand)</span></p>
+    <p>本示例展示 *Rand 上各个方法的用法。全局函数的用法相同，只是不需要接收者。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	// 创建生成器并设置种子。
+	// 通常应使用非固定的种子，例如 time.Now().UnixNano()。
+	// 使用固定种子会使每次运行产生相同的输出。
+	r := rand.New(rand.NewSource(99))
+
+	// 这里的 tabwriter 帮助我们生成对齐的输出。
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, &#39; &#39;, 0)
+	defer w.Flush()
+	show := func(name string, v1, v2, v3 any) {
+		fmt.Fprintf(w, &#34;%s\t%v\t%v\t%v\n&#34;, name, v1, v2, v3)
+	}
+
+	// Float32 和 Float64 的值位于 [0, 1)。
+	show(&#34;Float32&#34;, r.Float32(), r.Float32(), r.Float32())
+	show(&#34;Float64&#34;, r.Float64(), r.Float64(), r.Float64())
+
+	// ExpFloat64 的值平均为 1，但按指数规律衰减。
+	show(&#34;ExpFloat64&#34;, r.ExpFloat64(), r.ExpFloat64(), r.ExpFloat64())
+
+	// NormFloat64 的值平均为 0，标准差为 1。
+	show(&#34;NormFloat64&#34;, r.NormFloat64(), r.NormFloat64(), r.NormFloat64())
+
+	// Int31、Int63 和 Uint32 生成给定位宽的值。
+	// Int 方法（未展示）与 Int31 或 Int63 类似，
+	// 取决于 'int' 的大小。
+	show(&#34;Int31&#34;, r.Int31(), r.Int31(), r.Int31())
+	show(&#34;Int63&#34;, r.Int63(), r.Int63(), r.Int63())
+	show(&#34;Uint32&#34;, r.Uint32(), r.Uint32(), r.Uint32())
+
+	// Intn、Int31n 和 Int63n 将输出限制为 &lt; n。
+	// 相比使用 r.Int()%n，这些方法会更严谨地处理。
+	show(&#34;Intn(10)&#34;, r.Intn(10), r.Intn(10), r.Intn(10))
+	show(&#34;Int31n(10)&#34;, r.Int31n(10), r.Int31n(10), r.Int31n(10))
+	show(&#34;Int63n(10)&#34;, r.Int63n(10), r.Int63n(10), r.Int63n(10))
+
+	// Perm 生成 [0, n) 范围内整数的随机排列。
+	show(&#34;Perm&#34;, r.Perm(5), r.Perm(5), r.Perm(5))
+}
+</textarea></div>
+        <div class="output"><pre>Float32     0.2635776           0.6358173           0.6718283
+Float64     0.628605430454327   0.4504798828572669  0.9562755949377957
+ExpFloat64  0.3362240648200941  1.4256072328483647  0.24354758816173044
+NormFloat64 0.17233959114940064 1.577014951434847   0.04259129641113857
+Int31       1501292890          1486668269          182840835
+Int63       3546343826724305832 5724354148158589552 5239846799706671610
+Uint32      2760229429          296659907           1922395059
+Intn(10)    1                   2                   5
+Int31n(10)  4                   7                   8
+Int63n(10)  7                   6                   3
+Perm        [1 4 2 3 0]         [4 2 1 3 0]         [1 2 4 0 3]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#ExpFloat64">func ExpFloat64() float64</a></dd>
+			
+				<dd><a href="#Float32">func Float32() float32</a></dd>
+			
+				<dd><a href="#Float64">func Float64() float64</a></dd>
+			
+				<dd><a href="#Int">func Int() int</a></dd>
+			
+				<dd><a href="#Int31">func Int31() int32</a></dd>
+			
+				<dd><a href="#Int31n">func Int31n(n int32) int32</a></dd>
+			
+				<dd><a href="#Int63">func Int63() int64</a></dd>
+			
+				<dd><a href="#Int63n">func Int63n(n int64) int64</a></dd>
+			
+				<dd><a href="#Intn">func Intn(n int) int</a></dd>
+			
+				<dd><a href="#NormFloat64">func NormFloat64() float64</a></dd>
+			
+				<dd><a href="#Perm">func Perm(n int) []int</a></dd>
+			
+				<dd><a href="#Read">func Read(p []byte) (n int, err error)</a></dd>
+			
+				<dd><a href="#Seed">func Seed(seed int64)</a></dd>
+			
+				<dd><a href="#Shuffle">func Shuffle(n int, swap func(i, j int))</a></dd>
+			
+				<dd><a href="#Uint32">func Uint32() uint32</a></dd>
+			
+				<dd><a href="#Uint64">func Uint64() uint64</a></dd>
+			
+			
+				
+				<dd><a href="#Rand">type Rand</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(src Source) *Rand</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.ExpFloat64">func (r *Rand) ExpFloat64() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Float32">func (r *Rand) Float32() float32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Float64">func (r *Rand) Float64() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Int">func (r *Rand) Int() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Int31">func (r *Rand) Int31() int32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Int31n">func (r *Rand) Int31n(n int32) int32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Int63">func (r *Rand) Int63() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Int63n">func (r *Rand) Int63n(n int64) int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Intn">func (r *Rand) Intn(n int) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.NormFloat64">func (r *Rand) NormFloat64() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Perm">func (r *Rand) Perm(n int) []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Read">func (r *Rand) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Seed">func (r *Rand) Seed(seed int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Shuffle">func (r *Rand) Shuffle(n int, swap func(i, j int))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Uint32">func (r *Rand) Uint32() uint32</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Rand.Uint64">func (r *Rand) Uint64() uint64</a></dd>
+				
+			
+				
+				<dd><a href="#Source">type Source</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSource">func NewSource(seed int64) Source</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Source64">type Source64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Zipf">type Zipf</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewZipf">func NewZipf(r *Rand, s float64, v float64, imax uint64) *Zipf</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Zipf.Uint64">func (z *Zipf) Uint64() uint64</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Intn">Intn</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Perm">Perm</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Shuffle">Shuffle</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Shuffle_slicesInUnison">Shuffle (SlicesInUnison)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__rand">包 (Rand)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/math/rand/exp.go">exp.go</a>
+			
+				<a href="/src/math/rand/normal.go">normal.go</a>
+			
+				<a href="/src/math/rand/rand.go">rand.go</a>
+			
+				<a href="/src/math/rand/rng.go">rng.go</a>
+			
+				<a href="/src/math/rand/zipf.go">zipf.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="ExpFloat64">func <a href="/src/math/rand/rand.go?s=16593:16618#L498">ExpFloat64</a>
+				
+				
+			</h2>
+			<pre>func ExpFloat64() <a href="/pkg/builtin/#float64">float64</a></pre>
+			<p>ExpFloat64 从默认 <a href="#Source">Source</a> 返回位于 (0, +[math.MaxFloat64]] 范围内、服从指数分布的 float64 值，该分布的速率参数 lambda 为 1，均值为 1/lambda（即 1）。要得到具有不同速率参数的分布，调用方可以使用以下方式调整输出：<pre>sample = ExpFloat64() / desiredRateParameter
+</pre>
+
+			
+		
+			
+			<h2 id="Float32">func <a href="/src/math/rand/rand.go?s=14847:14869#L462">Float32</a>
+				
+				
+			</h2>
+			<pre>func Float32() <a href="/pkg/builtin/#float32">float32</a></pre>
+			<p>Float32 从默认 <a href="#Source">Source</a> 返回半开区间 [0.0,1.0) 内的伪随机数，类型为 float32。<h2 id="Float64">func <a href="/src/math/rand/rand.go?s=14666:14688#L458">Float64</a>
+				
+				
+			</h2>
+			<pre>func Float64() <a href="/pkg/builtin/#float64">float64</a></pre>
+			<p>Float64 从默认 <a href="#Source">Source</a> 返回半开区间 [0.0,1.0) 内的伪随机数，类型为 float64。<h2 id="Int">func <a href="/src/math/rand/rand.go?s=13861:13875#L439">Int</a>
+				
+				
+			</h2>
+			<pre>func Int() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Int 从默认 <a href="#Source">Source</a> 返回非负伪随机 int。<h2 id="Int31">func <a href="/src/math/rand/rand.go?s=13734:13752#L436">Int31</a>
+				
+				
+			</h2>
+			<pre>func Int31() <a href="/pkg/builtin/#int32">int32</a></pre>
+			<p>Int31 从默认 <a href="#Source">Source</a> 返回非负伪随机 31 位整数，类型为 int32。<h2 id="Int31n">func <a href="/src/math/rand/rand.go?s=14277:14303#L449">Int31n</a>
+				
+				
+			</h2>
+			<pre>func Int31n(n <a href="/pkg/builtin/#int32">int32</a>) <a href="/pkg/builtin/#int32">int32</a></pre>
+			<p>Int31n 从默认 <a href="#Source">Source</a> 返回半开区间 [0,n) 内的非负伪随机数，类型为 int32。如果 n &lt;= 0，则引发 panic。<h2 id="Int63">func <a href="/src/math/rand/rand.go?s=13291:13309#L424">Int63</a>
+				
+				
+			</h2>
+			<pre>func Int63() <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>Int63 从默认 <a href="#Source">Source</a> 返回非负伪随机 63 位整数，类型为 int64。<h2 id="Int63n">func <a href="/src/math/rand/rand.go?s=14061:14087#L444">Int63n</a>
+				
+				
+			</h2>
+			<pre>func Int63n(n <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>Int63n 从默认 <a href="#Source">Source</a> 返回半开区间 [0,n) 内的非负伪随机数，类型为 int64。如果 n &lt;= 0，则引发 panic。<h2 id="Intn">func <a href="/src/math/rand/rand.go?s=14489:14509#L454">Intn</a>
+				
+				
+			</h2>
+			<pre>func Intn(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Intn 从默认 <a href="#Source">Source</a> 返回半开区间 [0,n) 内的非负伪随机数，类型为 int。如果 n &lt;= 0，则引发 panic。<div id="example_Intn" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+)
+
+func main() {
+	fmt.Println(rand.Intn(100))
+	fmt.Println(rand.Intn(100))
+	fmt.Println(rand.Intn(100))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="NormFloat64">func <a href="/src/math/rand/rand.go?s=16146:16172#L489">NormFloat64</a>
+				
+				
+			</h2>
+			<pre>func NormFloat64() <a href="/pkg/builtin/#float64">float64</a></pre>
+			<p>NormFloat64 从默认 <a href="#Source">Source</a> 返回位于 [-<a href="/pkg/math/#MaxFloat64">math.MaxFloat64</a>, +[math.MaxFloat64]] 范围内、服从标准正态分布（均值为 0，标准差为 1）的 float64 值。要得到其他正态分布，调用方可以使用以下方式调整输出：<pre>sample = NormFloat64() * desiredStdDev + desiredMean
+</pre>
+
+			
+		
+			
+			<h2 id="Perm">func <a href="/src/math/rand/rand.go?s=15050:15072#L466">Perm</a>
+				
+				
+			</h2>
+			<pre>func Perm(n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#int">int</a></pre>
+			<p>Perm 从默认 <a href="#Source">Source</a> 返回半开区间 [0,n) 内整数的伪随机排列，表示为包含 n 个 int 的切片。<div id="example_Perm" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+)
+
+func main() {
+	for _, value := range rand.Perm(3) {
+		fmt.Println(value)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>1
+2
+0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Read">func <a href="/src/math/rand/rand.go?s=15727:15765#L479">Read</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Read 从默认 <a href="#Source">Source</a> 生成 len(p) 个随机字节，并写入 p。它始终返回 len(p) 和 nil 错误。与 <a href="#Rand.Read">Rand.Read</a> 方法不同，Read 可以安全地并发使用。<p>已弃用：对于几乎所有用例，<a href="/pkg/crypto/rand/#Read">crypto/rand.Read</a> 都更合适。如果需要确定性的随机源，请使用 <a href="/pkg/math/rand/v2/#ChaCha8.Read">math/rand/v2.ChaCha8.Read</a>。<h2 id="Seed">func <a href="/src/math/rand/rand.go?s=12456:12477#L390">Seed</a>
+				
+				
+			</h2>
+			<pre>func Seed(seed <a href="/pkg/builtin/#int64">int64</a>)</pre>
+			<p>Seed 使用给定种子值，将默认 Source 初始化为确定的状态。除以 2³¹-1 后余数相同的种子值，会生成相同的伪随机序列。与 <a href="#Rand.Seed">Rand.Seed</a> 方法不同，Seed 可以安全地并发使用。<p>如果未调用 Seed，生成器会在程序启动时使用随机种子初始化。<p>在 Go 1.20 之前，生成器在程序启动时的初始化方式相当于 Seed(1)。要强制使用旧行为，请在程序启动时调用 Seed(1)。也可以在调用本包中的任何函数之前，在环境中设置 GODEBUG=randautoseed=0。<p>已弃用：自 Go 1.20 起，没有必要再以随机值调用 Seed。若程序使用已知值调用 Seed，以获得特定的结果序列，应使用 New(NewSource(seed)) 来取得一个局部随机数生成器。<p>自 Go 1.24 起，<a href="#Seed">Seed</a> 不再执行任何操作。要恢复先前的行为，请设置 GODEBUG=randseednop=0。<h2 id="Shuffle">func <a href="/src/math/rand/rand.go?s=15291:15331#L471">Shuffle</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<pre>func Shuffle(n <a href="/pkg/builtin/#int">int</a>, swap func(i, j <a href="/pkg/builtin/#int">int</a>))</pre>
+			<p>Shuffle 使用默认 <a href="#Source">Source</a> 以伪随机方式打乱元素顺序。n 是元素数量。如果 n &lt; 0，Shuffle 会引发 panic。swap 交换索引为 i 和 j 的元素。<div id="example_Shuffle" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	words := strings.Fields(&#34;ink runs from the corners of my mouth&#34;)
+	rand.Shuffle(len(words), func(i, j int) {
+		words[i], words[j] = words[j], words[i]
+	})
+	fmt.Println(words)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Shuffle_slicesInUnison" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (SlicesInUnison)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (SlicesInUnison)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math/rand&#34;
+)
+
+func main() {
+	numbers := []byte(&#34;12345&#34;)
+	letters := []byte(&#34;ABCDE&#34;)
+	// 打乱 numbers，同时交换 letters 中对应的条目。
+	rand.Shuffle(len(numbers), func(i, j int) {
+		numbers[i], numbers[j] = numbers[j], numbers[i]
+		letters[i], letters[j] = letters[j], letters[i]
+	})
+	for i := range numbers {
+		fmt.Printf(&#34;%c: %c\n&#34;, letters[i], numbers[i])
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Uint32">func <a href="/src/math/rand/rand.go?s=13432:13452#L428">Uint32</a>
+				
+				
+			</h2>
+			<pre>func Uint32() <a href="/pkg/builtin/#uint32">uint32</a></pre>
+			<p>Uint32 从默认 <a href="#Source">Source</a> 返回伪随机 32 位整数，类型为 uint32。<h2 id="Uint64">func <a href="/src/math/rand/rand.go?s=13576:13596#L432">Uint64</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Uint64 从默认 <a href="#Source">Source</a> 返回伪随机 64 位整数，类型为 uint64。<h2 id="Rand">type <a href="/src/math/rand/rand.go?s=1978:2363#L52">Rand</a>
+				
+				
+			</h2>
+			<p>Rand 是一个随机数源。<pre>type Rand struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/math/rand/rand.go?s=2462:2488#L68">New</a>
+					
+					
+				</h3>
+				<pre>func New(src <a href="#Source">Source</a>) *<a href="#Rand">Rand</a></pre>
+				<p>New 返回一个新的 <a href="#Rand">Rand</a>，使用 src 提供的随机值生成其他随机值。<h3 id="Rand.ExpFloat64">func (*Rand) <a href="/src/math/rand/exp.go?s=764:799#L20">ExpFloat64</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) ExpFloat64() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>ExpFloat64 返回位于 (0, +[math.MaxFloat64]] 范围内、服从指数分布的 float64 值，该分布的速率参数 lambda 为 1，均值为 1/lambda（即 1）。要得到具有不同速率参数的分布，调用方可以使用以下方式调整输出：<pre>sample = ExpFloat64() / desiredRateParameter
+</pre>
+
+				
+			
+				<h3 id="Rand.Float32">func (*Rand) <a href="/src/math/rand/rand.go?s=6749:6781#L205">Float32</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Float32() <a href="/pkg/builtin/#float32">float32</a></pre>
+				<p>Float32 返回半开区间 [0.0,1.0) 内的伪随机数，类型为 float32。<h3 id="Rand.Float64">func (*Rand) <a href="/src/math/rand/rand.go?s=5714:5746#L179">Float64</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Float64() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>Float64 返回半开区间 [0.0,1.0) 内的伪随机数，类型为 float64。<h3 id="Rand.Int">func (*Rand) <a href="/src/math/rand/rand.go?s=3512:3536#L103">Int</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Int() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Int 返回非负伪随机 int。<h3 id="Rand.Int31">func (*Rand) <a href="/src/math/rand/rand.go?s=3399:3427#L100">Int31</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Int31() <a href="/pkg/builtin/#int32">int32</a></pre>
+				<p>Int31 返回非负伪随机 31 位整数，类型为 int32。<h3 id="Rand.Int31n">func (*Rand) <a href="/src/math/rand/rand.go?s=4164:4200#L127">Int31n</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Int31n(n <a href="/pkg/builtin/#int32">int32</a>) <a href="/pkg/builtin/#int32">int32</a></pre>
+				<p>Int31n 返回半开区间 [0,n) 内的非负伪随机数，类型为 int32。如果 n &lt;= 0，则引发 panic。<h3 id="Rand.Int63">func (*Rand) <a href="/src/math/rand/rand.go?s=2947:2975#L86">Int63</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Int63() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int63 返回非负伪随机 63 位整数，类型为 int64。<h3 id="Rand.Int63n">func (*Rand) <a href="/src/math/rand/rand.go?s=3748:3784#L110">Int63n</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Int63n(n <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int63n 返回半开区间 [0,n) 内的非负伪随机数，类型为 int64。如果 n &lt;= 0，则引发 panic。<h3 id="Rand.Intn">func (*Rand) <a href="/src/math/rand/rand.go?s=5445:5475#L168">Intn</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Intn(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Intn 返回半开区间 [0,n) 内的非负伪随机数，类型为 int。如果 n &lt;= 0，则引发 panic。<h3 id="Rand.NormFloat64">func (*Rand) <a href="/src/math/rand/normal.go?s=820:856#L27">NormFloat64</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) NormFloat64() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>NormFloat64 返回位于 -<a href="/pkg/math/#MaxFloat64">math.MaxFloat64</a> 到 +[math.MaxFloat64] 范围内（包含两端）、服从标准正态分布（均值为 0，标准差为 1）的 float64 值。要得到其他正态分布，调用方可以使用以下方式调整输出：<pre>sample = NormFloat64() * desiredStdDev + desiredMean
+</pre>
+
+				
+			
+				<h3 id="Rand.Perm">func (*Rand) <a href="/src/math/rand/rand.go?s=7238:7270#L219">Perm</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Perm(n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>Perm 返回半开区间 [0,n) 内整数的伪随机排列，表示为包含 n 个 int 的切片。<h3 id="Rand.Read">func (*Rand) <a href="/src/math/rand/rand.go?s=8789:8837#L262">Read</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 生成 len(p) 个随机字节并写入 p。它始终返回 len(p) 和 nil 错误。不得将 Read 与任何其他 Rand 方法并发调用。<h3 id="Rand.Seed">func (*Rand) <a href="/src/math/rand/rand.go?s=2717:2748#L75">Seed</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Seed(seed <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Seed 使用给定种子值，将生成器初始化为确定的状态。不得将 Seed 与任何其他 <a href="#Rand">Rand</a> 方法并发调用。<h3 id="Rand.Shuffle">func (*Rand) <a href="/src/math/rand/rand.go?s=7863:7913#L237">Shuffle</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Shuffle(n <a href="/pkg/builtin/#int">int</a>, swap func(i, j <a href="/pkg/builtin/#int">int</a>))</pre>
+				<p>Shuffle 以伪随机方式打乱元素顺序。n 是元素数量。如果 n &lt; 0，Shuffle 会引发 panic。swap 交换索引为 i 和 j 的元素。<h3 id="Rand.Uint32">func (*Rand) <a href="/src/math/rand/rand.go?s=3062:3092#L89">Uint32</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Uint32() <a href="/pkg/builtin/#uint32">uint32</a></pre>
+				<p>Uint32 返回伪随机 32 位整数，类型为 uint32。<h3 id="Rand.Uint64">func (*Rand) <a href="/src/math/rand/rand.go?s=3189:3219#L92">Uint64</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (r *<a href="#Rand">Rand</a>) Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 返回伪随机 64 位整数，类型为 uint64。<h2 id="Source">type <a href="/src/math/rand/rand.go?s=1106:1164#L21">Source</a>
+				
+				
+			</h2>
+			<p>Source 表示一种随机源，可生成在 [0, 1&lt;&lt;63) 范围内均匀分布的伪随机 int64 值。<p>Source 不能安全地由多个 goroutine 并发使用。<pre>type Source interface {
+    Int63() <a href="/pkg/builtin/#int64">int64</a>
+    Seed(seed <a href="/pkg/builtin/#int64">int64</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewSource">func <a href="/src/math/rand/rand.go?s=1783:1816#L41">NewSource</a>
+					
+					
+				</h3>
+				<pre>func NewSource(seed <a href="/pkg/builtin/#int64">int64</a>) <a href="#Source">Source</a></pre>
+				<p>NewSource 返回使用给定值作为种子初始化的新伪随机 <a href="#Source">Source</a>。与顶层函数使用的默认 <a href="#Source">Source</a> 不同，此随机源不能安全地由多个 goroutine 并发使用。返回的 <a href="#Source">Source</a> 实现了 <a href="#Source64">Source64</a>。<h2 id="Source64">type <a href="/src/math/rand/rand.go?s=1472:1524#L32">Source64</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<p>Source64 是一种 <a href="#Source">Source</a>，还能直接生成在 [0, 1&lt;&lt;64) 范围内均匀分布的伪随机 uint64 值。如果 <a href="#Rand">Rand</a> r 的底层 <a href="#Source">Source</a> s 实现了 Source64，那么 r.Uint64 会返回调用一次 s.Uint64 的结果，而不是调用两次 s.Int63。<pre>type Source64 interface {
+    <a href="#Source">Source</a>
+    Uint64() <a href="/pkg/builtin/#uint64">uint64</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Zipf">type <a href="/src/math/rand/zipf.go?s=411:627#L5">Zipf</a>
+				
+				
+			</h2>
+			<p>Zipf 生成服从 Zipf 分布的随机变量。<pre>type Zipf struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewZipf">func <a href="/src/math/rand/zipf.go?s=1026:1088#L29">NewZipf</a>
+					
+					
+				</h3>
+				<pre>func NewZipf(r *<a href="#Rand">Rand</a>, s <a href="/pkg/builtin/#float64">float64</a>, v <a href="/pkg/builtin/#float64">float64</a>, imax <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Zipf">Zipf</a></pre>
+				<p>NewZipf 返回一个 <a href="#Zipf">Zipf</a> 随机变量生成器。它生成 k ∈ [0, imax] 的值，使 P(k) 与 (v + k) ** (-s) 成正比。要求 s &gt; 1 且 v &gt;= 1。<h3 id="Zipf.Uint64">func (*Zipf) <a href="/src/math/rand/zipf.go?s=1523:1553#L48">Uint64</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Zipf">Zipf</a>) Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 返回一个从该 <a href="#Zipf">Zipf</a> 对象所描述的 <a href="#Zipf">Zipf</a> 分布中抽取的值。<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="v2/">v2</a>
+					</td>
+				
+					<td class="pkg-synopsis">rand 包实现适用于模拟等任务的伪随机数生成器，但不应将其用于安全敏感的工作。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

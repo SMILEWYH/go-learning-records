@@ -1,0 +1,1009 @@
+<!--{
+  "Title": "go/constant package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package constant</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/constant"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package constant implements Values representing untyped
+Go constants and their corresponding operations.
+<p>A special Unknown value may be used when a value
+is unknown due to an error. Operations on unknown
+values produce unknown values unless specified
+otherwise.
+
+				
+
+
+<div id="example__complexNumbers" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (ComplexNumbers)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (ComplexNumbers)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// Create the complex number 2.3 &#43; 5i.
+	ar := constant.MakeFloat64(2.3)
+	ai := constant.MakeImag(constant.MakeInt64(5))
+	a := constant.BinaryOp(ar, token.ADD, ai)
+
+	// Compute (2.3 &#43; 5i) * 11.
+	b := constant.MakeUint64(11)
+	c := constant.BinaryOp(a, token.MUL, b)
+
+	// Convert c into a complex128.
+	Ar, exact := constant.Float64Val(constant.Real(c))
+	if !exact {
+		fmt.Printf(&#34;Could not represent real part %s exactly as float64\n&#34;, constant.Real(c))
+	}
+	Ai, exact := constant.Float64Val(constant.Imag(c))
+	if !exact {
+		fmt.Printf(&#34;Could not represent imaginary part %s as exactly as float64\n&#34;, constant.Imag(c))
+	}
+	C := complex(Ar, Ai)
+
+	fmt.Println(&#34;literal&#34;, 25.3&#43;55i)
+	fmt.Println(&#34;go/constant&#34;, c)
+	fmt.Println(&#34;complex128&#34;, C)
+
+}
+</textarea></div>
+        <div class="output"><pre>
+Could not represent real part 25.3 exactly as float64
+literal (25.3+55i)
+go/constant (25.3 + 55i)
+complex128 (25.299999999999997+55i)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#BitLen">func BitLen(x Value) int</a></dd>
+			
+				<dd><a href="#BoolVal">func BoolVal(x Value) bool</a></dd>
+			
+				<dd><a href="#Bytes">func Bytes(x Value) []byte</a></dd>
+			
+				<dd><a href="#Compare">func Compare(x_ Value, op token.Token, y_ Value) bool</a></dd>
+			
+				<dd><a href="#Float32Val">func Float32Val(x Value) (float32, bool)</a></dd>
+			
+				<dd><a href="#Float64Val">func Float64Val(x Value) (float64, bool)</a></dd>
+			
+				<dd><a href="#Int64Val">func Int64Val(x Value) (int64, bool)</a></dd>
+			
+				<dd><a href="#Sign">func Sign(x Value) int</a></dd>
+			
+				<dd><a href="#StringLen">func StringLen(x Value) int64</a></dd>
+			
+				<dd><a href="#StringVal">func StringVal(x Value) string</a></dd>
+			
+				<dd><a href="#Uint64Val">func Uint64Val(x Value) (uint64, bool)</a></dd>
+			
+				<dd><a href="#Val">func Val(x Value) any</a></dd>
+			
+			
+				
+				<dd><a href="#Kind">type Kind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Kind.String">func (i Kind) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BinaryOp">func BinaryOp(x_ Value, op token.Token, y_ Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Denom">func Denom(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Imag">func Imag(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Make">func Make(x any) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeBool">func MakeBool(b bool) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeFloat64">func MakeFloat64(x float64) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeFromBytes">func MakeFromBytes(bytes []byte) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeFromLiteral">func MakeFromLiteral(lit string, tok token.Token, zero uint) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeImag">func MakeImag(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeInt64">func MakeInt64(x int64) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeString">func MakeString(s string) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeUint64">func MakeUint64(x uint64) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeUnknown">func MakeUnknown() Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Num">func Num(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Real">func Real(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Shift">func Shift(x Value, op token.Token, s uint) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ToComplex">func ToComplex(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ToFloat">func ToFloat(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ToInt">func ToInt(x Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnaryOp">func UnaryOp(op token.Token, y Value, prec uint) Value</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_BinaryOp">BinaryOp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Compare">Compare</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sign">Sign</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnaryOp">UnaryOp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Val">Val</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__complexNumbers">Package (ComplexNumbers)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/constant/kind_string.go">kind_string.go</a>
+			
+				<a href="/src/go/constant/value.go">value.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="BitLen">func <a href="/src/go/constant/value.go?s=18813:18837#L657">BitLen</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func BitLen(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>BitLen returns the number of bits required to represent
+the absolute value x in binary representation; x must be an <a href="#Int">Int</a> or an <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, the result is 0.
+
+			
+		
+			
+			<h2 id="BoolVal">func <a href="/src/go/constant/value.go?s=14019:14045#L468">BoolVal</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func BoolVal(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>BoolVal returns the Go boolean value of x, which must be a <a href="#Bool">Bool</a> or an <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, the result is false.
+
+			
+		
+			
+			<h2 id="Bytes">func <a href="/src/go/constant/value.go?s=20140:20166#L714">Bytes</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Bytes(x <a href="#Value">Value</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Bytes returns the bytes for the absolute value of x in little-
+endian binary representation; x must be an <a href="#Int">Int</a>.
+
+			
+		
+			
+			<h2 id="Compare">func <a href="/src/go/constant/value.go?s=34098:34151#L1352">Compare</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Compare(x_ <a href="#Value">Value</a>, op <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, y_ <a href="#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Compare returns the result of the comparison x op y.
+The comparison must be defined for the operands.
+If one of the operands is <a href="#Unknown">Unknown</a>, the result is
+false.
+
+			
+
+
+<div id="example_Compare" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;go/token&#34;
+	&#34;slices&#34;
+)
+
+func main() {
+	vs := []constant.Value{
+		constant.MakeString(&#34;Z&#34;),
+		constant.MakeString(&#34;bacon&#34;),
+		constant.MakeString(&#34;go&#34;),
+		constant.MakeString(&#34;Frame&#34;),
+		constant.MakeString(&#34;defer&#34;),
+		constant.MakeFromLiteral(`&#34;a&#34;`, token.STRING, 0),
+	}
+
+	slices.SortFunc(vs, func(a, b constant.Value) int {
+		if constant.Compare(a, token.LSS, b) {
+			return -1
+		}
+		if constant.Compare(a, token.GTR, b) {
+			return &#43;1
+		}
+		return 0
+	})
+
+	for _, v := range vs {
+		fmt.Println(constant.StringVal(v))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+Frame
+Z
+a
+bacon
+defer
+go
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Float32Val">func <a href="/src/go/constant/value.go?s=15547:15587#L525">Float32Val</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Float32Val(x <a href="#Value">Value</a>) (<a href="/pkg/builtin/#float32">float32</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Float32Val is like <a href="#Float64Val">Float64Val</a> but for float32 instead of float64.
+
+			
+		
+			
+			<h2 id="Float64Val">func <a href="/src/go/constant/value.go?s=16333:16373#L550">Float64Val</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Float64Val(x <a href="#Value">Value</a>) (<a href="/pkg/builtin/#float64">float64</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Float64Val returns the nearest Go float64 value of x and whether the result is exact;
+x must be numeric or an <a href="#Unknown">Unknown</a>, but not <a href="#Complex">Complex</a>. For values too small (too close to 0)
+to represent as float64, <a href="#Float64Val">Float64Val</a> silently underflows to 0. The result sign always
+matches the sign of x, even for 0.
+If x is <a href="#Unknown">Unknown</a>, the result is (0, false).
+
+			
+		
+			
+			<h2 id="Int64Val">func <a href="/src/go/constant/value.go?s=14723:14759#L495">Int64Val</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Int64Val(x <a href="#Value">Value</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Int64Val returns the Go int64 value of x and whether the result is exact;
+x must be an <a href="#Int">Int</a> or an <a href="#Unknown">Unknown</a>. If the result is not exact, its value is undefined.
+If x is <a href="#Unknown">Unknown</a>, the result is (0, false).
+
+			
+		
+			
+			<h2 id="Sign">func <a href="/src/go/constant/value.go?s=19310:19332#L677">Sign</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Sign(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Sign returns -1, 0, or 1 depending on whether x &lt; 0, x == 0, or x &gt; 0;
+x must be numeric or <a href="#Unknown">Unknown</a>. For complex values x, the sign is 0 if x == 0,
+otherwise it is != 0. If x is <a href="#Unknown">Unknown</a>, the result is 1.
+
+			
+
+
+<div id="example_Sign" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	zero := constant.MakeInt64(0)
+	one := constant.MakeInt64(1)
+	negOne := constant.MakeInt64(-1)
+
+	mkComplex := func(a, b constant.Value) constant.Value {
+		b = constant.MakeImag(b)
+		return constant.BinaryOp(a, token.ADD, b)
+	}
+
+	vs := []constant.Value{
+		negOne,
+		mkComplex(zero, negOne),
+		mkComplex(one, negOne),
+		mkComplex(negOne, one),
+		mkComplex(negOne, negOne),
+		zero,
+		mkComplex(zero, zero),
+		one,
+		mkComplex(zero, one),
+		mkComplex(one, one),
+	}
+
+	for _, v := range vs {
+		fmt.Printf(&#34;% d %s\n&#34;, constant.Sign(v), v)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+-1 -1
+-1 (0 + -1i)
+-1 (1 + -1i)
+-1 (-1 + 1i)
+-1 (-1 + -1i)
+ 0 0
+ 0 (0 + 0i)
+ 1 1
+ 1 (0 + 1i)
+ 1 (1 + 1i)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="StringLen">func <a href="/src/go/constant/value.go?s=17633:17662#L603">StringLen</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func StringLen(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>StringLen returns the length of x if x is a <a href="#String">String</a>.
+If x is <a href="#Unknown">Unknown</a>, the result is 0.
+In all other cases, the function panics.
+
+			
+		
+			
+			<h2 id="StringVal">func <a href="/src/go/constant/value.go?s=14323:14353#L481">StringVal</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func StringVal(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>StringVal returns the Go string value of x, which must be a <a href="#String">String</a> or an <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, the result is &quot;&quot;.
+
+			
+		
+			
+			<h2 id="Uint64Val">func <a href="/src/go/constant/value.go?s=15219:15257#L511">Uint64Val</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Uint64Val(x <a href="#Value">Value</a>) (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Uint64Val returns the Go uint64 value of x and whether the result is exact;
+x must be an <a href="#Int">Int</a> or an <a href="#Unknown">Unknown</a>. If the result is not exact, its value is undefined.
+If x is <a href="#Unknown">Unknown</a>, the result is (0, false).
+
+			
+		
+			
+			<h2 id="Val">func <a href="/src/go/constant/value.go?s=17223:17244#L581">Val</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Val(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#any">any</a></pre>
+			<p>Val returns the underlying value for a given constant. Since it returns an
+interface, it is up to the caller to type assert the result to the expected
+type. The possible dynamic return types are:
+<pre>x Kind             type of result
+-----------------------------------------
+Bool               bool
+String             string
+Int                int64 or *big.Int
+Float              *big.Float or *big.Rat
+everything else    nil
+</pre>
+
+			
+
+
+<div id="example_Val" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	maxint := constant.MakeInt64(math.MaxInt64)
+	fmt.Printf(&#34;%v\n&#34;, constant.Val(maxint))
+
+	e := constant.MakeFloat64(math.E)
+	fmt.Printf(&#34;%v\n&#34;, constant.Val(e))
+
+	b := constant.MakeBool(true)
+	fmt.Printf(&#34;%v\n&#34;, constant.Val(b))
+
+	b = constant.Make(false)
+	fmt.Printf(&#34;%v\n&#34;, constant.Val(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>
+9223372036854775807
+6121026514868073/2251799813685248
+true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Kind">type <a href="/src/go/constant/value.go?s=668:681#L19">Kind</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Kind specifies the kind of value represented by a <a href="#Value">Value</a>.
+
+			<pre>type Kind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// unknown values</span>
+    <span id="Unknown">Unknown</span> <a href="#Kind">Kind</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// non-numeric values</span>
+    <span id="Bool">Bool</span>
+    <span id="String">String</span>
+
+    <span class="comment">// numeric values</span>
+    <span id="Int">Int</span>
+    <span id="Float">Float</span>
+    <span id="Complex">Complex</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Kind.String">func (Kind) <a href="/src/go/constant/kind_string.go?s=485:514#L13">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (i <a href="#Kind">Kind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Value">type <a href="/src/go/constant/value.go?s=863:1444#L36">Value</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>A Value represents the value of a Go constant.
+
+			<pre>type Value interface {
+    <span class="comment">// Kind returns the value kind.</span>
+    Kind() <a href="#Kind">Kind</a>
+
+    <span class="comment">// String returns a short, quoted (human-readable) form of the value.</span>
+    <span class="comment">// For numeric values, the result may be an approximation;</span>
+    <span class="comment">// for String values the result may be a shortened string.</span>
+    <span class="comment">// Use ExactString for a string representing a value exactly.</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// ExactString returns an exact, quoted (human-readable) form of the value.</span>
+    <span class="comment">// If the Value is of Kind String, use StringVal to obtain the unquoted string.</span>
+    ExactString() <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BinaryOp">func <a href="/src/go/constant/value.go?s=29578:29633#L1118">BinaryOp</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func BinaryOp(x_ <a href="#Value">Value</a>, op <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, y_ <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>BinaryOp returns the result of the binary expression x op y.
+The operation must be defined for the operands. If one of the
+operands is <a href="#Unknown">Unknown</a>, the result is <a href="#Unknown">Unknown</a>.
+BinaryOp doesn&apos;t handle comparisons or shifts; use <a href="#Compare">Compare</a>
+or <a href="#Shift">Shift</a> instead.
+<p>To force integer division of <a href="#Int">Int</a> operands, use op == <a href="/pkg/go/token/#QUO_ASSIGN">token.QUO_ASSIGN</a>
+instead of <a href="/pkg/go/token/#QUO">token.QUO</a>; the result is guaranteed to be <a href="#Int">Int</a> in this case.
+Division by zero leads to a run-time panic.
+
+				
+
+
+<div id="example_BinaryOp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// 11 / 0.5
+	a := constant.MakeUint64(11)
+	b := constant.MakeFloat64(0.5)
+	c := constant.BinaryOp(a, token.QUO, b)
+	fmt.Println(c)
+
+}
+</textarea></div>
+        <div class="output"><pre>22
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Denom">func <a href="/src/go/constant/value.go?s=21991:22016#L800">Denom</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Denom(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Denom returns the denominator of x; x must be <a href="#Int">Int</a>, <a href="#Float">Float</a>, or <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, or if it is too large or small to represent as a
+fraction, the result is <a href="#Unknown">Unknown</a>. Otherwise the result is an <a href="#Int">Int</a> &gt;= 1.
+
+				
+			
+				<h3 id="Imag">func <a href="/src/go/constant/value.go?s=23161:23185#L848">Imag</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Imag(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Imag returns the imaginary part of x, which must be a numeric or unknown value.
+If x is <a href="#Unknown">Unknown</a>, the result is <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="Make">func <a href="/src/go/constant/value.go?s=18324:18346#L635">Make</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func Make(x <a href="/pkg/builtin/#any">any</a>) <a href="#Value">Value</a></pre>
+				<p>Make returns the <a href="#Value">Value</a> for x.
+<pre>type of x        result Kind
+----------------------------
+bool             Bool
+string           String
+int64            Int
+*big.Int         Int
+*big.Float       Float
+*big.Rat         Float
+anything else    Unknown
+</pre>
+
+				
+			
+				<h3 id="MakeBool">func <a href="/src/go/constant/value.go?s=11478:11505#L374">MakeBool</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeBool(b <a href="/pkg/builtin/#bool">bool</a>) <a href="#Value">Value</a></pre>
+				<p>MakeBool returns the <a href="#Bool">Bool</a> value for b.
+
+				
+			
+				<h3 id="MakeFloat64">func <a href="/src/go/constant/value.go?s=12120:12153#L400">MakeFloat64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeFloat64(x <a href="/pkg/builtin/#float64">float64</a>) <a href="#Value">Value</a></pre>
+				<p>MakeFloat64 returns the <a href="#Float">Float</a> value for x.
+If x is -0.0, the result is 0.0.
+If x is not finite, the result is an <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="MakeFromBytes">func <a href="/src/go/constant/value.go?s=20733:20771#L746">MakeFromBytes</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeFromBytes(bytes []<a href="/pkg/builtin/#byte">byte</a>) <a href="#Value">Value</a></pre>
+				<p>MakeFromBytes returns the <a href="#Int">Int</a> value given the bytes of its little-endian
+binary representation. An empty byte slice argument represents 0.
+
+				
+			
+				<h3 id="MakeFromLiteral">func <a href="/src/go/constant/value.go?s=12710:12776#L415">MakeFromLiteral</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeFromLiteral(lit <a href="/pkg/builtin/#string">string</a>, tok <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, zero <a href="/pkg/builtin/#uint">uint</a>) <a href="#Value">Value</a></pre>
+				<p>MakeFromLiteral returns the corresponding integer, floating-point,
+imaginary, character, or string value for a Go literal string. The
+tok value must be one of <a href="/pkg/go/token/#INT">token.INT</a>, <a href="/pkg/go/token/#FLOAT">token.FLOAT</a>, <a href="/pkg/go/token/#IMAG">token.IMAG</a>,
+<a href="/pkg/go/token/#CHAR">token.CHAR</a>, or <a href="/pkg/go/token/#STRING">token.STRING</a>. The final argument must be zero.
+If the literal string syntax is invalid, the result is an <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="MakeImag">func <a href="/src/go/constant/value.go?s=22479:22507#L822">MakeImag</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeImag(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>MakeImag returns the <a href="#Complex">Complex</a> value x*i;
+x must be <a href="#Int">Int</a>, <a href="#Float">Float</a>, or <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, the result is <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="MakeInt64">func <a href="/src/go/constant/value.go?s=11764:11793#L387">MakeInt64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeInt64(x <a href="/pkg/builtin/#int64">int64</a>) <a href="#Value">Value</a></pre>
+				<p>MakeInt64 returns the <a href="#Int">Int</a> value for x.
+
+				
+			
+				<h3 id="MakeString">func <a href="/src/go/constant/value.go?s=11577:11608#L377">MakeString</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeString(s <a href="/pkg/builtin/#string">string</a>) <a href="#Value">Value</a></pre>
+				<p>MakeString returns the <a href="#String">String</a> value for s.
+
+				
+			
+				<h3 id="MakeUint64">func <a href="/src/go/constant/value.go?s=11863:11894#L390">MakeUint64</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeUint64(x <a href="/pkg/builtin/#uint64">uint64</a>) <a href="#Value">Value</a></pre>
+				<p>MakeUint64 returns the <a href="#Int">Int</a> value for x.
+
+				
+			
+				<h3 id="MakeUnknown">func <a href="/src/go/constant/value.go?s=11384:11408#L371">MakeUnknown</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MakeUnknown() <a href="#Value">Value</a></pre>
+				<p>MakeUnknown returns the <a href="#Unknown">Unknown</a> value.
+
+				
+			
+				<h3 id="Num">func <a href="/src/go/constant/value.go?s=21427:21450#L778">Num</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Num(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Num returns the numerator of x; x must be <a href="#Int">Int</a>, <a href="#Float">Float</a>, or <a href="#Unknown">Unknown</a>.
+If x is <a href="#Unknown">Unknown</a>, or if it is too large or small to represent as a
+fraction, the result is <a href="#Unknown">Unknown</a>. Otherwise the result is an <a href="#Int">Int</a>
+with the same sign as x.
+
+				
+			
+				<h3 id="Real">func <a href="/src/go/constant/value.go?s=22825:22849#L835">Real</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Real(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Real returns the real part of x, which must be a numeric or unknown value.
+If x is <a href="#Unknown">Unknown</a>, the result is <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="Shift">func <a href="/src/go/constant/value.go?s=33087:33136#L1297">Shift</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Shift(x <a href="#Value">Value</a>, op <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, s <a href="/pkg/builtin/#uint">uint</a>) <a href="#Value">Value</a></pre>
+				<p>Shift returns the result of the shift expression x op s
+with op == <a href="/pkg/go/token/#SHL">token.SHL</a> or <a href="/pkg/go/token/#SHR">token.SHR</a> (&lt;&lt; or &gt;&gt;). x must be
+an <a href="#Int">Int</a> or an <a href="#Unknown">Unknown</a>. If x is <a href="#Unknown">Unknown</a>, the result is x.
+
+				
+			
+				<h3 id="ToComplex">func <a href="/src/go/constant/value.go?s=25292:25321#L941">ToComplex</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func ToComplex(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>ToComplex converts x to a <a href="#Complex">Complex</a> value if x is representable as a <a href="#Complex">Complex</a>.
+Otherwise it returns an <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="ToFloat">func <a href="/src/go/constant/value.go?s=24848:24875#L920">ToFloat</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func ToFloat(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>ToFloat converts x to a <a href="#Float">Float</a> value if x is representable as a <a href="#Float">Float</a>.
+Otherwise it returns an <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="ToInt">func <a href="/src/go/constant/value.go?s=23609:23634#L866">ToInt</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func ToInt(x <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>ToInt converts x to an <a href="#Int">Int</a> value if x is representable as an <a href="#Int">Int</a>.
+Otherwise it returns an <a href="#Unknown">Unknown</a>.
+
+				
+			
+				<h3 id="UnaryOp">func <a href="/src/go/constant/value.go?s=26078:26132#L970">UnaryOp</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func UnaryOp(op <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, y <a href="#Value">Value</a>, prec <a href="/pkg/builtin/#uint">uint</a>) <a href="#Value">Value</a></pre>
+				<p>UnaryOp returns the result of the unary expression op y.
+The operation must be defined for the operand.
+If prec &gt; 0 it specifies the ^ (xor) result size in bits.
+If y is <a href="#Unknown">Unknown</a>, the result is <a href="#Unknown">Unknown</a>.
+
+				
+
+
+<div id="example_UnaryOp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/constant&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	vs := []constant.Value{
+		constant.MakeBool(true),
+		constant.MakeFloat64(2.7),
+		constant.MakeUint64(42),
+	}
+
+	for i, v := range vs {
+		switch v.Kind() {
+		case constant.Bool:
+			vs[i] = constant.UnaryOp(token.NOT, v, 0)
+
+		case constant.Float:
+			vs[i] = constant.UnaryOp(token.SUB, v, 0)
+
+		case constant.Int:
+			// Use 16-bit precision.
+			// This would be equivalent to ^uint16(v).
+			vs[i] = constant.UnaryOp(token.XOR, v, 16)
+		}
+	}
+
+	for _, v := range vs {
+		fmt.Println(v)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+false
+-2.7
+65493
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

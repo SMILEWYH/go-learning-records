@@ -1,0 +1,2781 @@
+<!--{
+  "Title": "log/slog 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>slog 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "log/slog"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>slog 包提供结构化日志功能。日志记录包含消息、严重级别，以及用键值对表示的各种其他属性。
+<p>本包定义了 <a href="#Logger">Logger</a> 类型，它提供多种方法（例如 <a href="#Logger.Info">Logger.Info</a> 和 <a href="#Logger.Error">Logger.Error</a>）来报告关注的事件。
+<p>每个 Logger 都关联一个 <a href="#Handler">Handler</a>。Logger 的输出方法根据方法参数创建 <a href="#Record">Record</a>，然后将其传给 Handler，由 Handler 决定如何处理。可以通过包级函数（例如 <a href="#Info">Info</a> 和 <a href="#Error">Error</a>）访问默认 Logger，这些函数会调用相应的 Logger 方法。
+<p>一条日志记录由时间、级别、消息和一组键值对组成，其中键是字符串，值可以是任意类型。例如，
+<pre>slog.Info(&quot;hello&quot;, &quot;count&quot;, 3)
+</pre>
+<p>会创建一条记录，其中包含调用时间、Info 级别、消息 &quot;hello&quot;，以及一个键为 &quot;count&quot;、值为 3 的键值对。
+<p>包级函数 <a href="#Info">Info</a> 调用默认 Logger 的 <a href="#Logger.Info">Logger.Info</a> 方法。除 <a href="#Logger.Info">Logger.Info</a> 外，还有对应 Debug、Warn 和 Error 级别的方法。除了这些常用级别的便捷方法，还提供将级别作为参数的 <a href="#Logger.Log">Logger.Log</a> 方法。上述每个方法都有对应的包级函数，使用默认日志记录器。
+<p>默认处理器将日志记录的消息、时间、级别和属性格式化为字符串，然后传给 <a href="/pkg/log/">log</a> 包。
+<pre>2022/11/08 15:28:26 INFO hello count=3
+</pre>
+<p>若要更细致地控制输出格式，可以使用其他处理器创建日志记录器。以下语句通过 <a href="#New">New</a> 创建一个使用 <a href="#TextHandler">TextHandler</a> 的新日志记录器，将结构化记录以文本形式写入标准错误：
+<pre>logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+</pre>
+<p><a href="#TextHandler">TextHandler</a> 的输出是一系列 key=value 键值对，便于机器无歧义地解析。以下语句：
+<pre>logger.Info(&quot;hello&quot;, &quot;count&quot;, 3)
+</pre>
+<p>产生如下输出：
+<pre>time=2022-11-08T15:28:26.000-05:00 level=INFO msg=hello count=3
+</pre>
+<p>本包还提供 <a href="#JSONHandler">JSONHandler</a>，其输出是按行分隔的 JSON：
+<pre>logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+logger.Info(&quot;hello&quot;, &quot;count&quot;, 3)
+</pre>
+<p>产生如下输出：
+<pre>{&quot;time&quot;:&quot;2022-11-08T15:28:26.000000000-05:00&quot;,&quot;level&quot;:&quot;INFO&quot;,&quot;msg&quot;:&quot;hello&quot;,&quot;count&quot;:3}
+</pre>
+<p><a href="#TextHandler">TextHandler</a> 和 <a href="#JSONHandler">JSONHandler</a> 都可以通过 <a href="#HandlerOptions">HandlerOptions</a> 配置。配置选项包括设置最低级别（见下文“级别”）、显示日志调用所在的源文件和行号，以及在记录属性之前修改属性。
+<p>通过以下调用将日志记录器设为默认值：
+<pre>slog.SetDefault(logger)
+</pre>
+<p>这样，<a href="#Info">Info</a> 等包级函数就会使用它。<a href="#SetDefault">SetDefault</a> 还会更新 <a href="/pkg/log/">log</a> 包使用的默认日志记录器，因此使用 <a href="/pkg/log/#Printf">log.Printf</a> 及相关函数的现有应用程序无需改写，就会将日志记录发送给该日志记录器的处理器。
+<p>许多日志调用共享某些属性。例如，你可能希望为服务器某个请求产生的所有日志事件都附带该请求的 URL 或跟踪标识符。可以通过 <a href="#Logger.With">Logger.With</a> 构建包含这些属性的新 Logger，无需在每次日志调用中重复提供属性：
+<pre>logger2 := logger.With(&quot;url&quot;, r.URL)
+</pre>
+<p>With 的参数与 <a href="#Logger.Info">Logger.Info</a> 使用的键值对相同。结果是一个新 Logger，它使用与原来相同的处理器，但附加了额外属性，这些属性会出现在每次调用的输出中。
+<h3 id="hdr-Levels">级别</h3>
+<p><a href="#Level">Level</a> 是表示日志事件重要程度或严重程度的整数。级别越高，事件越严重。本包为最常用的级别定义了常量，但任意 int 都可以用作级别。
+<p>应用程序可能只希望记录某个级别及以上的消息。一种常见配置是记录 Info 及以上级别的消息，在需要时才启用调试日志。可以通过设置 <a href="#HandlerOptions.Level">HandlerOptions.Level</a>，配置内置处理器输出的最低级别。这通常在程序的 `main` 函数中完成。默认值为 LevelInfo。
+<p>将 <a href="#HandlerOptions.Level">HandlerOptions.Level</a> 字段设为 <a href="#Level">Level</a> 值，会在处理器整个生命周期中固定其最低级别。将其设为 <a href="#LevelVar">LevelVar</a>，则可以动态调整级别。LevelVar 保存一个 Level，支持多个 goroutine（轻量级协程）安全地读写。若要动态调整整个程序的日志级别，首先初始化一个全局 LevelVar：
+<pre>var programLevel = new(slog.LevelVar) // 默认为 Info
+</pre>
+<p>然后使用该 LevelVar 构建处理器，并将其设为默认值：
+<pre>h := slog.NewJSONHandler(os.Stderr, &amp;slog.HandlerOptions{Level: programLevel})
+slog.SetDefault(slog.New(h))
+</pre>
+<p>现在，程序只需一条语句就能更改日志级别：
+<pre>programLevel.Set(slog.LevelDebug)
+</pre>
+<h3 id="hdr-Groups">分组</h3>
+<p>属性可以组织成组。每个组都有名称，用来限定其属性的名称。限定名称的显示方式取决于处理器。<a href="#TextHandler">TextHandler</a> 用点号分隔组名和属性名。<a href="#JSONHandler">JSONHandler</a> 将每个组表示为独立的 JSON 对象，以组名作为键。
+<p>使用 <a href="#Group">Group</a> 根据名称和一组键值对创建分组属性：
+<pre>slog.Group(&quot;request&quot;,
+    &quot;method&quot;, r.Method,
+    &quot;url&quot;, r.URL)
+</pre>
+<p>TextHandler 将此组显示为
+<pre>request.method=GET request.url=http://example.com
+</pre>
+<p>JSONHandler 将其显示为
+<pre>&quot;request&quot;:{&quot;method&quot;:&quot;GET&quot;,&quot;url&quot;:&quot;http://example.com&quot;}
+</pre>
+<p>使用 <a href="#Logger.WithGroup">Logger.WithGroup</a> 为 Logger 的所有输出加上组名限定。对 Logger 调用 WithGroup 会生成一个新 Logger，使用与原来相同的 Handler，但其所有属性都会以该组名限定。
+<p>在大型系统中，各子系统可能使用相同的键，分组有助于避免属性键重复。为每个子系统传入带有独立组名的不同 Logger，使潜在的重复名称获得限定：
+<pre>logger := slog.Default().With(&quot;id&quot;, systemID)
+parserLogger := logger.WithGroup(&quot;parser&quot;)
+parseInput(input, parserLogger)
+</pre>
+<p>当 parseInput 通过 parserLogger 记录日志时，它的键会带有 &quot;parser&quot; 限定。因此，即使它使用常见键 &quot;id&quot;，日志行中的键也各不相同。
+<h3 id="hdr-Contexts">上下文</h3>
+<p>某些处理器可能希望附带调用处可用的 <a href="/pkg/context/#Context">context.Context</a> 中的信息。例如，启用跟踪时的当前 span 标识符。
+<p><a href="#Logger.Log">Logger.Log</a> 和 <a href="#Logger.LogAttrs">Logger.LogAttrs</a> 方法都以 context 作为第一个参数，对应的包级函数也是如此。
+<p>虽然 Logger 的便捷方法（Info 等）及其对应的包级函数不接受 context，但以 &quot;Context&quot; 结尾的对应方法和函数接受。例如：
+<pre>slog.InfoContext(ctx, &quot;message&quot;)
+</pre>
+<p>如果有可用的 context，建议将其传给输出方法。
+<h3 id="hdr-Attrs_and_Values">属性与值</h3>
+<p><a href="#Attr">Attr</a> 是一个键值对。Logger 的输出方法既接受 Attr，也接受交替出现的键和值。以下语句
+<pre>slog.Info(&quot;hello&quot;, slog.Int(&quot;count&quot;, 3))
+</pre>
+<p>与以下语句的行为相同：
+<pre>slog.Info(&quot;hello&quot;, &quot;count&quot;, 3)
+</pre>
+<p>本包为 <a href="#Attr">Attr</a> 提供了便捷构造函数，例如用于常见类型的 <a href="#Int">Int</a>、<a href="#String">String</a> 和 <a href="#Bool">Bool</a>，以及用于构造任意类型 Attr 的 <a href="#Any">Any</a> 函数。
+<p>Attr 的值部分属于 <a href="#Value">Value</a> 类型。与 [any] 一样，Value 可以保存任意 Go 值，但它能够在不分配内存的情况下表示常见值，包括所有数字和字符串。
+<p>要获得最高效的日志输出，请使用 <a href="#Logger.LogAttrs">Logger.LogAttrs</a>。它与 <a href="#Logger.Log">Logger.Log</a> 类似，但只接受 Attr，不接受交替的键和值；这样它也能避免分配内存。
+<p>以下调用
+<pre>logger.LogAttrs(ctx, slog.LevelInfo, &quot;hello&quot;, slog.Int(&quot;count&quot;, 3))
+</pre>
+<p>是产生与以下调用相同输出的最高效方式：
+<pre>slog.InfoContext(ctx, &quot;hello&quot;, &quot;count&quot;, 3)
+</pre>
+<h3 id="hdr-Customizing_a_type_s_logging_behavior">自定义类型的日志行为</h3>
+<p>如果某个类型实现了 <a href="#LogValuer">LogValuer</a> 接口，记录日志时就会使用其 LogValue 方法返回的 <a href="#Value">Value</a>。可以借此控制该类型的值在日志中的呈现方式。例如，可以隐藏密码等机密信息，或将结构体字段组织到一个分组中。详情请参阅 <a href="#LogValuer">LogValuer</a> 下的示例。
+<p>LogValue 方法返回的 Value 本身可能又实现了 <a href="#LogValuer">LogValuer</a>。<a href="#Value.Resolve">Value.Resolve</a> 方法会谨慎处理这类情况，避免无限循环和无界递归。处理器作者及其他使用方可以优先使用 <a href="#Value.Resolve">Value.Resolve</a>，而不直接调用 LogValue。
+<h3 id="hdr-Wrapping_output_methods">封装输出方法</h3>
+<p>日志函数通过检查调用栈来确定应用程序中日志调用所在的文件名和行号。对于封装 slog 的函数，这可能产生错误的源码位置信息。例如，如果在 mylog.go 文件中定义以下函数：
+<pre>func Infof(logger *slog.Logger, format string, args ...any) {
+    logger.Info(fmt.Sprintf(format, args...))
+}
+</pre>
+<p>并在 main.go 中这样调用：
+<pre>Infof(slog.Default(), &quot;hello, %s&quot;, &quot;world&quot;)
+</pre>
+<p>那么 slog 会将源文件报告为 mylog.go，而不是 main.go。
+<p>正确的 Infof 实现应获取源码位置（pc），并将其传给 NewRecord。名为“wrapping”的包级示例中的 Infof 函数演示了具体做法。
+<h3 id="hdr-Working_with_Records">处理记录</h3>
+<p>有时 Handler 需要先修改 Record，再将其传给其他 Handler 或后端。Record 同时包含简单的公开字段（例如 Time、Level、Message）和间接引用状态（例如属性）的隐藏字段。这意味着修改 Record 的简单副本（例如调用 <a href="#Record.Add">Record.Add</a> 或 <a href="#Record.AddAttrs">Record.AddAttrs</a> 添加属性）可能会对原记录产生意料之外的影响。在修改 Record 之前，应使用 <a href="#Record.Clone">Record.Clone</a> 创建一个不与原记录共享状态的副本，或者使用 <a href="#NewRecord">NewRecord</a> 创建新记录，再通过 <a href="#Record.Attrs">Record.Attrs</a> 遍历旧属性来构建新记录的属性。
+<h3 id="hdr-Performance_considerations">性能注意事项</h3>
+<p>如果对应用程序进行性能分析后发现日志记录耗费了大量时间，下面的建议可能有所帮助。
+<p>如果许多日志行具有共同属性，可以使用 <a href="#Logger.With">Logger.With</a> 创建带有该属性的 Logger。内置处理器只会在调用 <a href="#Logger.With">Logger.With</a> 时将该属性格式化一次。<a href="#Handler">Handler</a> 接口的设计允许这种优化，良好的 Handler 实现也应利用这一点。
+<p>日志调用的参数始终会求值，即使日志事件最终被丢弃也是如此。如果可能，应延后计算，直到该值确实需要记录时才执行。例如，考虑以下调用：
+<pre>slog.Info("starting request", "url", r.URL.String())  // 可能在不必要时计算 String
+</pre>
+<p>即使日志记录器丢弃 Info 级别事件，URL.String 方法也会被调用。可以改为直接传入 URL：
+<pre>slog.Info("starting request", "url", &amp;r.URL) // 仅在需要时调用 URL.String
+</pre>
+<p>内置的 <a href="#TextHandler">TextHandler</a> 会调用其 String 方法，但只有启用了该日志事件才会调用。避免调用 String 还能保留底层值的结构。例如，<a href="#JSONHandler">JSONHandler</a> 会将解析后 URL 的各部分输出为 JSON 对象。如果既想避免预先承担 String 调用的开销，又不希望处理器可能查看值的结构，可以将该值包装为隐藏其 Marshal 方法的 fmt.Stringer 实现。
+<p>还可以使用 <a href="#LogValuer">LogValuer</a> 接口，避免在未启用的日志调用中执行不必要的工作。假设需要记录一个计算成本较高的值：
+<pre>slog.Debug(&quot;frobbing&quot;, &quot;value&quot;, computeExpensiveValue(arg))
+</pre>
+<p>即使未启用这条日志，computeExpensiveValue 仍会被调用。为避免这种情况，可以定义实现 LogValuer 的类型：
+<pre>type expensive struct { arg int }
+
+func (e expensive) LogValue() slog.Value {
+    return slog.AnyValue(computeExpensiveValue(e.arg))
+}
+</pre>
+<p>然后在日志调用中使用该类型的值：
+<pre>slog.Debug(&quot;frobbing&quot;, &quot;value&quot;, expensive{arg})
+</pre>
+<p>现在，只有启用这条日志时，才会调用 computeExpensiveValue。
+<p>内置处理器在调用 <a href="/pkg/io/#Writer.Write">io.Writer.Write</a> 之前会获取锁，确保每次完整写入且只写入一条 <a href="#Record">Record</a>。虽然每条日志记录都有时间戳，但内置处理器不会按时间对写出的记录排序。自定义处理器需要自行负责加锁和排序。
+<h3 id="hdr-Writing_a_handler">编写处理器</h3>
+<p>编写自定义处理器的指南，请参阅 <a href="/golang.org/s/slog-handler-guide">https://golang.org/s/slog-handler-guide</a>。
+
+				
+
+
+<div id="example__discardHandler" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (DiscardHandler)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (DiscardHandler)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log/slog"
+	"os"
+)
+
+func main() {
+	removeTime := func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		return a
+	}
+	// slog.TextHandler 可以输出日志消息。
+	logger1 := slog.New(slog.NewTextHandler(
+		os.Stdout,
+		&amp;slog.HandlerOptions{ReplaceAttr: removeTime},
+	))
+	logger1.Info("message 1")
+
+	// slog.DiscardHandler 会丢弃所有消息。
+	logger2 := slog.New(slog.DiscardHandler)
+	logger2.Info("message 2")
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO msg=&#34;message 1&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__wrapping" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Wrapping)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Wrapping)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"time"
+)
+
+// Infof 是封装 slog 的自定义日志函数示例。
+// 日志记录包含 Infof 调用方的源码位置。
+func Infof(logger *slog.Logger, format string, args ...any) {
+	if !logger.Enabled(context.Background(), slog.LevelInfo) {
+		return
+	}
+	var pcs [1]uintptr
+	runtime.Callers(2, pcs[:]) // 跳过 [Callers, Infof]
+	r := slog.NewRecord(time.Now(), slog.LevelInfo, fmt.Sprintf(format, args...), pcs[0])
+	_ = logger.Handler().Handle(context.Background(), r)
+}
+
+func main() {
+	replace := func(groups []string, a slog.Attr) slog.Attr {
+		// 移除时间。
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		// 从源码文件名中去掉目录。
+		if a.Key == slog.SourceKey {
+			source := a.Value.Any().(*slog.Source)
+			source.File = filepath.Base(source.File)
+		}
+		return a
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{AddSource: true, ReplaceAttr: replace}))
+	Infof(logger, "message, %s", "formatted")
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO source=example_wrap_test.go:43 msg=&#34;message, formatted&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#Debug">func Debug(msg string, args ...any)</a></dd>
+			
+				<dd><a href="#DebugContext">func DebugContext(ctx context.Context, msg string, args ...any)</a></dd>
+			
+				<dd><a href="#Error">func Error(msg string, args ...any)</a></dd>
+			
+				<dd><a href="#ErrorContext">func ErrorContext(ctx context.Context, msg string, args ...any)</a></dd>
+			
+				<dd><a href="#Info">func Info(msg string, args ...any)</a></dd>
+			
+				<dd><a href="#InfoContext">func InfoContext(ctx context.Context, msg string, args ...any)</a></dd>
+			
+				<dd><a href="#Log">func Log(ctx context.Context, level Level, msg string, args ...any)</a></dd>
+			
+				<dd><a href="#LogAttrs">func LogAttrs(ctx context.Context, level Level, msg string, attrs ...Attr)</a></dd>
+			
+				<dd><a href="#NewLogLogger">func NewLogLogger(h Handler, level Level) *log.Logger</a></dd>
+			
+				<dd><a href="#SetDefault">func SetDefault(l *Logger)</a></dd>
+			
+				<dd><a href="#Warn">func Warn(msg string, args ...any)</a></dd>
+			
+				<dd><a href="#WarnContext">func WarnContext(ctx context.Context, msg string, args ...any)</a></dd>
+			
+			
+				
+				<dd><a href="#Attr">type Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Any">func Any(key string, value any) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool">func Bool(key string, v bool) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Duration">func Duration(key string, v time.Duration) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64">func Float64(key string, v float64) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Group">func Group(key string, args ...any) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GroupAttrs">func GroupAttrs(key string, attrs ...Attr) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int">func Int(key string, value int) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64">func Int64(key string, value int64) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String">func String(key, value string) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Time">func Time(key string, v time.Time) Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64">func Uint64(key string, v uint64) Attr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Attr.Equal">func (a Attr) Equal(b Attr) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Attr.String">func (a Attr) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Handler">type Handler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#HandlerOptions">type HandlerOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#JSONHandler">type JSONHandler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewJSONHandler">func NewJSONHandler(w io.Writer, opts *HandlerOptions) *JSONHandler</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#JSONHandler.Enabled">func (h *JSONHandler) Enabled(_ context.Context, level Level) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JSONHandler.Handle">func (h *JSONHandler) Handle(_ context.Context, r Record) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JSONHandler.WithAttrs">func (h *JSONHandler) WithAttrs(attrs []Attr) Handler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#JSONHandler.WithGroup">func (h *JSONHandler) WithGroup(name string) Handler</a></dd>
+				
+			
+				
+				<dd><a href="#Kind">type Kind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Kind.String">func (k Kind) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Level">type Level</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SetLogLoggerLevel">func SetLogLoggerLevel(level Level) (oldLevel Level)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.AppendText">func (l Level) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.Level">func (l Level) Level() Level</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.MarshalJSON">func (l Level) MarshalJSON() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.MarshalText">func (l Level) MarshalText() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.String">func (l Level) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.UnmarshalJSON">func (l *Level) UnmarshalJSON(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Level.UnmarshalText">func (l *Level) UnmarshalText(data []byte) error</a></dd>
+				
+			
+				
+				<dd><a href="#LevelVar">type LevelVar</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.AppendText">func (v *LevelVar) AppendText(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.Level">func (v *LevelVar) Level() Level</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.MarshalText">func (v *LevelVar) MarshalText() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.Set">func (v *LevelVar) Set(l Level)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.String">func (v *LevelVar) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LevelVar.UnmarshalText">func (v *LevelVar) UnmarshalText(data []byte) error</a></dd>
+				
+			
+				
+				<dd><a href="#Leveler">type Leveler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LogValuer">type LogValuer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Logger">type Logger</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Default">func Default() *Logger</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(h Handler) *Logger</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#With">func With(args ...any) *Logger</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Debug">func (l *Logger) Debug(msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.DebugContext">func (l *Logger) DebugContext(ctx context.Context, msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Enabled">func (l *Logger) Enabled(ctx context.Context, level Level) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Error">func (l *Logger) Error(msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.ErrorContext">func (l *Logger) ErrorContext(ctx context.Context, msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Handler">func (l *Logger) Handler() Handler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Info">func (l *Logger) Info(msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.InfoContext">func (l *Logger) InfoContext(ctx context.Context, msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Log">func (l *Logger) Log(ctx context.Context, level Level, msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.LogAttrs">func (l *Logger) LogAttrs(ctx context.Context, level Level, msg string, attrs ...Attr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.Warn">func (l *Logger) Warn(msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.WarnContext">func (l *Logger) WarnContext(ctx context.Context, msg string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.With">func (l *Logger) With(args ...any) *Logger</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Logger.WithGroup">func (l *Logger) WithGroup(name string) *Logger</a></dd>
+				
+			
+				
+				<dd><a href="#MultiHandler">type MultiHandler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMultiHandler">func NewMultiHandler(handlers ...Handler) *MultiHandler</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiHandler.Enabled">func (h *MultiHandler) Enabled(ctx context.Context, l Level) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiHandler.Handle">func (h *MultiHandler) Handle(ctx context.Context, r Record) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiHandler.WithAttrs">func (h *MultiHandler) WithAttrs(attrs []Attr) Handler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiHandler.WithGroup">func (h *MultiHandler) WithGroup(name string) Handler</a></dd>
+				
+			
+				
+				<dd><a href="#Record">type Record</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRecord">func NewRecord(t time.Time, level Level, msg string, pc uintptr) Record</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.Add">func (r *Record) Add(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.AddAttrs">func (r *Record) AddAttrs(attrs ...Attr)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.Attrs">func (r Record) Attrs(f func(Attr) bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.Clone">func (r Record) Clone() Record</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.NumAttrs">func (r Record) NumAttrs() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Record.Source">func (r Record) Source() *Source</a></dd>
+				
+			
+				
+				<dd><a href="#Source">type Source</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TextHandler">type TextHandler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTextHandler">func NewTextHandler(w io.Writer, opts *HandlerOptions) *TextHandler</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TextHandler.Enabled">func (h *TextHandler) Enabled(_ context.Context, level Level) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TextHandler.Handle">func (h *TextHandler) Handle(_ context.Context, r Record) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TextHandler.WithAttrs">func (h *TextHandler) WithAttrs(attrs []Attr) Handler</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TextHandler.WithGroup">func (h *TextHandler) WithGroup(name string) Handler</a></dd>
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AnyValue">func AnyValue(v any) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BoolValue">func BoolValue(v bool) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DurationValue">func DurationValue(v time.Duration) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float64Value">func Float64Value(v float64) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GroupValue">func GroupValue(as ...Attr) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int64Value">func Int64Value(v int64) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IntValue">func IntValue(v int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringValue">func StringValue(value string) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TimeValue">func TimeValue(v time.Time) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint64Value">func Uint64Value(v uint64) Value</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Any">func (v Value) Any() any</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Bool">func (v Value) Bool() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Duration">func (v Value) Duration() time.Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Equal">func (v Value) Equal(w Value) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Float64">func (v Value) Float64() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Group">func (v Value) Group() []Attr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Int64">func (v Value) Int64() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Kind">func (v Value) Kind() Kind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.LogValuer">func (v Value) LogValuer() LogValuer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Resolve">func (v Value) Resolve() (rv Value)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.String">func (v Value) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Time">func (v Value) Time() time.Time</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Uint64">func (v Value) Uint64() uint64</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Group">Group</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_GroupAttrs">GroupAttrs</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_HandlerOptions_customLevels">HandlerOptions (CustomLevels)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Handler_levelHandler">Handler (LevelHandler)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LogValuer_group">LogValuer (Group)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LogValuer_secret">LogValuer (Secret)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MultiHandler">MultiHandler</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SetLogLoggerLevel_log">SetLogLoggerLevel (Log)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SetLogLoggerLevel_slog">SetLogLoggerLevel (Slog)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__discardHandler">包 (DiscardHandler)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__wrapping">包 (Wrapping)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/log/slog/attr.go">attr.go</a>
+			
+				<a href="/src/log/slog/doc.go">doc.go</a>
+			
+				<a href="/src/log/slog/handler.go">handler.go</a>
+			
+				<a href="/src/log/slog/json_handler.go">json_handler.go</a>
+			
+				<a href="/src/log/slog/level.go">level.go</a>
+			
+				<a href="/src/log/slog/logger.go">logger.go</a>
+			
+				<a href="/src/log/slog/multi_handler.go">multi_handler.go</a>
+			
+				<a href="/src/log/slog/record.go">record.go</a>
+			
+				<a href="/src/log/slog/text_handler.go">text_handler.go</a>
+			
+				<a href="/src/log/slog/value.go">value.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>“内置”属性的键。
+
+				<pre>const (
+    <span class="comment">// TimeKey 是内置处理器用于记录日志方法调用</span>
+    <span class="comment">// 时间的键。对应的 Value 为 [time.Time]。</span>
+    <span id="TimeKey">TimeKey</span> = &#34;time&#34;
+    <span class="comment">// LevelKey 是内置处理器用于记录日志调用</span>
+    <span class="comment">// 级别的键。对应的值为 [Level]。</span>
+    <span id="LevelKey">LevelKey</span> = &#34;level&#34;
+    <span class="comment">// MessageKey 是内置处理器用于记录日志调用</span>
+    <span class="comment">// 消息的键。对应的值为字符串。</span>
+    <span id="MessageKey">MessageKey</span> = &#34;msg&#34;
+    <span class="comment">// SourceKey 是内置处理器用于记录日志调用所在源文件</span>
+    <span class="comment">// 和行号的键。对应的值为 *[Source]。</span>
+    <span id="SourceKey">SourceKey</span> = &#34;source&#34;
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="Debug">func <a href="/src/log/slog/logger.go?s=9289:9324#L280">Debug</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Debug(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Debug 调用默认日志记录器的 <a href="#Logger.Debug">Logger.Debug</a>。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#DebugContext">DebugContext</a>。
+
+			
+		
+			
+			<h2 id="DebugContext">func <a href="/src/log/slog/logger.go?s=9460:9523#L285">DebugContext</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func DebugContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>DebugContext 调用默认日志记录器的 <a href="#Logger.DebugContext">Logger.DebugContext</a>。
+
+			
+		
+			
+			<h2 id="Error">func <a href="/src/log/slog/logger.go?s=10561:10596#L316">Error</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Error(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Error 调用默认日志记录器的 <a href="#Logger.Error">Logger.Error</a>。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#ErrorContext">ErrorContext</a>。
+
+			
+		
+			
+			<h2 id="ErrorContext">func <a href="/src/log/slog/logger.go?s=10732:10795#L321">ErrorContext</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func ErrorContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>ErrorContext 调用默认日志记录器的 <a href="#Logger.ErrorContext">Logger.ErrorContext</a>。
+
+			
+		
+			
+			<h2 id="Info">func <a href="/src/log/slog/logger.go?s=9716:9750#L292">Info</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Info(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Info 调用默认日志记录器的 <a href="#Logger.Info">Logger.Info</a>。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#InfoContext">InfoContext</a>。
+
+			
+		
+			
+			<h2 id="InfoContext">func <a href="/src/log/slog/logger.go?s=9883:9945#L297">InfoContext</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func InfoContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>InfoContext 调用默认日志记录器的 <a href="#Logger.InfoContext">Logger.InfoContext</a>。
+
+			
+		
+			
+			<h2 id="Log">func <a href="/src/log/slog/logger.go?s=10896:10963#L326">Log</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Log(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Log 调用默认日志记录器的 <a href="#Logger.Log">Logger.Log</a>。
+
+			
+		
+			
+			<h2 id="LogAttrs">func <a href="/src/log/slog/logger.go?s=11069:11143#L331">LogAttrs</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func LogAttrs(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>, msg <a href="/pkg/builtin/#string">string</a>, attrs ...<a href="#Attr">Attr</a>)</pre>
+			<p>LogAttrs 调用默认日志记录器的 <a href="#Logger.LogAttrs">Logger.LogAttrs</a>。
+
+			
+		
+			
+			<h2 id="NewLogLogger">func <a href="/src/log/slog/logger.go?s=5348:5401#L164">NewLogLogger</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func NewLogLogger(h <a href="#Handler">Handler</a>, level <a href="#Level">Level</a>) *<a href="/pkg/log/">log</a>.<a href="/pkg/log/#Logger">Logger</a></pre>
+			<p>NewLogLogger 返回一个新的 <a href="/pkg/log/#Logger">log.Logger</a>，每次调用其 Output 方法都会向指定处理器分发一条 Record。该日志记录器在旧的 log API 与新的结构化日志处理器之间起桥接作用。
+
+			
+		
+			
+			<h2 id="SetDefault">func <a href="/src/log/slog/logger.go?s=1898:1924#L52">SetDefault</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func SetDefault(l *<a href="#Logger">Logger</a>)</pre>
+			<p>SetDefault 将 l 设为默认 <a href="#Logger">Logger</a>，供 <a href="#Info">Info</a>、<a href="#Debug">Debug</a> 等包级函数使用。调用之后，log 包默认 Logger 的输出（例如 <a href="/pkg/log/#Print">log.Print</a> 等）会通过 l 的 Handler 记录，级别由 <a href="#SetLogLoggerLevel">SetLogLoggerLevel</a> 控制。
+
+			
+		
+			
+			<h2 id="Warn">func <a href="/src/log/slog/logger.go?s=10137:10171#L304">Warn</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Warn(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Warn 调用默认日志记录器的 <a href="#Logger.Warn">Logger.Warn</a>。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#WarnContext">WarnContext</a>。
+
+			
+		
+			
+			<h2 id="WarnContext">func <a href="/src/log/slog/logger.go?s=10304:10366#L309">WarnContext</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func WarnContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>WarnContext 调用默认日志记录器的 <a href="#Logger.WarnContext">Logger.WarnContext</a>。
+
+			
+		
+		
+			
+			<h2 id="Attr">type <a href="/src/log/slog/attr.go?s=226:273#L2">Attr</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Attr 是一个键值对。
+
+			<pre>type Attr struct {
+<span id="Attr.Key"></span>    Key   <a href="/pkg/builtin/#string">string</a>
+<span id="Attr.Value"></span>    Value <a href="#Value">Value</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Any">func <a href="/src/log/slog/attr.go?s=2300:2336#L83">Any</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Any(key <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#any">any</a>) <a href="#Attr">Attr</a></pre>
+				<p>Any 为提供的值返回一个 Attr。值的处理方式请参阅 <a href="#AnyValue">AnyValue</a>。
+
+				
+			
+				<h3 id="Bool">func <a href="/src/log/slog/attr.go?s=963:997#L34">Bool</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Bool(key <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Attr">Attr</a></pre>
+				<p>Bool 返回表示 bool 值的 Attr。
+
+				
+			
+				<h3 id="Duration">func <a href="/src/log/slog/attr.go?s=1244:1291#L45">Duration</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Duration(key <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>) <a href="#Attr">Attr</a></pre>
+				<p>Duration 返回表示 <a href="/pkg/time/#Duration">time.Duration</a> 的 Attr。
+
+				
+			
+				<h3 id="Float64">func <a href="/src/log/slog/attr.go?s=846:886#L29">Float64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Float64(key <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/builtin/#float64">float64</a>) <a href="#Attr">Attr</a></pre>
+				<p>Float64 返回表示浮点数的 Attr。
+
+				
+			
+				<h3 id="Group">func <a href="/src/log/slog/attr.go?s=1653:1693#L56">Group</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Group(key <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) <a href="#Attr">Attr</a></pre>
+				<p>Group 返回表示分组 <a href="#Value">Value</a> 的 Attr。第一个参数是键；其余参数按 <a href="#Logger.Log">Logger.Log</a> 的方式转换为 Attr。
+<p>使用 Group 可以将日志行中的多个键值对归到同一个键之下；也可以将其作为 LogValue 的返回结果，把单个值记录为多个 Attr。
+
+				
+
+
+<div id="example_Group" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log/slog&#34;
+	&#34;net/http&#34;
+	&#34;os&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	r, _ := http.NewRequest(&#34;GET&#34;, &#34;localhost&#34;, nil)
+	// ...
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+					return slog.Attr{}
+				}
+				return a
+			},
+		}),
+	)
+	logger.Info(&#34;finished&#34;,
+		slog.Group(&#34;req&#34;,
+			slog.String(&#34;method&#34;, r.Method),
+			slog.String(&#34;url&#34;, r.URL.String())),
+		slog.Int(&#34;status&#34;, http.StatusOK),
+		slog.Duration(&#34;duration&#34;, time.Second))
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO msg=finished req.method=GET req.url=localhost status=200 duration=1s
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="GroupAttrs">func <a href="/src/log/slog/attr.go?s=1931:1978#L65">GroupAttrs</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func GroupAttrs(key <a href="/pkg/builtin/#string">string</a>, attrs ...<a href="#Attr">Attr</a>) <a href="#Attr">Attr</a></pre>
+				<p>GroupAttrs 返回一个 Attr，表示由给定 Attr 组成的分组 <a href="#Value">Value</a>。
+<p>GroupAttrs 是 <a href="#Group">Group</a> 的更高效版本，只接受 <a href="#Attr">Attr</a> 值。
+
+				
+
+
+<div id="example_GroupAttrs" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"log/slog"
+	"net/http"
+	"os"
+)
+
+func main() {
+	r, _ := http.NewRequest("POST", "localhost", http.NoBody)
+	// ...
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{
+			Level: slog.LevelDebug,
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+					return slog.Attr{}
+				}
+				return a
+			},
+		}),
+	)
+
+	// 使用 []slog.Attr 累积属性。
+	attrs := []slog.Attr{slog.String("method", r.Method)}
+	attrs = append(attrs, slog.String("url", r.URL.String()))
+
+	if r.Method == "POST" {
+		attrs = append(attrs, slog.Int("content-length", int(r.ContentLength)))
+	}
+
+	// 将属性归入一个键下。
+	logger.LogAttrs(context.Background(), slog.LevelInfo,
+		"finished",
+		slog.Int("status", http.StatusOK),
+		slog.GroupAttrs("req", attrs...),
+	)
+
+	// 键为空的分组会被内联。
+	logger.LogAttrs(context.Background(), slog.LevelInfo,
+		"finished",
+		slog.Int("status", http.StatusOK),
+		slog.GroupAttrs("", attrs...),
+	)
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO msg=finished status=200 req.method=POST req.url=localhost req.content-length=0
+level=INFO msg=finished status=200 method=POST url=localhost content-length=0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Int">func <a href="/src/log/slog/attr.go?s=597:633#L19">Int</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Int(key <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int">int</a>) <a href="#Attr">Attr</a></pre>
+				<p>Int 将 int 转换为 int64，并返回包含该值的 Attr。
+
+				
+			
+				<h3 id="Int64">func <a href="/src/log/slog/attr.go?s=439:479#L13">Int64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Int64(key <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/builtin/#int64">int64</a>) <a href="#Attr">Attr</a></pre>
+				<p>Int64 返回表示 int64 值的 Attr。
+
+				
+			
+				<h3 id="String">func <a href="/src/log/slog/attr.go?s=321:356#L8">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func String(key, value <a href="/pkg/builtin/#string">string</a>) <a href="#Attr">Attr</a></pre>
+				<p>String 返回表示字符串值的 Attr。
+
+				
+			
+				<h3 id="Time">func <a href="/src/log/slog/attr.go?s=1116:1155#L40">Time</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Time(key <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="#Attr">Attr</a></pre>
+				<p>Time 返回表示 <a href="/pkg/time/#Time">time.Time</a> 的 Attr，并丢弃单调时钟部分。
+
+				
+			
+				<h3 id="Uint64">func <a href="/src/log/slog/attr.go?s=712:750#L24">Uint64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Uint64(key <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/builtin/#uint64">uint64</a>) <a href="#Attr">Attr</a></pre>
+				<p>Uint64 返回表示 uint64 值的 Attr。
+
+				
+			
+
+			
+				<h3 id="Attr.Equal">func (Attr) <a href="/src/log/slog/attr.go?s=2438:2470#L88">Equal</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (a <a href="#Attr">Attr</a>) Equal(b <a href="#Attr">Attr</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 a 和 b 的键与值是否都相等。
+
+				
+			
+				<h3 id="Attr.String">func (Attr) <a href="/src/log/slog/attr.go?s=2525:2554#L92">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (a <a href="#Attr">Attr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Handler">type <a href="/src/log/slog/handler.go?s=925:3597#L23">Handler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Handler 处理 Logger 产生的日志记录。
+<p>典型的处理器可能将日志记录打印到标准错误，写入文件或数据库，或者为其添加额外属性后传给另一个处理器。
+<p>Handler 的任意方法都可能与自身或其他方法并发调用。Handler 负责管理这种并发访问。
+<p>slog 包的使用者不应直接调用 Handler 方法，而应使用 <a href="#Logger">Logger</a> 的方法。
+<p>实现自定义处理器之前，请参阅 <a href="/s/slog-handler-guide">https://go.dev/s/slog-handler-guide</a>。
+
+			<pre>type Handler interface {
+    <span class="comment">// Enabled 报告处理器是否处理给定级别的记录。</span>
+    <span class="comment">// 处理器忽略低于其级别阈值的记录。</span>
+    <span class="comment">// 它在处理任何参数之前就会被调用，</span>
+    <span class="comment">// 以便在应丢弃日志事件时节省工作。</span>
+    <span class="comment">// 如果由 Logger 方法调用，第一个参数就是传给</span>
+    <span class="comment">// 该方法的上下文；如果传入 nil，</span>
+    <span class="comment">// 或该方法不接受上下文，则使用 context.Background()。</span>
+    <span class="comment">// 传入上下文是为了让 Enabled 可以利用其中的值</span>
+    <span class="comment">// 作出决定。</span>
+    Enabled(<a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, <a href="#Level">Level</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Handle 处理 Record。</span>
+    <span class="comment">// 只有 Enabled 返回 true 时才会调用它。</span>
+    <span class="comment">// Context 参数的含义与 Enabled 相同。</span>
+    <span class="comment">// 它的唯一用途是让 Handler 可以访问上下文中的值。</span>
+    <span class="comment">// 取消上下文不应影响记录的处理。</span>
+    <span class="comment">// （例如，调试与取消有关的问题时，</span>
+    <span class="comment">// 可能仍然需要日志消息。）</span>
+    <span class="comment">//</span>
+    <span class="comment">// 产生输出的 Handle 方法应遵守以下规则：</span>
+    <span class="comment">//   - 如果 r.Time 是零值时间，则忽略时间。</span>
+    <span class="comment">//   - 如果 r.PC 为零，则忽略它。</span>
+    <span class="comment">//   - 应解析 Attr 的值。</span>
+    <span class="comment">//   - 如果 Attr 的键和值都是零值，则忽略该 Attr。</span>
+    <span class="comment">//     可以通过 attr.Equal(Attr{}) 检查。</span>
+    <span class="comment">//   - 如果组的键为空，则内联该组的 Attr。</span>
+    <span class="comment">//   - 如果组没有 Attr（即使其键非空），</span>
+    <span class="comment">//     也忽略该组。</span>
+    <span class="comment">//</span>
+    <span class="comment">// [Logger] 会丢弃 Handle 返回的所有错误。若要</span>
+    <span class="comment">// 处理 Handler 的错误，请封装 Handle 方法。</span>
+    Handle(<a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, <a href="#Record">Record</a>) <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// WithAttrs 返回新的 Handler，其属性包含</span>
+    <span class="comment">// 接收者的属性和传入的属性。</span>
+    <span class="comment">// Handler 拥有该切片，可以保留、修改或丢弃它。</span>
+    WithAttrs(attrs []<a href="#Attr">Attr</a>) <a href="#Handler">Handler</a>
+
+    <span class="comment">// WithGroup 返回新的 Handler，将给定分组追加到</span>
+    <span class="comment">// 接收者已有的分组之后。</span>
+    <span class="comment">// 后续所有属性的键，无论通过 With 添加还是来自</span>
+    <span class="comment">// Record，都应以这些组名组成的序列进行限定。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 具体限定方式由 Handler 决定，只要</span>
+    <span class="comment">// 本 Handler 的属性键与组名序列不同的其他 Handler</span>
+    <span class="comment">// 的属性键有所区别即可。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Handler 应将 WithGroup 视为开启一个 Attr 分组，</span>
+    <span class="comment">// 并在日志事件结束时关闭该分组。也就是说，</span>
+    <span class="comment">//</span>
+    <span class="comment">//     logger.WithGroup("s").LogAttrs(ctx, level, msg, slog.Int("a", 1), slog.Int("b", 2))</span>
+    <span class="comment">//</span>
+    <span class="comment">// 应表现得如同</span>
+    <span class="comment">//</span>
+    <span class="comment">//     logger.LogAttrs(ctx, level, msg, slog.Group("s", slog.Int("a", 1), slog.Int("b", 2)))</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果名称为空，WithGroup 返回接收者自身。</span>
+    WithGroup(name <a href="/pkg/builtin/#string">string</a>) <a href="#Handler">Handler</a>
+}</pre>
+
+			
+
+			
+				<p>DiscardHandler 丢弃所有日志输出。对于所有 Level，DiscardHandler.Enabled 都返回 false。
+
+				<pre>var <span id="DiscardHandler">DiscardHandler</span> <a href="#Handler">Handler</a> = discardHandler{}</pre>
+			
+
+			
+
+
+<div id="example_Handler_levelHandler" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (LevelHandler)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (LevelHandler)</span></p>
+    <p>此示例展示如何使用 LevelHandler 更改现有 Handler 的级别，同时保留其其他行为。
+
+示例通过提高日志级别来减少日志记录器的输出。
+
+另一种常见用法是在执行怀疑存在错误的程序片段期间，降低日志级别（例如降至 LevelDebug）。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"log/slog"
+	"os"
+)
+
+// LevelHandler 封装一个 Handler，提供 Enabled 方法，
+// 对低于最低级别的日志返回 false。
+type LevelHandler struct {
+	level   slog.Leveler
+	handler slog.Handler
+}
+
+// NewLevelHandler 返回具有给定级别的 LevelHandler。
+// 除 Enabled 外，所有方法都委托给 h。
+func NewLevelHandler(level slog.Leveler, h slog.Handler) *LevelHandler {
+	// 优化：避免形成 LevelHandler 链。
+	if lh, ok := h.(*LevelHandler); ok {
+		h = lh.Handler()
+	}
+	return &amp;LevelHandler{level, h}
+}
+
+// Enabled 实现 Handler.Enabled，报告
+// level 是否至少达到 h 的级别。
+func (h *LevelHandler) Enabled(_ context.Context, level slog.Level) bool {
+	return level &gt;= h.level.Level()
+}
+
+// Handle 实现 Handler.Handle。
+func (h *LevelHandler) Handle(ctx context.Context, r slog.Record) error {
+	return h.handler.Handle(ctx, r)
+}
+
+// WithAttrs 实现 Handler.WithAttrs。
+func (h *LevelHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return NewLevelHandler(h.level, h.handler.WithAttrs(attrs))
+}
+
+// WithGroup 实现 Handler.WithGroup。
+func (h *LevelHandler) WithGroup(name string) slog.Handler {
+	return NewLevelHandler(h.level, h.handler.WithGroup(name))
+}
+
+// Handler 返回 h 所封装的 Handler。
+func (h *LevelHandler) Handler() slog.Handler {
+	return h.handler
+}
+
+// 此示例展示如何用 LevelHandler 更改现有 Handler
+// 的级别，同时保留其其他行为。
+//
+// 此示例演示通过提高日志级别来减少日志记录器的
+// 输出。
+//
+// 另一种常见用法是在执行怀疑存在错误的程序片段期间，
+// 降低日志级别（例如降至 LevelDebug）。
+func main() {
+	removeTime := func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		return a
+	}
+	th := slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{ReplaceAttr: removeTime})
+	logger := slog.New(NewLevelHandler(slog.LevelWarn, th))
+	logger.Info("not printed")
+	logger.Warn("printed")
+
+}
+</textarea></div>
+        <div class="output"><pre>level=WARN msg=printed
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="HandlerOptions">type <a href="/src/log/slog/handler.go?s=4823:6518#L125">HandlerOptions</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>HandlerOptions 是 <a href="#TextHandler">TextHandler</a> 或 <a href="#JSONHandler">JSONHandler</a> 的配置选项。HandlerOptions 的零值全部采用默认设置。
+
+			<pre>type HandlerOptions struct {
+<span id="HandlerOptions.AddSource"></span>    <span class="comment">// AddSource 使处理器计算日志语句的源码位置，</span>
+    <span class="comment">// 并在输出中添加 SourceKey 属性。</span>
+    AddSource <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="HandlerOptions.Level"></span>    <span class="comment">// Level 指定要记录的最低日志级别。</span>
+    <span class="comment">// 处理器丢弃更低级别的记录。</span>
+    <span class="comment">// 如果 Level 为 nil，处理器使用 LevelInfo。</span>
+    <span class="comment">// 处理器对每条处理的记录调用 Level.Level；</span>
+    <span class="comment">// 若要动态调整最低级别，请使用 LevelVar。</span>
+    Level <a href="#Leveler">Leveler</a>
+
+<span id="HandlerOptions.ReplaceAttr"></span>    <span class="comment">// ReplaceAttr 在记录每个非分组属性之前被调用，以改写该属性。</span>
+    <span class="comment">// 此时，属性值已经解析完成（参见 [Value.Resolve]）。</span>
+    <span class="comment">// 如果 ReplaceAttr 返回零值 Attr，则丢弃该属性。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 键为 "time"、"level"、"source" 和 "msg" 的内置属性</span>
+    <span class="comment">// 都会传给此函数；例外是 time 为零值时会被省略，</span>
+    <span class="comment">// AddSource 为 false 时 source 会被省略。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 第一个参数列出当前已开启且包含此 Attr 的所有分组。</span>
+    <span class="comment">// 不得保留或修改该列表。ReplaceAttr 不会针对 Group 属性本身调用，</span>
+    <span class="comment">// 只会针对其中的内容调用。例如，以下属性</span>
+    <span class="comment">// 列表</span>
+    <span class="comment">//</span>
+    <span class="comment">//     Int("a", 1), Group("g", Int("b", 2)), Int("c", 3)</span>
+    <span class="comment">//</span>
+    <span class="comment">// 会依次使用下列参数调用 ReplaceAttr：</span>
+    <span class="comment">//</span>
+    <span class="comment">//     nil, Int("a", 1)</span>
+    <span class="comment">//     []string{"g"}, Int("b", 2)</span>
+    <span class="comment">//     nil, Int("c", 3)</span>
+    <span class="comment">//</span>
+    <span class="comment">// ReplaceAttr 可用于更改内置属性的默认键、</span>
+    <span class="comment">// 转换类型（例如，将 `time.Time` 替换为</span>
+    <span class="comment">// 自 Unix 纪元以来的整数秒数）、清理个人信息，</span>
+    <span class="comment">// 或从输出中移除属性。</span>
+    ReplaceAttr func(groups []<a href="/pkg/builtin/#string">string</a>, a <a href="#Attr">Attr</a>) <a href="#Attr">Attr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_HandlerOptions_customLevels" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (CustomLevels)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (CustomLevels)</span></p>
+    <p>此示例演示自定义日志级别及其名称。它在默认日志级别之外引入 Trace、Notice 和 Emergency 级别。ReplaceAttr 同时更改标准日志级别和自定义日志级别的打印方式。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"context"
+	"log/slog"
+	"os"
+)
+
+func main() {
+	// 自定义日志包导出的常量。
+	const (
+		LevelTrace     = slog.Level(-8)
+		LevelDebug     = slog.LevelDebug
+		LevelInfo      = slog.LevelInfo
+		LevelNotice    = slog.Level(2)
+		LevelWarning   = slog.LevelWarn
+		LevelError     = slog.LevelError
+		LevelEmergency = slog.Level(12)
+	)
+
+	th := slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{
+		// 设置自定义级别，以显示所有日志输出。默认值为
+		// LevelInfo，会丢弃 Debug 和 Trace 日志。
+		Level: LevelTrace,
+
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			// 从输出中移除时间，以使测试输出可预测。
+			if a.Key == slog.TimeKey {
+				return slog.Attr{}
+			}
+
+			// 自定义级别键的名称和输出字符串，包括
+			// 自定义级别值。
+			if a.Key == slog.LevelKey {
+				// 将级别键从 "level" 重命名为 "sev"。
+				a.Key = "sev"
+
+				// 处理自定义级别值。
+				level := a.Value.Any().(slog.Level)
+
+				// 也可以从映射或其他结构中查找名称，
+				// 但这里演示使用 switch 语句重命名级别。
+				// 为获得最高性能，应将字符串值定义为常量，但此
+				// 示例为了便于阅读，直接使用字符串。
+				switch {
+				case level &lt; LevelDebug:
+					a.Value = slog.StringValue("TRACE")
+				case level &lt; LevelInfo:
+					a.Value = slog.StringValue("DEBUG")
+				case level &lt; LevelNotice:
+					a.Value = slog.StringValue("INFO")
+				case level &lt; LevelWarning:
+					a.Value = slog.StringValue("NOTICE")
+				case level &lt; LevelError:
+					a.Value = slog.StringValue("WARNING")
+				case level &lt; LevelEmergency:
+					a.Value = slog.StringValue("ERROR")
+				default:
+					a.Value = slog.StringValue("EMERGENCY")
+				}
+			}
+
+			return a
+		},
+	})
+
+	logger := slog.New(th)
+	ctx := context.Background()
+	logger.Log(ctx, LevelEmergency, "missing pilots")
+	logger.Error("failed to start engines", "err", "missing fuel")
+	logger.Warn("falling back to default value")
+	logger.Log(ctx, LevelNotice, "all systems are running")
+	logger.Info("initiating launch")
+	logger.Debug("starting background job")
+	logger.Log(ctx, LevelTrace, "button clicked")
+
+}
+</textarea></div>
+        <div class="output"><pre>sev=EMERGENCY msg=&#34;missing pilots&#34;
+sev=ERROR msg=&#34;failed to start engines&#34; err=&#34;missing fuel&#34;
+sev=WARNING msg=&#34;falling back to default value&#34;
+sev=NOTICE msg=&#34;all systems are running&#34;
+sev=INFO msg=&#34;initiating launch&#34;
+sev=DEBUG msg=&#34;starting background job&#34;
+sev=TRACE msg=&#34;button clicked&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="JSONHandler">type <a href="/src/log/slog/json_handler.go?s=445:488#L14">JSONHandler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>JSONHandler 是一种 <a href="#Handler">Handler</a>，将 Record 作为按行分隔的 JSON 对象写入 <a href="/pkg/io/#Writer">io.Writer</a>。
+
+			<pre>type JSONHandler struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewJSONHandler">func <a href="/src/log/slog/json_handler.go?s=627:694#L21">NewJSONHandler</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func NewJSONHandler(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, opts *<a href="#HandlerOptions">HandlerOptions</a>) *<a href="#JSONHandler">JSONHandler</a></pre>
+				<p>NewJSONHandler 使用给定选项创建向 w 写入的 <a href="#JSONHandler">JSONHandler</a>。如果 opts 为 nil，则使用默认选项。
+
+				
+			
+
+			
+				<h3 id="JSONHandler.Enabled">func (*JSONHandler) <a href="/src/log/slog/json_handler.go?s=991:1057#L37">Enabled</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#JSONHandler">JSONHandler</a>) Enabled(_ <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Enabled 报告处理器是否处理给定级别的记录。处理器忽略低于其级别阈值的记录。
+
+				
+			
+				<h3 id="JSONHandler.Handle">func (*JSONHandler) <a href="/src/log/slog/json_handler.go?s=2669:2732#L79">Handle</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#JSONHandler">JSONHandler</a>) Handle(_ <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, r <a href="#Record">Record</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Handle 将参数 <a href="#Record">Record</a> 格式化为单行 JSON 对象。
+<p>如果 Record 的时间为零值，则省略时间。否则，键为 &quot;time&quot;，值按 json.Marshal 的方式输出。
+<p>级别的键为 &quot;level&quot;，值为调用 <a href="#Level.String">Level.String</a> 的结果。
+<p>如果设置了 AddSource 选项，且源码信息可用，则键为 &quot;source&quot;，值为一条 <a href="#Source">Source</a> 类型的记录。
+<p>消息的键为 &quot;msg&quot;。
+<p>若要修改这些属性或其他属性，或将其从输出中移除，请使用 <a href="#HandlerOptions.ReplaceAttr">HandlerOptions.ReplaceAttr</a>。
+<p>值的格式化方式与设置了 SetEscapeHTML(false) 的 <a href="/pkg/encoding/json/#Encoder">encoding/json.Encoder</a> 相同，但有两个例外。
+<p>第一，Value 类型为 error 的 Attr 会通过调用其 Error 方法格式化为字符串。只有 Attr 中的错误会受到这种特殊处理；对于嵌入结构体、切片、映射或其他数据结构中的错误，仍由 <a href="/pkg/encoding/json/">encoding/json</a> 包处理。
+<p>第二，编码失败不会导致 Handle 返回错误，而是将错误消息格式化为字符串。
+<p>每次 Handle 调用都会产生一次对 io.Writer.Write 的调用，且这些调用串行执行。
+
+				
+			
+				<h3 id="JSONHandler.WithAttrs">func (*JSONHandler) <a href="/src/log/slog/json_handler.go?s=1209:1262#L43">WithAttrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#JSONHandler">JSONHandler</a>) WithAttrs(attrs []<a href="#Attr">Attr</a>) <a href="#Handler">Handler</a></pre>
+				<p>WithAttrs 返回一个新的 <a href="#JSONHandler">JSONHandler</a>，其属性由 h 的属性后接 attrs 组成。
+
+				
+			
+				<h3 id="JSONHandler.WithGroup">func (*JSONHandler) <a href="/src/log/slog/json_handler.go?s=1338:1390#L47">WithGroup</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#JSONHandler">JSONHandler</a>) WithGroup(name <a href="/pkg/builtin/#string">string</a>) <a href="#Handler">Handler</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Kind">type <a href="/src/log/slog/value.go?s=1373:1386#L34">Kind</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Kind 表示 <a href="#Value">Value</a> 的值类别。
+
+			<pre>type Kind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="KindAny">KindAny</span> <a href="#Kind">Kind</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="KindBool">KindBool</span>
+    <span id="KindDuration">KindDuration</span>
+    <span id="KindFloat64">KindFloat64</span>
+    <span id="KindInt64">KindInt64</span>
+    <span id="KindString">KindString</span>
+    <span id="KindTime">KindTime</span>
+    <span id="KindUint64">KindUint64</span>
+    <span id="KindGroup">KindGroup</span>
+    <span id="KindLogValuer">KindLogValuer</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Kind.String">func (Kind) <a href="/src/log/slog/value.go?s=1797:1826#L65">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (k <a href="#Kind">Kind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Level">type <a href="/src/log/slog/level.go?s=362:376#L7">Level</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Level 表示日志事件的重要程度或严重程度。级别越高，事件越重要或越严重。
+
+			<pre>type Level <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>常用级别的名称。
+<p>级别对应的数字本来可以任意选择，但我们选择它们时满足了三个约束。任何系统都可以按需将其映射到其他编号方案。
+<p>首先，我们希望默认级别是 Info。由于 Level 是整数，所以 Info 对应 int 的默认值零。
+<p>其次，我们希望便于使用级别来指定日志记录器的详细程度。较大的级别表示更严重的事件，因此允许更小（或更负）级别事件的日志记录器会输出更详细的日志。日志详细程度因此可以看作事件严重程度的相反数，默认详细程度为 0，接受所有至少与 INFO 一样严重的事件。
+<p>第三，我们希望在各级别之间留出空间，以兼容在这些级别之间另设命名级别的方案。例如，Google Cloud Logging 在 Info 与 Warn 之间定义了 Notice 级别。由于这类中间级别并不多，数字之间无需留出很大的间隔。我们采用的间隔 4 与 OpenTelemetry 的映射相匹配。将 OpenTelemetry 中 DEBUG、INFO、WARN 和 ERROR 范围内的级别减去 9，就能转换到相应的 slog Level 范围。OpenTelemetry 还定义了 slog 中没有的 TRACE 和 FATAL 名称，但这些 OpenTelemetry 级别仍可使用适当的整数表示为 slog Level。
+
+				<pre>const (
+    <span id="LevelDebug">LevelDebug</span> <a href="#Level">Level</a> = -4
+    <span id="LevelInfo">LevelInfo</span>  <a href="#Level">Level</a> = 0
+    <span id="LevelWarn">LevelWarn</span>  <a href="#Level">Level</a> = 4
+    <span id="LevelError">LevelError</span> <a href="#Level">Level</a> = 8
+)</pre>
+			
+
+			
+
+			
+
+			
+				<h3 id="SetLogLoggerLevel">func <a href="/src/log/slog/logger.go?s=1290:1342#L34">SetLogLoggerLevel</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func SetLogLoggerLevel(level <a href="#Level">Level</a>) (oldLevel <a href="#Level">Level</a>)</pre>
+				<p>SetLogLoggerLevel 控制与 <a href="/pkg/log/">log</a> 包桥接时使用的级别。
+<p>在调用 <a href="#SetDefault">SetDefault</a> 之前，slog 的包级日志函数会调用默认 <a href="/pkg/log/#Logger">log.Logger</a>。在此模式下，SetLogLoggerLevel 设置这些调用的最低级别。默认最低级别为 Info，因此 <a href="#Debug">Debug</a> 调用（以及更低级别的包级日志调用）不会传给 log.Logger。调用以下语句后：
+<pre>slog.SetLogLoggerLevel(slog.LevelDebug)
+</pre>
+<p><a href="#Debug">Debug</a> 调用就会传给 log.Logger。
+<p>在调用 <a href="#SetDefault">SetDefault</a> 之后，对默认 <a href="/pkg/log/#Logger">log.Logger</a> 的调用会传给 slog 默认处理器。在此模式下，SetLogLoggerLevel 设置这些调用记录日志时的级别。也就是说，调用以下语句后：
+<pre>slog.SetLogLoggerLevel(slog.LevelDebug)
+</pre>
+<p>调用 <a href="/pkg/log/#Printf">log.Printf</a> 将产生 <a href="#LevelDebug">LevelDebug</a> 级别的输出。
+<p>SetLogLoggerLevel 返回先前的值。
+
+				
+
+
+<div id="example_SetLogLoggerLevel_log" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Log)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Log)</span></p>
+    <p>此示例展示如何在调用 slog.SetDefault 之前，使用 slog.SetLogLoggerLevel 更改 slog 包内部默认处理器的最低级别。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"log/slog"
+	"os"
+)
+
+func main() {
+	defer log.SetFlags(log.Flags()) // 示例结束后恢复更改
+	log.SetFlags(0)
+	defer log.SetOutput(log.Writer()) // 示例结束后恢复更改
+	log.SetOutput(os.Stdout)
+
+	// 默认日志级别为 slog.LevelInfo。
+	log.Print("log debug") // log debug
+	slog.Debug("debug")    // 无输出
+	slog.Info("info")      // INFO info
+
+	// 将默认日志级别设为 slog.LevelDebug。
+	currentLogLevel := slog.SetLogLoggerLevel(slog.LevelDebug)
+	defer slog.SetLogLoggerLevel(currentLogLevel) // 示例结束后恢复更改
+
+	log.Print("log debug") // log debug
+	slog.Debug("debug")    // DEBUG debug
+	slog.Info("info")      // INFO info
+
+}
+</textarea></div>
+        <div class="output"><pre>log debug
+INFO info
+log debug
+DEBUG debug
+INFO info
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_SetLogLoggerLevel_slog" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Slog)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Slog)</span></p>
+    <p>此示例展示如何在调用 slog.SetDefault 之后，使用 slog.SetLogLoggerLevel 更改 log 包内部写入器所使用的最低级别，该写入器使用自定义处理器。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"log/slog"
+	"os"
+)
+
+func main() {
+	// 将默认日志级别设为 slog.LevelError。
+	currentLogLevel := slog.SetLogLoggerLevel(slog.LevelError)
+	defer slog.SetLogLoggerLevel(currentLogLevel) // 示例结束后恢复更改
+
+	defer slog.SetDefault(slog.Default()) // 示例结束后恢复更改
+	removeTime := func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		return a
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{ReplaceAttr: removeTime})))
+
+	log.Print("error") // level=ERROR msg=error
+
+}
+</textarea></div>
+        <div class="output"><pre>level=ERROR msg=error
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Level.AppendText">func (Level) <a href="/src/log/slog/level.go?s=3413:3464#L97">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (l <a href="#Level">Level</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a>，内部调用 <a href="#Level.String">Level.String</a>。
+
+				
+			
+				<h3 id="Level.Level">func (Level) <a href="/src/log/slog/level.go?s=4632:4660#L150">Level</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l <a href="#Level">Level</a>) Level() <a href="#Level">Level</a></pre>
+				<p>Level 返回接收者自身，用于实现 <a href="#Leveler">Leveler</a>。
+
+				
+			
+				<h3 id="Level.MarshalJSON">func (Level) <a href="/src/log/slog/level.go?s=2668:2712#L75">MarshalJSON</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l <a href="#Level">Level</a>) MarshalJSON() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalJSON 实现 <a href="/pkg/encoding/json/#Marshaler">encoding/json.Marshaler</a>，它为 <a href="#Level.String">Level.String</a> 的输出加上引号。
+
+				
+			
+				<h3 id="Level.MarshalText">func (Level) <a href="/src/log/slog/level.go?s=3593:3637#L103">MarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l <a href="#Level">Level</a>) MarshalText() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>，内部调用 <a href="#Level.AppendText">Level.AppendText</a>。
+
+				
+			
+				<h3 id="Level.String">func (Level) <a href="/src/log/slog/level.go?s=2130:2160#L49">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l <a href="#Level">Level</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回该级别的名称。如果级别有名称，则返回其大写形式。如果级别位于已命名级别之间，则在大写名称后追加整数偏移量。例如：
+<pre>LevelWarn.String() =&gt; &quot;WARN&quot;
+(LevelInfo+2).String() =&gt; &quot;INFO+2&quot;
+</pre>
+
+				
+			
+				<h3 id="Level.UnmarshalJSON">func (*Level) <a href="/src/log/slog/level.go?s=3187:3235#L87">UnmarshalJSON</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Level">Level</a>) UnmarshalJSON(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalJSON 实现 <a href="/pkg/encoding/json/#Unmarshaler">encoding/json.Unmarshaler</a>。它接受 <a href="#Level.MarshalJSON">Level.MarshalJSON</a> 生成的任何字符串，忽略大小写。它还接受带数字偏移量的形式，即使这种形式再次输出时会变成不同的字符串。例如，&quot;Error-8&quot; 会被序列化为 &quot;INFO&quot;。
+
+				
+			
+				<h3 id="Level.UnmarshalText">func (*Level) <a href="/src/log/slog/level.go?s=3938:3986#L112">UnmarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Level">Level</a>) UnmarshalText(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>。它接受 <a href="#Level.MarshalText">Level.MarshalText</a> 生成的任何字符串，忽略大小写。它还接受带数字偏移量的形式，即使这种形式再次输出时会变成不同的字符串。例如，&quot;Error-8&quot; 会被序列化为 &quot;INFO&quot;。
+
+				
+			
+		
+			
+			<h2 id="LevelVar">type <a href="/src/log/slog/level.go?s=4916:4958#L157">LevelVar</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>LevelVar 是一个 <a href="#Level">Level</a> 变量，允许动态更改 <a href="#Handler">Handler</a> 的级别。它实现 <a href="#Leveler">Leveler</a>，还提供 Set 方法，并且可以由多个 goroutine 安全使用。LevelVar 的零值对应 <a href="#LevelInfo">LevelInfo</a>。
+
+			<pre>type LevelVar struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LevelVar.AppendText">func (*LevelVar) <a href="/src/log/slog/level.go?s=5317:5372#L177">AppendText</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendText 实现 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a>，内部调用 <a href="#Level.AppendText">Level.AppendText</a>。
+
+				
+			
+				<h3 id="LevelVar.Level">func (*LevelVar) <a href="/src/log/slog/level.go?s=4988:5020#L162">Level</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) Level() <a href="#Level">Level</a></pre>
+				<p>Level 返回 v 的级别。
+
+				
+			
+				<h3 id="LevelVar.MarshalText">func (*LevelVar) <a href="/src/log/slog/level.go?s=5498:5546#L183">MarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) MarshalText() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalText 实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>，内部调用 <a href="#LevelVar.AppendText">LevelVar.AppendText</a>。
+
+				
+			
+				<h3 id="LevelVar.Set">func (*LevelVar) <a href="/src/log/slog/level.go?s=5087:5118#L167">Set</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) Set(l <a href="#Level">Level</a>)</pre>
+				<p>Set 将 v 的级别设为 l。
+
+				
+			
+				<h3 id="LevelVar.String">func (*LevelVar) <a href="/src/log/slog/level.go?s=5147:5181#L171">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="LevelVar.UnmarshalText">func (*LevelVar) <a href="/src/log/slog/level.go?s=5670:5721#L189">UnmarshalText</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v *<a href="#LevelVar">LevelVar</a>) UnmarshalText(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalText 实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>，内部调用 <a href="#Level.UnmarshalText">Level.UnmarshalText</a>。
+
+				
+			
+		
+			
+			<h2 id="Leveler">type <a href="/src/log/slog/level.go?s=6131:6172#L204">Leveler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Leveler 提供一个 <a href="#Level">Level</a> 值。
+<p>由于 Level 本身实现了 Leveler，使用方通常在需要 Leveler 的地方直接提供 Level 值，例如在 <a href="#HandlerOptions">HandlerOptions</a> 中。需要动态调整级别的使用方可以提供更复杂的 Leveler 实现，例如 *<a href="#LevelVar">LevelVar</a>。
+
+			<pre>type Leveler interface {
+    Level() <a href="#Level">Level</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LogValuer">type <a href="/src/log/slog/value.go?s=12373:12419#L477">LogValuer</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>LogValuer 是能够将自身转换为 Value 以供记录日志的任意 Go 值。
+<p>此机制可以用于将高开销操作推迟到需要时再执行，或将单个值展开为一系列组成部分。
+
+			<pre>type LogValuer interface {
+    LogValue() <a href="#Value">Value</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_LogValuer_group" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Group)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Group)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import "log/slog"
+
+type Name struct {
+	First, Last string
+}
+
+// LogValue 实现 slog.LogValuer。
+// 它返回包含 Name 各字段的分组，
+// 使它们在日志输出中一起显示。
+func (n Name) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.String("first", n.First),
+		slog.String("last", n.Last))
+}
+
+func main() {
+	n := Name{"Perry", "Platypus"}
+	slog.Info("mission accomplished", "agent", n)
+
+	// JSON 输出的一部分如下：
+	// {
+	//     ...
+	//     "msg": "mission accomplished",
+	//     "agent": {
+	//         "first": "Perry",
+	//         "last": "Platypus"
+	//     }
+	// }
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_LogValuer_secret" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Secret)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Secret)</span></p>
+    <p>此示例展示一个 Value，它用另一种表示替换自身，以避免泄露机密信息。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log/slog"
+	"os"
+)
+
+// token 是授予权限的机密值。
+type Token string
+
+// LogValue 实现 slog.LogValuer。
+// 它可以避免泄露 token。
+func (Token) LogValue() slog.Value {
+	return slog.StringValue("REDACTED_TOKEN")
+}
+
+// 此示例演示一个 Value，它使用其他表示形式
+// 替换自身，以避免泄露机密信息。
+func main() {
+	t := Token("shhhh!")
+	removeTime := func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		return a
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &amp;slog.HandlerOptions{ReplaceAttr: removeTime}))
+	logger.Info("permission granted", "user", "Perry", "token", t)
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO msg=&#34;permission granted&#34; user=Perry token=REDACTED_TOKEN
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="Logger">type <a href="/src/log/slog/logger.go?s=3602:3667#L101">Logger</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Logger 为每次 Log、Debug、Info、Warn 和 Error 方法调用记录结构化信息。每次调用时，它都会创建一条 <a href="#Record">Record</a>，并将其传给 <a href="#Handler">Handler</a>。
+<p>要创建新的 Logger，请调用 <a href="#New">New</a> 或名称以 &quot;With&quot; 开头的 Logger 方法。
+
+			<pre>type Logger struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Default">func <a href="/src/log/slog/logger.go?s=1548:1570#L45">Default</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Default() *<a href="#Logger">Logger</a></pre>
+				<p>Default 返回默认 <a href="#Logger">Logger</a>。
+
+				
+			
+				<h3 id="New">func <a href="/src/log/slog/logger.go?s=4665:4692#L141">New</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func New(h <a href="#Handler">Handler</a>) *<a href="#Logger">Logger</a></pre>
+				<p>New 使用给定的非 nil Handler 创建新的 Logger。
+
+				
+			
+				<h3 id="With">func <a href="/src/log/slog/logger.go?s=4818:4848#L149">With</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func With(args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Logger">Logger</a></pre>
+				<p>With 调用默认日志记录器的 <a href="#Logger.With">Logger.With</a>。
+
+				
+			
+
+			
+				<h3 id="Logger.Debug">func (*Logger) <a href="/src/log/slog/logger.go?s=6453:6500#L190">Debug</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Debug(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Debug 以 <a href="#LevelDebug">LevelDebug</a> 级别记录日志。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#Logger.DebugContext">Logger.DebugContext</a>。
+
+				
+			
+				<h3 id="Logger.DebugContext">func (*Logger) <a href="/src/log/slog/logger.go?s=6622:6697#L195">DebugContext</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) DebugContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>DebugContext 使用给定上下文，以 <a href="#LevelDebug">LevelDebug</a> 级别记录日志。
+
+				
+			
+				<h3 id="Logger.Enabled">func (*Logger) <a href="/src/log/slog/logger.go?s=4965:5028#L154">Enabled</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Enabled(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Enabled 报告 l 是否会在给定上下文和级别下输出日志记录。
+
+				
+			
+				<h3 id="Logger.Error">func (*Logger) <a href="/src/log/slog/logger.go?s=7686:7733#L226">Error</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Error(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Error 以 <a href="#LevelError">LevelError</a> 级别记录日志。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#Logger.ErrorContext">Logger.ErrorContext</a>。
+
+				
+			
+				<h3 id="Logger.ErrorContext">func (*Logger) <a href="/src/log/slog/logger.go?s=7855:7930#L231">ErrorContext</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) ErrorContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>ErrorContext 使用给定上下文，以 <a href="#LevelError">LevelError</a> 级别记录日志。
+
+				
+			
+				<h3 id="Logger.Handler">func (*Logger) <a href="/src/log/slog/logger.go?s=3759:3793#L111">Handler</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Handler() <a href="#Handler">Handler</a></pre>
+				<p>Handler 返回 l 的 Handler。
+
+				
+			
+				<h3 id="Logger.Info">func (*Logger) <a href="/src/log/slog/logger.go?s=6867:6913#L202">Info</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Info(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Info 以 <a href="#LevelInfo">LevelInfo</a> 级别记录日志。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#Logger.InfoContext">Logger.InfoContext</a>。
+
+				
+			
+				<h3 id="Logger.InfoContext">func (*Logger) <a href="/src/log/slog/logger.go?s=7032:7106#L207">InfoContext</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) InfoContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>InfoContext 使用给定上下文，以 <a href="#LevelInfo">LevelInfo</a> 级别记录日志。
+
+				
+			
+				<h3 id="Logger.Log">func (*Logger) <a href="/src/log/slog/logger.go?s=5994:6073#L178">Log</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Log(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Log 输出一条日志记录，包含当前时间以及给定的级别和消息。Record 的属性由 Logger 的属性后接 args 指定的属性组成。
+<p>属性参数按以下规则处理：
+<ul>
+<li>如果参数是 Attr，则原样使用。
+<li>如果参数是字符串且不是最后一个参数，就将下一个参数视为值，并将两者组合为 Attr。
+<li>否则，将该参数视为值，键设为 &quot;!BADKEY&quot;。
+</ul>
+
+				
+			
+				<h3 id="Logger.LogAttrs">func (*Logger) <a href="/src/log/slog/logger.go?s=6193:6279#L183">LogAttrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) LogAttrs(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>, msg <a href="/pkg/builtin/#string">string</a>, attrs ...<a href="#Attr">Attr</a>)</pre>
+				<p>LogAttrs 是 <a href="#Logger.Log">Logger.Log</a> 的更高效版本，只接受 Attr。
+
+				
+			
+				<h3 id="Logger.Warn">func (*Logger) <a href="/src/log/slog/logger.go?s=7275:7321#L214">Warn</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) Warn(msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Warn 以 <a href="#LevelWarn">LevelWarn</a> 级别记录日志。内部使用 <a href="/pkg/context/#Background">context.Background</a>；若要指定上下文，请使用 <a href="#Logger.WarnContext">Logger.WarnContext</a>。
+
+				
+			
+				<h3 id="Logger.WarnContext">func (*Logger) <a href="/src/log/slog/logger.go?s=7440:7514#L219">WarnContext</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) WarnContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, msg <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>WarnContext 使用给定上下文，以 <a href="#LevelWarn">LevelWarn</a> 级别记录日志。
+
+				
+			
+				<h3 id="Logger.With">func (*Logger) <a href="/src/log/slog/logger.go?s=3969:4011#L116">With</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) With(args ...<a href="/pkg/builtin/#any">any</a>) *<a href="#Logger">Logger</a></pre>
+				<p>With 返回一个 Logger，在每次输出操作中都包含给定属性。参数按 <a href="#Logger.Log">Logger.Log</a> 的规则转换为属性。
+
+				
+			
+				<h3 id="Logger.WithGroup">func (*Logger) <a href="/src/log/slog/logger.go?s=4456:4503#L131">WithGroup</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (l *<a href="#Logger">Logger</a>) WithGroup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Logger">Logger</a></pre>
+				<p>如果 name 非空，WithGroup 返回一个开启新分组的 Logger。此后添加到 Logger 的所有属性的键都会带上给定名称作为限定。（具体限定方式取决于该 Logger 的 Handler 的 <a href="#Handler.WithGroup">Handler.WithGroup</a> 方法。）
+<p>如果 name 为空，WithGroup 返回接收者自身。
+
+				
+			
+		
+			
+			<h2 id="MultiHandler">type <a href="/src/log/slog/multi_handler.go?s=691:736#L12">MultiHandler</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>MultiHandler 是一种调用所有给定 Handler 的 <a href="#Handler">Handler</a>。其 Enabled 方法报告是否有任意处理器的 Enabled 方法返回 true。其 Handle、WithAttrs 和 WithGroup 方法会调用每个已启用处理器的相应方法。
+
+			<pre>type MultiHandler struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_MultiHandler" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;log/slog&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	removeTime := func(groups []string, a slog.Attr) slog.Attr {
+		if a.Key == slog.TimeKey &amp;&amp; len(groups) == 0 {
+			return slog.Attr{}
+		}
+		return a
+	}
+
+	var textBuf, jsonBuf bytes.Buffer
+	textHandler := slog.NewTextHandler(&amp;textBuf, &amp;slog.HandlerOptions{ReplaceAttr: removeTime})
+	jsonHandler := slog.NewJSONHandler(&amp;jsonBuf, &amp;slog.HandlerOptions{ReplaceAttr: removeTime})
+
+	multiHandler := slog.NewMultiHandler(textHandler, jsonHandler)
+	logger := slog.New(multiHandler)
+
+	logger.Info(&#34;login&#34;,
+		slog.String(&#34;name&#34;, &#34;whoami&#34;),
+		slog.Int(&#34;id&#34;, 42),
+	)
+
+	os.Stdout.WriteString(textBuf.String())
+	os.Stdout.WriteString(jsonBuf.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>level=INFO msg=login name=whoami id=42
+{&#34;level&#34;:&#34;INFO&#34;,&#34;msg&#34;:&#34;login&#34;,&#34;name&#34;:&#34;whoami&#34;,&#34;id&#34;:42}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewMultiHandler">func <a href="/src/log/slog/multi_handler.go?s=276:331#L3">NewMultiHandler</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewMultiHandler(handlers ...<a href="#Handler">Handler</a>) *<a href="#MultiHandler">MultiHandler</a></pre>
+				<p>NewMultiHandler 使用给定的 Handler 创建一个 <a href="#MultiHandler">MultiHandler</a>。
+
+				
+			
+
+			
+				<h3 id="MultiHandler.Enabled">func (*MultiHandler) <a href="/src/log/slog/multi_handler.go?s=738:803#L16">Enabled</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (h *<a href="#MultiHandler">MultiHandler</a>) Enabled(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, l <a href="#Level">Level</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="MultiHandler.Handle">func (*MultiHandler) <a href="/src/log/slog/multi_handler.go?s=905:971#L25">Handle</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (h *<a href="#MultiHandler">MultiHandler</a>) Handle(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, r <a href="#Record">Record</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+				<h3 id="MultiHandler.WithAttrs">func (*MultiHandler) <a href="/src/log/slog/multi_handler.go?s=1192:1246#L37">WithAttrs</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (h *<a href="#MultiHandler">MultiHandler</a>) WithAttrs(attrs []<a href="#Attr">Attr</a>) <a href="#Handler">Handler</a></pre>
+				
+				
+			
+				<h3 id="MultiHandler.WithGroup">func (*MultiHandler) <a href="/src/log/slog/multi_handler.go?s=1425:1478#L45">WithGroup</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (h *<a href="#MultiHandler">MultiHandler</a>) WithGroup(name <a href="/pkg/builtin/#string">string</a>) <a href="#Handler">Handler</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Record">type <a href="/src/log/slog/record.go?s=486:1431#L10">Record</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Record 保存日志事件的信息。Record 的副本共享状态。将 Record 的副本交给其他使用方之后，不要再修改原记录。调用 <a href="#NewRecord">NewRecord</a> 创建新记录。使用 <a href="#Record.Clone">Record.Clone</a> 创建不共享状态的副本。
+
+			<pre>type Record struct {
+    <span class="comment">// 调用输出方法（Log、Info 等）时的时间。</span>
+<span id="Record.Time"></span>    Time <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>
+
+    <span class="comment">// 日志消息。</span>
+<span id="Record.Message"></span>    Message <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// 事件级别。</span>
+<span id="Record.Level"></span>    Level <a href="#Level">Level</a>
+
+    <span class="comment">// 构建记录时的程序计数器，由 runtime.Callers</span>
+    <span class="comment">// 确定。如果为零，则表示没有可用的程序计数器。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 此值唯一有效的用法是作为</span>
+    <span class="comment">// [runtime.CallersFrames] 的参数。尤其不能将它传给</span>
+    <span class="comment">// [runtime.FuncForPC]。</span>
+<span id="Record.PC"></span>    PC <a href="/pkg/builtin/#uintptr">uintptr</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewRecord">func <a href="/src/log/slog/record.go?s=1644:1715#L48">NewRecord</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func NewRecord(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, level <a href="#Level">Level</a>, msg <a href="/pkg/builtin/#string">string</a>, pc <a href="/pkg/builtin/#uintptr">uintptr</a>) <a href="#Record">Record</a></pre>
+				<p>NewRecord 根据给定参数创建 <a href="#Record">Record</a>。使用 <a href="#Record.AddAttrs">Record.AddAttrs</a> 为记录添加属性。
+<p>NewRecord 适用于希望支持以 <a href="#Handler">Handler</a> 作为后端的日志 API。
+
+				
+			
+
+			
+				<h3 id="Record.Add">func (*Record) <a href="/src/log/slog/record.go?s=3526:3559#L119">Add</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (r *<a href="#Record">Record</a>) Add(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Add 按 <a href="#Logger.Log">Logger.Log</a> 的规则将 args 转换为 Attr，然后追加到 <a href="#Record">Record</a> 的属性列表。空分组会被省略。
+
+				
+			
+				<h3 id="Record.AddAttrs">func (*Record) <a href="/src/log/slog/record.go?s=2568:2608#L87">AddAttrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (r *<a href="#Record">Record</a>) AddAttrs(attrs ...<a href="#Attr">Attr</a>)</pre>
+				<p>AddAttrs 将给定的 Attr 追加到 <a href="#Record">Record</a> 的属性列表。空分组会被省略。
+
+				
+			
+				<h3 id="Record.Attrs">func (Record) <a href="/src/log/slog/record.go?s=2297:2337#L72">Attrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (r <a href="#Record">Record</a>) Attrs(f func(<a href="#Attr">Attr</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Attrs 对 <a href="#Record">Record</a> 中的每个 Attr 调用 f。如果 f 返回 false，则停止迭代。
+
+				
+			
+				<h3 id="Record.Clone">func (Record) <a href="/src/log/slog/record.go?s=1961:1991#L60">Clone</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (r <a href="#Record">Record</a>) Clone() <a href="#Record">Record</a></pre>
+				<p>Clone 返回一个不共享状态的记录副本。原记录和副本都可以独立修改，互不影响。
+
+				
+			
+				<h3 id="Record.NumAttrs">func (Record) <a href="/src/log/slog/record.go?s=2144:2174#L66">NumAttrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (r <a href="#Record">Record</a>) NumAttrs() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumAttrs 返回 <a href="#Record">Record</a> 中的属性数量。
+
+				
+			
+				<h3 id="Record.Source">func (Record) <a href="/src/log/slog/record.go?s=6104:6136#L210">Source</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r <a href="#Record">Record</a>) Source() *<a href="#Source">Source</a></pre>
+				<p>Source 根据 r 的 PC 返回该日志事件的新 Source。如果 PC 字段为零，表示创建 Record 时没有所需信息，或者位置信息不可用，则返回 nil。
+
+				
+			
+		
+			
+			<h2 id="Source">type <a href="/src/log/slog/record.go?s=4749:5230#L175">Source</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Source 描述一行源代码的位置。
+
+			<pre>type Source struct {
+<span id="Source.Function"></span>    <span class="comment">// Function 是包含该源码行的函数名，带有包路径限定。</span>
+    <span class="comment">// 如果非空，此字符串可以唯一标识程序中的一个</span>
+    <span class="comment">// 函数。如果未知，则可以为空字符串。</span>
+    Function <a href="/pkg/builtin/#string">string</a> `json:&#34;function&#34;`
+<span id="Source.File"></span>    <span class="comment">// File 和 Line 是该源码行的文件名及行号（从 1 开始）。</span>
+    <span class="comment">// 如果未知，它们可以分别为空字符串和零。</span>
+    File <a href="/pkg/builtin/#string">string</a> `json:&#34;file&#34;`
+<span id="Source.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>    `json:&#34;line&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TextHandler">type <a href="/src/log/slog/text_handler.go?s=430:473#L11">TextHandler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>TextHandler 是一种 <a href="#Handler">Handler</a>，将 Record 作为由空格分隔、以换行符结尾的一系列 key=value 键值对写入 <a href="/pkg/io/#Writer">io.Writer</a>。
+
+			<pre>type TextHandler struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTextHandler">func <a href="/src/log/slog/text_handler.go?s=612:679#L18">NewTextHandler</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func NewTextHandler(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, opts *<a href="#HandlerOptions">HandlerOptions</a>) *<a href="#TextHandler">TextHandler</a></pre>
+				<p>NewTextHandler 使用给定选项创建向 w 写入的 <a href="#TextHandler">TextHandler</a>。如果 opts 为 nil，则使用默认选项。
+
+				
+			
+
+			
+				<h3 id="TextHandler.Enabled">func (*TextHandler) <a href="/src/log/slog/text_handler.go?s=977:1043#L34">Enabled</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#TextHandler">TextHandler</a>) Enabled(_ <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, level <a href="#Level">Level</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Enabled 报告处理器是否处理给定级别的记录。处理器忽略低于其级别阈值的记录。
+
+				
+			
+				<h3 id="TextHandler.Handle">func (*TextHandler) <a href="/src/log/slog/text_handler.go?s=2957:3020#L82">Handle</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#TextHandler">TextHandler</a>) Handle(_ <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, r <a href="#Record">Record</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Handle 将参数 <a href="#Record">Record</a> 格式化为单行、由空格分隔的 key=value 项。
+<p>如果 Record 的时间为零值，则省略时间。否则，键为 &quot;time&quot;，值以毫秒精度的 RFC3339 格式输出。
+<p>级别的键为 &quot;level&quot;，值为调用 <a href="#Level.String">Level.String</a> 的结果。
+<p>如果设置了 AddSource 选项，且源码信息可用，则键为 &quot;source&quot;，值按 FILE:LINE 格式输出。
+<p>消息的键为 &quot;msg&quot;。
+<p>若要修改这些属性或其他属性，或将其从输出中移除，请使用 <a href="#HandlerOptions.ReplaceAttr">HandlerOptions.ReplaceAttr</a>。
+<p>如果值实现了 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>，就写入 MarshalText 的结果。否则，写入 <a href="/pkg/fmt/#Sprint">fmt.Sprint</a> 的结果。
+<p>如果键或值包含 Unicode 空白字符、不可打印字符、&apos;&quot;&apos; 或 &apos;=&apos;，就使用 <a href="/pkg/strconv/#Quote">strconv.Quote</a> 为其加上引号并转义。
+<p>分组内的键由点号分隔的各部分（键或组名）组成，不会执行进一步转义。因此，仅凭键 &quot;a.b.c&quot; 无法确定它表示两个组 &quot;a&quot; 和 &quot;b&quot; 加键 &quot;c&quot;，还是一个组 &quot;a.b&quot; 加键 &quot;c&quot;，或者一个组 &quot;a&quot; 加键 &quot;b.c&quot;。如果即使各部分中含有点号，也必须能够重建键的分组结构，请使用 <a href="#HandlerOptions.ReplaceAttr">HandlerOptions.ReplaceAttr</a> 将相关信息编码进键中。
+<p>每次 Handle 调用都会产生一次对 io.Writer.Write 的调用，且这些调用串行执行。
+
+				
+			
+				<h3 id="TextHandler.WithAttrs">func (*TextHandler) <a href="/src/log/slog/text_handler.go?s=1195:1248#L40">WithAttrs</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#TextHandler">TextHandler</a>) WithAttrs(attrs []<a href="#Attr">Attr</a>) <a href="#Handler">Handler</a></pre>
+				<p>WithAttrs 返回一个新的 <a href="#TextHandler">TextHandler</a>，其属性由 h 的属性后接 attrs 组成。
+
+				
+			
+				<h3 id="TextHandler.WithGroup">func (*TextHandler) <a href="/src/log/slog/text_handler.go?s=1324:1376#L44">WithGroup</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (h *<a href="#TextHandler">TextHandler</a>) WithGroup(name <a href="/pkg/builtin/#string">string</a>) <a href="#Handler">Handler</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Value">type <a href="/src/log/slog/value.go?s=421:1197#L11">Value</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Value 可以表示任意 Go 值，但与 any 类型不同，它能够在不分配内存的情况下表示大多数小型值。Value 的零值对应 nil。
+
+			<pre>type Value struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AnyValue">func <a href="/src/log/slog/value.go?s=5977:6003#L211">AnyValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func AnyValue(v <a href="/pkg/builtin/#any">any</a>) <a href="#Value">Value</a></pre>
+				<p>AnyValue 为提供的值返回一个 <a href="#Value">Value</a>。
+<p>如果提供的值已经是 Value 类型，则原样返回。
+<p>如果提供的值属于 Go 预声明的 string、bool 或数值类型（复数除外），AnyValue 返回的 Value 类别为 <a href="#KindString">KindString</a>、<a href="#KindBool">KindBool</a>、<a href="#KindUint64">KindUint64</a>、<a href="#KindInt64">KindInt64</a> 或 <a href="#KindFloat64">KindFloat64</a>。原数值类型的位宽不会保留。
+<p>如果提供的是 <a href="/pkg/time/#Time">time.Time</a> 或 <a href="/pkg/time/#Duration">time.Duration</a> 值，AnyValue 返回类别为 <a href="#KindTime">KindTime</a> 或 <a href="#KindDuration">KindDuration</a> 的 Value。单调时间部分不会保留。
+<p>对于 nil 或所有其他类型的值（包括底层类型为数值类型的命名类型），AnyValue 返回类别为 <a href="#KindAny">KindAny</a> 的值。
+
+				
+			
+				<h3 id="BoolValue">func <a href="/src/log/slog/value.go?s=3190:3218#L124">BoolValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func BoolValue(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Value">Value</a></pre>
+				<p>BoolValue 返回表示 bool 值的 <a href="#Value">Value</a>。
+
+				
+			
+				<h3 id="DurationValue">func <a href="/src/log/slog/value.go?s=4419:4460#L163">DurationValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func DurationValue(v <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>) <a href="#Value">Value</a></pre>
+				<p>DurationValue 返回一个 <a href="#Value">Value</a>，表示 <a href="/pkg/time/#Duration">time.Duration</a>。
+
+				
+			
+				<h3 id="Float64Value">func <a href="/src/log/slog/value.go?s=3049:3083#L119">Float64Value</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Float64Value(v <a href="/pkg/builtin/#float64">float64</a>) <a href="#Value">Value</a></pre>
+				<p>Float64Value 返回表示浮点数的 <a href="#Value">Value</a>。
+
+				
+			
+				<h3 id="GroupValue">func <a href="/src/log/slog/value.go?s=4649:4682#L169">GroupValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func GroupValue(as ...<a href="#Attr">Attr</a>) <a href="#Value">Value</a></pre>
+				<p>GroupValue 为一组 Attr 返回新的 <a href="#Value">Value</a>。调用方此后不得修改传入的切片。
+
+				
+			
+				<h3 id="Int64Value">func <a href="/src/log/slog/value.go?s=2780:2810#L109">Int64Value</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Int64Value(v <a href="/pkg/builtin/#int64">int64</a>) <a href="#Value">Value</a></pre>
+				<p>Int64Value 返回表示 int64 值的 <a href="#Value">Value</a>。
+
+				
+			
+				<h3 id="IntValue">func <a href="/src/log/slog/value.go?s=2673:2699#L104">IntValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func IntValue(v <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>IntValue 返回表示 int 值的 <a href="#Value">Value</a>。
+
+				
+			
+				<h3 id="StringValue">func <a href="/src/log/slog/value.go?s=2508:2544#L99">StringValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func StringValue(value <a href="/pkg/builtin/#string">string</a>) <a href="#Value">Value</a></pre>
+				<p>StringValue 为字符串返回新的 <a href="#Value">Value</a>。
+
+				
+			
+				<h3 id="TimeValue">func <a href="/src/log/slog/value.go?s=3633:3666#L143">TimeValue</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func TimeValue(v <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="#Value">Value</a></pre>
+				<p>TimeValue 返回一个 <a href="#Value">Value</a>，表示 <a href="/pkg/time/#Time">time.Time</a>，并丢弃单调时钟部分。
+
+				
+			
+				<h3 id="Uint64Value">func <a href="/src/log/slog/value.go?s=2909:2941#L114">Uint64Value</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func Uint64Value(v <a href="/pkg/builtin/#uint64">uint64</a>) <a href="#Value">Value</a></pre>
+				<p>Uint64Value 返回表示 uint64 值的 <a href="#Value">Value</a>。
+
+				
+			
+
+			
+				<h3 id="Value.Any">func (Value) <a href="/src/log/slog/value.go?s=6956:6980#L261">Any</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Any() <a href="/pkg/builtin/#any">any</a></pre>
+				<p>Any 以 any 形式返回 v 的值。
+
+				
+			
+				<h3 id="Value.Bool">func (Value) <a href="/src/log/slog/value.go?s=8447:8473#L326">Bool</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Bool() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Bool 以 bool 形式返回 v 的值。如果 v 不是 bool，则触发 panic。
+
+				
+			
+				<h3 id="Value.Duration">func (Value) <a href="/src/log/slog/value.go?s=8740:8779#L339">Duration</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Duration() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+				<p>Duration 以 <a href="/pkg/time/#Duration">time.Duration</a> 形式返回 v 的值。如果 v 不是 time.Duration，则触发 panic。
+
+				
+			
+				<h3 id="Value.Equal">func (Value) <a href="/src/log/slog/value.go?s=10421:10455#L411">Equal</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Equal(w <a href="#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 v 和 w 是否表示相同的 Go 值。
+
+				
+			
+				<h3 id="Value.Float64">func (Value) <a href="/src/log/slog/value.go?s=9070:9102#L353">Float64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Float64() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>Float64 以 float64 形式返回 v 的值。如果 v 不是 float64，则触发 panic。
+
+				
+			
+				<h3 id="Value.Group">func (Value) <a href="/src/log/slog/value.go?s=10102:10131#L397">Group</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Group() []<a href="#Attr">Attr</a></pre>
+				<p>Group 以 []Attr 形式返回 v 的值。如果 v 的 <a href="#Kind">Kind</a> 不是 <a href="#KindGroup">KindGroup</a>，则触发 panic。
+
+				
+			
+				<h3 id="Value.Int64">func (Value) <a href="/src/log/slog/value.go?s=7984:8012#L308">Int64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Int64() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int64 以 int64 形式返回 v 的值。如果 v 不是有符号整数，则触发 panic。
+
+				
+			
+				<h3 id="Value.Kind">func (Value) <a href="/src/log/slog/value.go?s=2085:2111#L77">Kind</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Kind() <a href="#Kind">Kind</a></pre>
+				<p>Kind 返回 v 的类别。
+
+				
+			
+				<h3 id="Value.LogValuer">func (Value) <a href="/src/log/slog/value.go?s=9947:9983#L391">LogValuer</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) LogValuer() <a href="#LogValuer">LogValuer</a></pre>
+				<p>LogValuer 以 LogValuer 形式返回 v 的值。如果 v 不是 LogValuer，则触发 panic。
+
+				
+			
+				<h3 id="Value.Resolve">func (Value) <a href="/src/log/slog/value.go?s=12817:12852#L490">Resolve</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Resolve() (rv <a href="#Value">Value</a>)</pre>
+				<p>只要 v 实现了 <a href="#LogValuer">LogValuer</a>，Resolve 就会反复调用其 LogValue 方法，并返回最终结果。如果 v 解析为分组，不会递归解析组内属性的值。如果 LogValue 调用次数超过阈值，则返回包含错误的 Value。Resolve 保证返回值的类别不是 <a href="#KindLogValuer">KindLogValuer</a>。
+
+				
+			
+				<h3 id="Value.String">func (Value) <a href="/src/log/slog/value.go?s=7663:7693#L294">String</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 以字符串形式返回 Value 的值，格式与 <a href="/pkg/fmt/#Sprint">fmt.Sprint</a> 相同。Int64、Float64 等方法会在 v 的类别不匹配时触发 panic，而 String 永远不会触发 panic。
+
+				
+			
+				<h3 id="Value.Time">func (Value) <a href="/src/log/slog/value.go?s=9383:9414#L367">Time</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Time() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a></pre>
+				<p>Time 以 <a href="/pkg/time/#Time">time.Time</a> 形式返回 v 的值。如果 v 不是 time.Time，则触发 panic。
+
+				
+			
+				<h3 id="Value.Uint64">func (Value) <a href="/src/log/slog/value.go?s=8226:8256#L317">Uint64</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Uint64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint64 以 uint64 形式返回 v 的值。如果 v 不是无符号整数，则触发 panic。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

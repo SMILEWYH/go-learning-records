@@ -1,0 +1,969 @@
+<!--{
+  "Title": "unicode/utf8 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>unicode/utf8 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "unicode/utf8"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>utf8 包实现支持 UTF-8 编码文本的函数和常量。其中包括在 rune 与 UTF-8 字节序列之间转换的函数。参见 <a href="https://en.wikipedia.org/wiki/UTF-8">https://en.wikipedia.org/wiki/UTF-8</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#AppendRune">func AppendRune(p []byte, r rune) []byte</a></dd>
+			
+				<dd><a href="#DecodeLastRune">func DecodeLastRune(p []byte) (r rune, size int)</a></dd>
+			
+				<dd><a href="#DecodeLastRuneInString">func DecodeLastRuneInString(s string) (r rune, size int)</a></dd>
+			
+				<dd><a href="#DecodeRune">func DecodeRune(p []byte) (r rune, size int)</a></dd>
+			
+				<dd><a href="#DecodeRuneInString">func DecodeRuneInString(s string) (r rune, size int)</a></dd>
+			
+				<dd><a href="#EncodeRune">func EncodeRune(p []byte, r rune) int</a></dd>
+			
+				<dd><a href="#FullRune">func FullRune(p []byte) bool</a></dd>
+			
+				<dd><a href="#FullRuneInString">func FullRuneInString(s string) bool</a></dd>
+			
+				<dd><a href="#RuneCount">func RuneCount(p []byte) int</a></dd>
+			
+				<dd><a href="#RuneCountInString">func RuneCountInString(s string) (n int)</a></dd>
+			
+				<dd><a href="#RuneLen">func RuneLen(r rune) int</a></dd>
+			
+				<dd><a href="#RuneStart">func RuneStart(b byte) bool</a></dd>
+			
+				<dd><a href="#Valid">func Valid(p []byte) bool</a></dd>
+			
+				<dd><a href="#ValidRune">func ValidRune(r rune) bool</a></dd>
+			
+				<dd><a href="#ValidString">func ValidString(s string) bool</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_AppendRune">AppendRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecodeLastRune">DecodeLastRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecodeLastRuneInString">DecodeLastRuneInString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecodeRune">DecodeRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecodeRuneInString">DecodeRuneInString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_EncodeRune">EncodeRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_EncodeRune_outOfRange">EncodeRune (OutOfRange)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FullRune">FullRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FullRuneInString">FullRuneInString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RuneCount">RuneCount</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RuneCountInString">RuneCountInString</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RuneLen">RuneLen</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RuneStart">RuneStart</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Valid">Valid</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ValidRune">ValidRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ValidString">ValidString</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/unicode/utf8/utf8.go">utf8.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>编码使用的基本数值。<pre>const (
+    <span id="RuneError">RuneError</span> = &#39;\uFFFD&#39;     <span class="comment">// “错误” rune 或“Unicode 替换字符”</span>
+    <span id="RuneSelf">RuneSelf</span>  = 0x80         <span class="comment">// 小于 RuneSelf 的字符直接以单字节表示自身。</span>
+    <span id="MaxRune">MaxRune</span>   = &#39;\U0010FFFF&#39; <span class="comment">// 最大的有效 Unicode 码点。</span>
+    <span id="UTFMax">UTFMax</span>    = 4            <span class="comment">// UTF-8 编码的 Unicode 字符所需的最大字节数。</span>
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="AppendRune">func <a href="/src/unicode/utf8/utf8.go?s=12421:12461#L400">AppendRune</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<pre>func AppendRune(p []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendRune 将 r 的 UTF-8 编码追加到 p 末尾，并返回扩展后的缓冲区。如果该 rune 超出有效范围，则追加 <a href="#RuneError">RuneError</a> 的编码。<div id="example_AppendRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	buf1 := utf8.AppendRune(nil, 0x10000)
+	buf2 := utf8.AppendRune([]byte(&#34;init&#34;), 0x10000)
+	fmt.Println(string(buf1))
+	fmt.Println(string(buf2))
+}
+</textarea></div>
+        <div class="output"><pre>𐀀
+init𐀀
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeLastRune">func <a href="/src/unicode/utf8/utf8.go?s=9085:9133#L269">DecodeLastRune</a>
+				
+				
+			</h2>
+			<pre>func DecodeLastRune(p []<a href="/pkg/builtin/#byte">byte</a>) (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>DecodeLastRune 解码 p 中最后一个 UTF-8 编码，返回对应的 rune 及其字节宽度。如果 p 为空，则返回 (<a href="#RuneError">RuneError</a>, 0)。否则，如果编码无效，则返回 (RuneError, 1)。对于正确且非空的 UTF-8，这两种结果都不可能出现。<p>如果编码不是正确的 UTF-8、所编码的 rune 超出有效范围，或者不是该值最短的 UTF-8 编码，则该编码无效。不进行其他验证。<div id="example_DecodeLastRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	b := []byte(&#34;Hello, 世界&#34;)
+
+	for len(b) &gt; 0 {
+		r, size := utf8.DecodeLastRune(b)
+		fmt.Printf(&#34;%c %v\n&#34;, r, size)
+
+		b = b[:len(b)-size]
+	}
+}
+</textarea></div>
+        <div class="output"><pre>界 3
+世 3
+  1
+, 1
+o 1
+l 1
+l 1
+e 1
+H 1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeLastRuneInString">func <a href="/src/unicode/utf8/utf8.go?s=10078:10134#L306">DecodeLastRuneInString</a>
+				
+				
+			</h2>
+			<pre>func DecodeLastRuneInString(s <a href="/pkg/builtin/#string">string</a>) (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>DecodeLastRuneInString 类似于 <a href="#DecodeLastRune">DecodeLastRune</a>，但输入是字符串。如果 s 为空，则返回 (<a href="#RuneError">RuneError</a>, 0)。否则，如果编码无效，则返回 (RuneError, 1)。对于正确且非空的 UTF-8，这两种结果都不可能出现。<p>如果编码不是正确的 UTF-8、所编码的 rune 超出有效范围，或者不是该值最短的 UTF-8 编码，则该编码无效。不进行其他验证。<div id="example_DecodeLastRuneInString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	str := &#34;Hello, 世界&#34;
+
+	for len(str) &gt; 0 {
+		r, size := utf8.DecodeLastRuneInString(str)
+		fmt.Printf(&#34;%c %v\n&#34;, r, size)
+
+		str = str[:len(str)-size]
+	}
+}
+</textarea></div>
+        <div class="output"><pre>界 3
+世 3
+  1
+, 1
+o 1
+l 1
+l 1
+e 1
+H 1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeRune">func <a href="/src/unicode/utf8/utf8.go?s=5451:5495#L147">DecodeRune</a>
+				
+				
+			</h2>
+			<pre>func DecodeRune(p []<a href="/pkg/builtin/#byte">byte</a>) (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>DecodeRune 解码 p 中第一个 UTF-8 编码，返回对应的 rune 及其字节宽度。如果 p 为空，则返回 (<a href="#RuneError">RuneError</a>, 0)。否则，如果编码无效，则返回 (RuneError, 1)。对于正确且非空的 UTF-8，这两种结果都不可能出现。<p>如果编码不是正确的 UTF-8、所编码的 rune 超出有效范围，或者不是该值最短的 UTF-8 编码，则该编码无效。不进行其他验证。<div id="example_DecodeRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	b := []byte(&#34;Hello, 世界&#34;)
+
+	for len(b) &gt; 0 {
+		r, size := utf8.DecodeRune(b)
+		fmt.Printf(&#34;%c %v\n&#34;, r, size)
+
+		b = b[size:]
+	}
+}
+</textarea></div>
+        <div class="output"><pre>H 1
+e 1
+l 1
+l 1
+o 1
+, 1
+  1
+世 3
+界 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeRuneInString">func <a href="/src/unicode/utf8/utf8.go?s=7246:7298#L209">DecodeRuneInString</a>
+				
+				
+			</h2>
+			<pre>func DecodeRuneInString(s <a href="/pkg/builtin/#string">string</a>) (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>DecodeRuneInString 类似于 <a href="#DecodeRune">DecodeRune</a>，但输入是字符串。如果 s 为空，则返回 (<a href="#RuneError">RuneError</a>, 0)。否则，如果编码无效，则返回 (RuneError, 1)。对于正确且非空的 UTF-8，这两种结果都不可能出现。<p>如果编码不是正确的 UTF-8、所编码的 rune 超出有效范围，或者不是该值最短的 UTF-8 编码，则该编码无效。不进行其他验证。<div id="example_DecodeRuneInString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	str := &#34;Hello, 世界&#34;
+
+	for len(str) &gt; 0 {
+		r, size := utf8.DecodeRuneInString(str)
+		fmt.Printf(&#34;%c %v\n&#34;, r, size)
+
+		str = str[size:]
+	}
+}
+</textarea></div>
+        <div class="output"><pre>H 1
+e 1
+l 1
+l 1
+o 1
+, 1
+  1
+世 3
+界 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncodeRune">func <a href="/src/unicode/utf8/utf8.go?s=11250:11287#L358">EncodeRune</a>
+				
+				
+			</h2>
+			<pre>func EncodeRune(p []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>EncodeRune 将该 rune 的 UTF-8 编码写入 p（p 必须足够大）。如果该 rune 超出有效范围，则写入 <a href="#RuneError">RuneError</a> 的编码。它返回写入的字节数。<div id="example_EncodeRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	r := &#39;世&#39;
+	buf := make([]byte, 3)
+
+	n := utf8.EncodeRune(buf, r)
+
+	fmt.Println(buf)
+	fmt.Println(n)
+}
+</textarea></div>
+        <div class="output"><pre>[228 184 150]
+3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_EncodeRune_outOfRange" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (OutOfRange)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (OutOfRange)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	runes := []rune{
+		// 小于 0，超出范围。
+		-1,
+		// 大于 0x10FFFF，超出范围。
+		0x110000,
+		// Unicode 替换字符。
+		utf8.RuneError,
+	}
+	for i, c := range runes {
+		buf := make([]byte, 3)
+		size := utf8.EncodeRune(buf, c)
+		fmt.Printf(&#34;%d: %d %[2]s %d\n&#34;, i, buf, size)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>0: [239 191 189] � 3
+1: [239 191 189] � 3
+2: [239 191 189] � 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FullRune">func <a href="/src/unicode/utf8/utf8.go?s=4169:4197#L100">FullRune</a>
+				
+				
+			</h2>
+			<pre>func FullRune(p []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FullRune 报告 p 的开头是否包含某个 rune 的完整 UTF-8 编码。无效编码也视为完整 rune，因为它会转换为宽度为 1 的错误 rune。<div id="example_FullRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	buf := []byte{228, 184, 150} // 世
+	fmt.Println(utf8.FullRune(buf))
+	fmt.Println(utf8.FullRune(buf[:2]))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FullRuneInString">func <a href="/src/unicode/utf8/utf8.go?s=4604:4640#L120">FullRuneInString</a>
+				
+				
+			</h2>
+			<pre>func FullRuneInString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FullRuneInString 类似于 FullRune，但输入是字符串。<div id="example_FullRuneInString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	str := &#34;世&#34;
+	fmt.Println(utf8.FullRuneInString(str))
+	fmt.Println(utf8.FullRuneInString(str[:2]))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="RuneCount">func <a href="/src/unicode/utf8/utf8.go?s=13319:13347#L424">RuneCount</a>
+				
+				
+			</h2>
+			<pre>func RuneCount(p []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>RuneCount 返回 p 中的 rune 数量。错误或不完整的编码按宽度为 1 字节的单个 rune 处理。<div id="example_RuneCount" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	buf := []byte(&#34;Hello, 世界&#34;)
+	fmt.Println(&#34;bytes =&#34;, len(buf))
+	fmt.Println(&#34;runes =&#34;, utf8.RuneCount(buf))
+}
+</textarea></div>
+        <div class="output"><pre>bytes = 13
+runes = 9
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="RuneCountInString">func <a href="/src/unicode/utf8/utf8.go?s=13589:13629#L437">RuneCountInString</a>
+				
+				
+			</h2>
+			<pre>func RuneCountInString(s <a href="/pkg/builtin/#string">string</a>) (n <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>RuneCountInString 类似于 <a href="#RuneCount">RuneCount</a>，但输入是字符串。<div id="example_RuneCountInString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	str := &#34;Hello, 世界&#34;
+	fmt.Println(&#34;bytes =&#34;, len(str))
+	fmt.Println(&#34;runes =&#34;, utf8.RuneCountInString(str))
+}
+</textarea></div>
+        <div class="output"><pre>bytes = 13
+runes = 9
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="RuneLen">func <a href="/src/unicode/utf8/utf8.go?s=10783:10807#L337">RuneLen</a>
+				
+				
+			</h2>
+			<pre>func RuneLen(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>RuneLen 返回该 rune 的 UTF-8 编码的字节数。如果该 rune 不是可编码为 UTF-8 的有效值，则返回 -1。<div id="example_RuneLen" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	fmt.Println(utf8.RuneLen(&#39;a&#39;))
+	fmt.Println(utf8.RuneLen(&#39;界&#39;))
+}
+</textarea></div>
+        <div class="output"><pre>1
+3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="RuneStart">func <a href="/src/unicode/utf8/utf8.go?s=13843:13870#L447">RuneStart</a>
+				
+				
+			</h2>
+			<pre>func RuneStart(b <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>RuneStart 报告该字节是否可能是某个（也可能无效的）rune 编码的首字节。第二个及后续字节的最高两位始终为 10。<div id="example_RuneStart" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	buf := []byte(&#34;a界&#34;)
+	fmt.Println(utf8.RuneStart(buf[0]))
+	fmt.Println(utf8.RuneStart(buf[1]))
+	fmt.Println(utf8.RuneStart(buf[2]))
+}
+</textarea></div>
+        <div class="output"><pre>true
+true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Valid">func <a href="/src/unicode/utf8/utf8.go?s=14382:14407#L460">Valid</a>
+				
+				
+			</h2>
+			<pre>func Valid(p []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Valid 报告 p 是否完全由有效 UTF-8 编码的 rune 组成。<div id="example_Valid" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	valid := []byte(&#34;Hello, 世界&#34;)
+	invalid := []byte{0xff, 0xfe, 0xfd}
+
+	fmt.Println(utf8.Valid(valid))
+	fmt.Println(utf8.Valid(invalid))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ValidRune">func <a href="/src/unicode/utf8/utf8.go?s=17279:17306#L560">ValidRune</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ValidRune(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ValidRune 报告 r 是否可以合法编码为 UTF-8。超出范围的码点或代理对中的半个码点都是非法的。<div id="example_ValidRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	valid := &#39;a&#39;
+	invalid := rune(0xfffffff)
+
+	fmt.Println(utf8.ValidRune(valid))
+	fmt.Println(utf8.ValidRune(invalid))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ValidString">func <a href="/src/unicode/utf8/utf8.go?s=15909:15940#L512">ValidString</a>
+				
+				
+			</h2>
+			<pre>func ValidString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ValidString 报告 s 是否完全由有效 UTF-8 编码的 rune 组成。<div id="example_ValidString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;unicode/utf8&#34;
+)
+
+func main() {
+	valid := &#34;Hello, 世界&#34;
+	invalid := string([]byte{0xff, 0xfe, 0xfd})
+
+	fmt.Println(utf8.ValidString(valid))
+	fmt.Println(utf8.ValidString(invalid))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,81 @@
+<!--{
+  "Title": "vet 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>vet 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Vet 检查 Go 源代码并报告可疑结构，例如参数与格式字符串不匹配的 Printf 调用。Vet 使用启发式方法，不能保证每条报告都是真正的问题，但能发现编译器未捕获的错误。
+<p>Vet 通常通过 go 命令调用。以下命令检查当前目录中的包：
+<pre>go vet
+</pre>
+<p>而下面的命令检查给定路径对应的包：
+<pre>go vet my/project/...
+</pre>
+<p>使用“go help packages”可查看指定待检查包的其他方式。
+<p>工具调用有误或报告了问题时，Vet 返回非零退出码，否则返回 0。注意，本工具不会检查所有可能的问题，而且依赖不完全可靠的启发式方法，因此结果只能作为参考，不能作为程序正确性的确定证明。
+<p>运行“go tool vet help”可列出可用的检查：
+<pre>appends          检查 append 后是否缺少待追加的值
+asmdecl          报告汇编文件与 Go 声明不一致的情况
+assign           检查无效赋值
+atomic           检查使用 sync/atomic 包时的常见错误
+bools            检查涉及布尔运算符的常见错误
+buildtag         检查 //go:build 和 // +build 指令
+cgocall          检测部分违反 cgo 指针传递规则的情况
+composites       检查未指定键的复合字面量
+copylocks        检查错误地按值传递锁的情况
+defers           报告 defer 语句中的常见错误
+directive        检查 //go:debug 等 Go 工具链指令
+errorsas         报告向 errors.As 传入非指针或不适合 error 的值的情况
+framepointer     报告在保存帧指针之前将其破坏的汇编代码
+hostport         检查传给 net.Dial 的地址格式
+httpresponse     检查使用 HTTP 响应时的错误
+ifaceassert      检测不可能成功的接口到接口类型断言
+loopclosure      检查嵌套函数对循环变量的引用
+lostcancel       检查是否调用了 context.WithCancel 返回的取消函数
+nilfunc          检查函数与 nil 之间无意义的比较
+printf           检查 Printf 格式字符串与参数是否一致
+shift            检查移位量等于或超过整数位宽的情况
+sigchanyzer      检查无缓冲的 os.Signal 通道
+slog             检查无效的结构化日志调用
+stdmethods       检查常见接口方法的签名
+stdversion       报告使用了过新标准库符号的情况
+stringintconv    检查 string(int) 转换
+structtag        检查结构体字段标签是否符合 reflect.StructTag.Get 的要求
+testinggoroutine 报告从测试启动的 goroutine 中调用 (*testing.T).Fatal 的情况
+tests            检查测试和示例中的常见错误用法
+timeformat       检查向 (time.Time).Format 或 time.Parse 传入 2006-02-01 的调用
+unmarshal        报告向反序列化函数传入非指针或非接口值的情况
+unreachable      检查不可达代码
+unsafeptr        检查从 uintptr 到 unsafe.Pointer 的无效转换
+unusedresult     检查某些函数调用结果未被使用的情况
+waitgroup        检查 sync.WaitGroup 的错误用法
+</pre>
+<p>查看特定检查（例如 printf）的详情和标志参数，请运行“go tool vet help printf”。
+<p>默认执行所有检查。如果明确将任何检查标志设为 true，则只运行这些检查；反之，如果明确将任何检查标志设为 false，则只禁用这些检查。因此，-printf=true 只运行 printf 检查，而 -printf=false 运行除 printf 以外的所有检查。
+<p>关于如何编写新的检查，请参阅 golang.org/x/tools/go/analysis。
+<p>核心标志参数：
+<pre>-c=N
+  	显示问题所在行及其前后 N 行上下文
+-json
+  	以 JSON 格式输出分析诊断信息和错误
+</pre>
+
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,319 @@
+<!--{
+  "Title": "os/user 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>os/user 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "os/user"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>user 包支持按名称或 ID 查询用户账户。<p>对于大多数 Unix 系统，本包内部提供两种实现，用于将用户和组 ID 解析为名称，以及列出附加组 ID。一种使用纯 Go 编写，解析 /etc/passwd 和 /etc/group；另一种基于 cgo，依赖标准 C 库（libc）中的 getpwuid_r、getgrnam_r 和 getgrouplist 等函数。<p>当 cgo 可用，且特定平台的 libc 实现了所需函数时，会使用基于 cgo（由 libc 支持）的代码。可以使用 osusergo 构建标签覆盖此选择，强制使用纯 Go 实现。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Group">type Group</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LookupGroup">func LookupGroup(name string) (*Group, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LookupGroupId">func LookupGroupId(gid string) (*Group, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnknownGroupError">type UnknownGroupError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownGroupError.Error">func (e UnknownGroupError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnknownGroupIdError">type UnknownGroupIdError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownGroupIdError.Error">func (e UnknownGroupIdError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnknownUserError">type UnknownUserError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownUserError.Error">func (e UnknownUserError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnknownUserIdError">type UnknownUserIdError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownUserIdError.Error">func (e UnknownUserIdError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#User">type User</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Current">func Current() (*User, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lookup">func Lookup(username string) (*User, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LookupId">func LookupId(uid string) (*User, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#User.GroupIds">func (u *User) GroupIds() ([]string, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/os/user/cgo_listgroups_unix.go">cgo_listgroups_unix.go</a>
+			
+				<a href="/src/os/user/cgo_lookup_cgo.go">cgo_lookup_cgo.go</a>
+			
+				<a href="/src/os/user/cgo_lookup_unix.go">cgo_lookup_unix.go</a>
+			
+				<a href="/src/os/user/getgrouplist_unix.go">getgrouplist_unix.go</a>
+			
+				<a href="/src/os/user/lookup.go">lookup.go</a>
+			
+				<a href="/src/os/user/user.go">user.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Group">type <a href="/src/os/user/user.go?s=2092:2165#L51">Group</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Group 表示一组用户。<p>在 POSIX 系统上，Gid 包含表示组 ID 的十进制数。<pre>type Group struct {
+<span id="Group.Gid"></span>    Gid  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 组 ID</span>
+<span id="Group.Name"></span>    Name <a href="/pkg/builtin/#string">string</a> <span class="comment">// 组名</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LookupGroup">func <a href="/src/os/user/lookup.go?s=1415:1460#L47">LookupGroup</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func LookupGroup(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#Group">Group</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LookupGroup 按名称查询组。如果找不到该组，返回的错误类型为 <a href="#UnknownGroupError">UnknownGroupError</a>。<h3 id="LookupGroupId">func <a href="/src/os/user/lookup.go?s=1624:1670#L53">LookupGroupId</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func LookupGroupId(gid <a href="/pkg/builtin/#string">string</a>) (*<a href="#Group">Group</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LookupGroupId 按 groupid 查询组。如果找不到该组，返回的错误类型为 <a href="#UnknownGroupIdError">UnknownGroupIdError</a>。<h2 id="UnknownGroupError">type <a href="/src/os/user/user.go?s=2868:2897#L81">UnknownGroupError</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p><a href="#LookupGroup">LookupGroup</a> 找不到组时返回 UnknownGroupError。<pre>type UnknownGroupError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownGroupError.Error">func (UnknownGroupError) <a href="/src/os/user/user.go?s=2899:2940#L83">Error</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (e <a href="#UnknownGroupError">UnknownGroupError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnknownGroupIdError">type <a href="/src/os/user/user.go?s=2657:2688#L73">UnknownGroupIdError</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p><a href="#LookupGroupId">LookupGroupId</a> 找不到组时返回 UnknownGroupIdError。<pre>type UnknownGroupIdError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownGroupIdError.Error">func (UnknownGroupIdError) <a href="/src/os/user/user.go?s=2690:2733#L75">Error</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (e <a href="#UnknownGroupIdError">UnknownGroupIdError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnknownUserError">type <a href="/src/os/user/user.go?s=2452:2480#L65">UnknownUserError</a>
+				
+				
+			</h2>
+			<p><a href="#Lookup">Lookup</a> 找不到用户时返回 UnknownUserError。<pre>type UnknownUserError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownUserError.Error">func (UnknownUserError) <a href="/src/os/user/user.go?s=2482:2522#L67">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#UnknownUserError">UnknownUserError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnknownUserIdError">type <a href="/src/os/user/user.go?s=2244:2271#L57">UnknownUserIdError</a>
+				
+				
+			</h2>
+			<p><a href="#LookupId">LookupId</a> 找不到用户时返回 UnknownUserIdError。<pre>type UnknownUserIdError <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownUserIdError.Error">func (UnknownUserIdError) <a href="/src/os/user/user.go?s=2273:2315#L59">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#UnknownUserIdError">UnknownUserIdError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="User">type <a href="/src/os/user/user.go?s=1105:1969#L24">User</a>
+				
+				
+			</h2>
+			<p>User 表示用户账户。<pre>type User struct {
+<span id="User.Uid"></span>    <span class="comment">// Uid 是用户 ID。</span>
+    <span class="comment">// 在 POSIX 系统上，这是表示 uid 的十进制数。</span>
+    <span class="comment">// 在 Windows 上，这是字符串形式的安全标识符（SID）。</span>
+    <span class="comment">// 在 Plan 9 上，这是 /dev/user 的内容。</span>
+    Uid <a href="/pkg/builtin/#string">string</a>
+<span id="User.Gid"></span>    <span class="comment">// Gid 是主组 ID。</span>
+    <span class="comment">// 在 POSIX 系统上，这是表示 gid 的十进制数。</span>
+    <span class="comment">// 在 Windows 上，这是字符串形式的 SID。</span>
+    <span class="comment">// 在 Plan 9 上，这是 /dev/user 的内容。</span>
+    Gid <a href="/pkg/builtin/#string">string</a>
+<span id="User.Username"></span>    <span class="comment">// Username 是登录名。</span>
+    Username <a href="/pkg/builtin/#string">string</a>
+<span id="User.Name"></span>    <span class="comment">// Name 是用户的真实姓名或显示名称。</span>
+    <span class="comment">// 它可能为空。</span>
+    <span class="comment">// 在 POSIX 系统上，这是 GECOS 字段列表中的第一个</span>
+    <span class="comment">// （或唯一一个）条目。</span>
+    <span class="comment">// 在 Windows 上，这是用户的显示名称。</span>
+    <span class="comment">// 在 Plan 9 上，这是 /dev/user 的内容。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+<span id="User.HomeDir"></span>    <span class="comment">// HomeDir 是用户主目录的路径（如果用户有主目录）。</span>
+    HomeDir <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Current">func <a href="/src/os/user/lookup.go?s=479:508#L11">Current</a>
+					
+					
+				</h3>
+				<pre>func Current() (*<a href="#User">User</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Current 返回当前用户。<p>第一次调用会缓存当前用户信息。后续调用返回缓存值，不会反映当前用户的变化。<h3 id="Lookup">func <a href="/src/os/user/lookup.go?s=861:904#L29">Lookup</a>
+					
+					
+				</h3>
+				<pre>func Lookup(username <a href="/pkg/builtin/#string">string</a>) (*<a href="#User">User</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lookup 按 username 查询用户。如果找不到该用户，返回的错误类型为 <a href="#UnknownUserError">UnknownUserError</a>。<h3 id="LookupId">func <a href="/src/os/user/lookup.go?s=1145:1185#L38">LookupId</a>
+					
+					
+				</h3>
+				<pre>func LookupId(uid <a href="/pkg/builtin/#string">string</a>) (*<a href="#User">User</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LookupId 按 userid 查询用户。如果找不到该用户，返回的错误类型为 <a href="#UnknownUserIdError">UnknownUserIdError</a>。<h3 id="User.GroupIds">func (*User) <a href="/src/os/user/lookup.go?s=1775:1818#L58">GroupIds</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (u *<a href="#User">User</a>) GroupIds() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GroupIds 返回用户所属各组的组 ID 列表。</article>

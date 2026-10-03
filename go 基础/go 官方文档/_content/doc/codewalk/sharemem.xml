@@ -1,0 +1,139 @@
+<codewalk title="通过通信共享内存">
+
+<step title="简介" src="doc/codewalk/urlpoll.go">
+Go 处理并发的方式不同于传统的线程与共享内存模型。其理念可以概括为：
+<br/><br/>
+<i>不要通过共享内存来通信，而要通过通信来共享内存。</i>
+<br/><br/>
+通道允许你在 goroutine（轻量级协程）之间传递数据结构的引用。
+如果把这种传递理解为转移数据的所有权，也就是读写数据的权利，那么通道就成为一种强大且富有表达力的同步机制。
+<br/><br/>
+本代码导读将介绍一个简单程序：它轮询一组 URL，检查 HTTP 响应状态码，并定期打印各个 URL 的状态。
+</step>
+
+<step title="State 类型" src="doc/codewalk/urlpoll.go:/State/,/}/">
+State 类型表示一个 URL 的状态。
+<br/><br/>
+Poller 将 State 值发送给 StateMonitor，后者维护一个映射（map），记录各个 URL 的当前状态。
+</step>
+
+<step title="Resource 类型" src="doc/codewalk/urlpoll.go:/Resource/,/}/">
+Resource 表示待轮询 URL 的状态：包括 URL 本身，以及自上次成功轮询以来遇到的错误次数。
+<br/><br/>
+程序启动时，会为每个 URL 分配一个 Resource。
+主 goroutine 与各个 Poller goroutine 通过通道相互传递这些 Resource。
+</step>
+
+<step title="Poller 函数" src="doc/codewalk/urlpoll.go:/func Poller/,/\n}/">
+每个 Poller 从输入通道接收 Resource 指针。
+本程序约定：通过通道发送 Resource 指针时，也将底层数据的所有权从发送方转移给接收方。
+因此，可以确定不会有两个 goroutine 同时访问同一个 Resource。
+这意味着我们无需通过加锁来防止对这些数据结构的并发访问。
+<br/><br/>
+Poller 调用 Resource 的 Poll 方法，对其进行处理。
+<br/><br/>
+随后向 status 通道发送一个 State 值，将 Poll 的结果通知 StateMonitor。
+<br/><br/>
+最后，它将 Resource 指针发送到 out 通道。
+这相当于 Poller 在说“我已经处理完这个 Resource 了”，并将所有权交还给主 goroutine。
+<br/><br/>
+多个 goroutine 运行 Poller，并行处理 Resource。
+</step>
+
+<step title="Poll 方法" src="doc/codewalk/urlpoll.go:/Poll executes/,/\n}/">
+Resource 类型的 Poll 方法对 Resource 的 URL 发起 HTTP HEAD 请求，并返回 HTTP 响应状态码。
+如果发生错误，Poll 会将错误消息记录到标准错误输出，并返回错误字符串。
+</step>
+
+<step title="main 函数" src="doc/codewalk/urlpoll.go:/func main/,/\n}/">
+main 函数启动 Poller 和 StateMonitor goroutine，然后在循环中将处理完成的 Resource 经过适当延迟后送回 pending 通道。
+</step>
+
+<step title="创建通道" src="doc/codewalk/urlpoll.go:/Create our/,/complete/">
+首先，main 创建两个元素类型为 *Resource 的通道：pending 和 complete。
+<br/><br/>
+main 内新建的 goroutine 为每个 URL 向 pending 发送一个 Resource；主 goroutine 则从 complete 接收处理完成的 Resource。
+<br/><br/>
+pending 和 complete 通道会传给每个 Poller goroutine，在 Poller 内部对应的参数名为 in 和 out。
+</step>
+
+<step title="初始化 StateMonitor" src="doc/codewalk/urlpoll.go:/Launch the StateMonitor/,/statusInterval/">
+StateMonitor 会初始化并启动一个 goroutine，用于保存各个 Resource 的状态。
+稍后会详细介绍这个函数。
+<br/><br/>
+现在只需注意，它返回一个元素类型为 State 的通道。该通道被保存到 status 变量中，并传给各个 Poller goroutine。
+</step>
+
+<step title="启动 Poller goroutine" src="doc/codewalk/urlpoll.go:/Launch some Poller/,/}/">
+所需的通道准备就绪后，main 启动若干 Poller goroutine，并把通道作为参数传入。
+这些通道为 main、Poller 和 StateMonitor goroutine 提供了通信途径。
+</step>
+
+<step title="将 Resource 发送到 pending" src="doc/codewalk/urlpoll.go:/Send some Resources/,/}\(\)/">
+为了向系统添加初始任务，main 启动一个新的 goroutine，为每个 URL 分配一个 Resource，并发送到 pending。
+<br/><br/>
+这里需要新建 goroutine，是因为无缓冲通道的发送和接收是同步的。
+也就是说，这些发送操作会阻塞，直到 Poller 准备好从 pending 接收数据。
+<br/><br/>
+如果在主 goroutine 中执行这些发送，而且 Poller 数量少于要发送的 Resource 数量，程序就会死锁，因为此时 main 还没有开始从 complete 接收数据。
+<br/><br/>
+读者练习：修改这部分程序，从文件读取 URL 列表。
+可以考虑将这个 goroutine 中的逻辑提取到独立的具名函数中。
+</step>
+
+<step title="主事件循环" src="doc/codewalk/urlpoll.go:/range complete/,/\n	}/">
+Poller 处理完一个 Resource 后，会将它发送到 complete 通道。
+这个循环从 complete 接收这些 Resource 指针。
+每收到一个 Resource，就启动新的 goroutine，调用该 Resource 的 Sleep 方法。
+为每个 Resource 单独启动 goroutine，可以让这些休眠等待同时进行。
+<br/><br/>
+注意，在任意时刻，一个 Resource 指针只能被发送到 pending 或 complete 其中一个通道中。
+这保证了 Resource 要么由 Poller goroutine 处理，要么处于休眠状态，不会同时处于这两种状态。
+我们正是通过这样的通信来共享 Resource 数据。
+</step>
+
+<step title="Sleep 方法" src="doc/codewalk/urlpoll.go:/Sleep/,/\n}/">
+Sleep 调用 time.Sleep 暂停一段时间，然后将 Resource 发送到 done 通道。
+暂停时长由固定间隔 pollInterval，加上与连续错误次数 r.errCount 成正比的额外延迟组成。
+<br/><br/>
+这是 Go 中一种常见的惯用写法：准备在 goroutine 中运行的函数接收一个通道，通过该通道发送返回值，或其他表示执行完成的状态。
+</step>
+
+<step title="StateMonitor" src="doc/codewalk/urlpoll.go:/StateMonitor/,/\n}/">
+StateMonitor 从通道接收 State 值，并定期输出程序正在轮询的所有 Resource 的状态。
+</step>
+
+<step title="updates 通道" src="doc/codewalk/urlpoll.go:/updates :=/">
+变量 updates 是一个元素类型为 State 的通道，各个 Poller goroutine 向该通道发送 State 值。
+<br/><br/>
+函数会返回这个通道。
+</step>
+
+<step title="urlStatus 映射" src="doc/codewalk/urlpoll.go:/urlStatus/">
+变量 urlStatus 是一个将 URL 映射到其最新状态的映射。
+</step>
+
+<step title="Ticker 对象" src="doc/codewalk/urlpoll.go:/ticker/">
+time.Ticker 对象会按指定时间间隔，反复向通道发送一个值。
+<br/><br/>
+这里，ticker 每隔 updateInterval 纳秒就会触发一次，将当前状态打印到标准输出。
+</step>
+
+<step title="StateMonitor goroutine" src="doc/codewalk/urlpoll.go:/go func/,/}\(\)/">
+StateMonitor 会持续循环，用 select 监听 ticker.C 和 updates 两个通道。
+select 语句会阻塞，直到其中一项通信可以进行。
+<br/><br/>
+当 StateMonitor 从 ticker.C 收到一次定时通知时，就调用 logState 打印当前状态。
+当它从 updates 收到一个 State 更新时，就将新状态记录到 urlStatus 映射中。
+<br/><br/>
+这个 goroutine 独占 urlStatus 数据结构，保证对它的访问只能串行进行。
+这样可以避免对共享映射并发读写所带来的内存损坏问题。
+</step>
+
+<step title="小结" src="doc/codewalk/urlpoll.go">
+本代码导读通过一个简单示例，介绍了如何使用 Go 的并发原语，通过通信来共享内存。
+<br/><br/>
+你可以在此基础上继续探索，如何结合 goroutine 和通道，编写表达清晰、简洁的并发程序。
+</step>
+	
+</codewalk>

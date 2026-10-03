@@ -1,0 +1,507 @@
+<!--{
+  "Title": "expvar 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>expvar 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "expvar"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>expvar 包为公开变量（例如服务器中的操作计数器）提供标准化接口。它通过 HTTP 在 /debug/vars 路径以 JSON 格式公开这些变量。从 Go 1.22 开始，对 /debug/vars 的请求必须使用 GET。<p>设置或修改这些公开变量的操作都是原子的。<p>除了添加 HTTP 处理器，本包还注册以下变量：<pre>cmdline   os.Args
+memstats  runtime.Memstats
+</pre>
+<p>有时导入本包只是为了注册 HTTP 处理器及上述变量的副作用。要以这种方式使用它，请将此包链接到程序中：<pre>import _ &quot;expvar&quot;
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Do">func Do(f func(KeyValue))</a></dd>
+			
+				<dd><a href="#Handler">func Handler() http.Handler</a></dd>
+			
+				<dd><a href="#Publish">func Publish(name string, v Var)</a></dd>
+			
+			
+				
+				<dd><a href="#Float">type Float</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFloat">func NewFloat(name string) *Float</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Add">func (v *Float) Add(delta float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Set">func (v *Float) Set(value float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.String">func (v *Float) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float.Value">func (v *Float) Value() float64</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.String">func (f Func) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Value">func (f Func) Value() any</a></dd>
+				
+			
+				
+				<dd><a href="#Int">type Int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewInt">func NewInt(name string) *Int</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Add">func (v *Int) Add(delta int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Set">func (v *Int) Set(value int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.String">func (v *Int) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int.Value">func (v *Int) Value() int64</a></dd>
+				
+			
+				
+				<dd><a href="#KeyValue">type KeyValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMap">func NewMap(name string) *Map</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Add">func (v *Map) Add(key string, delta int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.AddFloat">func (v *Map) AddFloat(key string, delta float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Delete">func (v *Map) Delete(key string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Do">func (v *Map) Do(f func(KeyValue))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Get">func (v *Map) Get(key string) Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Init">func (v *Map) Init() *Map</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Set">func (v *Map) Set(key string, av Var)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.String">func (v *Map) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#String">type String</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewString">func NewString(name string) *String</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#String.Set">func (v *String) Set(value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String.String">func (v *String) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String.Value">func (v *String) Value() string</a></dd>
+				
+			
+				
+				<dd><a href="#Var">type Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Get">func Get(name string) Var</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/expvar/expvar.go">expvar.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Do">func <a href="/src/expvar/expvar.go?s=7799:7824#L344">Do</a>
+				
+				
+			</h2>
+			<pre>func Do(f func(<a href="#KeyValue">KeyValue</a>))</pre>
+			<p>Do 对每个导出变量调用 f。迭代期间会锁定全局变量映射，但已有条目可以并发更新。<h2 id="Handler">func <a href="/src/expvar/expvar.go?s=8140:8167#L356">Handler</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Handler() <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+			<p>Handler 返回 expvar 的 HTTP 处理器。<p>仅当需要将处理器安装到非标准位置时，才需要调用此函数。<h2 id="Publish">func <a href="/src/expvar/expvar.go?s=6845:6877#L299">Publish</a>
+				
+				
+			</h2>
+			<pre>func Publish(name <a href="/pkg/builtin/#string">string</a>, v <a href="#Var">Var</a>)</pre>
+			<p>Publish 声明一个有名称的导出变量。应在包的 init 函数创建 Var 时调用它。如果名称已注册，则会调用 log.Panic。<h2 id="Float">type <a href="/src/expvar/expvar.go?s=1888:1926#L69">Float</a>
+				
+				
+			</h2>
+			<p>Float 是满足 <a href="#Var">Var</a> 接口的 64 位浮点变量。<pre>type Float struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFloat">func <a href="/src/expvar/expvar.go?s=7389:7422#L323">NewFloat</a>
+					
+					
+				</h3>
+				<pre>func NewFloat(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Float">Float</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Float.Add">func (*Float) <a href="/src/expvar/expvar.go?s=2228:2262#L86">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Add(delta <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>Add 将 delta 加到 v 上。<h3 id="Float.Set">func (*Float) <a href="/src/expvar/expvar.go?s=2471:2505#L99">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Set(value <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>Set 将 v 设为 value。<h3 id="Float.String">func (*Float) <a href="/src/expvar/expvar.go?s=2006:2037#L77">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Float.Value">func (*Float) <a href="/src/expvar/expvar.go?s=1928:1959#L73">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#Float">Float</a>) Value() <a href="/pkg/builtin/#float64">float64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Func">type <a href="/src/expvar/expvar.go?s=6466:6486#L282">Func</a>
+				
+				
+			</h2>
+			<p>Func 通过调用函数并将其返回值格式化为 JSON 来实现 <a href="#Var">Var</a>。<pre>type Func func() <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Func.String">func (Func) <a href="/src/expvar/expvar.go?s=6531:6560#L288">String</a>
+					
+					
+				</h3>
+				<pre>func (f <a href="#Func">Func</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Func.Value">func (Func) <a href="/src/expvar/expvar.go?s=6488:6513#L284">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (f <a href="#Func">Func</a>) Value() <a href="/pkg/builtin/#any">any</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Int">type <a href="/src/expvar/expvar.go?s=1460:1495#L44">Int</a>
+				
+				
+			</h2>
+			<p>Int 是满足 <a href="#Var">Var</a> 接口的 64 位整数变量。<pre>type Int struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewInt">func <a href="/src/expvar/expvar.go?s=7311:7340#L317">NewInt</a>
+					
+					
+				</h3>
+				<pre>func NewInt(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Int">Int</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Int.Add">func (*Int) <a href="/src/expvar/expvar.go?s=1710:1740#L60">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Add(delta <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				
+				
+			
+				<h3 id="Int.Set">func (*Int) <a href="/src/expvar/expvar.go?s=1762:1792#L64">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Set(value <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				
+				
+			
+				<h3 id="Int.String">func (*Int) <a href="/src/expvar/expvar.go?s=1549:1578#L52">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Int.Value">func (*Int) <a href="/src/expvar/expvar.go?s=1497:1524#L48">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#Int">Int</a>) Value() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="KeyValue">type <a href="/src/expvar/expvar.go?s=2776:2825#L111">KeyValue</a>
+				
+				
+			</h2>
+			<p>KeyValue 表示 <a href="#Map">Map</a> 中的单个条目。<pre>type KeyValue struct {
+<span id="KeyValue.Key"></span>    Key   <a href="/pkg/builtin/#string">string</a>
+<span id="KeyValue.Value"></span>    Value <a href="#Var">Var</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Map">type <a href="/src/expvar/expvar.go?s=2622:2724#L104">Map</a>
+				
+				
+			</h2>
+			<p>Map 是从字符串到 Var 的映射变量，满足 <a href="#Var">Var</a> 接口。<pre>type Map struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewMap">func <a href="/src/expvar/expvar.go?s=7473:7502#L329">NewMap</a>
+					
+					
+				</h3>
+				<pre>func NewMap(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Map">Map</a></pre>
+				
+				
+			
+
+			
+				<h3 id="Map.Add">func (*Map) <a href="/src/expvar/expvar.go?s=4697:4739#L199">Add</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Add(key <a href="/pkg/builtin/#string">string</a>, delta <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Add 将 delta 加到映射中给定键下存储的 *<a href="#Int">Int</a> 值上。<h3 id="Map.AddFloat">func (*Map) <a href="/src/expvar/expvar.go?s=5032:5081#L216">AddFloat</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) AddFloat(key <a href="/pkg/builtin/#string">string</a>, delta <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>AddFloat 将 delta 加到映射中给定键下存储的 *<a href="#Float">Float</a> 值上。<h3 id="Map.Delete">func (*Map) <a href="/src/expvar/expvar.go?s=5349:5381#L233">Delete</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Delete(key <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Delete 从映射中删除给定键。<h3 id="Map.Do">func (*Map) <a href="/src/expvar/expvar.go?s=5686:5720#L246">Do</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Do(f func(<a href="#KeyValue">KeyValue</a>))</pre>
+				<p>Do 对映射中的每个条目调用 f。迭代期间会锁定映射，但已有条目可以并发更新。<h3 id="Map.Get">func (*Map) <a href="/src/expvar/expvar.go?s=4179:4212#L178">Get</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="#Var">Var</a></pre>
+				
+				
+			
+				<h3 id="Map.Init">func (*Map) <a href="/src/expvar/expvar.go?s=3749:3774#L158">Init</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Init() *<a href="#Map">Map</a></pre>
+				<p>Init 从映射中移除所有键。<h3 id="Map.Set">func (*Map) <a href="/src/expvar/expvar.go?s=4270:4307#L184">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) Set(key <a href="/pkg/builtin/#string">string</a>, av <a href="#Var">Var</a>)</pre>
+				
+				
+			
+				<h3 id="Map.String">func (*Map) <a href="/src/expvar/expvar.go?s=2827:2856#L116">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#Map">Map</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="String">type <a href="/src/expvar/expvar.go?s=5932:5980#L257">String</a>
+				
+				
+			</h2>
+			<p>String 是字符串变量，满足 <a href="#Var">Var</a> 接口。<pre>type String struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewString">func <a href="/src/expvar/expvar.go?s=7558:7593#L335">NewString</a>
+					
+					
+				</h3>
+				<pre>func NewString(name <a href="/pkg/builtin/#string">string</a>) *<a href="#String">String</a></pre>
+				
+				
+			
+
+			
+				<h3 id="String.Set">func (*String) <a href="/src/expvar/expvar.go?s=6310:6344#L276">Set</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) Set(value <a href="/pkg/builtin/#string">string</a>)</pre>
+				
+				
+			
+				<h3 id="String.String">func (*String) <a href="/src/expvar/expvar.go?s=6150:6182#L268">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 实现 <a href="#Var">Var</a> 接口。要获取不带引号的字符串，请使用 <a href="#String.Value">String.Value</a>。<h3 id="String.Value">func (*String) <a href="/src/expvar/expvar.go?s=5982:6013#L261">Value</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (v *<a href="#String">String</a>) Value() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Var">type <a href="/src/expvar/expvar.go?s=1054:1260#L31">Var</a>
+				
+				
+			</h2>
+			<p>Var 是所有导出变量的抽象类型。<pre>type Var interface {
+    <span class="comment">// String 为变量返回有效的 JSON 值。</span>
+    <span class="comment">// String 方法不能返回有效 JSON 的类型</span>
+    <span class="comment">// （例如 time.Time）不得用作 Var。</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Get">func <a href="/src/expvar/expvar.go?s=7194:7219#L311">Get</a>
+					
+					
+				</h3>
+				<pre>func Get(name <a href="/pkg/builtin/#string">string</a>) <a href="#Var">Var</a></pre>
+				<p>Get 获取指定名称的导出变量。如果名称尚未注册，则返回 nil。</article>

@@ -1,0 +1,251 @@
+<!--{
+  "Title": "compile 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>compile 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Compile 通常通过“go tool compile”调用，将命令行指定的所有文件作为一个 Go 包进行编译，然后生成单个目标文件，以第一个源文件的基本文件名加 .o 后缀命名。该目标文件可以与其他目标文件一起打包成包归档文件，也可以直接交给链接器“go tool link”。指定 -pack 时，编译器直接生成归档文件，跳过中间目标文件。
+<p>生成的文件包含该包导出符号的类型信息，以及该包从其他包导入的符号所用的类型信息。因此，编译依赖包 P 的客户端包 C 时，只需读取 P 的编译输出，无需读取 P 的各个依赖包文件。
+<h3 id="hdr-Command_Line">命令行
+</h3>
+<p>用法：
+<pre>go tool compile [flags] file...
+</pre>
+<p>指定文件必须都是 Go 源文件，并且属于同一个包。所有目标操作系统和体系结构都使用同一个编译器，通过 GOOS 和 GOARCH 环境变量指定目标平台。
+<p>标志参数：
+<pre>-D path
+	设置本地导入的相对路径。
+-I dir1 -I dir2
+	先在 $GOROOT/pkg/$GOOS_$GOARCH 中查找导入的包，
+	再依次搜索 dir1、dir2 等目录。
+-L
+	在错误消息中显示完整文件路径。
+-N
+	禁用优化。
+-S
+	将汇编清单输出到标准输出，仅包含代码。
+-S -S
+	将汇编清单输出到标准输出，包含代码和数据。
+-V
+	输出编译器版本并退出。
+-asmhdr file
+	将汇编头文件写入 file。
+-asan
+	插入对 C/C++ AddressSanitizer 的调用。
+-buildid id
+	将 id 作为构建 ID 记录到导出元数据中。
+-blockprofile file
+	将编译过程的阻塞剖析数据写入 file。
+-c int
+	设置编译并发度；1 表示不并发，默认值为 1。
+-complete
+	假定该包没有非 Go 组件。
+-cpuprofile file
+	将编译过程的 CPU 性能剖析数据写入 file。
+-dynlink
+	允许引用共享库中的 Go 符号，属于实验性功能。
+-e
+	取消错误报告数量限制，默认上限为 10。
+-embedcfg file
+	从 file 读取 go:embed 配置。
+	使用任何 //go:embed 指令时都必须提供此配置。
+	该文件为 JSON 格式，包含模式到文件名列表、文件名到完整路径的映射。
+-goversion string
+	指定运行时要求的 Go 工具版本。
+	如果运行时的 Go 版本与 goversion 不匹配，则退出。
+-h
+	检测到第一个错误时停止，并输出栈追踪。
+-importcfg file
+	从 file 读取导入配置。
+	在文件中设置 importmap、packagefile，指定导入解析规则。
+-installsuffix suffix
+	从 $GOROOT/pkg/$GOOS_$GOARCH_suffix 查找包，
+	而不是从 $GOROOT/pkg/$GOOS_$GOARCH 查找。
+-l
+	禁用内联。
+-lang version
+	设置要编译的语言版本，例如 -lang=go1.12。
+	默认使用当前版本。
+-linkobj file
+	将链接器专用目标数据写入 file，编译器专用目标数据
+	写入通常的输出文件，即 -o 指定的文件。
+	未指定本标志时，-o 的输出同时包含链接器和编译器所需的数据。
+-m
+	输出优化决策。更高的数值或重复指定此标志会提供更多细节。
+-memprofile file
+	将编译过程的内存剖析数据写入 file。
+-memprofilerate rate
+	将编译过程中的 runtime.MemProfileRate 设为 rate。
+-msan
+	插入对 C/C++ MemorySanitizer 的调用。
+-mutexprofile file
+	将编译过程的互斥锁剖析数据写入 file。
+-nolocalimports
+	禁止本地（相对路径）导入。
+-o file
+	将目标数据写入 file，默认为 file.o；使用 -pack 时默认为 file.a。
+-p path
+	设置正在编译的代码的预期包导入路径，
+	并诊断会导致循环依赖的导入。
+-pack
+	生成包归档文件，而不是目标文件。
+-race
+	编译时启用数据竞争检测器。
+-s
+	对可以简化的复合字面量发出警告。
+-shared
+	生成可以链接到共享库的代码。
+-spectre list
+	启用 list 指定的 Spectre 缓解措施（all、index、ret）。
+-traceprofile file
+	将执行追踪数据写入 file。
+-trimpath prefix
+	从记录的源文件路径中移除 prefix。
+</pre>
+<p>与调试信息有关的标志参数：
+<pre>-dwarf
+	生成 DWARF 符号。
+-dwarflocationlists
+	在优化模式下向 DWARF 添加位置列表。
+-gendwarfinl int
+	生成 DWARF 内联信息记录，默认值为 2。
+</pre>
+<p>用于调试编译器本身的标志参数：
+<pre>-E
+	调试符号导出。
+-K
+	调试缺失的行号。
+-d list
+	输出 list 中各项的调试信息。运行 -d help 查看详情。
+-live
+	调试活跃性分析。
+-v
+	增加调试输出的详细程度。
+-%
+	调试非静态初始化器。
+-W
+	调试类型检查后的语法树。
+-f
+	调试栈帧。
+-i
+	调试行号栈。
+-j
+	调试在运行时初始化的变量。
+-r
+	调试生成的包装函数。
+-w
+	调试类型检查。
+</pre>
+<h3 id="hdr-Compiler_Directives">编译器指令
+</h3>
+<p>编译器接受以注释形式书写的指令。每条指令必须独占一行，注释前只允许出现空格和制表符；注释起始符与指令名称之间不能有空格，以便与普通注释区分。不识别指令约定或某条具体指令的工具，可以像跳过普通注释一样跳过它。
+<p>除了作为历史特例的 line 指令之外，其他编译器指令都采用 //go:name 形式，表明它们由 Go 工具链定义。
+<h3 id="hdr-Line_Directives">行号指令
+</h3>
+<p>行号指令有以下几种形式：
+<pre>//line :line
+//line :line:col
+//line filename:line
+//line filename:line:col
+/*line :line*/
+/*line :line:col*/
+/*line filename:line*/
+/*line filename:line:col*/
+</pre>
+<p>要被识别为行号指令，注释必须以 //line 或 /*line 开头，后接一个空格，并包含至少一个冒号。//line 形式必须从行首开始。行号指令将紧跟在注释之后的字符的源码位置设置为指定的文件、行和列：对于 //line 注释，该字符是下一行的首字符；对于 /*line 注释，则是结束符 */ 之后紧接的字符。如果没有给出文件名，并且也未指定列号，则记录的文件名为空；否则使用最近记录的文件名，即实际文件名或前一条行号指令指定的文件名。如果行号指令未指定列号，则在下一条指令之前，列号均为“未知”，编译器不会报告这一范围内的列号。指令文本从后向前解析：如果末尾的 :ddd 中 ddd 是大于 0 的有效数字，则先去掉这一部分；再以相同方式尝试去掉第二个有效的 :ddd。其前面的全部内容都视为文件名，可能包含空格和冒号。无效的行号或列号会报错。
+<p>相对文件名以包含该指令的文件所在目录为基准解析。绝对文件名直接使用。继承自前一条指令的文件名，即空文件名形式 //line :line:col，会原样复用，不会重新解析路径。
+<p>示例：
+<pre>//line foo.go:10      相对文件名为 foo.go，下一行的行号为 10
+//line ../foo.go:10   相对文件名以指令所在源文件的目录为基准解析
+//line C:foo.go:10    文件名允许包含冒号，此处文件名为 C:foo.go，行号为 10
+//line  a:100 :10     文件名允许包含空格，此处文件名为 " a:100 "（不含引号）
+/*line :10:20*/x      x 的位置为当前文件的第 10 行、第 20 列
+/*line foo: 10 */     此注释被识别为无效行号指令，因为行号周围有额外空格
+</pre>
+<p>行号指令通常出现在机器生成的代码中，使编译器和调试器报告生成器原始输入中的位置。
+<h3 id="hdr-Function_Directives">函数指令
+</h3>
+<p>函数指令作用于紧随其后的 Go 函数。
+<pre>//go:noescape
+</pre>
+<p>//go:noescape 指令后必须紧跟一个没有函数体的函数声明，表示该函数由非 Go 代码实现。它声明该函数不会让作为参数传入的任何指针逃逸到堆上，也不会逃逸到函数返回值中。编译器对调用该函数的 Go 代码进行逃逸分析时，可以利用这一信息。
+<pre>//go:uintptrescapes
+</pre>
+<p>//go:uintptrescapes 指令后必须紧跟函数声明。它说明该函数的 uintptr 参数可能是由指针转换而来的值；即使仅从类型上看，调用期间似乎不再需要相应对象，这些对象也必须位于堆上，并在整个调用期间保持存活。每次调用该函数时，从指针到 uintptr 的转换都必须直接出现在参数列表中。某些底层系统调用实现需要此指令，其他情况应避免使用。
+<pre>//go:noinline
+</pre>
+<p>//go:noinline 指令后必须紧跟函数声明。它要求对该函数的调用不得内联，覆盖编译器通常的优化规则。一般仅在特殊运行时函数或调试编译器时需要使用。
+<pre>//go:norace
+</pre>
+<p>//go:norace 指令后必须紧跟函数声明。它要求数据竞争检测器忽略该函数中的内存访问。最常见的用途是底层代码：这些代码可能在无法安全调用数据竞争检测器运行时的时机执行。
+<pre>//go:nosplit
+</pre>
+<p>//go:nosplit 指令后必须紧跟函数声明。它要求函数省略通常的栈溢出检查。最常见的用途是底层运行时代码，这些代码在调用方 goroutine 不宜被抢占的时机执行。在底层运行时代码之外使用此指令是不安全的，因为 nosplit 函数可能写越栈末尾，导致内存损坏和任意形式的程序故障。
+<h3 id="hdr-Linkname_Directive">Linkname 指令
+</h3>
+<pre>//go:linkname localname [importpath.name]
+</pre>
+<p>//go:linkname 指令通常写在 localname 所指定的 var 或 func 声明之前，但它的位置不会改变效果。此指令决定 Go 变量或函数声明使用的目标文件符号，允许两个 Go 符号成为同一个目标文件符号的别名，从而让一个包访问另一个包中的符号，即使这会破坏未导出声明的常规封装，甚至破坏类型安全。因此，只有导入了 "unsafe" 的文件才能启用此指令。
+<p>它可用于两种场景。假设包 upper 直接或间接导入包 lower。在第一种场景中，lower 定义一个符号，其目标文件符号名属于 upper。两个包都包含 linkname 指令：lower 使用双参数形式，upper 使用单参数形式。在下面的示例中，lower.f 是函数 upper.g 的别名：
+<pre>package upper
+import _ &quot;unsafe&quot;
+//go:linkname g
+func g()
+
+package lower
+import _ &quot;unsafe&quot;
+//go:linkname f upper.g
+func f() { ... }
+</pre>
+<p>upper 包中的 linkname 指令会抑制函数缺少函数体时通常产生的错误。也可以在包中加入一个 .s 文件来抑制这一检查，即使该文件为空也可以。
+<p>在第二种场景中，upper 单方面为 lower 中的符号创建别名。在下面的示例中，upper.g 是函数 lower.f 的别名。
+<pre>package upper
+import _ &quot;unsafe&quot;
+//go:linkname g lower.f
+func g()
+
+package lower
+func f() { ... }
+</pre>
+<p>lower.f 的声明也可以带有单参数 f 的 linkname 指令。虽然不是必需的，但可以提醒读者，该函数会被包外部访问。
+<h3 id="hdr-WebAssembly_Directives">WebAssembly 指令
+</h3>
+<pre>//go:wasmimport importmodule importname
+</pre>
+<p>//go:wasmimport 指令仅适用于 wasm，后面必须紧跟一个没有函数体的函数声明。它说明该函数由 importmodule 和 importname 所标识的 wasm 模块提供。例如：
+<pre>//go:wasmimport a_module f
+func g()
+</pre>
+<p>这会让 g 引用 a_module 模块中的 WebAssembly 函数 f。
+<pre>//go:wasmexport exportname
+</pre>
+<p>//go:wasmexport 指令仅适用于 wasm，后面必须紧跟函数定义。它说明该函数以 exportname 为名称导出给 wasm 宿主。例如：
+<pre>//go:wasmexport h
+func hWasm() { ... }
+</pre>
+<p>这会将 Go 函数 hWasm 以 h 的名称提供给此 WebAssembly 模块之外的代码。
+<p>对于 go:wasmimport 和 go:wasmexport，Go 函数的参数与返回值类型按照下表转换为 Wasm 类型：
+<pre>Go 类型         Wasm 类型
+bool            i32
+int32, uint32   i32
+int64, uint64   i64
+float32         f32
+float64         f64
+unsafe.Pointer  i32
+指针            i32（更多限制见下文）
+string          (i32, i32)（只允许用作参数，不允许用作返回值）
+</pre>
+<p>编译器不允许其他参数类型。
+<p>对于指针类型，其元素类型必须是 bool、int8、uint8、int16、uint16、int32、uint32、int64、uint64、float32、float64，或元素类型属于允许的指针元素类型的数组，或结构体。若结构体非空，则必须嵌入 <a href="/pkg/structs/#HostLayout">structs.HostLayout</a>，并且所有字段的类型都必须属于允许的指针元素类型。
+</article>

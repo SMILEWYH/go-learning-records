@@ -1,0 +1,263 @@
+<!--{
+  "Title": "testing/synctest 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>testing/synctest 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/synctest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>synctest 包为测试并发代码提供支持。<p><a href="#Test">Test</a> 函数会在一个隔离的“测试气泡”（bubble）中运行函数。在气泡内启动的所有 goroutine 也都属于该气泡。<p>每个测试都应完全自包含。以下准则适用于大多数测试：<ul>
+<li>避免与并非由该测试启动的 goroutine 交互。<li>避免使用网络；需要时使用模拟网络实现。<li>避免与外部进程交互。<li>避免后台任务造成 goroutine 泄漏。</ul>
+<h3 id="hdr-Time">时间</h3>
+<p>在气泡内，<a href="/pkg/time/">time</a> 包使用虚拟时钟。每个气泡都有自己的时钟，初始时间为 UTC 2000 年 1 月 1 日零点。<p>只有当气泡内的所有 goroutine 都处于持久阻塞状态时，气泡内的时间才会推进。“持久阻塞”的确切定义见下文。<p>例如，下面的测试会立即完成，而不需要等待两秒：<pre>func TestTime(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		start := time.Now() // 始终为 UTC 2000-01-01 零点
+		go func() {
+			time.Sleep(1 * time.Second)
+			t.Log(time.Since(start)) // 始终记录 "1s"
+		}()
+		time.Sleep(2 * time.Second) // 上面的 goroutine 会在此次 Sleep 返回之前运行
+		t.Log(time.Since(start))    // 始终记录 "2s"
+	})
+}
+</pre>
+<p>气泡的根 goroutine 退出后，时间便停止推进。<h3 id="hdr-Blocking">阻塞</h3>
+<p>如果气泡内的某个 goroutine 已阻塞，而且只有同一气泡内的其他 goroutine 才能解除它的阻塞，就称其处于“持久阻塞”（durably blocked）状态。如果气泡外部发生的事件能够解除其阻塞，则不属于持久阻塞。<p><a href="#Wait">Wait</a> 函数会一直阻塞，直到气泡内的其他所有 goroutine 都处于持久阻塞状态。<p>例如：<pre>func TestWait(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		done := false
+		go func() {
+			done = true
+		}()
+		// Wait 会阻塞，直到上面的 goroutine 执行完毕。
+		synctest.Wait()
+		t.Log(done) // 始终记录 "true"
+	})
+}
+</pre>
+<p>当气泡内的所有 goroutine 都处于持久阻塞状态时：<ul>
+<li>如果调用了 <a href="#Wait">Wait</a>，则 Wait 返回。<li>否则，如果存在能够解除至少一个 goroutine 阻塞的下一个时间点，而且气泡的根 goroutine 尚未退出，时间就会推进到该时间点。<li>否则便发生死锁，<a href="#Test">Test</a> 会触发 panic。</ul>
+<p>以下操作会使 goroutine 持久阻塞：<ul>
+<li>在气泡内创建的通道上执行阻塞的发送或接收操作。<li>执行阻塞的 select 语句，且其中每个 case 所用的通道都在气泡内创建。<li><a href="/pkg/sync/#Cond.Wait">sync.Cond.Wait</a>
+<li><a href="/pkg/sync/#WaitGroup.Wait">sync.WaitGroup.Wait</a>，前提是在气泡内调用了 <a href="/pkg/sync/#WaitGroup.Add">sync.WaitGroup.Add</a>。<li><a href="/pkg/time/#Sleep">time.Sleep</a>
+</ul>
+<p>上述列表以外的操作不会造成持久阻塞。尤其是以下操作虽然可能阻塞 goroutine，却不属于持久阻塞，因为气泡外发生的事件能够解除其阻塞：<ul>
+<li>对 <a href="/pkg/sync/#Mutex">sync.Mutex</a> 或 <a href="/pkg/sync/#RWMutex">sync.RWMutex</a> 加锁。<li>阻塞在 I/O 操作上，例如读取网络套接字。<li>系统调用。</ul>
+<h3 id="hdr-Isolation">隔离</h3>
+<p>在气泡内创建的通道、<a href="/pkg/time/#Timer">time.Timer</a> 或 <a href="/pkg/time/#Ticker">time.Ticker</a> 会与该气泡关联。在气泡外操作这些与气泡关联的通道、定时器或周期定时器会触发 panic。<p><a href="/pkg/sync/#WaitGroup">sync.WaitGroup</a> 会在首次调用 Add 或 Go 时与某个气泡关联。关联后，在气泡外调用 Add 或 Go 会引发致命错误。（受技术限制，定义为包级变量的 WaitGroup，例如“var wg sync.WaitGroup”，无法与气泡关联，对其执行的操作也可能不会造成持久阻塞。对于保存在包级变量中的 *WaitGroup，例如“var wg = new(sync.WaitGroup)”，则没有此限制。）<p><a href="/pkg/sync/#Cond.Wait">sync.Cond.Wait</a> 会造成持久阻塞。从气泡外唤醒气泡内阻塞在 Cond.Wait 上的 goroutine 会引发致命错误。<p>通过 <a href="/pkg/runtime/#AddCleanup">runtime.AddCleanup</a> 和 <a href="/pkg/runtime/#SetFinalizer">runtime.SetFinalizer</a> 注册的清理函数和终结器，会在所有气泡之外运行。<h3 id="hdr-Example__Context_AfterFunc">示例：Context.AfterFunc</h3>
+<p>此示例演示如何测试 <a href="/pkg/context/#AfterFunc">context.AfterFunc</a> 函数。<p>AfterFunc 注册一个函数，在上下文被取消后通过新的 goroutine 执行。<p>该测试验证：上下文取消之前，该函数不会执行；上下文取消之后，该函数会执行。<pre>func TestContextAfterFunc(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		// 创建一个可取消的 context.Context。
+		ctx, cancel := context.WithCancel(t.Context())
+
+		// context.AfterFunc 注册一个函数，
+		// 在上下文被取消时调用。
+		afterFuncCalled := false
+		context.AfterFunc(ctx, func() {
+			afterFuncCalled = true
+		})
+
+		// 上下文尚未取消，因此不会调用 AfterFunc。
+		synctest.Wait()
+		if afterFuncCalled {
+			t.Fatalf(&quot;before context is canceled: AfterFunc called&quot;)
+		}
+
+		// 取消上下文，并等待 AfterFunc 执行完毕。
+		// 验证 AfterFunc 已经运行。
+		cancel()
+		synctest.Wait()
+		if !afterFuncCalled {
+			t.Fatalf(&quot;after context is canceled: AfterFunc not called&quot;)
+		}
+	})
+}
+</pre>
+<h3 id="hdr-Example__Context_WithTimeout">示例：Context.WithTimeout</h3>
+<p>此示例演示如何测试 <a href="/pkg/context/#WithTimeout">context.WithTimeout</a> 函数。<p>WithTimeout 创建一个在超时时被取消的上下文。<p>该测试验证：超时之前，上下文不会被取消；超时之后，上下文会被取消。<pre>func TestContextWithTimeout(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		// 创建一个超时后被取消的 context.Context。
+		const timeout = 5 * time.Second
+		ctx, cancel := context.WithTimeout(t.Context(), timeout)
+		defer cancel()
+
+		// 等待略短于超时时间的一段时间。
+		time.Sleep(timeout - time.Nanosecond)
+		synctest.Wait()
+		if err := ctx.Err(); err != nil {
+			t.Fatalf(&quot;before timeout: ctx.Err() = %v, want nil\n&quot;, err)
+		}
+
+		// 继续等待剩余时间，直到超时。
+		time.Sleep(time.Nanosecond)
+		synctest.Wait()
+		if err := ctx.Err(); err != context.DeadlineExceeded {
+			t.Fatalf(&quot;after timeout: ctx.Err() = %v, want DeadlineExceeded\n&quot;, err)
+		}
+	})
+}
+</pre>
+<h3 id="hdr-Example__HTTP_100_Continue">示例：HTTP 100 Continue</h3>
+<p>此示例演示如何测试 [http.Transport] 对 100 Continue 的处理。<p>HTTP 客户端发送请求时，可以添加“Expect: 100-continue”请求头，告诉服务器还有数据需要发送。服务器随后可以回复一条 100 Continue 信息响应，要求客户端发送数据；也可以返回其他状态，告诉客户端不需要这些数据。例如，上传大文件的客户端可以利用此功能，在发送文件前确认服务器愿意接收该文件。<p>该测试验证：发送“Expect: 100-continue”请求头时，HTTP 客户端不会在服务器要求之前发送请求内容；收到 100 Continue 响应后，才会发送请求内容。<pre>func TestHTTPTransport100Continue(t *testing.T) {
+	synctest.Test(t, func(*testing.T) {
+		// 创建一个进程内的模拟网络连接。
+		// 此测试不能使用回环网络连接，
+		// 因为阻塞在网络 I/O 上的 goroutine 会使 synctest
+		// 气泡无法进入空闲状态。
+		srvConn, cliConn := net.Pipe()
+		defer cliConn.Close()
+		defer srvConn.Close()
+
+		tr := &amp;http.Transport{
+			// 使用上面创建的模拟网络连接。
+			DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+				return cliConn, nil
+			},
+			// 启用 "Expect: 100-continue" 处理。
+			ExpectContinueTimeout: 5 * time.Second,
+		}
+
+		// 发送一个设置了 "Expect: 100-continue" 请求头的请求。
+		// 在新的 goroutine 中发送，因为请求直到测试结束时才会完成。
+		body := &quot;request body&quot;
+		go func() {
+			req, _ := http.NewRequest(&quot;PUT&quot;, &quot;http://test.tld/&quot;, strings.NewReader(body))
+			req.Header.Set(&quot;Expect&quot;, &quot;100-continue&quot;)
+			resp, err := tr.RoundTrip(req)
+			if err != nil {
+				t.Errorf(&quot;RoundTrip: unexpected error %v\n&quot;, err)
+			} else {
+				resp.Body.Close()
+			}
+		}()
+
+		// 读取客户端发送的请求头。
+		req, err := http.ReadRequest(bufio.NewReader(srvConn))
+		if err != nil {
+			t.Fatalf(&quot;ReadRequest: %v\n&quot;, err)
+		}
+
+		// 启动一个新的 goroutine，将客户端发送的请求体复制到缓冲区。
+		// 等待气泡内的所有 goroutine 阻塞，并验证此时
+		// 尚未从客户端读到任何内容。
+		var gotBody bytes.Buffer
+		go io.Copy(&amp;gotBody, req.Body)
+		synctest.Wait()
+		if got, want := gotBody.String(), &quot;&quot;; got != want {
+			t.Fatalf(&quot;before sending 100 Continue, read body: %q, want %q\n&quot;, got, want)
+		}
+
+		// 向客户端写入 "100 Continue" 响应，并验证
+		// 客户端发送了请求体。
+		srvConn.Write([]byte(&quot;HTTP/1.1 100 Continue\r\n\r\n&quot;))
+		synctest.Wait()
+		if got, want := gotBody.String(), body; got != want {
+			t.Fatalf(&quot;after sending 100 Continue, read body: %q, want %q\n&quot;, got, want)
+		}
+
+		// 最后发送 "200 OK" 响应，结束本次请求。
+		srvConn.Write([]byte(&quot;HTTP/1.1 200 OK\r\n\r\n&quot;))
+
+		// 测试期间我们启动了多个 goroutine。
+		// synctest.Test 会等待它们全部退出后再返回。
+	})
+}
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Sleep">func Sleep(d time.Duration)</a></dd>
+			
+				<dd><a href="#Test">func Test(t *testing.T, f func(*testing.T))</a></dd>
+			
+				<dd><a href="#Wait">func Wait()</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/synctest/synctest.go">synctest.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Sleep">func <a href="/src/testing/synctest/synctest.go?s=11890:11917#L319">Sleep</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func Sleep(d <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>)</pre>
+			<p>Sleep 会阻塞，直到当前气泡的时钟向前推进了 d 这么长的时间，而且当前气泡内除当前 goroutine 以外的所有 goroutine 都处于持久阻塞状态。<p>这完全等价于：<pre>time.Sleep(d)
+synctest.Wait()
+</pre>
+<p>在测试中，这通常比只调用 <a href="/pkg/time/#Sleep">time.Sleep</a> 更合适。如果测试自身与运行被测系统的另一个 goroutine 休眠了完全相同的时长，就无法预测两者中哪一个会先继续运行。测试自身通常希望在休眠后等待被测系统进入“稳定状态”，Sleep 正是用来实现这一点的。<h2 id="Test">func <a href="/src/testing/synctest/synctest.go?s=10572:10615#L279">Test</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func Test(t *<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>, f func(*<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>))</pre>
+			<p>Test 在一个新的气泡中执行 f。<p>Test 会等待气泡内的所有 goroutine 退出后再返回。如果气泡内的 goroutine 发生死锁，测试会失败。<p>不得在气泡内部调用 Test。<p>传递给 f 的 <a href="/pkg/testing/#T">*testing.T</a> 具有以下特性：<ul>
+<li>T.Cleanup 注册的函数在气泡内部运行，执行时机紧邻 Test 返回之前。<li>T.Context 返回一个 <a href="/pkg/context/#Context">context.Context</a>，其 Done 通道与该气泡关联。<li>不得调用 T.Run、T.Parallel 和 T.Deadline。</ul>
+
+			
+		
+			
+			<h2 id="Wait">func <a href="/src/testing/synctest/synctest.go?s=11204:11215#L300">Wait</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func Wait()</pre>
+			<p>Wait 会阻塞，直到当前气泡内除当前 goroutine 以外的所有 goroutine 都处于持久阻塞状态。<p>不得在气泡外调用 Wait。同一个气泡内的多个 goroutine 不得并发调用 Wait。</article>

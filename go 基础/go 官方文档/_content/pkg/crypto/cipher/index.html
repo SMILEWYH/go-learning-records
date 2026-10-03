@@ -1,0 +1,1212 @@
+<!--{
+  "Title": "crypto/cipher 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package cipher</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/cipher"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>cipher 包实现标准分组密码工作模式，可用于封装底层分组密码实现。参见 <a href="https://csrc.nist.gov/groups/ST/toolkit/BCM/current_modes.html">https://csrc.nist.gov/groups/ST/toolkit/BCM/current_modes.html</a> 及 NIST 特别出版物 800-38A。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#AEAD">type AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewGCM">func NewGCM(cipher Block) (AEAD, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewGCMWithNonceSize">func NewGCMWithNonceSize(cipher Block, size int) (AEAD, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewGCMWithRandomNonce">func NewGCMWithRandomNonce(cipher Block) (AEAD, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewGCMWithTagSize">func NewGCMWithTagSize(cipher Block, tagSize int) (AEAD, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Block">type Block</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BlockMode">type BlockMode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCBCDecrypter">func NewCBCDecrypter(b Block, iv []byte) BlockMode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCBCEncrypter">func NewCBCEncrypter(b Block, iv []byte) BlockMode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Stream">type Stream</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCFBDecrypter">func NewCFBDecrypter(block Block, iv []byte) Stream</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCFBEncrypter">func NewCFBEncrypter(block Block, iv []byte) Stream</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCTR">func NewCTR(block Block, iv []byte) Stream</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewOFB">func NewOFB(b Block, iv []byte) Stream</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StreamReader">type StreamReader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StreamReader.Read">func (r StreamReader) Read(dst []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#StreamWriter">type StreamWriter</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StreamWriter.Close">func (w StreamWriter) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StreamWriter.Write">func (w StreamWriter) Write(src []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewCBCDecrypter">NewCBCDecrypter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewCBCEncrypter">NewCBCEncrypter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewCFBDecrypter">NewCFBDecrypter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewCFBEncrypter">NewCFBEncrypter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewCTR">NewCTR</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewGCM_decrypt">NewGCM (Decrypt)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewGCM_encrypt">NewGCM (Encrypt)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewOFB">NewOFB</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_StreamReader">StreamReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_StreamWriter">StreamWriter</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/cipher/cbc.go">cbc.go</a>
+			
+				<a href="/src/crypto/cipher/cfb.go">cfb.go</a>
+			
+				<a href="/src/crypto/cipher/cipher.go">cipher.go</a>
+			
+				<a href="/src/crypto/cipher/ctr.go">ctr.go</a>
+			
+				<a href="/src/crypto/cipher/gcm.go">gcm.go</a>
+			
+				<a href="/src/crypto/cipher/io.go">io.go</a>
+			
+				<a href="/src/crypto/cipher/ofb.go">ofb.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="AEAD">type <a href="/src/crypto/cipher/cipher.go?s=2640:4069#L56">AEAD</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>AEAD 是提供带关联数据的认证加密的密码模式。关于此方法的说明，参见 <a href="https://en.wikipedia.org/wiki/Authenticated_encryption">https://en.wikipedia.org/wiki/Authenticated_encryption</a>。
+
+			<pre>type AEAD interface {
+    <span class="comment">// NonceSize 返回传给 Seal 和 Open 的 nonce</span>
+    <span class="comment">// 必须具有的长度。</span>
+    NonceSize() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Overhead 返回明文长度与其密文长度之间</span>
+    <span class="comment">// 差值的上限。</span>
+    Overhead() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Seal 对 plaintext 加密并认证，对附加数据进行</span>
+    <span class="comment">// 认证，将结果追加到 dst，并返回更新后的</span>
+    <span class="comment">// 切片。nonce 的长度必须为 NonceSize() 字节，且对于给定密钥，</span>
+    <span class="comment">// 必须始终唯一，绝不重复。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 若要复用 plaintext 的存储空间保存加密结果，请使用 plaintext[:0]</span>
+    <span class="comment">// 作为 dst。否则，dst 的剩余容量区域不得与 plaintext 重叠。</span>
+    <span class="comment">// dst 与 additionalData 不得重叠。</span>
+    Seal(dst, nonce, plaintext, additionalData []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a>
+
+    <span class="comment">// Open 对 ciphertext 解密并认证，对附加数据进行</span>
+    <span class="comment">// 认证；成功时将得到的明文追加到 dst，</span>
+    <span class="comment">// 并返回更新后的切片。nonce 的长度必须为 NonceSize()</span>
+    <span class="comment">// 字节，并且它与附加数据都必须与</span>
+    <span class="comment">// 传给 Seal 的值一致。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 若要复用 ciphertext 的存储空间保存解密结果，请使用 ciphertext[:0]</span>
+    <span class="comment">// 作为 dst。否则，dst 的剩余容量区域不得与 ciphertext 重叠。</span>
+    <span class="comment">// dst 与 additionalData 不得重叠。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 即使函数失败，dst 容量范围内的内容</span>
+    <span class="comment">// 也可能被覆盖。</span>
+    Open(dst, nonce, ciphertext, additionalData []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewGCM">func <a href="/src/crypto/cipher/gcm.go?s=660:699#L16">NewGCM</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func NewGCM(cipher <a href="#Block">Block</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewGCM 将给定的 128 位分组密码封装为使用标准 nonce 长度的伽罗瓦计数器模式（GCM）并返回。
+
+				
+
+
+<div id="example_NewGCM_decrypt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Decrypt)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Decrypt)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"fmt"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 Seal/Open。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	// 解码后的密钥应为 16 字节（AES-128）或 32 字节（AES-256）。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
+	ciphertext, _ := hex.DecodeString("c3aaa29f002ca75870806e44086700f62ce4d43e902b3888e23ceff797a7a471")
+	nonce, _ := hex.DecodeString("64a9433eae7ccceee2fc0eda")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	fmt.Printf("%s\n", plaintext)
+}
+</textarea></div>
+        <div class="output"><pre>exampleplaintext
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_NewGCM_encrypt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Encrypt)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Encrypt)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 Seal/Open。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	// 解码后的密钥应为 16 字节（AES-128）或 32 字节（AES-256）。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
+	plaintext := []byte("exampleplaintext")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// 同一密钥绝不能使用超过 2^32 个随机 nonce，以避免重复的风险。
+	nonce := make([]byte, aesgcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+
+	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
+	fmt.Printf("%x\n", ciphertext)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewGCMWithNonceSize">func <a href="/src/crypto/cipher/gcm.go?s=1318:1380#L30">NewGCMWithNonceSize</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewGCMWithNonceSize(cipher <a href="#Block">Block</a>, size <a href="/pkg/builtin/#int">int</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewGCMWithNonceSize 将给定的 128 位分组密码封装为伽罗瓦计数器模式并返回，该模式接受指定长度的 nonce。长度不得为零。
+<p>仅在需要兼容使用非标准 nonce 长度的现有密码系统时才使用此函数。其他情况下都应使用 <a href="#NewGCM">NewGCM</a>，它速度更快，也更不容易被误用。
+
+				
+			
+				<h3 id="NewGCMWithRandomNonce">func <a href="/src/crypto/cipher/gcm.go?s=3416:3470#L79">NewGCMWithRandomNonce</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func NewGCMWithRandomNonce(cipher <a href="#Block">Block</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewGCMWithRandomNonce 将给定密码封装为使用随机生成 nonce 的伽罗瓦计数器模式并返回。该密码必须由 <a href="/pkg/crypto/aes/#NewCipher">crypto/aes.NewCipher</a> 创建。
+<p>它生成随机的 96 位 nonce，由 Seal 添加到密文前面，并由 Open 从密文中提取。该 AEAD 的 NonceSize 为零，而 Overhead 为 28 字节（nonce 大小与标签大小之和）。
+<p>同一个密钥绝不能用于加密超过 2^32 条消息，以将随机 nonce 碰撞的风险控制在可忽略的水平。
+
+				
+			
+				<h3 id="NewGCMWithTagSize">func <a href="/src/crypto/cipher/gcm.go?s=1991:2054#L45">NewGCMWithTagSize</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func NewGCMWithTagSize(cipher <a href="#Block">Block</a>, tagSize <a href="/pkg/builtin/#int">int</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewGCMWithTagSize 将给定的 128 位分组密码封装为伽罗瓦计数器模式并返回，该模式生成指定长度的认证标签。
+<p>允许的标签大小为 12 至 16 字节。
+<p>仅在需要兼容使用非标准标签长度的现有密码系统时才使用此函数。其他情况下都应使用 <a href="#NewGCM">NewGCM</a>，它更不容易被误用。
+
+				
+			
+
+			
+		
+			
+			<h2 id="Block">type <a href="/src/crypto/cipher/cipher.go?s=636:992#L5">Block</a>
+				
+				
+			</h2>
+			<p>Block 表示使用给定密钥的分组密码实现，提供加密或解密单个分组的能力。工作模式的实现将这种能力扩展到分组流。
+
+			<pre>type Block interface {
+    <span class="comment">// BlockSize 返回该密码的分组大小。</span>
+    BlockSize() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Encrypt 将 src 中的第一个分组加密到 dst。</span>
+    <span class="comment">// dst 和 src 必须完全重叠，或完全不重叠。</span>
+    Encrypt(dst, src []<a href="/pkg/builtin/#byte">byte</a>)
+
+    <span class="comment">// Decrypt 将 src 中的第一个分组解密到 dst。</span>
+    <span class="comment">// dst 和 src 必须完全重叠，或完全不重叠。</span>
+    Decrypt(dst, src []<a href="/pkg/builtin/#byte">byte</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="BlockMode">type <a href="/src/crypto/cipher/cipher.go?s=1745:2452#L35">BlockMode</a>
+				
+				
+			</h2>
+			<p>BlockMode 表示运行于分组工作模式（CBC、ECB 等）的分组密码。
+
+			<pre>type BlockMode interface {
+    <span class="comment">// BlockSize 返回该模式的分组大小。</span>
+    BlockSize() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// CryptBlocks 加密或解密若干个分组。src 的长度</span>
+    <span class="comment">// 必须是分组大小的整数倍。dst 和 src 必须</span>
+    <span class="comment">// 完全重叠，或完全不重叠。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 len(dst) &lt; len(src)，CryptBlocks 应触发 panic。允许</span>
+    <span class="comment">// 传入比 src 更大的 dst；此时，CryptBlocks</span>
+    <span class="comment">// 只更新 dst[:len(src)]，不会修改 dst 的其余部分。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 多次调用 CryptBlocks 的行为，等同于将各个 src</span>
+    <span class="comment">// 缓冲区拼接后一次传入。也就是说，BlockMode</span>
+    <span class="comment">// 会保留状态，不会在每次 CryptBlocks 调用时重置。</span>
+    CryptBlocks(dst, src []<a href="/pkg/builtin/#byte">byte</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewCBCDecrypter">func <a href="/src/crypto/cipher/cbc.go?s=3736:3786#L119">NewCBCDecrypter</a>
+					
+					
+				</h3>
+				<pre>func NewCBCDecrypter(b <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#BlockMode">BlockMode</a></pre>
+				<p>NewCBCDecrypter 返回使用给定 Block、以密码分组链接模式解密的 BlockMode。iv 的长度必须等于 Block 的分组大小，并且必须与加密数据时使用的 iv 相同。
+
+				
+
+
+<div id="example_NewCBCDecrypter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"fmt"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	ciphertext, _ := hex.DecodeString("73c86d43a9d700a253a96c85b0f6b03ac9792e0e757f869cca306bd3cba1c62b")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	if len(ciphertext) &lt; aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	// CBC 模式始终处理完整分组。
+	if len(ciphertext)%aes.BlockSize != 0 {
+		panic("ciphertext is not a multiple of the block size")
+	}
+
+	mode := cipher.NewCBCDecrypter(block, iv)
+
+	// 如果两个参数相同，CryptBlocks 可以原地执行。
+	mode.CryptBlocks(ciphertext, ciphertext)
+
+	// 如果原始明文长度不是分组大小的整数倍，
+	// 加密时就必须添加填充，并在这里
+	// 移除。示例请参阅
+	// https://tools.ietf.org/html/rfc5246#section-6.2.3.2。不过，
+	// 务必注意，密文必须先通过认证（例如使用
+	// crypto/hmac），再进行解密，以免形成
+	// 填充预言机。
+
+	fmt.Printf("%s\n", ciphertext)
+}
+</textarea></div>
+        <div class="output"><pre>exampleplaintext
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewCBCEncrypter">func <a href="/src/crypto/cipher/cbc.go?s=1259:1309#L40">NewCBCEncrypter</a>
+					
+					
+				</h3>
+				<pre>func NewCBCEncrypter(b <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#BlockMode">BlockMode</a></pre>
+				<p>NewCBCEncrypter 返回使用给定 Block、以密码分组链接模式加密的 BlockMode。iv 的长度必须等于 Block 的分组大小。
+
+				
+
+
+<div id="example_NewCBCEncrypter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	plaintext := []byte("exampleplaintext")
+
+	// CBC 模式按分组工作，因此明文可能需要填充到
+	// 下一个完整分组。此类填充的示例请参阅
+	// https://tools.ietf.org/html/rfc5246#section-6.2.3.2。这里
+	// 假设明文已经具有正确的长度。
+	if len(plaintext)%aes.BlockSize != 0 {
+		panic("plaintext is not a multiple of the block size")
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
+
+	// 务必记住，除了加密之外，密文还必须通过认证
+	// （例如使用 crypto/hmac），才能
+	// 保证安全。
+
+	fmt.Printf("%x\n", ciphertext)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="Stream">type <a href="/src/crypto/cipher/cipher.go?s=1034:1653#L19">Stream</a>
+				
+				
+			</h2>
+			<p>Stream 表示流密码。
+
+			<pre>type Stream interface {
+    <span class="comment">// XORKeyStream 将给定切片的每个字节与密码密钥流</span>
+    <span class="comment">// 中的一个字节进行异或。dst 和 src 必须完全重叠，或完全不重叠。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 len(dst) &lt; len(src)，XORKeyStream 应触发 panic。允许</span>
+    <span class="comment">// 传入比 src 更大的 dst；此时，XORKeyStream</span>
+    <span class="comment">// 只更新 dst[:len(src)]，不会修改 dst 的其余部分。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 多次调用 XORKeyStream 的行为，等同于将各个 src</span>
+    <span class="comment">// 缓冲区拼接后一次传入。也就是说，Stream</span>
+    <span class="comment">// 会保留状态，不会在每次 XORKeyStream 调用时重置。</span>
+    XORKeyStream(dst, src []<a href="/pkg/builtin/#byte">byte</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewCFBDecrypter">func <a href="/src/crypto/cipher/cfb.go?s=2442:2493#L69">NewCFBDecrypter</a>
+					
+					
+				</h3>
+				<pre>func NewCFBDecrypter(block <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#Stream">Stream</a></pre>
+				<p>NewCFBDecrypter 返回一个 <a href="#Stream">Stream</a>，使用给定的 <a href="#Block">Block</a> 以密码反馈模式解密。iv 的长度必须等于 <a href="#Block">Block</a> 的分组大小。
+<p>已弃用：CFB 模式不提供认证，通常会使主动攻击能够篡改和恢复明文。建议应用程序改用 <a href="#AEAD">AEAD</a> 模式。标准库中的 CFB 实现也未经过优化，且未作为 FIPS 140-3 模块的一部分获得验证。如果必须使用不带认证的 <a href="#Stream">Stream</a> 模式，请改用 <a href="#NewCTR">NewCTR</a>。
+
+				
+
+
+<div id="example_NewCFBDecrypter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"fmt"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	ciphertext, _ := hex.DecodeString("7dd015f06bec7f1b8f6559dad89f4131da62261786845100056b353194ad")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	if len(ciphertext) &lt; aes.BlockSize {
+		panic("ciphertext too short")
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+
+	// 如果两个参数相同，XORKeyStream 可以原地执行。
+	stream.XORKeyStream(ciphertext, ciphertext)
+	fmt.Printf("%s", ciphertext)
+}
+</textarea></div>
+        <div class="output"><pre>some plaintext
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewCFBEncrypter">func <a href="/src/crypto/cipher/cfb.go?s=1686:1737#L53">NewCFBEncrypter</a>
+					
+					
+				</h3>
+				<pre>func NewCFBEncrypter(block <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#Stream">Stream</a></pre>
+				<p>NewCFBEncrypter 返回一个 <a href="#Stream">Stream</a>，使用给定的 <a href="#Block">Block</a> 以密码反馈模式加密。iv 的长度必须等于 <a href="#Block">Block</a> 的分组大小。
+<p>已弃用：CFB 模式不提供认证，通常会使主动攻击能够篡改和恢复明文。建议应用程序改用 <a href="#AEAD">AEAD</a> 模式。标准库中的 CFB 实现也未经过优化，且未作为 FIPS 140-3 模块的一部分获得验证。如果必须使用不带认证的 <a href="#Stream">Stream</a> 模式，请改用 <a href="#NewCTR">NewCTR</a>。
+
+				
+
+
+<div id="example_NewCFBEncrypter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	plaintext := []byte("some plaintext")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	// 务必记住，除了加密之外，密文还必须通过认证
+	// （例如使用 crypto/hmac），才能
+	// 保证安全。
+	fmt.Printf("%x\n", ciphertext)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewCTR">func <a href="/src/crypto/cipher/ctr.go?s=1042:1084#L31">NewCTR</a>
+					
+					
+				</h3>
+				<pre>func NewCTR(block <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#Stream">Stream</a></pre>
+				<p>NewCTR 返回一个 <a href="#Stream">Stream</a>，使用给定的 <a href="#Block">Block</a> 以计数器模式加密或解密。iv 的长度必须等于 <a href="#Block">Block</a> 的分组大小。
+
+				
+
+
+<div id="example_NewCTR" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	plaintext := []byte("some plaintext")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	// 务必记住，除了加密之外，密文还必须通过认证
+	// （例如使用 crypto/hmac），才能
+	// 保证安全。
+
+	// CTR 模式的加密与解密相同，因此也可以
+	// 使用 NewCTR 解密该密文。
+
+	plaintext2 := make([]byte, len(plaintext))
+	stream = cipher.NewCTR(block, iv)
+	stream.XORKeyStream(plaintext2, ciphertext[aes.BlockSize:])
+
+	fmt.Printf("%s\n", plaintext2)
+}
+</textarea></div>
+        <div class="output"><pre>some plaintext
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewOFB">func <a href="/src/crypto/cipher/ofb.go?s=953:991#L21">NewOFB</a>
+					
+					
+				</h3>
+				<pre>func NewOFB(b <a href="#Block">Block</a>, iv []<a href="/pkg/builtin/#byte">byte</a>) <a href="#Stream">Stream</a></pre>
+				<p>NewOFB 返回一个 <a href="#Stream">Stream</a>，使用分组密码 b 以输出反馈模式加密或解密。初始化向量 iv 的长度必须等于 b 的分组大小。
+<p>已弃用：OFB 模式不提供认证，通常会使主动攻击能够篡改和恢复明文。建议应用程序改用 <a href="#AEAD">AEAD</a> 模式。标准库中的 OFB 实现也未经过优化，且未作为 FIPS 140-3 模块的一部分获得验证。如果必须使用不带认证的 <a href="#Stream">Stream</a> 模式，请改用 <a href="#NewCTR">NewCTR</a>。
+
+				
+
+
+<div id="example_NewOFB" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+	plaintext := []byte("some plaintext")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// IV 必须唯一，但不必保密。因此通常
+	// 将它放在密文的开头。
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewOFB(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	// 务必记住，除了加密之外，密文还必须通过认证
+	// （例如使用 crypto/hmac），才能
+	// 保证安全。
+
+	// OFB 模式的加密与解密相同，因此也可以
+	// 使用 NewOFB 解密该密文。
+
+	plaintext2 := make([]byte, len(plaintext))
+	stream = cipher.NewOFB(block, iv)
+	stream.XORKeyStream(plaintext2, ciphertext[aes.BlockSize:])
+
+	fmt.Printf("%s\n", plaintext2)
+}
+</textarea></div>
+        <div class="output"><pre>some plaintext
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="StreamReader">type <a href="/src/crypto/cipher/io.go?s=430:481#L4">StreamReader</a>
+				
+				
+			</h2>
+			<p>StreamReader 将 <a href="#Stream">Stream</a> 封装为 <a href="/pkg/io/#Reader">io.Reader</a>。它调用 XORKeyStream 处理流经的每个数据切片。
+
+			<pre>type StreamReader struct {
+<span id="StreamReader.S"></span>    S <a href="#Stream">Stream</a>
+<span id="StreamReader.R"></span>    R <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_StreamReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"io"
+	"os"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+
+	encrypted, _ := hex.DecodeString("cf0495cc6f75dafc23948538e79904a9")
+	bReader := bytes.NewReader(encrypted)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// 如果每份密文都使用独立的密钥，就可以使用全零
+	// IV。
+	var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(block, iv[:])
+
+	reader := &amp;cipher.StreamReader{S: stream, R: bReader}
+	// 将输入复制到输出流，并在复制过程中解密。
+	if _, err := io.Copy(os.Stdout, reader); err != nil {
+		panic(err)
+	}
+
+	// 注意，此示例经过简化，没有对加密数据
+	// 执行任何认证。如果实际使用时也以这种方式使用
+	// StreamReader，攻击者就能任意翻转
+	// 输出中的位。
+
+}
+</textarea></div>
+        <div class="output"><pre>some secret text
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="StreamReader.Read">func (StreamReader) <a href="/src/crypto/cipher/io.go?s=483:540#L9">Read</a>
+					
+					
+				</h3>
+				<pre>func (r <a href="#StreamReader">StreamReader</a>) Read(dst []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="StreamWriter">type <a href="/src/crypto/cipher/io.go?s=970:1046#L20">StreamWriter</a>
+				
+				
+			</h2>
+			<p>StreamWriter 将 <a href="#Stream">Stream</a> 封装为 io.Writer。它调用 XORKeyStream 处理流经的每个数据切片。如果任何一次 <a href="#StreamWriter.Write">StreamWriter.Write</a> 调用返回短写，StreamWriter 就已失去同步，必须丢弃。StreamWriter 没有内部缓冲区，无需调用 <a href="#StreamWriter.Close">StreamWriter.Close</a> 来刷新写入的数据。
+
+			<pre>type StreamWriter struct {
+<span id="StreamWriter.S"></span>    S   <a href="#Stream">Stream</a>
+<span id="StreamWriter.W"></span>    W   <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+<span id="StreamWriter.Err"></span>    Err <a href="/pkg/builtin/#error">error</a> <span class="comment">// 未使用</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_StreamWriter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"fmt"
+	"io"
+)
+
+func main() {
+	// 从安全位置加载密钥，并在多次调用中复用：
+	// 例如 NewCipher。（显然，不要将示例密钥用于任何
+	// 实际用途。）若要将口令转换为密钥，请使用合适的
+	// 包，例如 bcrypt 或 scrypt。
+	key, _ := hex.DecodeString("6368616e676520746869732070617373")
+
+	bReader := bytes.NewReader([]byte("some secret text"))
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// 如果每份密文都使用独立的密钥，就可以使用全零
+	// IV。
+	var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(block, iv[:])
+
+	var out bytes.Buffer
+
+	writer := &amp;cipher.StreamWriter{S: stream, W: &amp;out}
+	// 将输入复制到输出缓冲区，并在复制过程中加密。
+	if _, err := io.Copy(writer, bReader); err != nil {
+		panic(err)
+	}
+
+	// 注意，此示例经过简化，没有对加密数据
+	// 执行任何认证。如果实际使用时也以这种方式使用
+	// StreamReader，攻击者就能任意翻转
+	// 解密结果中的位。
+
+	fmt.Printf("%x\n", out.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>cf0495cc6f75dafc23948538e79904a9
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="StreamWriter.Close">func (StreamWriter) <a href="/src/crypto/cipher/io.go?s=1422:1457#L38">Close</a>
+					
+					
+				</h3>
+				<pre>func (w <a href="#StreamWriter">StreamWriter</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>如果底层 Writer 还实现了 io.Closer，Close 就关闭它并返回其 Close 的返回值。否则返回 nil。
+
+				
+			
+				<h3 id="StreamWriter.Write">func (StreamWriter) <a href="/src/crypto/cipher/io.go?s=1048:1106#L26">Write</a>
+					
+					
+				</h3>
+				<pre>func (w <a href="#StreamWriter">StreamWriter</a>) Write(src []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,657 @@
+<!--{
+  "Title": "errors 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>errors 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "errors"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>errors 包提供操作错误的函数。
+<p><a href="#New">New</a> 函数创建内容仅包含一条文本消息的错误。
+<p>如果错误 e 的类型具有以下任意一种方法，就表示 e 可以包装另一个错误：
+<pre>Unwrap() error
+Unwrap() []error
+</pre>
+<p>如果 e.Unwrap() 返回非 nil 错误 w，或返回包含 w 的切片，我们就说 e 包装了 w。e.Unwrap() 返回 nil 错误表示 e 没有包装任何错误。Unwrap 方法返回的 []error 中不得包含 nil 错误值。
+<p>创建包装错误的一种简单方式是调用 <a href="/pkg/fmt/#Errorf">fmt.Errorf</a>，并对错误实参使用 %w 格式动词：
+<pre>wrapsErr := fmt.Errorf(&quot;... %w ...&quot;, ..., err, ...)
+</pre>
+<p>对错误逐层解包会得到一棵树。<a href="#Is">Is</a> 和 <a href="#As">As</a> 函数检查错误树时，先检查错误本身，再依次检查各个子错误的树，即采用先序的深度优先遍历。
+<p>关于错误包装的设计理念，以及何时应该包装错误，详见 <a href="/blog/go1.13-errors">https://go.dev/blog/go1.13-errors</a>。
+<p><a href="#Is">Is</a> 在第一个实参的错误树中查找与第二个实参匹配的错误，并报告是否找到匹配项。应优先使用它，而不是直接比较是否相等：
+<pre>if errors.Is(err, fs.ErrExist)
+</pre>
+<p>优于
+<pre>if err == fs.ErrExist
+</pre>
+<p>因为即使 err 包装了 <a href="/pkg/io/fs/#ErrExist">io/fs.ErrExist</a>，前一种写法也能匹配成功。
+<p><a href="#AsType">AsType</a> 在实参的错误树中查找类型与其类型实参匹配的错误。如果找到，就返回该类型的相应值和 true；否则返回该类型的零值和 false。以下写法
+<pre>if perr, ok := errors.AsType[*fs.PathError](err); ok {
+	fmt.Println(perr.Path)
+}
+</pre>
+<p>优于
+<pre>if perr, ok := err.(*fs.PathError); ok {
+	fmt.Println(perr.Path)
+}
+</pre>
+<p>因为即使 err 包装了 <a href="/pkg/io/fs/#PathError">*io/fs.PathError</a>，前一种写法也能匹配成功。
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;time&#34;
+)
+
+// MyError 是一个包含时间和消息的 error 实现。
+type MyError struct {
+	When time.Time
+	What string
+}
+
+func (e MyError) Error() string {
+	return fmt.Sprintf(&#34;%v: %v&#34;, e.When, e.What)
+}
+
+func oops() error {
+	return MyError{
+		time.Date(1989, 3, 15, 22, 30, 0, 0, time.UTC),
+		&#34;the file system has gone away&#34;,
+	}
+}
+
+func main() {
+	if err := oops(); err != nil {
+		fmt.Println(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>1989-03-15 22:30:00 +0000 UTC: the file system has gone away
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#As">func As(err error, target any) bool</a></dd>
+			
+				<dd><a href="#AsType">func AsType[E error](err error) (E, bool)</a></dd>
+			
+				<dd><a href="#Is">func Is(err, target error) bool</a></dd>
+			
+				<dd><a href="#Join">func Join(errs ...error) error</a></dd>
+			
+				<dd><a href="#New">func New(text string) error</a></dd>
+			
+				<dd><a href="#Unwrap">func Unwrap(err error) error</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_As">As</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AsType">AsType</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Is">Is</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Join">Join</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New">New</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_errorf">New (Errorf)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_unique">New (Unique)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unwrap">Unwrap</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/errors/errors.go">errors.go</a>
+			
+				<a href="/src/errors/join.go">join.go</a>
+			
+				<a href="/src/errors/wrap.go">wrap.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrUnsupported 表示请求的操作不受支持，因而无法执行。例如，在不支持硬链接的文件系统上调用 <a href="/pkg/os/#Link">os.Link</a>。
+<p>函数和方法不应直接返回这个错误，而应返回一个包含适当上下文、且满足以下条件的错误：
+<pre>errors.Is(err, errors.ErrUnsupported)
+</pre>
+<p>可以通过直接包装 ErrUnsupported，或实现 <a href="#Is">Is</a> 方法来满足这个条件。
+<p>函数和方法的文档应说明在哪些情况下会返回包装了这个错误的错误。
+<pre>var <span id="ErrUnsupported">ErrUnsupported</span> = <a href="#New">New</a>(&#34;unsupported operation&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="As">func <a href="/src/errors/wrap.go?s=3401:3436#L92">As</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func As(err <a href="/pkg/builtin/#error">error</a>, target <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>As 在 err 的错误树中查找第一个与 target 匹配的错误。如果找到，就将 target 设置为该错误值并返回 true；否则返回 false。
+<p>在大多数场景中，应优先使用 <a href="#AsType">AsType</a>。As 与 <a href="#AsType">AsType</a> 的作用等价，但它通过设置 target 实参返回匹配的错误，而不是直接返回该错误，并且不要求 target 实参实现 error 接口。
+<p>错误树由 err 自身，以及反复调用其 Unwrap() error 或 Unwrap() []error 方法得到的错误组成。当 err 包装多个错误时，As 先检查 err，再按深度优先顺序遍历它的子错误。
+<p>如果错误的具体值可赋给 target 指向的值，或者该错误具有 As(any) bool 方法且 As(target) 返回 true，就认为该错误与 target 匹配。后一种情况下，As 方法负责设置 target。
+<p>错误类型可以提供 As 方法，使其能够被当作另一种错误类型处理。
+<p>target 必须是非 nil 指针，指向实现了 error 的类型或任意接口类型，否则 As 会触发 panic。
+<div id="example_As" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	if _, err := os.Open(&#34;non-existing&#34;); err != nil {
+		var pathError *fs.PathError
+		if errors.As(err, &amp;pathError) {
+			fmt.Println(&#34;Failed at path:&#34;, pathError.Path)
+		} else {
+			fmt.Println(err)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Failed at path: non-existing
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AsType">func <a href="/src/errors/wrap.go?s=5363:5404#L157">AsType</a>
+				
+				
+			</h2>
+			<pre>func AsType[E <a href="/pkg/builtin/#error">error</a>](err <a href="/pkg/builtin/#error">error</a>) (<a href="#E">E</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>AsType 在 err 的错误树中查找第一个与类型 E 匹配的错误。如果找到，就返回该错误值和 true；否则返回 E 的零值和 false。
+<p>错误树由 err 自身，以及反复调用其 Unwrap() error 或 Unwrap() []error 方法得到的错误组成。当 err 包装多个错误时，AsType 先检查 err，再按深度优先顺序遍历它的子错误。
+<p>如果类型断言 err.(E) 成功，或者错误具有 As(any) bool 方法，且当 target 为非 nil 的 *E 时 err.As(target) 返回 true，就认为错误 err 与类型 E 匹配。后一种情况下，As 方法负责设置 target。
+<div id="example_AsType" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	if _, err := os.Open(&#34;non-existing&#34;); err != nil {
+		if pathError, ok := errors.AsType[*fs.PathError](err); ok {
+			fmt.Println(&#34;Failed at path:&#34;, pathError.Path)
+		} else {
+			fmt.Println(err)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Failed at path: non-existing
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Is">func <a href="/src/errors/wrap.go?s=1564:1595#L35">Is</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Is(err, target <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Is 报告 err 的错误树中是否存在与 target 匹配的错误。target 必须可比较。
+<p>错误树由 err 自身，以及反复调用其 Unwrap() error 或 Unwrap() []error 方法得到的错误组成。当 err 包装多个错误时，Is 先检查 err，再按深度优先顺序遍历它的子错误。
+<p>如果一个错误等于 target，或者实现了 Is(error) bool 方法且 Is(target) 返回 true，就认为它与 target 匹配。
+<p>错误类型可以提供 Is 方法，使其能够被视为与某个已有错误等价。例如，如果 MyError 定义了
+<pre>func (m MyError) Is(target error) bool { return target == fs.ErrExist }
+</pre>
+<p>那么 Is(MyError{}, fs.ErrExist) 就会返回 true。标准库中的示例见 <a href="/pkg/syscall/#Errno.Is">syscall.Errno.Is</a>。Is 方法只应对 err 和 target 进行浅层比较，不应对任一方调用 <a href="#Unwrap">Unwrap</a>。
+<div id="example_Is" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	if _, err := os.Open(&#34;non-existing&#34;); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			fmt.Println(&#34;file does not exist&#34;)
+		} else {
+			fmt.Println(err)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>file does not exist
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Join">func <a href="/src/errors/join.go?s=633:663#L10">Join</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func Join(errs ...<a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Join 返回一个包装了给定所有错误的错误。nil 错误值会被忽略。如果 errs 中所有值都是 nil，Join 返回 nil。返回错误的文本表示由 errs 各元素的 Error 方法所返回的字符串拼接而成，各字符串之间以换行符分隔。
+<p>Join 返回的非 nil 错误实现了 Unwrap() []error 方法。可以使用 <a href="#Is">Is</a> 和 <a href="#As">As</a> 检查这些错误。
+<div id="example_Join" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	err1 := errors.New(&#34;err1&#34;)
+	err2 := errors.New(&#34;err2&#34;)
+	err := errors.Join(err1, err2)
+	fmt.Println(err)
+	if errors.Is(err, err1) {
+		fmt.Println(&#34;err is err1&#34;)
+	}
+	if errors.Is(err, err2) {
+		fmt.Println(&#34;err is err2&#34;)
+	}
+	fmt.Println(err.(interface{ Unwrap() []error }).Unwrap())
+}
+</textarea></div>
+        <div class="output"><pre>err1
+err2
+err is err1
+err is err2
+[err1 err2]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="New">func <a href="/src/errors/errors.go?s=2259:2286#L54">New</a>
+				
+				
+			</h2>
+			<pre>func New(text <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>New 返回一个文本表示为 text 的错误。即使文本相同，每次调用 New 也会返回不同的错误值。
+<div id="example_New" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	err := errors.New(&#34;emit macho dwarf: elf header corrupted&#34;)
+	if err != nil {
+		fmt.Print(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>emit macho dwarf: elf header corrupted
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_New_errorf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Errorf)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Errorf)</span></p>
+    <p>fmt 包的 Errorf 函数让我们可以利用该包的格式化功能，创建包含详细说明的错误消息。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	const name, id = &#34;bimmler&#34;, 17
+	err := fmt.Errorf(&#34;user %q (id %d) not found&#34;, name, id)
+	if err != nil {
+		fmt.Print(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>user &#34;bimmler&#34; (id 17) not found
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_New_unique" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Unique)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Unique)</span></p>
+    <p>即使实参相同，每次调用 [errors.New] 也会返回唯一的错误实例。要匹配由 [errors.New] 创建的错误，请声明一个哨兵错误并重复使用它。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+)
+
+func OopsNew() error {
+	return errors.New(&#34;an error&#34;)
+}
+
+var ErrSentinel = errors.New(&#34;an error&#34;)
+
+func OopsSentinel() error {
+	return ErrSentinel
+}
+
+func main() {
+	err1 := OopsNew()
+	err2 := OopsNew()
+	fmt.Println(&#34;Errors using distinct errors.New calls:&#34;)
+	fmt.Printf(&#34;Is(%q, %q) = %v\n&#34;, err1, err2, errors.Is(err1, err2))
+
+	err3 := OopsSentinel()
+	err4 := OopsSentinel()
+	fmt.Println()
+	fmt.Println(&#34;Errors using a sentinel error:&#34;)
+	fmt.Printf(&#34;Is(%q, %q) = %v\n&#34;, err3, err4, errors.Is(err3, err4))
+
+}
+</textarea></div>
+        <div class="output"><pre>Errors using distinct errors.New calls:
+Is(&#34;an error&#34;, &#34;an error&#34;) = false
+
+Errors using a sentinel error:
+Is(&#34;an error&#34;, &#34;an error&#34;) = true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Unwrap">func <a href="/src/errors/wrap.go?s=502:530#L7">Unwrap</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Unwrap(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>如果 err 的类型具有返回 error 的 Unwrap 方法，Unwrap 返回调用该方法的结果；否则返回 nil。
+<p>Unwrap 只调用形式为“Unwrap() error”的方法。特别是，Unwrap 不会解包 <a href="#Join">Join</a> 返回的错误。
+<div id="example_Unwrap" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	err1 := errors.New(&#34;error1&#34;)
+	err2 := fmt.Errorf(&#34;error2: [%w]&#34;, err1)
+	fmt.Println(err2)
+	fmt.Println(errors.Unwrap(err2))
+}
+</textarea></div>
+        <div class="output"><pre>error2: [error1]
+error1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

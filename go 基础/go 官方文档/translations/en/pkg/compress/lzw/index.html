@@ -1,0 +1,295 @@
+<!--{
+  "Title": "compress/lzw package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package lzw</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "compress/lzw"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package lzw implements the Lempel-Ziv-Welch compressed data format,
+described in T. A. Welch, “A Technique for High-Performance Data
+Compression”, Computer, 17(6) (June 1984), pp 8-19.
+<p>In particular, it implements LZW as used by the GIF and PDF file
+formats, which means variable-width codes up to 12 bits and the first
+two non-literal codes are a clear code and an EOF code.
+<p>The TIFF file format uses a similar but incompatible version of the LZW
+algorithm. See the <a href="/pkg/golang.org/x/image/tiff/lzw/">golang.org/x/image/tiff/lzw</a> package for an
+implementation.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#NewReader">func NewReader(r io.Reader, order Order, litWidth int) io.ReadCloser</a></dd>
+			
+				<dd><a href="#NewWriter">func NewWriter(w io.Writer, order Order, litWidth int) io.WriteCloser</a></dd>
+			
+			
+				
+				<dd><a href="#Order">type Order</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Close">func (r *Reader) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (r *Reader) Read(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Reset">func (r *Reader) Reset(src io.Reader, order Order, litWidth int)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Reset">func (w *Writer) Reset(dst io.Writer, order Order, litWidth int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (w *Writer) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/compress/lzw/reader.go">reader.go</a>
+			
+				<a href="/src/compress/lzw/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="NewReader">func <a href="/src/compress/lzw/reader.go?s=7296:7364#L244">NewReader</a>
+				
+				
+			</h2>
+			<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a></pre>
+			<p>NewReader creates a new <a href="/pkg/io/#ReadCloser">io.ReadCloser</a>.
+Reads from the returned <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> read and decompress data from r.
+If r does not also implement <a href="/pkg/io/#ByteReader">io.ByteReader</a>,
+the decompressor may read more data than necessary from r.
+It is the caller&apos;s responsibility to call Close on the ReadCloser when
+finished reading.
+The number of bits to use for literal codes, litWidth, must be in the
+range [2,8] and is typically 8. It must equal the litWidth
+used during compression.
+<p>It is guaranteed that the underlying type of the returned <a href="/pkg/io/#ReadCloser">io.ReadCloser</a>
+is a *<a href="#Reader">Reader</a>.
+
+			
+		
+			
+			<h2 id="NewWriter">func <a href="/src/compress/lzw/writer.go?s=7252:7321#L247">NewWriter</a>
+				
+				
+			</h2>
+			<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+			<p>NewWriter creates a new <a href="/pkg/io/#WriteCloser">io.WriteCloser</a>.
+Writes to the returned <a href="/pkg/io/#WriteCloser">io.WriteCloser</a> are compressed and written to w.
+It is the caller&apos;s responsibility to call Close on the WriteCloser when
+finished writing.
+The number of bits to use for literal codes, litWidth, must be in the
+range [2,8] and is typically 8. Input bytes must be less than 1&lt;&lt;litWidth.
+<p>It is guaranteed that the underlying type of the returned <a href="/pkg/io/#WriteCloser">io.WriteCloser</a>
+is a *<a href="#Writer">Writer</a>.
+
+			
+		
+		
+			
+			<h2 id="Order">type <a href="/src/compress/lzw/reader.go?s=942:956#L19">Order</a>
+				
+				
+			</h2>
+			<p>Order specifies the bit ordering in an LZW data stream.
+
+			<pre>type Order <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// LSB means Least Significant Bits first, as used in the GIF file format.</span>
+    <span id="LSB">LSB</span> <a href="#Order">Order</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span class="comment">// MSB means Most Significant Bits first, as used in the TIFF and PDF</span>
+    <span class="comment">// file formats.</span>
+    <span id="MSB">MSB</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/compress/lzw/reader.go?s=1350:2929#L37">Reader</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>Reader is an <a href="/pkg/io/#Reader">io.Reader</a> which can be used to read compressed data in the
+LZW format.
+
+			<pre>type Reader struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Reader.Close">func (*Reader) <a href="/src/compress/lzw/reader.go?s=6402:6432#L220">Close</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes the <a href="#Reader">Reader</a> and returns an error for any future read operation.
+It does not close the underlying <a href="/pkg/io/#Reader">io.Reader</a>.
+
+				
+			
+				<h3 id="Reader.Read">func (*Reader) <a href="/src/compress/lzw/reader.go?s=3751:3795#L112">Read</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read implements io.Reader, reading uncompressed bytes from its underlying reader.
+
+				
+			
+				<h3 id="Reader.Reset">func (*Reader) <a href="/src/compress/lzw/reader.go?s=6593:6657#L227">Reset</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Reset(src <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Reset clears the <a href="#Reader">Reader</a>&apos;s state and allows it to be reused again
+as a new <a href="#Reader">Reader</a>.
+
+				
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/compress/lzw/writer.go?s=973:2033#L26">Writer</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>Writer is an LZW compressor. It writes the compressed form of the data
+to an underlying writer (see <a href="#NewWriter">NewWriter</a>).
+
+			<pre>type Writer struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Writer.Close">func (*Writer) <a href="/src/compress/lzw/writer.go?s=5711:5741#L190">Close</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes the <a href="#Writer">Writer</a>, flushing any pending output. It does not close
+w&apos;s underlying writer.
+
+				
+			
+				<h3 id="Writer.Reset">func (*Writer) <a href="/src/compress/lzw/writer.go?s=6669:6733#L233">Reset</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Reset(dst <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Reset clears the <a href="#Writer">Writer</a>&apos;s state and allows it to be reused again
+as a new <a href="#Writer">Writer</a>.
+
+				
+			
+				<h3 id="Writer.Write">func (*Writer) <a href="/src/compress/lzw/writer.go?s=3503:3554#L112">Write</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write writes a compressed representation of p to w&apos;s underlying writer.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

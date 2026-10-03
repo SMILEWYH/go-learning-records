@@ -1,0 +1,206 @@
+<!--{
+  "Title": "testing/iotest 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>testing/iotest 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/iotest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>iotest 包实现主要用于测试的 Reader 和 Writer。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#DataErrReader">func DataErrReader(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#ErrReader">func ErrReader(err error) io.Reader</a></dd>
+			
+				<dd><a href="#HalfReader">func HalfReader(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#NewReadLogger">func NewReadLogger(prefix string, r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#NewWriteLogger">func NewWriteLogger(prefix string, w io.Writer) io.Writer</a></dd>
+			
+				<dd><a href="#OneByteReader">func OneByteReader(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#TestReader">func TestReader(r io.Reader, content []byte) error</a></dd>
+			
+				<dd><a href="#TimeoutReader">func TimeoutReader(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#TruncateWriter">func TruncateWriter(w io.Writer, n int64) io.Writer</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_ErrReader">ErrReader</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/iotest/logger.go">logger.go</a>
+			
+				<a href="/src/testing/iotest/reader.go">reader.go</a>
+			
+				<a href="/src/testing/iotest/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrTimeout 是模拟的超时错误。<pre>var <span id="ErrTimeout">ErrTimeout</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;timeout&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="DataErrReader">func <a href="/src/testing/iotest/reader.go?s=1289:1330#L37">DataErrReader</a>
+				
+				
+			</h2>
+			<pre>func DataErrReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>DataErrReader 改变 Reader 处理错误的方式。通常，Reader 会在读完最后一段数据后的第一次 Read 调用中返回错误（一般是 EOF）。DataErrReader 包装一个 Reader 并改变其行为，使最终错误与最后一段数据一起返回，而不是在最后一段数据之后的第一次调用中返回。<h2 id="ErrReader">func <a href="/src/testing/iotest/reader.go?s=2370:2405#L84">ErrReader</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func ErrReader(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>ErrReader 返回一个 <a href="/pkg/io/#Reader">io.Reader</a>，其所有 Read 调用均返回 0、err。<div id="example_ErrReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;errors&#34;
+	&#34;fmt&#34;
+	&#34;testing/iotest&#34;
+)
+
+func main() {
+	// 始终返回自定义错误的读取器。
+	r := iotest.ErrReader(errors.New(&#34;custom error&#34;))
+	n, err := r.Read(nil)
+	fmt.Printf(&#34;n:   %d\nerr: %q\n&#34;, n, err)
+
+}
+</textarea></div>
+        <div class="output"><pre>n:   0
+err: &#34;custom error&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="HalfReader">func <a href="/src/testing/iotest/reader.go?s=735:773#L22">HalfReader</a>
+				
+				
+			</h2>
+			<pre>func HalfReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>HalfReader 返回一个 Reader，其 Read 实现从 r 读取请求字节数的一半。<h2 id="NewReadLogger">func <a href="/src/testing/iotest/logger.go?s=1207:1263#L42">NewReadLogger</a>
+				
+				
+			</h2>
+			<pre>func NewReadLogger(prefix <a href="/pkg/builtin/#string">string</a>, r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>NewReadLogger 返回一个行为与 r 相同的读取器，但会使用 <a href="/pkg/log/#Printf">log.Printf</a> 将每次读取记录到标准错误，打印前缀和读取数据的十六进制表示。<h2 id="NewWriteLogger">func <a href="/src/testing/iotest/logger.go?s=661:718#L20">NewWriteLogger</a>
+				
+				
+			</h2>
+			<pre>func NewWriteLogger(prefix <a href="/pkg/builtin/#string">string</a>, w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+			<p>NewWriteLogger 返回一个行为与 w 相同的写入器，但会使用 <a href="/pkg/log/#Printf">log.Printf</a> 将每次写入记录到标准错误，打印前缀和写入数据的十六进制表示。<h2 id="OneByteReader">func <a href="/src/testing/iotest/reader.go?s=397:438#L7">OneByteReader</a>
+				
+				
+			</h2>
+			<pre>func OneByteReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>OneByteReader 返回一个 Reader，其每次非空 Read 调用都只从 r 读取一个字节。<h2 id="TestReader">func <a href="/src/testing/iotest/reader.go?s=3297:3347#L126">TestReader</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func TestReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, content []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>TestReader 测试从 r 读取是否得到预期的文件内容。它进行不同大小的读取，直到 EOF。如果 r 实现了 <a href="/pkg/io/#ReaderAt">io.ReaderAt</a> 或 <a href="/pkg/io/#Seeker">io.Seeker</a>，TestReader 还会检查这些操作的行为是否符合要求。<p>如果 TestReader 发现任何不正确的行为，会返回描述这些问题的错误。错误文本可能有多行。<h2 id="TimeoutReader">func <a href="/src/testing/iotest/reader.go?s=2026:2067#L68">TimeoutReader</a>
+				
+				
+			</h2>
+			<pre>func TimeoutReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>TimeoutReader 在第二次读取时不返回数据，并返回 <a href="#ErrTimeout">ErrTimeout</a>。后续读取调用会成功。<h2 id="TruncateWriter">func <a href="/src/testing/iotest/writer.go?s=278:329#L1">TruncateWriter</a>
+				
+				
+			</h2>
+			<pre>func TruncateWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, n <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+			<p>TruncateWriter 返回一个向 w 写入的 Writer，但在写入 n 字节后会静默停止。</article>

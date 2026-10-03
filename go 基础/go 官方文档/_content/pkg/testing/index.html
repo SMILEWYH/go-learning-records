@@ -1,0 +1,2317 @@
+<!--{
+  "Title": "testing 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>testing 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>testing 包为 Go 包的自动化测试提供支持。它与“go test”命令配合使用，自动执行以下形式的函数：
+<pre>func TestXxx(*testing.T)
+</pre>
+<p>其中 Xxx 不能以小写字母开头。函数名用于标识该测试。
+<p>在这些函数内，使用 <a href="#T.Error">T.Error</a>、<a href="#T.Fail">T.Fail</a> 或相关方法报告失败。
+<p>要编写新的测试套件，请创建一个包含上述 TestXxx 函数的文件，并将文件名设为以“_test.go”结尾。正常构建包时不会包含该文件，运行“go test”命令时才会包含它。
+<p>测试文件可以与被测试代码位于同一个包中，也可以位于名称带“_test”后缀的对应包中。
+<p>如果测试文件位于同一个包中，就可以引用该包中的未导出标识符，如下例所示：
+<pre>package abs
+
+import &quot;testing&quot;
+
+func TestAbs(t *testing.T) {
+    got := abs(-1)
+    if got != 1 {
+        t.Errorf(&quot;abs(-1) = %d; want 1&quot;, got)
+    }
+}
+</pre>
+<p>如果文件位于单独的“_test”包中，就必须显式导入被测试的包，并且只能使用其导出标识符。这称为“黑盒”测试。
+<pre>package abs_test
+
+import (
+	&quot;testing&quot;
+
+	&quot;path_to_pkg/abs&quot;
+)
+
+func TestAbs(t *testing.T) {
+    got := abs.Abs(-1)
+    if got != 1 {
+        t.Errorf(&quot;Abs(-1) = %d; want 1&quot;, got)
+    }
+}
+</pre>
+<p>更多细节，请运行 <a href="https://pkg.go.dev/cmd/go#hdr-Test_packages">go help test</a> 和 <a href="https://pkg.go.dev/cmd/go#hdr-Testing_flags">go help testflag</a>。
+<h3 id="hdr-Benchmarks">基准测试</h3>
+<p>以下形式的函数
+<pre>func BenchmarkXxx(*testing.B)
+</pre>
+<p>被视为基准测试，在“go test”命令指定 -bench 标志时执行。基准测试按顺序运行。
+<p>测试标志的说明参见 <a href="https://pkg.go.dev/cmd/go#hdr-Testing_flags">go help testflag</a>。
+<p>一个基准测试函数示例如下：
+<pre>func BenchmarkRandInt(b *testing.B) {
+    for b.Loop() {
+        rand.Int()
+    }
+}
+</pre>
+<p>以下输出
+<pre>BenchmarkRandInt-8   	68453040	        17.8 ns/op
+</pre>
+<p>表示循环体运行了 68453040 次，每次循环耗时 17.8 ns。
+<p>只对循环体计时，因此基准测试可以在调用 b.Loop 前进行开销较大的准备工作，这些工作不会计入基准测试测量结果：
+<pre>func BenchmarkBigLen(b *testing.B) {
+    big := NewBig()
+    for b.Loop() {
+        big.Len()
+    }
+}
+</pre>
+<p>如果基准测试需要测量并行场景下的性能，可以使用 RunParallel 辅助函数；这类基准测试通常与 go test -cpu 标志配合使用：
+<pre>func BenchmarkTemplateParallel(b *testing.B) {
+    templ := template.Must(template.New(&quot;test&quot;).Parse(&quot;Hello, {{.}}!&quot;))
+    b.RunParallel(func(pb *testing.PB) {
+        var buf bytes.Buffer
+        for pb.Next() {
+            buf.Reset()
+            templ.Execute(&amp;buf, &quot;World&quot;)
+        }
+    })
+}
+</pre>
+<p>基准测试结果格式的详细规范见 <a href="/design/14313-benchmark-format">https://go.dev/design/14313-benchmark-format</a>。
+<p><a href="/pkg/golang.org/x/perf/cmd/">golang.org/x/perf/cmd</a> 提供处理基准测试结果的标准工具。其中，<a href="/pkg/golang.org/x/perf/cmd/benchstat/">golang.org/x/perf/cmd/benchstat</a> 可进行具有统计可靠性的 A/B 比较。
+<h3 id="hdr-b_N_style_benchmarks">b.N 风格的基准测试</h3>
+<p>在引入 <a href="#B.Loop">B.Loop</a> 之前，基准测试使用 B.N 编写，风格有所不同。例如：
+<pre>func BenchmarkRandInt(b *testing.B) {
+    for range b.N {
+        rand.Int()
+    }
+}
+</pre>
+<p>采用这种写法时，基准测试函数必须将目标代码运行 b.N 次。测试函数会被调用多次，并调整 b.N，直到单次函数执行持续足够长的时间，能够可靠计时。这也意味着循环前的准备工作可能执行多次。
+<p>如果基准测试在运行前需要开销较大的准备工作，应显式重置计时器：
+<pre>func BenchmarkBigLen(b *testing.B) {
+    big := NewBig()
+    b.ResetTimer()
+    for range b.N {
+        big.Len()
+    }
+}
+</pre>
+<p>新的基准测试应优先使用 <a href="#B.Loop">B.Loop</a>，它更稳健，也更高效。
+<h3 id="hdr-Examples">示例</h3>
+<p>本包还会运行和验证示例代码。示例函数可以在结尾包含以“Output:”开头的行注释；运行测试时，会将该注释与函数的标准输出比较，忽略首尾空白。示例函数的例子如下：
+<pre>func ExampleHello() {
+    fmt.Println(&quot;hello&quot;)
+    // Output: hello
+}
+
+func ExampleSalutations() {
+    fmt.Println(&quot;hello, and&quot;)
+    fmt.Println(&quot;goodbye&quot;)
+    // Output:
+    // hello, and
+    // goodbye
+}
+</pre>
+<p>注释前缀“Unordered output:”类似于“Output:”，但允许输出行以任意顺序匹配：
+<pre>func ExamplePerm() {
+    for _, value := range Perm(5) {
+        fmt.Println(value)
+    }
+    // Unordered output: 4
+    // 2
+    // 1
+    // 3
+    // 0
+}
+</pre>
+<p>没有输出注释的示例函数只编译，不执行。
+<p>分别为包、函数 F、类型 T 和类型 T 的方法 M 声明示例时，命名约定如下：
+<pre>func Example() { ... }
+func ExampleF() { ... }
+func ExampleT() { ... }
+func ExampleT_M() { ... }
+</pre>
+<p>可以通过在名称后添加不同后缀，为同一个包、类型、函数或方法提供多个示例函数。后缀必须以小写字母开头。
+<pre>func Example_suffix() { ... }
+func ExampleF_suffix() { ... }
+func ExampleT_suffix() { ... }
+func ExampleT_M_suffix() { ... }
+</pre>
+<p>如果测试文件只包含一个示例函数，至少还包含一个其他函数、类型、变量或常量声明，并且不包含测试函数或基准测试函数，则整个测试文件都会作为示例展示。
+<h3 id="hdr-Fuzzing">模糊测试</h3>
+<p>“go test”和 testing 包支持模糊测试：通过随机生成输入并调用函数，发现单元测试未预料到的缺陷。
+<p>以下形式的函数
+<pre>func FuzzXxx(*testing.F)
+</pre>
+<p>被视为模糊测试。
+<p>例如：
+<pre>func FuzzHex(f *testing.F) {
+  for _, seed := range [][]byte{{}, {0}, {9}, {0xa}, {0xf}, {1, 2, 3, 4}} {
+    f.Add(seed)
+  }
+  f.Fuzz(func(t *testing.T, in []byte) {
+    enc := hex.EncodeToString(in)
+    out, err := hex.DecodeString(enc)
+    if err != nil {
+      t.Fatalf(&quot;%v: decode: %v&quot;, in, err)
+    }
+    if !bytes.Equal(in, out) {
+      t.Fatalf(&quot;%v: not equal after round trip: %v&quot;, in, out)
+    }
+  })
+}
+</pre>
+<p>模糊测试维护一个种子语料库，即一组默认运行、也可用于生成新输入的输入数据。可以调用 <a href="#F.Add">F.Add</a> 注册种子输入，或将文件存放在包含模糊测试的包中的 testdata/fuzz/&lt;Name&gt; 目录下，其中 &lt;Name&gt; 是模糊测试名称。种子输入不是必需的，但提供一组体积小、代码覆盖良好的种子输入，可以帮助模糊测试引擎更高效地发现缺陷。这些种子输入也可以作为模糊测试所发现缺陷的回归测试。
+<p>在模糊测试中传给 <a href="#F.Fuzz">F.Fuzz</a> 的函数称为模糊测试目标。目标函数必须先接受一个 <a href="#T">*T</a> 参数，后跟一个或多个用于随机输入的参数。传给 <a href="#F.Add">F.Add</a> 的实参类型必须与这些参数的类型完全相同。目标函数可以像普通测试一样报告问题：调用 <a href="#T.Fail">T.Fail</a>，或调用 <a href="#T.Error">T.Error</a>、<a href="#T.Fatal">T.Fatal</a> 等内部会调用 Fail 的方法，也可以触发 panic。
+<p>启用模糊测试时（将 -fuzz 标志设为匹配某个模糊测试的正则表达式），引擎会反复随机修改种子输入，生成参数并调用目标函数。在支持的平台上，“go test”会在编译测试可执行文件时插入模糊测试覆盖率探针。引擎利用这些探针发现并缓存能扩大覆盖范围的输入，以提高发现缺陷的概率。如果目标函数针对某个输入失败，引擎会将导致失败的输入写入包目录下 testdata/fuzz/&lt;Name&gt; 中的文件。该文件以后会作为种子输入。如果无法写入此位置（例如目录只读），则改为写入构建缓存中的模糊测试缓存目录。
+<p>禁用模糊测试时，会使用通过 <a href="#F.Add">F.Add</a> 注册的种子输入，以及 testdata/fuzz/&lt;Name&gt; 中的种子输入调用目标函数。在这种模式下，模糊测试与普通测试非常相似，只是用 <a href="#F.Fuzz">F.Fuzz</a> 而非 <a href="#T.Run">T.Run</a> 启动子测试。
+<p>模糊测试文档参见 <a href="/doc/fuzz">https://go.dev/doc/fuzz</a>。
+<h3 id="hdr-Skipping">跳过测试</h3>
+<p>可以在运行时调用 <a href="#T.Skip">T.Skip</a> 或 <a href="#B.Skip">B.Skip</a>，跳过测试或基准测试：
+<pre>func TestTimeConsuming(t *testing.T) {
+    if testing.Short() {
+        t.Skip(&quot;skipping test in short mode.&quot;)
+    }
+    ...
+}
+</pre>
+<p>如果模糊测试目标收到无效输入，但该输入不应被视为测试失败，可以使用 <a href="#T.Skip">T.Skip</a>。例如：
+<pre>func FuzzJSONMarshaling(f *testing.F) {
+    f.Fuzz(func(t *testing.T, b []byte) {
+        var v interface{}
+        if err := json.Unmarshal(b, &amp;v); err != nil {
+            t.Skip()
+        }
+        if _, err := json.Marshal(v); err != nil {
+            t.Errorf(&quot;Marshal: %v&quot;, err)
+        }
+    })
+}
+</pre>
+<h3 id="hdr-Subtests_and_Sub_benchmarks">子测试和子基准测试</h3>
+<p><a href="#T.Run">T.Run</a> 和 <a href="#B.Run">B.Run</a> 方法允许定义子测试和子基准测试，无需为每个测试单独定义函数。这支持表驱动的基准测试和分层测试等用法，也提供了共享准备与清理代码的方式：
+<pre>func TestFoo(t *testing.T) {
+    // &lt;准备代码&gt;
+    t.Run("A=1", func(t *testing.T) { ... })
+    t.Run("A=2", func(t *testing.T) { ... })
+    t.Run("B=1", func(t *testing.T) { ... })
+    // &lt;清理代码&gt;
+}
+</pre>
+<p>每个子测试和子基准测试都有唯一名称：由顶层测试名称与传给 Run 的名称序列拼接而成，以斜杠分隔，必要时在末尾添加序号以消除歧义。
+<p>命令行标志 -run、-bench 和 -fuzz 的实参是未限定首尾位置的正则表达式，用于匹配测试名称。对于名称由多个斜杠分隔部分组成的测试（例如子测试），实参本身也以斜杠分隔，各表达式依次匹配名称中的各个部分。由于不限定首尾位置，空表达式匹配任意字符串。例如，以下将“匹配”理解为“名称包含”：
+<pre>go test -run &apos;&apos;        # Run all tests.
+go test -run Foo       # Run top-level tests matching &quot;Foo&quot;, such as &quot;TestFooBar&quot;.
+go test -run Foo/A=    # For top-level tests matching &quot;Foo&quot;, run subtests matching &quot;A=&quot;.
+go test -run /A=1      # For all top-level tests, run subtests matching &quot;A=1&quot;.
+go test -fuzz FuzzFoo  # Fuzz the target matching &quot;FuzzFoo&quot;
+</pre>
+<p>-run 实参也可用于运行种子语料库中的某个特定输入，以便调试。例如：
+<pre>go test -run=FuzzFoo/9ddb952d9814
+</pre>
+<p>可以同时设置 -fuzz 和 -run 标志，以便对某个目标进行模糊测试，同时跳过所有其他测试。
+<p>子测试也可以用于控制并行执行。父测试只有在所有子测试完成后才会完成。在本例中，所有子测试彼此并行运行，但只与彼此并行，不受可能定义的其他顶层测试影响：
+<pre>func TestGroupedParallel(t *testing.T) {
+    for _, tc := range tests {
+        t.Run(tc.Name, func(t *testing.T) {
+            t.Parallel()
+            ...
+        })
+    }
+}
+</pre>
+<p>Run 会等待并行子测试完成后才返回，因此可以在一组并行测试完成后进行清理：
+<pre>func TestTeardownParallel(t *testing.T) {
+    // 此 Run 会等所有并行测试完成后才返回。
+    t.Run("group", func(t *testing.T) {
+        t.Run("Test1", parallelTest1)
+        t.Run("Test2", parallelTest2)
+        t.Run("Test3", parallelTest3)
+    })
+    // &lt;清理代码&gt;
+}
+</pre>
+<h3 id="hdr-Main">主入口</h3>
+<p>有时测试或基准测试程序需要在执行前后进行额外的准备或清理，有时还需要控制哪些代码在主线程上运行。为支持这些及其他场景，如果测试文件包含以下函数：
+<pre>func TestMain(m *testing.M)
+</pre>
+<p>生成的测试程序就会调用 TestMain(m)，而不是直接运行测试或基准测试。TestMain 在主 goroutine 中运行，可以在调用 m.Run 前后执行所需的准备和清理工作。m.Run 返回一个退出码，可以传给 <a href="/pkg/os/#Exit">os.Exit</a>。如果 TestMain 返回，测试包装程序会自行将 m.Run 的结果传给 <a href="/pkg/os/#Exit">os.Exit</a>。
+<p>调用 TestMain 时，flag.Parse 尚未运行。如果 TestMain 依赖命令行标志，包括 testing 包的标志，就应显式调用 <a href="/pkg/flag/#Parse">flag.Parse</a>。测试或基准测试函数开始运行时，命令行标志一定已经解析完毕。
+<p>一个简单的 TestMain 实现如下：
+<pre>func TestMain(m *testing.M) {
+	// 如果 TestMain 使用命令行参数，此处应调用 flag.Parse()
+	m.Run()
+}
+</pre>
+<p>TestMain 是底层原语；普通测试需求通常不需要它，使用常规测试函数即可。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#AllocsPerRun">func AllocsPerRun(runs int, f func()) (avg float64)</a></dd>
+			
+				<dd><a href="#CoverMode">func CoverMode() string</a></dd>
+			
+				<dd><a href="#Coverage">func Coverage() float64</a></dd>
+			
+				<dd><a href="#Init">func Init()</a></dd>
+			
+				<dd><a href="#Main">func Main(matchString func(pat, str string) (bool, error), tests []InternalTest, benchmarks []InternalBenchmark, examples []InternalExample)</a></dd>
+			
+				<dd><a href="#RegisterCover">func RegisterCover(c Cover)</a></dd>
+			
+				<dd><a href="#RunBenchmarks">func RunBenchmarks(matchString func(pat, str string) (bool, error), benchmarks []InternalBenchmark)</a></dd>
+			
+				<dd><a href="#RunExamples">func RunExamples(matchString func(pat, str string) (bool, error), examples []InternalExample) (ok bool)</a></dd>
+			
+				<dd><a href="#RunTests">func RunTests(matchString func(pat, str string) (bool, error), tests []InternalTest) (ok bool)</a></dd>
+			
+				<dd><a href="#Short">func Short() bool</a></dd>
+			
+				<dd><a href="#Testing">func Testing() bool</a></dd>
+			
+				<dd><a href="#Verbose">func Verbose() bool</a></dd>
+			
+			
+				
+				<dd><a href="#B">type B</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#B.ArtifactDir">func (c *B) ArtifactDir() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Attr">func (c *B) Attr(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Chdir">func (c *B) Chdir(dir string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Cleanup">func (c *B) Cleanup(f func())</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Context">func (c *B) Context() context.Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Elapsed">func (b *B) Elapsed() time.Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Error">func (c *B) Error(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Errorf">func (c *B) Errorf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Fail">func (c *B) Fail()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.FailNow">func (c *B) FailNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Failed">func (c *B) Failed() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Fatal">func (c *B) Fatal(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Fatalf">func (c *B) Fatalf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Helper">func (c *B) Helper()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Log">func (c *B) Log(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Logf">func (c *B) Logf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Loop">func (b *B) Loop() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Name">func (c *B) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Output">func (c *B) Output() io.Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.ReportAllocs">func (b *B) ReportAllocs()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.ReportMetric">func (b *B) ReportMetric(n float64, unit string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.ResetTimer">func (b *B) ResetTimer()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Run">func (b *B) Run(name string, f func(b *B)) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.RunParallel">func (b *B) RunParallel(body func(*PB))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.SetBytes">func (b *B) SetBytes(n int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.SetParallelism">func (b *B) SetParallelism(p int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Setenv">func (c *B) Setenv(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Skip">func (c *B) Skip(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.SkipNow">func (c *B) SkipNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Skipf">func (c *B) Skipf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.Skipped">func (c *B) Skipped() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.StartTimer">func (b *B) StartTimer()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.StopTimer">func (b *B) StopTimer()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#B.TempDir">func (c *B) TempDir() string</a></dd>
+				
+			
+				
+				<dd><a href="#BenchmarkResult">type BenchmarkResult</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Benchmark">func Benchmark(f func(b *B)) BenchmarkResult</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BenchmarkResult.AllocedBytesPerOp">func (r BenchmarkResult) AllocedBytesPerOp() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BenchmarkResult.AllocsPerOp">func (r BenchmarkResult) AllocsPerOp() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BenchmarkResult.MemString">func (r BenchmarkResult) MemString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BenchmarkResult.NsPerOp">func (r BenchmarkResult) NsPerOp() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BenchmarkResult.String">func (r BenchmarkResult) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Cover">type Cover</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CoverBlock">type CoverBlock</a></dd>
+				
+				
+			
+				
+				<dd><a href="#F">type F</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Add">func (f *F) Add(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.ArtifactDir">func (c *F) ArtifactDir() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Attr">func (c *F) Attr(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Chdir">func (c *F) Chdir(dir string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Cleanup">func (c *F) Cleanup(f func())</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Context">func (c *F) Context() context.Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Error">func (c *F) Error(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Errorf">func (c *F) Errorf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Fail">func (f *F) Fail()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.FailNow">func (c *F) FailNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Failed">func (c *F) Failed() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Fatal">func (c *F) Fatal(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Fatalf">func (c *F) Fatalf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Fuzz">func (f *F) Fuzz(ff any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Helper">func (f *F) Helper()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Log">func (c *F) Log(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Logf">func (c *F) Logf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Name">func (c *F) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Output">func (c *F) Output() io.Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Setenv">func (c *F) Setenv(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Skip">func (c *F) Skip(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.SkipNow">func (c *F) SkipNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Skipf">func (c *F) Skipf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.Skipped">func (f *F) Skipped() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#F.TempDir">func (c *F) TempDir() string</a></dd>
+				
+			
+				
+				<dd><a href="#InternalBenchmark">type InternalBenchmark</a></dd>
+				
+				
+			
+				
+				<dd><a href="#InternalExample">type InternalExample</a></dd>
+				
+				
+			
+				
+				<dd><a href="#InternalFuzzTarget">type InternalFuzzTarget</a></dd>
+				
+				
+			
+				
+				<dd><a href="#InternalTest">type InternalTest</a></dd>
+				
+				
+			
+				
+				<dd><a href="#M">type M</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MainStart">func MainStart(deps testDeps, tests []InternalTest, benchmarks []InternalBenchmark, fuzzTargets []InternalFuzzTarget, examples []InternalExample) *M</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#M.Run">func (m *M) Run() (code int)</a></dd>
+				
+			
+				
+				<dd><a href="#PB">type PB</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PB.Next">func (pb *PB) Next() bool</a></dd>
+				
+			
+				
+				<dd><a href="#T">type T</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#T.ArtifactDir">func (c *T) ArtifactDir() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Attr">func (c *T) Attr(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Chdir">func (t *T) Chdir(dir string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Cleanup">func (c *T) Cleanup(f func())</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Context">func (c *T) Context() context.Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Deadline">func (t *T) Deadline() (deadline time.Time, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Error">func (c *T) Error(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Errorf">func (c *T) Errorf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Fail">func (c *T) Fail()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.FailNow">func (c *T) FailNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Failed">func (c *T) Failed() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Fatal">func (c *T) Fatal(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Fatalf">func (c *T) Fatalf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Helper">func (c *T) Helper()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Log">func (c *T) Log(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Logf">func (c *T) Logf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Name">func (c *T) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Output">func (c *T) Output() io.Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Parallel">func (t *T) Parallel()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Run">func (t *T) Run(name string, f func(t *T)) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Setenv">func (t *T) Setenv(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Skip">func (c *T) Skip(args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.SkipNow">func (c *T) SkipNow()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Skipf">func (c *T) Skipf(format string, args ...any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.Skipped">func (c *T) Skipped() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#T.TempDir">func (c *T) TempDir() string</a></dd>
+				
+			
+				
+				<dd><a href="#TB">type TB</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_B_Loop">B.Loop</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_B_ReportMetric">B.ReportMetric</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_B_ReportMetric_parallel">B.ReportMetric (Parallel)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_B_RunParallel">B.RunParallel</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/allocs.go">allocs.go</a>
+			
+				<a href="/src/testing/benchmark.go">benchmark.go</a>
+			
+				<a href="/src/testing/cover.go">cover.go</a>
+			
+				<a href="/src/testing/example.go">example.go</a>
+			
+				<a href="/src/testing/fuzz.go">fuzz.go</a>
+			
+				<a href="/src/testing/match.go">match.go</a>
+			
+				<a href="/src/testing/newcover.go">newcover.go</a>
+			
+				<a href="/src/testing/run_example.go">run_example.go</a>
+			
+				<a href="/src/testing/testing.go">testing.go</a>
+			
+				<a href="/src/testing/testing_other.go">testing_other.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="AllocsPerRun">func <a href="/src/testing/allocs.go?s=679:730#L10">AllocsPerRun</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func AllocsPerRun(runs <a href="/pkg/builtin/#int">int</a>, f func()) (avg <a href="/pkg/builtin/#float64">float64</a>)</pre>
+			<p>AllocsPerRun 返回调用 f 时的平均内存分配次数。虽然返回值类型为 float64，但其值始终是整数。
+<p>为计算分配次数，函数会先运行一次作为预热，然后测量指定运行次数内的平均分配次数并返回。
+<p>AllocsPerRun 在测量期间将 <a href="/pkg/runtime/#GOMAXPROCS">runtime.GOMAXPROCS</a> 设为 1，并在返回前恢复原值。
+
+			
+		
+			
+			<h2 id="CoverMode">func <a href="/src/testing/testing.go?s=26963:26986#L767">CoverMode</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func CoverMode() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>CoverMode 报告测试覆盖率模式的设置值，可能为“set”、“count”或“atomic”。如果未启用测试覆盖率，返回空字符串。
+
+			
+		
+			
+			<h2 id="Coverage">func <a href="/src/testing/newcover.go?s=1782:1805#L44">Coverage</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<pre>func Coverage() <a href="/pkg/builtin/#float64">float64</a></pre>
+			<p>Coverage 返回当前代码覆盖率，取值范围为 [0, 1]。如果未启用覆盖率，返回 0。
+<p>顺序运行大量测试用例时，在每个用例之后检查 Coverage，有助于识别哪些用例覆盖了新的代码路径。但它不能替代“go test -cover”和“go tool cover”生成的报告。
+
+			
+		
+			
+			<h2 id="Init">func <a href="/src/testing/testing.go?s=14935:14946#L428">Init</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func Init()</pre>
+			<p>Init 注册测试标志。“go test”命令会在运行测试函数前自动注册这些标志，因此只有在不使用“go test”而直接调用 Benchmark 等函数时，才需要调用 Init。
+<p>Init 不能安全地并发调用。如果此前已调用过，则不产生任何效果。
+
+			
+		
+			
+			<h2 id="Main">func <a href="/src/testing/testing.go?s=76480:76620#L2418">Main</a>
+				
+				
+			</h2>
+			<pre>func Main(matchString func(pat, str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#error">error</a>), tests []<a href="#InternalTest">InternalTest</a>, benchmarks []<a href="#InternalBenchmark">InternalBenchmark</a>, examples []<a href="#InternalExample">InternalExample</a>)</pre>
+			<p>Main 是“go test”命令实现中的内部函数。由于需要跨包使用，且出现时间早于“internal”包机制，因此将其导出。“go test”已不再使用 Main，但会尽可能为通过 Main 模拟“go test”的其他系统保留它。不过，testing 包新增功能时，有时无法相应更新 Main。模拟“go test”的系统应改用 <a href="#MainStart">MainStart</a>。
+
+			
+		
+			
+			<h2 id="RegisterCover">func <a href="/src/testing/cover.go?s=1399:1426#L26">RegisterCover</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func RegisterCover(c <a href="#Cover">Cover</a>)</pre>
+			<p>RegisterCover 记录测试使用的覆盖率数据累加器。注意：此函数属于测试基础设施的内部实现，可能发生变化，尚不受 Go 1 兼容性准则保障。
+
+			
+		
+			
+			<h2 id="RunBenchmarks">func <a href="/src/testing/benchmark.go?s=20553:20652#L677">RunBenchmarks</a>
+				
+				
+			</h2>
+			<pre>func RunBenchmarks(matchString func(pat, str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#error">error</a>), benchmarks []<a href="#InternalBenchmark">InternalBenchmark</a>)</pre>
+			<p>RunBenchmarks 是内部函数，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			
+		
+			
+			<h2 id="RunExamples">func <a href="/src/testing/example.go?s=482:585#L14">RunExamples</a>
+				
+				
+			</h2>
+			<pre>func RunExamples(matchString func(pat, str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#error">error</a>), examples []<a href="#InternalExample">InternalExample</a>) (ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>RunExamples 是内部函数，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			
+		
+			
+			<h2 id="RunTests">func <a href="/src/testing/testing.go?s=85785:85879#L2686">RunTests</a>
+				
+				
+			</h2>
+			<pre>func RunTests(matchString func(pat, str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#error">error</a>), tests []<a href="#InternalTest">InternalTest</a>) (ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>RunTests 是内部函数，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			
+		
+			
+			<h2 id="Short">func <a href="/src/testing/testing.go?s=25808:25825#L736">Short</a>
+				
+				
+			</h2>
+			<pre>func Short() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Short 报告是否设置了 -test.short 标志。
+
+			
+		
+			
+			<h2 id="Testing">func <a href="/src/testing/testing.go?s=26738:26757#L760">Testing</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func Testing() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Testing 报告当前代码是否正在测试中运行。由“go test”创建的程序返回 true，由“go build”创建的程序返回 false。
+
+			
+		
+			
+			<h2 id="Verbose">func <a href="/src/testing/testing.go?s=27063:27082#L772">Verbose</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Verbose() <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Verbose 报告是否设置了 -test.v 标志。
+
+			
+		
+		
+			
+			<h2 id="B">type <a href="/src/testing/benchmark.go?s=2636:4051#L84">B</a>
+				
+				
+			</h2>
+			<p>B 是传给<a href="#Benchmark">基准测试</a>函数的类型，用于管理基准测试计时并控制迭代次数。
+<p>基准测试在其 Benchmark 函数返回，或调用 <a href="#B.FailNow">B.FailNow</a>、<a href="#B.Fatal">B.Fatal</a>、<a href="#B.Fatalf">B.Fatalf</a>、<a href="#B.SkipNow">B.SkipNow</a>、<a href="#B.Skip">B.Skip</a>、<a href="#B.Skipf">B.Skipf</a> 中任一方法时结束。这些方法只能由运行 Benchmark 函数的 goroutine 调用。其他报告方法，例如 <a href="#B.Log">B.Log</a> 和 <a href="#B.Error">B.Error</a> 的各种形式，可以由多个 goroutine 同时调用。
+<p>与普通测试一样，基准测试的日志在执行期间积累，完成后输出到标准输出。不同之处在于，基准测试日志始终打印，以避免隐藏那些本身可能影响基准测试结果的输出。
+
+			<pre>type B struct {
+<span id="B.N"></span>    N <a href="/pkg/builtin/#int">int</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="B.ArtifactDir">func (*B) <a href="/src/testing/testing.go?s=47274:47311#L1466">ArtifactDir</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) ArtifactDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ArtifactDir 返回测试应存储输出文件的目录。指定 -artifacts 标志时，该目录位于输出目录之下；否则，ArtifactDir 返回一个临时目录，并在测试完成后删除。
+<p>每个测试包中的每个测试或子测试都有独立的产物目录。在同一个测试或子测试中重复调用 ArtifactDir，返回相同目录。子测试的输出目录不位于父测试的输出目录之下。
+
+				
+			
+				<h3 id="B.Attr">func (*B) <a href="/src/testing/testing.go?s=55352:55392#L1747">Attr</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Attr(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Attr 输出一个与当前测试关联的测试属性。
+<p>键不得包含空白字符，值不得包含换行符或回车符。
+<p>不同属性键的含义由持续集成系统和测试框架决定。
+<p>测试属性会立即写入测试日志，但应将它们视为无序集合。
+
+				
+			
+				<h3 id="B.Chdir">func (*B) <a href="/src/testing/testing.go?s=53719:53753#L1691">Chdir</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Chdir(dir <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Chdir 调用 <a href="/pkg/os/#Chdir">os.Chdir</a>，并通过 Cleanup 在测试结束后将当前工作目录恢复为原值。在 Unix 上，它还会在测试期间设置 PWD 环境变量。
+<p>由于 Chdir 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="B.Cleanup">func (*B) <a href="/src/testing/testing.go?s=46210:46244#L1429">Cleanup</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Cleanup(f func())</pre>
+				<p>Cleanup 注册一个函数，在该测试（或子测试）及其所有子测试完成后调用。清理函数按后注册、先调用的顺序执行。
+
+				
+			
+				<h3 id="B.Context">func (*B) <a href="/src/testing/testing.go?s=54872:54914#L1732">Context</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+				<p>Context 返回一个上下文，在调用通过 Cleanup 注册的函数之前，该上下文会被取消。
+<p>清理函数可以在测试或基准测试完成前，等待那些响应 <a href="/pkg/context/#Context.Done">context.Context.Done</a> 而关闭的资源完成关闭。
+
+				
+			
+				<h3 id="B.Elapsed">func (*B) <a href="/src/testing/benchmark.go?s=10944:10979#L357">Elapsed</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) Elapsed() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+				<p>Elapsed 返回基准测试已测量的耗时。它报告的时长与 <a href="#B.StartTimer">B.StartTimer</a>、<a href="#B.StopTimer">B.StopTimer</a> 和 <a href="#B.ResetTimer">B.ResetTimer</a> 测量的时长一致。
+
+				
+			
+				<h3 id="B.Error">func (*B) <a href="/src/testing/testing.go?s=43547:43582#L1337">Error</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Error(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Error 等价于先调用 Log，再调用 Fail。
+
+				
+			
+				<h3 id="B.Errorf">func (*B) <a href="/src/testing/testing.go?s=43708:43759#L1344">Errorf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Errorf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Errorf 等价于先调用 Logf，再调用 Fail。
+
+				
+			
+				<h3 id="B.Fail">func (*B) <a href="/src/testing/testing.go?s=34734:34757#L1035">Fail</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Fail()</pre>
+				<p>Fail 将该函数标记为失败，但继续执行。
+
+				
+			
+				<h3 id="B.FailNow">func (*B) <a href="/src/testing/testing.go?s=35699:35725#L1070">FailNow</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) FailNow()</pre>
+				<p>FailNow 将该函数标记为失败，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行；这会执行当前 goroutine 中的所有延迟调用。随后继续执行下一个测试或基准测试。FailNow 必须由运行测试或基准测试函数的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 FailNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="B.Failed">func (*B) <a href="/src/testing/testing.go?s=35067:35097#L1049">Failed</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Failed() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Failed 报告该函数是否已失败。
+
+				
+			
+				<h3 id="B.Fatal">func (*B) <a href="/src/testing/testing.go?s=43894:43929#L1351">Fatal</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Fatal(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatal 等价于先调用 Log，再调用 FailNow。
+
+				
+			
+				<h3 id="B.Fatalf">func (*B) <a href="/src/testing/testing.go?s=44061:44112#L1358">Fatalf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Fatalf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatalf 等价于先调用 Logf，再调用 FailNow。
+
+				
+			
+				<h3 id="B.Helper">func (*B) <a href="/src/testing/testing.go?s=45499:45524#L1405">Helper</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Helper()</pre>
+				<p>Helper 将调用它的函数标记为测试辅助函数。打印文件和行号信息时，会跳过该函数。多个 goroutine 可以同时调用 Helper。
+
+				
+			
+				<h3 id="B.Log">func (*B) <a href="/src/testing/testing.go?s=42839:42872#L1320">Log</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Log(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Log 使用默认格式格式化实参，类似于 <a href="/pkg/fmt/#Println">fmt.Println</a>，并将文本记录到错误日志。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Log 属于错误。
+
+				
+			
+				<h3 id="B.Logf">func (*B) <a href="/src/testing/testing.go?s=43377:43426#L1331">Logf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Logf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Logf 按给定格式格式化实参，类似于 <a href="/pkg/fmt/#Printf">fmt.Printf</a>，并将文本记录到错误日志。如果末尾没有换行符，会自动添加。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Logf 属于错误。
+
+				
+			
+				<h3 id="B.Loop">func (*B) <a href="/src/testing/benchmark.go?s=15374:15397#L492">Loop</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) Loop() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>只要基准测试应继续运行，Loop 就返回 true。
+<p>典型的基准测试结构如下：
+<pre>func Benchmark(b *testing.B) {
+	... setup ...
+	for b.Loop() {
+		... code to measure ...
+	}
+	... cleanup ...
+}
+</pre>
+<p>Loop 在基准测试中首次被调用时会重置计时器，因此基准测试循环开始之前的准备工作不计入测量结果。同样，返回 false 时会停止计时器，因此清理代码也不计入测量。
+<p>在“for b.Loop() { ... }”的循环体内，函数调用的实参、返回结果，以及循环中被赋值的变量都会保持存活，以防编译器将整个循环体优化掉。目前，这通过编译器转换实现：对这些变量插入 runtime.KeepAlive 内建调用。它只适用于语法上位于循环花括号之间的语句，而且循环条件必须严格写作“b.Loop()”。
+<p>Loop 返回 false 后，b.N 包含实际运行的总迭代次数，因此基准测试可以用 b.N 计算其他平均指标。
+<p>在引入 Loop 之前，基准测试需要包含从 0 到 b.N 的显式循环。基准测试应使用 Loop 或循环到 b.N，不能两者同时使用。Loop 更自动地管理计时器，每次测量只运行一次基准测试函数；基于 b.N 的测试则需要多次运行测试函数及相关的准备和清理代码。
+
+				
+
+
+<div id="example_B_Loop" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"math/rand/v2"
+	"testing"
+)
+
+// ExBenchmark 展示如何在基准测试中使用 b.Loop。
+//
+//（如果这是真实的基准测试而非示例，函数应命名为
+// BenchmarkSomething。）
+func ExBenchmark(b *testing.B) {
+	// 生成一个较大的随机切片作为输入。
+	// 因为这发生在首次调用 b.Loop() 之前，
+	// 所以不计入基准测试时间。
+	input := make([]int, 128&lt;&lt;10)
+	for i := range input {
+		input[i] = rand.Int()
+	}
+
+	// 执行基准测试。
+	for b.Loop() {
+		// 通常，sum 调用没有副作用且结果未被使用，
+		// 编译器可以将其优化掉。
+		// 但在 b.Loop 循环中，编译器会确保
+		// 函数调用不会被优化掉。
+		sum(input)
+	}
+
+	// 离开循环后，计时器已停止，
+	// 因此可按需清理，而不影响测试结果。
+}
+
+func sum(data []int) int {
+	total := 0
+	for _, value := range data {
+		total += value
+	}
+	return total
+}
+
+func main() {
+	testing.Benchmark(ExBenchmark)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="B.Name">func (*B) <a href="/src/testing/testing.go?s=34490:34520#L1021">Name</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回正在运行的测试、子测试或基准测试的名称。
+<p>名称包含顶层测试名和所有嵌套子测试名。如果两个同级子测试名称相同，Name 会添加后缀，以保证返回名称唯一。
+
+				
+			
+				<h3 id="B.Output">func (*B) <a href="/src/testing/testing.go?s=39184:39219#L1188">Output</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Output() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+				<p>Output 返回一个 Writer，写入与 TB.Log 相同的测试输出流。输出缩进与 TB.Log 的日志行相同，但 Output 不添加源码位置或换行符。输出在内部按行缓冲；调用 TB.Log 或测试结束时，会隐式刷新缓冲区并追加换行符。测试函数及其所有父测试返回后，不得再调用 Output 或其 Write 方法。
+
+				
+			
+				<h3 id="B.ReportAllocs">func (*B) <a href="/src/testing/benchmark.go?s=5906:5932#L182">ReportAllocs</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) ReportAllocs()</pre>
+				<p>ReportAllocs 为此基准测试启用内存分配统计。它等价于设置 -test.benchmem，但只影响调用 ReportAllocs 的基准测试函数。
+
+				
+			
+				<h3 id="B.ReportMetric">func (*B) <a href="/src/testing/benchmark.go?s=11615:11663#L374">ReportMetric</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) ReportMetric(n <a href="/pkg/builtin/#float64">float64</a>, unit <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>ReportMetric 向报告的基准测试结果中添加“n unit”。如果指标按每次迭代计算，调用方应先除以 b.N，且按照惯例，单位应以“/op”结尾。ReportMetric 会覆盖此前报告的相同单位的值。如果 unit 为空字符串或包含任何空白字符，会触发 panic。如果 unit 是基准测试框架通常自行报告的单位（例如“allocs/op”），则覆盖对应指标。将“ns/op”设为 0 会隐藏该内置指标。
+
+				
+
+
+<div id="example_B_ReportMetric" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"cmp"
+	"slices"
+	"testing"
+)
+
+func main() {
+	// 报告与特定算法相关的自定义基准测试指标，
+	// 此处以排序为例。
+	testing.Benchmark(func(b *testing.B) {
+		var compares int64
+		for b.Loop() {
+			s := []int{5, 4, 3, 2, 1}
+			slices.SortFunc(s, func(a, b int) int {
+				compares++
+				return cmp.Compare(a, b)
+			})
+		}
+		// 此指标按每次操作统计，因此除以 b.N，
+		// 并以 "/op" 为单位报告。
+		b.ReportMetric(float64(compares)/float64(b.N), "compares/op")
+		// 此指标按单位时间统计，因此除以 b.Elapsed，
+		// 并以 "/ns" 为单位报告。
+		b.ReportMetric(float64(compares)/float64(b.Elapsed().Nanoseconds()), "compares/ns")
+	})
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_B_ReportMetric_parallel" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Parallel)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Parallel)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"cmp"
+	"slices"
+	"sync/atomic"
+	"testing"
+)
+
+func main() {
+	// 在并行基准测试中报告与特定算法相关的自定义指标，
+	// 此处以排序为例。
+	testing.Benchmark(func(b *testing.B) {
+		var compares atomic.Int64
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				s := []int{5, 4, 3, 2, 1}
+				slices.SortFunc(s, func(a, b int) int {
+					// 因为 RunParallel 会多次并发执行此函数，
+					// 所以必须以原子操作递增计数器，
+					// 避免并发写入产生数据竞争。
+					compares.Add(1)
+					return cmp.Compare(a, b)
+				})
+			}
+		})
+
+		// 注意：应在所有并行调用完成后，
+		// 将每个指标报告一次。
+
+		// 此指标按每次操作统计，因此除以 b.N，
+		// 并以 "/op" 为单位报告。
+		b.ReportMetric(float64(compares.Load())/float64(b.N), "compares/op")
+		// 此指标按单位时间统计，因此除以 b.Elapsed，
+		// 并以 "/ns" 为单位报告。
+		b.ReportMetric(float64(compares.Load())/float64(b.Elapsed().Nanoseconds()), "compares/ns")
+	})
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="B.ResetTimer">func (*B) <a href="/src/testing/benchmark.go?s=5103:5127#L156">ResetTimer</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) ResetTimer()</pre>
+				<p>ResetTimer 将基准测试累计耗时和内存分配计数器清零，并删除用户报告的指标。它不改变计时器当前是否正在运行的状态。
+
+				
+			
+				<h3 id="B.Run">func (*B) <a href="/src/testing/benchmark.go?s=24262:24309#L798">Run</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) Run(name <a href="/pkg/builtin/#string">string</a>, f func(b *<a href="#B">B</a>)) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Run 将 f 作为具有给定名称的子基准测试运行，并报告是否发生失败。
+<p>子基准测试与其他基准测试一样。如果某个基准测试至少调用一次 Run，就不会对它本身进行测量，并且只会以 N=1 调用它一次。
+
+				
+			
+				<h3 id="B.RunParallel">func (*B) <a href="/src/testing/benchmark.go?s=28515:28554#L940">RunParallel</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) RunParallel(body func(*<a href="#PB">PB</a>))</pre>
+				<p>RunParallel 并行运行基准测试。它创建多个 goroutine，并将 b.N 次迭代分配给它们。goroutine 数量默认为 GOMAXPROCS。对于非 CPU 密集型基准测试，要增加并行度，请在 RunParallel 前调用 <a href="#B.SetParallelism">B.SetParallelism</a>。RunParallel 通常与 go test -cpu 标志配合使用。
+<p>body 函数会在每个 goroutine 中运行。它应设置 goroutine 局部状态，然后反复迭代，直到 pb.Next 返回 false。它不应使用 <a href="#B.StartTimer">B.StartTimer</a>、<a href="#B.StopTimer">B.StopTimer</a> 或 <a href="#B.ResetTimer">B.ResetTimer</a>，因为这些函数影响全局状态。它也不应调用 <a href="#B.Run">B.Run</a>。
+<p>RunParallel 报告的 ns/op 基于整个基准测试的实际经过时间，而不是各个并行 goroutine 的实际经过时间或 CPU 时间之和。
+
+				
+
+
+<div id="example_B_RunParallel" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"testing"
+	"text/template"
+)
+
+func main() {
+	// 在单个对象上并行调用 text/template.Template.Execute 的基准测试。
+	testing.Benchmark(func(b *testing.B) {
+		templ := template.Must(template.New("test").Parse("Hello, {{.}}!"))
+		// RunParallel 会创建 GOMAXPROCS 个 goroutine，
+		// 并将工作分配给它们。
+		b.RunParallel(func(pb *testing.PB) {
+			// 每个 goroutine 都有自己的 bytes.Buffer。
+			var buf bytes.Buffer
+			for pb.Next() {
+				// 所有 goroutine 执行循环体的次数合计为 b.N。
+				buf.Reset()
+				templ.Execute(&amp;buf, "World")
+			}
+		})
+	})
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="B.SetBytes">func (*B) <a href="/src/testing/benchmark.go?s=5679:5708#L177">SetBytes</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) SetBytes(n <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>SetBytes 记录单次操作处理的字节数。调用后，基准测试会报告 ns/op 和 MB/s。
+
+				
+			
+				<h3 id="B.SetParallelism">func (*B) <a href="/src/testing/benchmark.go?s=29738:29771#L984">SetParallelism</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) SetParallelism(p <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>SetParallelism 将 <a href="#B.RunParallel">B.RunParallel</a> 使用的 goroutine 数量设为 p*GOMAXPROCS。对于 CPU 密集型基准测试，通常无需调用 SetParallelism。如果 p 小于 1，此调用无效。
+
+				
+			
+				<h3 id="B.Setenv">func (*B) <a href="/src/testing/testing.go?s=53055:53097#L1666">Setenv</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Setenv(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Setenv 调用 <a href="/pkg/os/#Setenv">os.Setenv</a>，并通过 Cleanup 在测试结束后将环境变量恢复为原值。
+<p>由于 Setenv 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="B.Skip">func (*B) <a href="/src/testing/testing.go?s=44249:44283#L1365">Skip</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Skip(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skip 等价于先调用 Log，再调用 SkipNow。
+
+				
+			
+				<h3 id="B.SkipNow">func (*B) <a href="/src/testing/testing.go?s=45014:45040#L1386">SkipNow</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) SkipNow()</pre>
+				<p>SkipNow 将测试标记为已跳过，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行。如果测试先失败（参见 Error、Errorf、Fail），随后被跳过，仍然视为失败。随后继续执行下一个测试或基准测试，另见 FailNow。SkipNow 必须由运行测试的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 SkipNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="B.Skipf">func (*B) <a href="/src/testing/testing.go?s=44414:44464#L1372">Skipf</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Skipf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skipf 等价于先调用 Logf，再调用 SkipNow。
+
+				
+			
+				<h3 id="B.Skipped">func (*B) <a href="/src/testing/testing.go?s=45204:45235#L1396">Skipped</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) Skipped() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Skipped 报告测试是否被跳过。
+
+				
+			
+				<h3 id="B.StartTimer">func (*B) <a href="/src/testing/benchmark.go?s=4232:4256#L128">StartTimer</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) StartTimer()</pre>
+				<p>StartTimer 开始对测试计时。基准测试开始前会自动调用它；调用 <a href="#B.StopTimer">B.StopTimer</a> 后，也可以用它恢复计时。
+
+				
+			
+				<h3 id="B.StopTimer">func (*B) <a href="/src/testing/benchmark.go?s=4601:4624#L141">StopTimer</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#B">B</a>) StopTimer()</pre>
+				<p>StopTimer 停止对测试计时。执行不希望纳入测量的步骤时，可以用它暂停计时器。
+
+				
+			
+				<h3 id="B.TempDir">func (*B) <a href="/src/testing/testing.go?s=50226:50259#L1565">TempDir</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (c *<a href="#B">B</a>) TempDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>TempDir 返回供测试使用的临时目录。测试及其所有子测试完成后，会自动删除该目录。每次调用 TempDir 都返回一个独立目录；如果目录创建失败，会通过调用 Fatal 终止测试。如果设置了 GOTMPDIR 环境变量，临时目录会创建在它指定的目录之下。
+
+				
+			
+		
+			
+			<h2 id="BenchmarkResult">type <a href="/src/testing/benchmark.go?s=16541:16961#L526">BenchmarkResult</a>
+				
+				
+			</h2>
+			<p>BenchmarkResult 包含一次基准测试运行的结果。
+
+			<pre>type BenchmarkResult struct {
+<span id="BenchmarkResult.N"></span>    N         <a href="/pkg/builtin/#int">int</a>           <span class="comment">// 迭代次数。</span>
+<span id="BenchmarkResult.T"></span>    T         <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a> <span class="comment">// 总耗时。</span>
+<span id="BenchmarkResult.Bytes"></span>    Bytes     <a href="/pkg/builtin/#int64">int64</a>         <span class="comment">// 每次迭代处理的字节数。</span>
+<span id="BenchmarkResult.MemAllocs"></span>    MemAllocs <a href="/pkg/builtin/#uint64">uint64</a>        <span class="comment">// 内存分配总次数；自 Go 1.1 起提供</span>
+<span id="BenchmarkResult.MemBytes"></span>    MemBytes  <a href="/pkg/builtin/#uint64">uint64</a>        <span class="comment">// 分配的总字节数；自 Go 1.1 起提供</span>
+
+<span id="BenchmarkResult.Extra"></span>    <span class="comment">// Extra 记录通过 ReportMetric 报告的附加指标。</span>
+    Extra map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#float64">float64</a> <span class="comment">// Go 1.13</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Benchmark">func <a href="/src/testing/benchmark.go?s=30233:30277#L998">Benchmark</a>
+					
+					
+				</h3>
+				<pre>func Benchmark(f func(b *<a href="#B">B</a>)) <a href="#BenchmarkResult">BenchmarkResult</a></pre>
+				<p>Benchmark 对单个函数进行基准测试，可用于创建不依赖“go test”命令的自定义基准测试。
+<p>如果 f 依赖测试标志，就必须先使用 <a href="#Init">Init</a> 注册这些标志，再调用 Benchmark 和 <a href="/pkg/flag/#Parse">flag.Parse</a>。
+<p>如果 f 调用了 Run，结果是对以下情况的估计：将所有不再调用 Run 的子基准测试，在单个基准测试中顺序运行。
+
+				
+			
+
+			
+				<h3 id="BenchmarkResult.AllocedBytesPerOp">func (BenchmarkResult) <a href="/src/testing/benchmark.go?s=17795:17845#L573">AllocedBytesPerOp</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (r <a href="#BenchmarkResult">BenchmarkResult</a>) AllocedBytesPerOp() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>AllocedBytesPerOp 返回“B/op”指标，计算方式为 r.MemBytes / r.N。
+
+				
+			
+				<h3 id="BenchmarkResult.AllocsPerOp">func (BenchmarkResult) <a href="/src/testing/benchmark.go?s=17523:17567#L561">AllocsPerOp</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (r <a href="#BenchmarkResult">BenchmarkResult</a>) AllocsPerOp() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>AllocsPerOp 返回“allocs/op”指标，计算方式为 r.MemAllocs / r.N。
+
+				
+			
+				<h3 id="BenchmarkResult.MemString">func (BenchmarkResult) <a href="/src/testing/benchmark.go?s=19941:19984#L655">MemString</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (r <a href="#BenchmarkResult">BenchmarkResult</a>) MemString() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>MemString 以与“go test”相同的格式返回 r.AllocedBytesPerOp 和 r.AllocsPerOp。
+
+				
+			
+				<h3 id="BenchmarkResult.NsPerOp">func (BenchmarkResult) <a href="/src/testing/benchmark.go?s=17002:17042#L538">NsPerOp</a>
+					
+					
+				</h3>
+				<pre>func (r <a href="#BenchmarkResult">BenchmarkResult</a>) NsPerOp() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>NsPerOp 返回“ns/op”指标。
+
+				
+			
+				<h3 id="BenchmarkResult.String">func (BenchmarkResult) <a href="/src/testing/benchmark.go?s=18338:18378#L590">String</a>
+					
+					
+				</h3>
+				<pre>func (r <a href="#BenchmarkResult">BenchmarkResult</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回基准测试结果摘要，采用 <a href="/golang.org/design/14313-benchmark-format">https://golang.org/design/14313-benchmark-format</a> 规定的结果行格式，但不包含基准测试名称。额外指标会覆盖同名内置指标。String 不包含 allocs/op 或 B/op，因为它们由 <a href="#BenchmarkResult.MemString">BenchmarkResult.MemString</a> 报告。
+
+				
+			
+		
+			
+			<h2 id="Cover">type <a href="/src/testing/cover.go?s=1033:1180#L16">Cover</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Cover 记录测试覆盖率检查的信息。注意：此结构体属于测试基础设施的内部实现，可能发生变化，尚不受 Go 1 兼容性准则保障。
+
+			<pre>type Cover struct {
+<span id="Cover.Mode"></span>    Mode            <a href="/pkg/builtin/#string">string</a>
+<span id="Cover.Counters"></span>    Counters        map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Cover.Blocks"></span>    Blocks          map[<a href="/pkg/builtin/#string">string</a>][]<a href="#CoverBlock">CoverBlock</a>
+<span id="Cover.CoveredPackages"></span>    CoveredPackages <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="CoverBlock">type <a href="/src/testing/cover.go?s=556:828#L5">CoverBlock</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>CoverBlock 记录单个基本块的覆盖率数据。与编辑器中的位置表示一样，各字段从 1 开始计数，例如文件首行为第 1 行。列按字节计数。注意：此结构体属于测试基础设施的内部实现，可能发生变化，尚不受 Go 1 兼容性准则保障。
+
+			<pre>type CoverBlock struct {
+<span id="CoverBlock.Line0"></span>    Line0 <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// 代码块起始行号。</span>
+<span id="CoverBlock.Col0"></span>    Col0  <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// 代码块起始列号。</span>
+<span id="CoverBlock.Line1"></span>    Line1 <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// 代码块结束行号。</span>
+<span id="CoverBlock.Col1"></span>    Col1  <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// 代码块结束列号。</span>
+<span id="CoverBlock.Stmts"></span>    Stmts <a href="/pkg/builtin/#uint16">uint16</a> <span class="comment">// 此代码块包含的语句数量。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="F">type <a href="/src/testing/fuzz.go?s=2496:2845#L59">F</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>F 是传给模糊测试的类型。
+<p>模糊测试用生成的输入运行给定目标函数，以发现并报告被测试代码中的潜在缺陷。
+<p>模糊测试默认运行种子语料库，其中包括通过 <a href="#F.Add">F.Add</a> 提供的条目，以及 testdata/fuzz/&lt;FuzzTestName&gt; 目录中的条目。完成必要的准备工作并调用 <a href="#F.Add">F.Add</a> 后，模糊测试必须调用 <a href="#F.Fuzz">F.Fuzz</a> 提供目标函数。示例参见 testing 包文档，详细信息参见 <a href="#F.Fuzz">F.Fuzz</a> 和 <a href="#F.Add">F.Add</a> 的方法文档。
+<p>*F 方法只能在 <a href="#F.Fuzz">F.Fuzz</a> 之前调用。开始执行模糊测试目标后，只能使用 <a href="#T">*T</a> 方法。在 <a href="#F.Fuzz">F.Fuzz</a> 函数中，唯一允许使用的 *F 方法是 <a href="#F.Failed">F.Failed</a> 和 <a href="#F.Name">F.Name</a>。
+
+			<pre>type F struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="F.Add">func (*F) <a href="/src/testing/fuzz.go?s=5094:5122#L143">Add</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (f *<a href="#F">F</a>) Add(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Add 将实参加入模糊测试的种子语料库。在目标函数内部或目标执行之后调用时，不执行任何操作。args 必须与目标函数的参数匹配。
+
+				
+			
+				<h3 id="F.ArtifactDir">func (*F) <a href="/src/testing/testing.go?s=47274:47311#L1466">ArtifactDir</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) ArtifactDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ArtifactDir 返回测试应存储输出文件的目录。指定 -artifacts 标志时，该目录位于输出目录之下；否则，ArtifactDir 返回一个临时目录，并在测试完成后删除。
+<p>每个测试包中的每个测试或子测试都有独立的产物目录。在同一个测试或子测试中重复调用 ArtifactDir，返回相同目录。子测试的输出目录不位于父测试的输出目录之下。
+
+				
+			
+				<h3 id="F.Attr">func (*F) <a href="/src/testing/testing.go?s=55352:55392#L1747">Attr</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Attr(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Attr 输出一个与当前测试关联的测试属性。
+<p>键不得包含空白字符，值不得包含换行符或回车符。
+<p>不同属性键的含义由持续集成系统和测试框架决定。
+<p>测试属性会立即写入测试日志，但应将它们视为无序集合。
+
+				
+			
+				<h3 id="F.Chdir">func (*F) <a href="/src/testing/testing.go?s=53719:53753#L1691">Chdir</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Chdir(dir <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Chdir 调用 <a href="/pkg/os/#Chdir">os.Chdir</a>，并通过 Cleanup 在测试结束后将当前工作目录恢复为原值。在 Unix 上，它还会在测试期间设置 PWD 环境变量。
+<p>由于 Chdir 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="F.Cleanup">func (*F) <a href="/src/testing/testing.go?s=46210:46244#L1429">Cleanup</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Cleanup(f func())</pre>
+				<p>Cleanup 注册一个函数，在该测试（或子测试）及其所有子测试完成后调用。清理函数按后注册、先调用的顺序执行。
+
+				
+			
+				<h3 id="F.Context">func (*F) <a href="/src/testing/testing.go?s=54872:54914#L1732">Context</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+				<p>Context 返回一个上下文，在调用通过 Cleanup 注册的函数之前，该上下文会被取消。
+<p>清理函数可以在测试或基准测试完成前，等待那些响应 <a href="/pkg/context/#Context.Done">context.Context.Done</a> 而关闭的资源完成关闭。
+
+				
+			
+				<h3 id="F.Error">func (*F) <a href="/src/testing/testing.go?s=43547:43582#L1337">Error</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Error(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Error 等价于先调用 Log，再调用 Fail。
+
+				
+			
+				<h3 id="F.Errorf">func (*F) <a href="/src/testing/testing.go?s=43708:43759#L1344">Errorf</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Errorf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Errorf 等价于先调用 Logf，再调用 Fail。
+
+				
+			
+				<h3 id="F.Fail">func (*F) <a href="/src/testing/fuzz.go?s=4190:4208#L119">Fail</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (f *<a href="#F">F</a>) Fail()</pre>
+				<p>Fail 将该函数标记为失败，但继续执行。
+
+				
+			
+				<h3 id="F.FailNow">func (*F) <a href="/src/testing/testing.go?s=35699:35725#L1070">FailNow</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) FailNow()</pre>
+				<p>FailNow 将该函数标记为失败，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行；这会执行当前 goroutine 中的所有延迟调用。随后继续执行下一个测试或基准测试。FailNow 必须由运行测试或基准测试函数的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 FailNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="F.Failed">func (*F) <a href="/src/testing/testing.go?s=35067:35097#L1049">Failed</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Failed() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Failed 报告该函数是否已失败。
+
+				
+			
+				<h3 id="F.Fatal">func (*F) <a href="/src/testing/testing.go?s=43894:43929#L1351">Fatal</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Fatal(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatal 等价于先调用 Log，再调用 FailNow。
+
+				
+			
+				<h3 id="F.Fatalf">func (*F) <a href="/src/testing/testing.go?s=44061:44112#L1358">Fatalf</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Fatalf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatalf 等价于先调用 Logf，再调用 FailNow。
+
+				
+			
+				<h3 id="F.Fuzz">func (*F) <a href="/src/testing/fuzz.go?s=7584:7608#L201">Fuzz</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (f *<a href="#F">F</a>) Fuzz(ff <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fuzz 运行模糊测试函数 ff。如果 ff 在某组实参下失败，这组实参就会加入种子语料库。
+<p>ff 必须是没有返回值的函数，第一个参数为 <a href="#T">*T</a>，其余参数为需要进行模糊测试的输入类型。例如：
+<pre>f.Fuzz(func(t *testing.T, b []byte, i int) { ... })
+</pre>
+<p>允许以下类型：[]byte、string、bool、byte、rune、float32、float64、int、int8、int16、int32、int64、uint、uint8、uint16、uint32、uint64。未来可能支持更多类型。
+<p>ff 不得调用 <a href="#F">*F</a> 方法，例如 <a href="#F.Log">F.Log</a>、<a href="#F.Error">F.Error</a> 或 <a href="#F.Skip">F.Skip</a>，应改用对应的 <a href="#T">*T</a> 方法。在 F.Fuzz 函数中，唯一允许使用的 <a href="#F">*F</a> 方法是 <a href="#F.Failed">F.Failed</a> 和 <a href="#F.Name">F.Name</a>。
+<p>此函数应快速且具有确定性，其行为不应依赖共享状态。不同次执行之间，不应保留任何可变输入实参或指向它们的指针，因为后续调用可能修改其底层内存。ff 不得修改模糊测试引擎提供的实参的底层数据。
+<p>进行模糊测试时，F.Fuzz 会持续运行，直到发现问题、达到 -fuzztime 指定的时限，或测试进程被信号中断。除非此前调用了 <a href="#F.Skip">F.Skip</a> 或 <a href="#F.Fail">F.Fail</a>，否则必须且只能调用 F.Fuzz 一次。
+
+				
+			
+				<h3 id="F.Helper">func (*F) <a href="/src/testing/fuzz.go?s=3403:3423#L93">Helper</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (f *<a href="#F">F</a>) Helper()</pre>
+				<p>Helper 将调用它的函数标记为测试辅助函数。打印文件和行号信息时，会跳过该函数。多个 goroutine 可以同时调用 Helper。
+
+				
+			
+				<h3 id="F.Log">func (*F) <a href="/src/testing/testing.go?s=42839:42872#L1320">Log</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Log(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Log 使用默认格式格式化实参，类似于 <a href="/pkg/fmt/#Println">fmt.Println</a>，并将文本记录到错误日志。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Log 属于错误。
+
+				
+			
+				<h3 id="F.Logf">func (*F) <a href="/src/testing/testing.go?s=43377:43426#L1331">Logf</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Logf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Logf 按给定格式格式化实参，类似于 <a href="/pkg/fmt/#Printf">fmt.Printf</a>，并将文本记录到错误日志。如果末尾没有换行符，会自动添加。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Logf 属于错误。
+
+				
+			
+				<h3 id="F.Name">func (*F) <a href="/src/testing/testing.go?s=34490:34520#L1021">Name</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回正在运行的测试、子测试或基准测试的名称。
+<p>名称包含顶层测试名和所有嵌套子测试名。如果两个同级子测试名称相同，Name 会添加后缀，以保证返回名称唯一。
+
+				
+			
+				<h3 id="F.Output">func (*F) <a href="/src/testing/testing.go?s=39184:39219#L1188">Output</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Output() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+				<p>Output 返回一个 Writer，写入与 TB.Log 相同的测试输出流。输出缩进与 TB.Log 的日志行相同，但 Output 不添加源码位置或换行符。输出在内部按行缓冲；调用 TB.Log 或测试结束时，会隐式刷新缓冲区并追加换行符。测试函数及其所有父测试返回后，不得再调用 Output 或其 Write 方法。
+
+				
+			
+				<h3 id="F.Setenv">func (*F) <a href="/src/testing/testing.go?s=53055:53097#L1666">Setenv</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Setenv(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Setenv 调用 <a href="/pkg/os/#Setenv">os.Setenv</a>，并通过 Cleanup 在测试结束后将环境变量恢复为原值。
+<p>由于 Setenv 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="F.Skip">func (*F) <a href="/src/testing/testing.go?s=44249:44283#L1365">Skip</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Skip(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skip 等价于先调用 Log，再调用 SkipNow。
+
+				
+			
+				<h3 id="F.SkipNow">func (*F) <a href="/src/testing/testing.go?s=45014:45040#L1386">SkipNow</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) SkipNow()</pre>
+				<p>SkipNow 将测试标记为已跳过，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行。如果测试先失败（参见 Error、Errorf、Fail），随后被跳过，仍然视为失败。随后继续执行下一个测试或基准测试，另见 FailNow。SkipNow 必须由运行测试的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 SkipNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="F.Skipf">func (*F) <a href="/src/testing/testing.go?s=44414:44464#L1372">Skipf</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) Skipf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skipf 等价于先调用 Logf，再调用 SkipNow。
+
+				
+			
+				<h3 id="F.Skipped">func (*F) <a href="/src/testing/fuzz.go?s=4556:4582#L130">Skipped</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (f *<a href="#F">F</a>) Skipped() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Skipped 报告测试是否被跳过。
+
+				
+			
+				<h3 id="F.TempDir">func (*F) <a href="/src/testing/testing.go?s=50226:50259#L1565">TempDir</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#F">F</a>) TempDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>TempDir 返回供测试使用的临时目录。测试及其所有子测试完成后，会自动删除该目录。每次调用 TempDir 都返回一个独立目录；如果目录创建失败，会通过调用 Fatal 终止测试。如果设置了 GOTMPDIR 环境变量，临时目录会创建在它指定的目录之下。
+
+				
+			
+		
+			
+			<h2 id="InternalBenchmark">type <a href="/src/testing/benchmark.go?s=1818:1881#L66">InternalBenchmark</a>
+				
+				
+			</h2>
+			<p>InternalBenchmark 是内部类型，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			<pre>type InternalBenchmark struct {
+<span id="InternalBenchmark.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="InternalBenchmark.F"></span>    F    func(b *<a href="#B">B</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="InternalExample">type <a href="/src/testing/example.go?s=236:337#L5">InternalExample</a>
+				
+				
+			</h2>
+			
+			<pre>type InternalExample struct {
+<span id="InternalExample.Name"></span>    Name      <a href="/pkg/builtin/#string">string</a>
+<span id="InternalExample.F"></span>    F         func()
+<span id="InternalExample.Output"></span>    Output    <a href="/pkg/builtin/#string">string</a>
+<span id="InternalExample.Unordered"></span>    Unordered <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.7</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="InternalFuzzTarget">type <a href="/src/testing/fuzz.go?s=1625:1689#L39">InternalFuzzTarget</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>InternalFuzzTarget 是内部类型，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			<pre>type InternalFuzzTarget struct {
+<span id="InternalFuzzTarget.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="InternalFuzzTarget.Fn"></span>    Fn   func(f *<a href="#F">F</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="InternalTest">type <a href="/src/testing/testing.go?s=63583:63639#L2013">InternalTest</a>
+				
+				
+			</h2>
+			<p>InternalTest 是内部类型，因需要跨包使用而导出；它是“go test”命令实现的一部分。
+
+			<pre>type InternalTest struct {
+<span id="InternalTest.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="InternalTest.F"></span>    F    func(*<a href="#T">T</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="M">type <a href="/src/testing/testing.go?s=76786:77133#L2423">M</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>M 是传给 TestMain 函数的类型，用于运行实际测试。
+
+			<pre>type M struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MainStart">func <a href="/src/testing/testing.go?s=78285:78433#L2466">MainStart</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func MainStart(deps testDeps, tests []<a href="#InternalTest">InternalTest</a>, benchmarks []<a href="#InternalBenchmark">InternalBenchmark</a>, fuzzTargets []<a href="#InternalFuzzTarget">InternalFuzzTarget</a>, examples []<a href="#InternalExample">InternalExample</a>) *<a href="#M">M</a></pre>
+				<p>MainStart 供“go test”生成的测试程序使用，不应直接调用，也不受 Go 1 兼容性文档保障。其签名可能随版本变化。
+
+				
+			
+
+			
+				<h3 id="M.Run">func (*M) <a href="/src/testing/testing.go?s=78912:78940#L2487">Run</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (m *<a href="#M">M</a>) Run() (code <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Run 运行测试，并返回可传给 os.Exit 的退出码。所有测试通过时退出码为零，发生任何失败时都为非零。如需机器可读的测试结果，请解析“go test -json”的输出。
+
+				
+			
+		
+			
+			<h2 id="PB">type <a href="/src/testing/benchmark.go?s=27103:27413#L904">PB</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>PB 由 RunParallel 使用，用于运行并行基准测试。
+
+			<pre>type PB struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PB.Next">func (*PB) <a href="/src/testing/benchmark.go?s=27477:27502#L912">Next</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (pb *<a href="#PB">PB</a>) Next() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Next 报告是否还有更多迭代需要执行。
+
+				
+			
+		
+			
+			<h2 id="T">type <a href="/src/testing/testing.go?s=34073:34177#L1008">T</a>
+				
+				
+			</h2>
+			<p>T 是传给 Test 函数的类型，用于管理测试状态，并支持格式化测试日志。
+<p>测试在其 Test 函数返回，或调用 <a href="#T.FailNow">T.FailNow</a>、<a href="#T.Fatal">T.Fatal</a>、<a href="#T.Fatalf">T.Fatalf</a>、<a href="#T.SkipNow">T.SkipNow</a>、<a href="#T.Skip">T.Skip</a>、<a href="#T.Skipf">T.Skipf</a> 中任一方法时结束。这些方法以及 <a href="#T.Parallel">T.Parallel</a> 只能由运行 Test 函数的 goroutine 调用。
+<p>其他报告方法，例如 <a href="#T.Log">T.Log</a> 和 <a href="#T.Error">T.Error</a> 的各种形式，可以由多个 goroutine 同时调用。
+
+			<pre>type T struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="T.ArtifactDir">func (*T) <a href="/src/testing/testing.go?s=47274:47311#L1466">ArtifactDir</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) ArtifactDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ArtifactDir 返回测试应存储输出文件的目录。指定 -artifacts 标志时，该目录位于输出目录之下；否则，ArtifactDir 返回一个临时目录，并在测试完成后删除。
+<p>每个测试包中的每个测试或子测试都有独立的产物目录。在同一个测试或子测试中重复调用 ArtifactDir，返回相同目录。子测试的输出目录不位于父测试的输出目录之下。
+
+				
+			
+				<h3 id="T.Attr">func (*T) <a href="/src/testing/testing.go?s=55352:55392#L1747">Attr</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Attr(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Attr 输出一个与当前测试关联的测试属性。
+<p>键不得包含空白字符，值不得包含换行符或回车符。
+<p>不同属性键的含义由持续集成系统和测试框架决定。
+<p>测试属性会立即写入测试日志，但应将它们视为无序集合。
+
+				
+			
+				<h3 id="T.Chdir">func (*T) <a href="/src/testing/testing.go?s=63368:63397#L2006">Chdir</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#T">T</a>) Chdir(dir <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Chdir 调用 <a href="/pkg/os/#Chdir">os.Chdir</a>，并通过 Cleanup 在测试结束后将当前工作目录恢复为原值。在 Unix 上，它还会在测试期间设置 PWD 环境变量。
+<p>由于 Chdir 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="T.Cleanup">func (*T) <a href="/src/testing/testing.go?s=46210:46244#L1429">Cleanup</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Cleanup(f func())</pre>
+				<p>Cleanup 注册一个函数，在该测试（或子测试）及其所有子测试完成后调用。清理函数按后注册、先调用的顺序执行。
+
+				
+			
+				<h3 id="T.Context">func (*T) <a href="/src/testing/testing.go?s=54872:54914#L1732">Context</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+				<p>Context 返回一个上下文，在调用通过 Cleanup 注册的函数之前，该上下文会被取消。
+<p>清理函数可以在测试或基准测试完成前，等待那些响应 <a href="/pkg/context/#Context.Done">context.Context.Done</a> 而关闭的资源完成关闭。
+
+				
+			
+				<h3 id="T.Deadline">func (*T) <a href="/src/testing/testing.go?s=72424:72476#L2310">Deadline</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (t *<a href="#T">T</a>) Deadline() (deadline <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Deadline 返回测试可执行文件将超过 -timeout 标志所设时限的时刻。
+<p>如果 -timeout 标志表示“无超时”（0），返回值 ok 为 false。
+
+				
+			
+				<h3 id="T.Error">func (*T) <a href="/src/testing/testing.go?s=43547:43582#L1337">Error</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Error(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Error 等价于先调用 Log，再调用 Fail。
+
+				
+			
+				<h3 id="T.Errorf">func (*T) <a href="/src/testing/testing.go?s=43708:43759#L1344">Errorf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Errorf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Errorf 等价于先调用 Logf，再调用 Fail。
+
+				
+			
+				<h3 id="T.Fail">func (*T) <a href="/src/testing/testing.go?s=34734:34757#L1035">Fail</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Fail()</pre>
+				<p>Fail 将该函数标记为失败，但继续执行。
+
+				
+			
+				<h3 id="T.FailNow">func (*T) <a href="/src/testing/testing.go?s=35699:35725#L1070">FailNow</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) FailNow()</pre>
+				<p>FailNow 将该函数标记为失败，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行；这会执行当前 goroutine 中的所有延迟调用。随后继续执行下一个测试或基准测试。FailNow 必须由运行测试或基准测试函数的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 FailNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="T.Failed">func (*T) <a href="/src/testing/testing.go?s=35067:35097#L1049">Failed</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Failed() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Failed 报告该函数是否已失败。
+
+				
+			
+				<h3 id="T.Fatal">func (*T) <a href="/src/testing/testing.go?s=43894:43929#L1351">Fatal</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Fatal(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatal 等价于先调用 Log，再调用 FailNow。
+
+				
+			
+				<h3 id="T.Fatalf">func (*T) <a href="/src/testing/testing.go?s=44061:44112#L1358">Fatalf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Fatalf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Fatalf 等价于先调用 Logf，再调用 FailNow。
+
+				
+			
+				<h3 id="T.Helper">func (*T) <a href="/src/testing/testing.go?s=45499:45524#L1405">Helper</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Helper()</pre>
+				<p>Helper 将调用它的函数标记为测试辅助函数。打印文件和行号信息时，会跳过该函数。多个 goroutine 可以同时调用 Helper。
+
+				
+			
+				<h3 id="T.Log">func (*T) <a href="/src/testing/testing.go?s=42839:42872#L1320">Log</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Log(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Log 使用默认格式格式化实参，类似于 <a href="/pkg/fmt/#Println">fmt.Println</a>，并将文本记录到错误日志。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Log 属于错误。
+
+				
+			
+				<h3 id="T.Logf">func (*T) <a href="/src/testing/testing.go?s=43377:43426#L1331">Logf</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Logf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Logf 按给定格式格式化实参，类似于 <a href="/pkg/fmt/#Printf">fmt.Printf</a>，并将文本记录到错误日志。如果末尾没有换行符，会自动添加。对于测试，仅在测试失败或设置了 -test.v 标志时才打印文本。对于基准测试，始终打印文本，以避免性能取决于 -test.v 的设置。测试或基准测试返回后再调用 Logf 属于错误。
+
+				
+			
+				<h3 id="T.Name">func (*T) <a href="/src/testing/testing.go?s=34490:34520#L1021">Name</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回正在运行的测试、子测试或基准测试的名称。
+<p>名称包含顶层测试名和所有嵌套子测试名。如果两个同级子测试名称相同，Name 会添加后缀，以保证返回名称唯一。
+
+				
+			
+				<h3 id="T.Output">func (*T) <a href="/src/testing/testing.go?s=39184:39219#L1188">Output</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Output() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a></pre>
+				<p>Output 返回一个 Writer，写入与 TB.Log 相同的测试输出流。输出缩进与 TB.Log 的日志行相同，但 Output 不添加源码位置或换行符。输出在内部按行缓冲；调用 TB.Log 或测试结束时，会隐式刷新缓冲区并追加换行符。测试函数及其所有父测试返回后，不得再调用 Output 或其 Write 方法。
+
+				
+			
+				<h3 id="T.Parallel">func (*T) <a href="/src/testing/testing.go?s=59706:59728#L1902">Parallel</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#T">T</a>) Parallel()</pre>
+				<p>Parallel 表明该测试应与其他并行测试一起运行，并且只与并行测试并行；它会暂停，直到所有非并行测试完成。
+<p>由于 -test.count 或 -test.cpu 而多次运行同一个测试时，该测试的多个实例永远不会彼此并行运行。
+
+				
+			
+				<h3 id="T.Run">func (*T) <a href="/src/testing/testing.go?s=68791:68838#L2197">Run</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (t *<a href="#T">T</a>) Run(name <a href="/pkg/builtin/#string">string</a>, f func(t *<a href="#T">T</a>)) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Run 将 f 作为 t 的子测试运行，名称为 name。它在独立的 goroutine 中运行 f，并阻塞到 f 返回，或调用 t.Parallel 将自身变为并行测试。Run 报告 f 是否成功，或至少在调用 t.Parallel 之前没有失败。
+<p>多个 goroutine 可以同时调用 Run，但所有这些调用都必须在 t 对应的外围测试函数返回前返回。
+
+				
+			
+				<h3 id="T.Setenv">func (*T) <a href="/src/testing/testing.go?s=62952:62989#L1995">Setenv</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (t *<a href="#T">T</a>) Setenv(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Setenv 调用 os.Setenv(key, value)，并通过 Cleanup 在测试结束后将环境变量恢复为原值。
+<p>由于 Setenv 影响整个进程，因此不能在并行测试中使用，也不能在具有并行祖先测试的测试中使用。
+
+				
+			
+				<h3 id="T.Skip">func (*T) <a href="/src/testing/testing.go?s=44249:44283#L1365">Skip</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Skip(args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skip 等价于先调用 Log，再调用 SkipNow。
+
+				
+			
+				<h3 id="T.SkipNow">func (*T) <a href="/src/testing/testing.go?s=45014:45040#L1386">SkipNow</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) SkipNow()</pre>
+				<p>SkipNow 将测试标记为已跳过，并调用 <a href="/pkg/runtime/#Goexit">runtime.Goexit</a> 停止其执行。如果测试先失败（参见 Error、Errorf、Fail），随后被跳过，仍然视为失败。随后继续执行下一个测试或基准测试，另见 FailNow。SkipNow 必须由运行测试的 goroutine 调用，不能由测试期间创建的其他 goroutine 调用。调用 SkipNow 不会停止那些其他 goroutine。
+
+				
+			
+				<h3 id="T.Skipf">func (*T) <a href="/src/testing/testing.go?s=44414:44464#L1372">Skipf</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Skipf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Skipf 等价于先调用 Logf，再调用 SkipNow。
+
+				
+			
+				<h3 id="T.Skipped">func (*T) <a href="/src/testing/testing.go?s=45204:45235#L1396">Skipped</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) Skipped() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Skipped 报告测试是否被跳过。
+
+				
+			
+				<h3 id="T.TempDir">func (*T) <a href="/src/testing/testing.go?s=50226:50259#L1565">TempDir</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (c *<a href="#T">T</a>) TempDir() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>TempDir 返回供测试使用的临时目录。测试及其所有子测试完成后，会自动删除该目录。每次调用 TempDir 都返回一个独立目录；如果目录创建失败，会通过调用 Fatal 终止测试。如果设置了 GOTMPDIR 环境变量，临时目录会创建在它指定的目录之下。
+
+				
+			
+		
+			
+			<h2 id="TB">type <a href="/src/testing/testing.go?s=32862:33514#L963">TB</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>TB 是 <a href="#T">T</a>、<a href="#B">B</a> 和 <a href="#F">F</a> 共用的接口。
+
+			<pre>type TB interface {
+    ArtifactDir() <a href="/pkg/builtin/#string">string</a>
+    Attr(key, value <a href="/pkg/builtin/#string">string</a>)
+    Cleanup(func())
+    Error(args ...<a href="/pkg/builtin/#any">any</a>)
+    Errorf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)
+    Fail()
+    FailNow()
+    Failed() <a href="/pkg/builtin/#bool">bool</a>
+    Fatal(args ...<a href="/pkg/builtin/#any">any</a>)
+    Fatalf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)
+    Helper()
+    Log(args ...<a href="/pkg/builtin/#any">any</a>)
+    Logf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)
+    Name() <a href="/pkg/builtin/#string">string</a>
+    Setenv(key, value <a href="/pkg/builtin/#string">string</a>)
+    Chdir(dir <a href="/pkg/builtin/#string">string</a>)
+    Skip(args ...<a href="/pkg/builtin/#any">any</a>)
+    SkipNow()
+    Skipf(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>)
+    Skipped() <a href="/pkg/builtin/#bool">bool</a>
+    TempDir() <a href="/pkg/builtin/#string">string</a>
+    Context() <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>
+    Output() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="cryptotest/">cryptotest</a>
+					</td>
+				
+					<td class="pkg-synopsis">cryptotest 包提供确定性随机源测试功能。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="fstest/">fstest</a>
+					</td>
+				
+					<td class="pkg-synopsis">fstest 包提供测试文件系统实现及其使用方的支持。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="iotest/">iotest</a>
+					</td>
+				
+					<td class="pkg-synopsis">iotest 包实现主要用于测试的 Reader 和 Writer。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="quick/">quick</a>
+					</td>
+				
+					<td class="pkg-synopsis">quick 包实现用于辅助黑盒测试的工具函数。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="slogtest/">slogtest</a>
+					</td>
+				
+					<td class="pkg-synopsis">slogtest 包提供测试 log/slog.Handler 实现的支持。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="synctest/">synctest</a>
+					</td>
+				
+					<td class="pkg-synopsis">synctest 包为测试并发代码提供支持。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

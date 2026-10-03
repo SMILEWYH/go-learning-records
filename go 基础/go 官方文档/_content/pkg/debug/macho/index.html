@@ -1,0 +1,1611 @@
+<!--{
+  "Title": "debug/macho 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>debug/macho 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "debug/macho"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>macho 包提供对 Mach-O 目标文件的访问。<h3 id="hdr-Security">安全性</h3>
+<p>本包未针对恶意输入进行安全加固，也不属于 <a href="/security/policy">https://go.dev/security/policy</a> 的适用范围。特别是，解析目标文件时只会进行基本验证。因此，解析不可信输入时应保持谨慎，因为解析格式错误的文件可能消耗大量资源，或引发 panic。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+			
+				
+				<dd><a href="#Cpu">type Cpu</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cpu.GoString">func (i Cpu) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cpu.String">func (i Cpu) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Dylib">type Dylib</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DylibCmd">type DylibCmd</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Dysymtab">type Dysymtab</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DysymtabCmd">type DysymtabCmd</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FatArch">type FatArch</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FatArchHeader">type FatArchHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FatFile">type FatFile</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFatFile">func NewFatFile(r io.ReaderAt) (*FatFile, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenFat">func OpenFat(name string) (*FatFile, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FatFile.Close">func (ff *FatFile) Close() error</a></dd>
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFile">func NewFile(r io.ReaderAt) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(name string) (*File, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Close">func (f *File) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.DWARF">func (f *File) DWARF() (*dwarf.Data, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ImportedLibraries">func (f *File) ImportedLibraries() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ImportedSymbols">func (f *File) ImportedSymbols() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Section">func (f *File) Section(name string) *Section</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Segment">func (f *File) Segment(name string) *Segment</a></dd>
+				
+			
+				
+				<dd><a href="#FileHeader">type FileHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FormatError">type FormatError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatError.Error">func (e *FormatError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Load">type Load</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LoadBytes">type LoadBytes</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadBytes.Raw">func (b LoadBytes) Raw() []byte</a></dd>
+				
+			
+				
+				<dd><a href="#LoadCmd">type LoadCmd</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadCmd.GoString">func (i LoadCmd) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LoadCmd.String">func (i LoadCmd) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Nlist32">type Nlist32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Nlist64">type Nlist64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Regs386">type Regs386</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RegsAMD64">type RegsAMD64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reloc">type Reloc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RelocTypeARM">type RelocTypeARM</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeARM.GoString">func (r RelocTypeARM) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeARM.String">func (i RelocTypeARM) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#RelocTypeARM64">type RelocTypeARM64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeARM64.GoString">func (r RelocTypeARM64) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeARM64.String">func (i RelocTypeARM64) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#RelocTypeGeneric">type RelocTypeGeneric</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeGeneric.GoString">func (r RelocTypeGeneric) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeGeneric.String">func (i RelocTypeGeneric) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#RelocTypeX86_64">type RelocTypeX86_64</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeX86_64.GoString">func (r RelocTypeX86_64) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RelocTypeX86_64.String">func (i RelocTypeX86_64) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Rpath">type Rpath</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RpathCmd">type RpathCmd</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Section">type Section</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Section.Data">func (s *Section) Data() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Section.Open">func (s *Section) Open() io.ReadSeeker</a></dd>
+				
+			
+				
+				<dd><a href="#Section32">type Section32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Section64">type Section64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SectionHeader">type SectionHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Segment">type Segment</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Segment.Data">func (s *Segment) Data() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Segment.Open">func (s *Segment) Open() io.ReadSeeker</a></dd>
+				
+			
+				
+				<dd><a href="#Segment32">type Segment32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Segment64">type Segment64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SegmentHeader">type SegmentHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Symbol">type Symbol</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Symtab">type Symtab</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SymtabCmd">type SymtabCmd</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Thread">type Thread</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Type.GoString">func (t Type) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Type.String">func (t Type) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/debug/macho/fat.go">fat.go</a>
+			
+				<a href="/src/debug/macho/file.go">file.go</a>
+			
+				<a href="/src/debug/macho/macho.go">macho.go</a>
+			
+				<a href="/src/debug/macho/reloctype.go">reloctype.go</a>
+			
+				<a href="/src/debug/macho/reloctype_string.go">reloctype_string.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span id="Magic32">Magic32</span>  <a href="/pkg/builtin/#uint32">uint32</a> = 0xfeedface
+    <span id="Magic64">Magic64</span>  <a href="/pkg/builtin/#uint32">uint32</a> = 0xfeedfacf
+    <span id="MagicFat">MagicFat</span> <a href="/pkg/builtin/#uint32">uint32</a> = 0xcafebabe
+)</pre>
+			
+				
+				<pre>const (
+    <span id="FlagNoUndefs">FlagNoUndefs</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x1
+    <span id="FlagIncrLink">FlagIncrLink</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x2
+    <span id="FlagDyldLink">FlagDyldLink</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x4
+    <span id="FlagBindAtLoad">FlagBindAtLoad</span>            <a href="/pkg/builtin/#uint32">uint32</a> = 0x8
+    <span id="FlagPrebound">FlagPrebound</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x10
+    <span id="FlagSplitSegs">FlagSplitSegs</span>             <a href="/pkg/builtin/#uint32">uint32</a> = 0x20
+    <span id="FlagLazyInit">FlagLazyInit</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x40
+    <span id="FlagTwoLevel">FlagTwoLevel</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x80
+    <span id="FlagForceFlat">FlagForceFlat</span>             <a href="/pkg/builtin/#uint32">uint32</a> = 0x100
+    <span id="FlagNoMultiDefs">FlagNoMultiDefs</span>           <a href="/pkg/builtin/#uint32">uint32</a> = 0x200
+    <span id="FlagNoFixPrebinding">FlagNoFixPrebinding</span>       <a href="/pkg/builtin/#uint32">uint32</a> = 0x400
+    <span id="FlagPrebindable">FlagPrebindable</span>           <a href="/pkg/builtin/#uint32">uint32</a> = 0x800
+    <span id="FlagAllModsBound">FlagAllModsBound</span>          <a href="/pkg/builtin/#uint32">uint32</a> = 0x1000
+    <span id="FlagSubsectionsViaSymbols">FlagSubsectionsViaSymbols</span> <a href="/pkg/builtin/#uint32">uint32</a> = 0x2000
+    <span id="FlagCanonical">FlagCanonical</span>             <a href="/pkg/builtin/#uint32">uint32</a> = 0x4000
+    <span id="FlagWeakDefines">FlagWeakDefines</span>           <a href="/pkg/builtin/#uint32">uint32</a> = 0x8000
+    <span id="FlagBindsToWeak">FlagBindsToWeak</span>           <a href="/pkg/builtin/#uint32">uint32</a> = 0x10000
+    <span id="FlagAllowStackExecution">FlagAllowStackExecution</span>   <a href="/pkg/builtin/#uint32">uint32</a> = 0x20000
+    <span id="FlagRootSafe">FlagRootSafe</span>              <a href="/pkg/builtin/#uint32">uint32</a> = 0x40000
+    <span id="FlagSetuidSafe">FlagSetuidSafe</span>            <a href="/pkg/builtin/#uint32">uint32</a> = 0x80000
+    <span id="FlagNoReexportedDylibs">FlagNoReexportedDylibs</span>    <a href="/pkg/builtin/#uint32">uint32</a> = 0x100000
+    <span id="FlagPIE">FlagPIE</span>                   <a href="/pkg/builtin/#uint32">uint32</a> = 0x200000
+    <span id="FlagDeadStrippableDylib">FlagDeadStrippableDylib</span>   <a href="/pkg/builtin/#uint32">uint32</a> = 0x400000
+    <span id="FlagHasTLVDescriptors">FlagHasTLVDescriptors</span>     <a href="/pkg/builtin/#uint32">uint32</a> = 0x800000
+    <span id="FlagNoHeapExecution">FlagNoHeapExecution</span>       <a href="/pkg/builtin/#uint32">uint32</a> = 0x1000000
+    <span id="FlagAppExtensionSafe">FlagAppExtensionSafe</span>      <a href="/pkg/builtin/#uint32">uint32</a> = 0x2000000
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>当根据魔数判断文件不是通用二进制文件、但可能是单架构二进制文件时，<a href="#NewFatFile">NewFatFile</a> 或 <a href="#OpenFat">OpenFat</a> 返回 ErrNotFat。<pre>var <span id="ErrNotFat">ErrNotFat</span> = &amp;<a href="#FormatError">FormatError</a>{0, &#34;not a fat Mach-O file&#34;, <a href="/pkg/builtin/#nil">nil</a>}</pre>
+			
+		
+		
+		
+			
+			<h2 id="Cpu">type <a href="/src/debug/macho/macho.go?s=1536:1551#L50">Cpu</a>
+				
+				
+			</h2>
+			<p>Cpu 是 Mach-O 的 CPU 类型。<pre>type Cpu <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="Cpu386">Cpu386</span>   <a href="#Cpu">Cpu</a> = 7
+    <span id="CpuAmd64">CpuAmd64</span> <a href="#Cpu">Cpu</a> = <a href="#Cpu386">Cpu386</a> | cpuArch64
+    <span id="CpuArm">CpuArm</span>   <a href="#Cpu">Cpu</a> = 12
+    <span id="CpuArm64">CpuArm64</span> <a href="#Cpu">Cpu</a> = <a href="#CpuArm">CpuArm</a> | cpuArch64
+    <span id="CpuPpc">CpuPpc</span>   <a href="#Cpu">Cpu</a> = 18
+    <span id="CpuPpc64">CpuPpc64</span> <a href="#Cpu">Cpu</a> = <a href="#CpuPpc">CpuPpc</a> | cpuArch64
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Cpu.GoString">func (Cpu) <a href="/src/debug/macho/macho.go?s=2055:2085#L73">GoString</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#Cpu">Cpu</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Cpu.String">func (Cpu) <a href="/src/debug/macho/macho.go?s=1972:2000#L72">String</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#Cpu">Cpu</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Dylib">type <a href="/src/debug/macho/file.go?s=3492:3616#L132">Dylib</a>
+				
+				
+			</h2>
+			<p>Dylib 表示一条 Mach-O 动态库加载命令。<pre>type Dylib struct {
+    <a href="#LoadBytes">LoadBytes</a>
+<span id="Dylib.Name"></span>    Name           <a href="/pkg/builtin/#string">string</a>
+<span id="Dylib.Time"></span>    Time           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Dylib.CurrentVersion"></span>    CurrentVersion <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Dylib.CompatVersion"></span>    CompatVersion  <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DylibCmd">type <a href="/src/debug/macho/macho.go?s=4429:4594#L168">DylibCmd</a>
+				
+				
+			</h2>
+			<p>DylibCmd 是一条 Mach-O 动态库加载命令。<pre>type DylibCmd struct {
+<span id="DylibCmd.Cmd"></span>    Cmd            <a href="#LoadCmd">LoadCmd</a>
+<span id="DylibCmd.Len"></span>    Len            <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DylibCmd.Name"></span>    Name           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DylibCmd.Time"></span>    Time           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DylibCmd.CurrentVersion"></span>    CurrentVersion <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DylibCmd.CompatVersion"></span>    CompatVersion  <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Dysymtab">type <a href="/src/debug/macho/file.go?s=3797:3896#L148">Dysymtab</a>
+				
+				
+			</h2>
+			<p>Dysymtab 表示一条 Mach-O 动态符号表命令。<pre>type Dysymtab struct {
+    <a href="#LoadBytes">LoadBytes</a>
+    <a href="#DysymtabCmd">DysymtabCmd</a>
+<span id="Dysymtab.IndirectSyms"></span>    IndirectSyms []<a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// Symtab.Syms 中的索引</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DysymtabCmd">type <a href="/src/debug/macho/macho.go?s=3865:4369#L144">DysymtabCmd</a>
+				
+				
+			</h2>
+			<p>DysymtabCmd 是一条 Mach-O 动态符号表命令。<pre>type DysymtabCmd struct {
+<span id="DysymtabCmd.Cmd"></span>    Cmd            <a href="#LoadCmd">LoadCmd</a>
+<span id="DysymtabCmd.Len"></span>    Len            <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Ilocalsym"></span>    Ilocalsym      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nlocalsym"></span>    Nlocalsym      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Iextdefsym"></span>    Iextdefsym     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nextdefsym"></span>    Nextdefsym     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Iundefsym"></span>    Iundefsym      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nundefsym"></span>    Nundefsym      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Tocoffset"></span>    Tocoffset      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Ntoc"></span>    Ntoc           <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Modtaboff"></span>    Modtaboff      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nmodtab"></span>    Nmodtab        <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Extrefsymoff"></span>    Extrefsymoff   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nextrefsyms"></span>    Nextrefsyms    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Indirectsymoff"></span>    Indirectsymoff <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nindirectsyms"></span>    Nindirectsyms  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Extreloff"></span>    Extreloff      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nextrel"></span>    Nextrel        <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Locreloff"></span>    Locreloff      <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="DysymtabCmd.Nlocrel"></span>    Nlocrel        <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FatArch">type <a href="/src/debug/macho/fat.go?s=666:711#L24">FatArch</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>FatArch 是 FatFile 内的一个 Mach-O File。<pre>type FatArch struct {
+    <a href="#FatArchHeader">FatArchHeader</a>
+    *<a href="#File">File</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FatArchHeader">type <a href="/src/debug/macho/fat.go?s=482:583#L13">FatArchHeader</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>FatArchHeader 表示特定映像架构的通用二进制文件头。<pre>type FatArchHeader struct {
+<span id="FatArchHeader.Cpu"></span>    Cpu    <a href="#Cpu">Cpu</a>
+<span id="FatArchHeader.SubCpu"></span>    SubCpu <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FatArchHeader.Offset"></span>    Offset <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FatArchHeader.Size"></span>    Size   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FatArchHeader.Align"></span>    Align  <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FatFile">type <a href="/src/debug/macho/fat.go?s=328:402#L6">FatFile</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>FatFile 是包含至少一种架构的 Mach-O 通用二进制文件。<pre>type FatFile struct {
+<span id="FatFile.Magic"></span>    Magic  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FatFile.Arches"></span>    Arches []<a href="#FatArch">FatArch</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFatFile">func <a href="/src/debug/macho/fat.go?s=1101:1149#L36">NewFatFile</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func NewFatFile(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>) (*<a href="#FatFile">FatFile</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewFatFile 创建一个新的 <a href="#FatFile">FatFile</a>，用于访问通用二进制文件中的所有 Mach-O 映像。Mach-O 二进制文件应从 ReaderAt 的位置 0 开始。<h3 id="OpenFat">func <a href="/src/debug/macho/fat.go?s=3860:3903#L122">OpenFat</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func OpenFat(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#FatFile">FatFile</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>OpenFat 使用 <a href="/pkg/os/#Open">os.Open</a> 打开指定名称的文件，并准备将其作为 Mach-O 通用二进制文件使用。<h3 id="FatFile.Close">func (*FatFile) <a href="/src/debug/macho/fat.go?s=4079:4111#L136">Close</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (ff *<a href="#FatFile">FatFile</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="File">type <a href="/src/debug/macho/file.go?s=810:968#L23">File</a>
+				
+				
+			</h2>
+			<p>File 表示一个已打开的 Mach-O 文件。<pre>type File struct {
+    <a href="#FileHeader">FileHeader</a>
+<span id="File.ByteOrder"></span>    ByteOrder <a href="/pkg/encoding/binary/">binary</a>.<a href="/pkg/encoding/binary/#ByteOrder">ByteOrder</a>
+<span id="File.Loads"></span>    Loads     []<a href="#Load">Load</a>
+<span id="File.Sections"></span>    Sections  []*<a href="#Section">Section</a>
+
+<span id="File.Symtab"></span>    Symtab   *<a href="#Symtab">Symtab</a>
+<span id="File.Dysymtab"></span>    Dysymtab *<a href="#Dysymtab">Dysymtab</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFile">func <a href="/src/debug/macho/file.go?s=5236:5278#L219">NewFile</a>
+					
+					
+				</h3>
+				<pre>func NewFile(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewFile 创建一个新的 <a href="#File">File</a>，用于访问底层读取器中的 Mach-O 二进制文件。Mach-O 二进制文件应从 ReaderAt 的位置 0 开始。<h3 id="Open">func <a href="/src/debug/macho/file.go?s=4613:4650#L191">Open</a>
+					
+					
+				</h3>
+				<pre>func Open(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 使用 <a href="/pkg/os/#Open">os.Open</a> 打开指定名称的文件，并准备将其作为 Mach-O 二进制文件使用。<h3 id="File.Close">func (*File) <a href="/src/debug/macho/file.go?s=4948:4976#L208">Close</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#File">File</a>。如果该 <a href="#File">File</a> 是直接使用 <a href="#NewFile">NewFile</a> 创建的，而非通过 <a href="#Open">Open</a> 打开，则 Close 不起作用。<h3 id="File.DWARF">func (*File) <a href="/src/debug/macho/file.go?s=15591:15634#L601">DWARF</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) DWARF() (*<a href="/pkg/debug/dwarf/">dwarf</a>.<a href="/pkg/debug/dwarf/#Data">Data</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DWARF 返回 Mach-O 文件的 DWARF 调试信息。<h3 id="File.ImportedLibraries">func (*File) <a href="/src/debug/macho/file.go?s=18883:18935#L742">ImportedLibraries</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ImportedLibraries() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportedLibraries 返回二进制文件 f 引用的、预期在动态链接时与该二进制文件链接的所有库的路径。<h3 id="File.ImportedSymbols">func (*File) <a href="/src/debug/macho/file.go?s=18152:18202#L711">ImportedSymbols</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ImportedSymbols() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportedSymbols 返回二进制文件 f 引用的、预期在动态加载时由其他库提供的所有符号的名称。<h3 id="File.Section">func (*File) <a href="/src/debug/macho/file.go?s=15390:15434#L591">Section</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Section(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Section">Section</a></pre>
+				<p>Section 返回具有指定名称的第一个节；如果不存在这样的节，则返回 nil。<h3 id="File.Segment">func (*File) <a href="/src/debug/macho/file.go?s=15134:15178#L580">Segment</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Segment(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Segment">Segment</a></pre>
+				<p>Segment 返回具有指定名称的第一个 Segment；如果不存在这样的段，则返回 nil。<h2 id="FileHeader">type <a href="/src/debug/macho/macho.go?s=690:816#L8">FileHeader</a>
+				
+				
+			</h2>
+			<p>FileHeader 表示一个 Mach-O 文件头。<pre>type FileHeader struct {
+<span id="FileHeader.Magic"></span>    Magic  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.Cpu"></span>    Cpu    <a href="#Cpu">Cpu</a>
+<span id="FileHeader.SubCpu"></span>    SubCpu <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.Type"></span>    Type   <a href="#Type">Type</a>
+<span id="FileHeader.Ncmd"></span>    Ncmd   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.Cmdsz"></span>    Cmdsz  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="FileHeader.Flags"></span>    Flags  <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FormatError">type <a href="/src/debug/macho/file.go?s=4283:4342#L175">FormatError</a>
+				
+				
+			</h2>
+			<p>当数据不符合目标文件的正确格式时，某些操作会返回 FormatError。<pre>type FormatError struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FormatError.Error">func (*FormatError) <a href="/src/debug/macho/file.go?s=4344:4380#L181">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#FormatError">FormatError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Load">type <a href="/src/debug/macho/file.go?s=1016:1053#L36">Load</a>
+				
+				
+			</h2>
+			<p>Load 表示任意 Mach-O 加载命令。<pre>type Load interface {
+    Raw() []<a href="/pkg/builtin/#byte">byte</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LoadBytes">type <a href="/src/debug/macho/file.go?s=1123:1144#L41">LoadBytes</a>
+				
+				
+			</h2>
+			<p>LoadBytes 是 Mach-O 加载命令尚未解释的原始字节。<pre>type LoadBytes []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LoadBytes.Raw">func (LoadBytes) <a href="/src/debug/macho/file.go?s=1146:1177#L43">Raw</a>
+					
+					
+				</h3>
+				<pre>func (b <a href="#LoadBytes">LoadBytes</a>) Raw() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="LoadCmd">type <a href="/src/debug/macho/macho.go?s=2177:2196#L76">LoadCmd</a>
+				
+				
+			</h2>
+			<p>LoadCmd 是一条 Mach-O 加载命令。<pre>type LoadCmd <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="LoadCmdSegment">LoadCmdSegment</span>    <a href="#LoadCmd">LoadCmd</a> = 0x1
+    <span id="LoadCmdSymtab">LoadCmdSymtab</span>     <a href="#LoadCmd">LoadCmd</a> = 0x2
+    <span id="LoadCmdThread">LoadCmdThread</span>     <a href="#LoadCmd">LoadCmd</a> = 0x4
+    <span id="LoadCmdUnixThread">LoadCmdUnixThread</span> <a href="#LoadCmd">LoadCmd</a> = 0x5 <span class="comment">// 线程和栈</span>
+    <span id="LoadCmdDysymtab">LoadCmdDysymtab</span>   <a href="#LoadCmd">LoadCmd</a> = 0xb
+    <span id="LoadCmdDylib">LoadCmdDylib</span>      <a href="#LoadCmd">LoadCmd</a> = 0xc <span class="comment">// 加载动态库命令</span>
+    <span id="LoadCmdDylinker">LoadCmdDylinker</span>   <a href="#LoadCmd">LoadCmd</a> = 0xf <span class="comment">// 动态链接器标识命令（不是加载动态链接器命令）</span>
+    <span id="LoadCmdSegment64">LoadCmdSegment64</span>  <a href="#LoadCmd">LoadCmd</a> = 0x19
+    <span id="LoadCmdRpath">LoadCmdRpath</span>      <a href="#LoadCmd">LoadCmd</a> = 0x8000001c
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LoadCmd.GoString">func (LoadCmd) <a href="/src/debug/macho/macho.go?s=2991:3025#L100">GoString</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#LoadCmd">LoadCmd</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="LoadCmd.String">func (LoadCmd) <a href="/src/debug/macho/macho.go?s=2904:2936#L99">String</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#LoadCmd">LoadCmd</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Nlist32">type <a href="/src/debug/macho/macho.go?s=6562:6653#L254">Nlist32</a>
+				
+				
+			</h2>
+			<p>Nlist32 是 Mach-O 的 32 位符号表条目。<pre>type Nlist32 struct {
+<span id="Nlist32.Name"></span>    Name  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Nlist32.Type"></span>    Type  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Nlist32.Sect"></span>    Sect  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Nlist32.Desc"></span>    Desc  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="Nlist32.Value"></span>    Value <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Nlist64">type <a href="/src/debug/macho/macho.go?s=6708:6799#L263">Nlist64</a>
+				
+				
+			</h2>
+			<p>Nlist64 是 Mach-O 的 64 位符号表条目。<pre>type Nlist64 struct {
+<span id="Nlist64.Name"></span>    Name  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Nlist64.Type"></span>    Type  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Nlist64.Sect"></span>    Sect  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Nlist64.Desc"></span>    Desc  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="Nlist64.Value"></span>    Value <a href="/pkg/builtin/#uint64">uint64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Regs386">type <a href="/src/debug/macho/macho.go?s=6850:7097#L272">Regs386</a>
+				
+				
+			</h2>
+			<p>Regs386 是 Mach-O 的 386 寄存器结构体。<pre>type Regs386 struct {
+<span id="Regs386.AX"></span>    AX    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.BX"></span>    BX    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.CX"></span>    CX    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.DX"></span>    DX    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.DI"></span>    DI    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.SI"></span>    SI    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.BP"></span>    BP    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.SP"></span>    SP    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.SS"></span>    SS    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.FLAGS"></span>    FLAGS <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.IP"></span>    IP    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.CS"></span>    CS    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.DS"></span>    DS    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.ES"></span>    ES    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.FS"></span>    FS    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Regs386.GS"></span>    GS    <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RegsAMD64">type <a href="/src/debug/macho/macho.go?s=7152:7471#L292">RegsAMD64</a>
+				
+				
+			</h2>
+			<p>RegsAMD64 是 Mach-O 的 AMD64 寄存器结构体。<pre>type RegsAMD64 struct {
+<span id="RegsAMD64.AX"></span>    AX    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.BX"></span>    BX    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.CX"></span>    CX    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.DX"></span>    DX    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.DI"></span>    DI    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.SI"></span>    SI    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.BP"></span>    BP    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.SP"></span>    SP    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R8"></span>    R8    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R9"></span>    R9    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R10"></span>    R10   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R11"></span>    R11   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R12"></span>    R12   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R13"></span>    R13   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R14"></span>    R14   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.R15"></span>    R15   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.IP"></span>    IP    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.FLAGS"></span>    FLAGS <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.CS"></span>    CS    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.FS"></span>    FS    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="RegsAMD64.GS"></span>    GS    <a href="/pkg/builtin/#uint64">uint64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reloc">type <a href="/src/debug/macho/file.go?s=2378:2800#L96">Reloc</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>Reloc 表示一个 Mach-O 重定位条目。<pre>type Reloc struct {
+<span id="Reloc.Addr"></span>    Addr  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Reloc.Value"></span>    Value <a href="/pkg/builtin/#uint32">uint32</a>
+    <span class="comment">// 当 Scattered == false &amp;&amp; Extern == true 时，Value 是符号编号。</span>
+    <span class="comment">// 当 Scattered == false &amp;&amp; Extern == false 时，Value 是节编号。</span>
+    <span class="comment">// 当 Scattered == true 时，Value 是此重定位引用的值。</span>
+<span id="Reloc.Type"></span>    Type      <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Reloc.Len"></span>    Len       <a href="/pkg/builtin/#uint8">uint8</a> <span class="comment">// 0=字节，1=字，2=长字，3=四字</span>
+<span id="Reloc.Pcrel"></span>    Pcrel     <a href="/pkg/builtin/#bool">bool</a>
+<span id="Reloc.Extern"></span>    Extern    <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// 仅当 Scattered == false 时有效</span>
+<span id="Reloc.Scattered"></span>    Scattered <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RelocTypeARM">type <a href="/src/debug/macho/reloctype.go?s=1280:1301#L29">RelocTypeARM</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			
+			<pre>type RelocTypeARM <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="ARM_RELOC_VANILLA">ARM_RELOC_VANILLA</span>        <a href="#RelocTypeARM">RelocTypeARM</a> = 0
+    <span id="ARM_RELOC_PAIR">ARM_RELOC_PAIR</span>           <a href="#RelocTypeARM">RelocTypeARM</a> = 1
+    <span id="ARM_RELOC_SECTDIFF">ARM_RELOC_SECTDIFF</span>       <a href="#RelocTypeARM">RelocTypeARM</a> = 2
+    <span id="ARM_RELOC_LOCAL_SECTDIFF">ARM_RELOC_LOCAL_SECTDIFF</span> <a href="#RelocTypeARM">RelocTypeARM</a> = 3
+    <span id="ARM_RELOC_PB_LA_PTR">ARM_RELOC_PB_LA_PTR</span>      <a href="#RelocTypeARM">RelocTypeARM</a> = 4
+    <span id="ARM_RELOC_BR24">ARM_RELOC_BR24</span>           <a href="#RelocTypeARM">RelocTypeARM</a> = 5
+    <span id="ARM_THUMB_RELOC_BR22">ARM_THUMB_RELOC_BR22</span>     <a href="#RelocTypeARM">RelocTypeARM</a> = 6
+    <span id="ARM_THUMB_32BIT_BRANCH">ARM_THUMB_32BIT_BRANCH</span>   <a href="#RelocTypeARM">RelocTypeARM</a> = 7
+    <span id="ARM_RELOC_HALF">ARM_RELOC_HALF</span>           <a href="#RelocTypeARM">RelocTypeARM</a> = 8
+    <span id="ARM_RELOC_HALF_SECTDIFF">ARM_RELOC_HALF_SECTDIFF</span>  <a href="#RelocTypeARM">RelocTypeARM</a> = 9
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RelocTypeARM.GoString">func (RelocTypeARM) <a href="/src/debug/macho/reloctype.go?s=1744:1783#L44">GoString</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (r <a href="#RelocTypeARM">RelocTypeARM</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="RelocTypeARM.String">func (RelocTypeARM) <a href="/src/debug/macho/reloctype_string.go?s=2935:2972#L67">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (i <a href="#RelocTypeARM">RelocTypeARM</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RelocTypeARM64">type <a href="/src/debug/macho/reloctype.go?s=1818:1841#L46">RelocTypeARM64</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			
+			<pre>type RelocTypeARM64 <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="ARM64_RELOC_UNSIGNED">ARM64_RELOC_UNSIGNED</span>            <a href="#RelocTypeARM64">RelocTypeARM64</a> = 0
+    <span id="ARM64_RELOC_SUBTRACTOR">ARM64_RELOC_SUBTRACTOR</span>          <a href="#RelocTypeARM64">RelocTypeARM64</a> = 1
+    <span id="ARM64_RELOC_BRANCH26">ARM64_RELOC_BRANCH26</span>            <a href="#RelocTypeARM64">RelocTypeARM64</a> = 2
+    <span id="ARM64_RELOC_PAGE21">ARM64_RELOC_PAGE21</span>              <a href="#RelocTypeARM64">RelocTypeARM64</a> = 3
+    <span id="ARM64_RELOC_PAGEOFF12">ARM64_RELOC_PAGEOFF12</span>           <a href="#RelocTypeARM64">RelocTypeARM64</a> = 4
+    <span id="ARM64_RELOC_GOT_LOAD_PAGE21">ARM64_RELOC_GOT_LOAD_PAGE21</span>     <a href="#RelocTypeARM64">RelocTypeARM64</a> = 5
+    <span id="ARM64_RELOC_GOT_LOAD_PAGEOFF12">ARM64_RELOC_GOT_LOAD_PAGEOFF12</span>  <a href="#RelocTypeARM64">RelocTypeARM64</a> = 6
+    <span id="ARM64_RELOC_POINTER_TO_GOT">ARM64_RELOC_POINTER_TO_GOT</span>      <a href="#RelocTypeARM64">RelocTypeARM64</a> = 7
+    <span id="ARM64_RELOC_TLVP_LOAD_PAGE21">ARM64_RELOC_TLVP_LOAD_PAGE21</span>    <a href="#RelocTypeARM64">RelocTypeARM64</a> = 8
+    <span id="ARM64_RELOC_TLVP_LOAD_PAGEOFF12">ARM64_RELOC_TLVP_LOAD_PAGEOFF12</span> <a href="#RelocTypeARM64">RelocTypeARM64</a> = 9
+    <span id="ARM64_RELOC_ADDEND">ARM64_RELOC_ADDEND</span>              <a href="#RelocTypeARM64">RelocTypeARM64</a> = 10
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RelocTypeARM64.GoString">func (RelocTypeARM64) <a href="/src/debug/macho/reloctype.go?s=2427:2468#L62">GoString</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (r <a href="#RelocTypeARM64">RelocTypeARM64</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="RelocTypeARM64.String">func (RelocTypeARM64) <a href="/src/debug/macho/reloctype_string.go?s=4147:4186#L95">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (i <a href="#RelocTypeARM64">RelocTypeARM64</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RelocTypeGeneric">type <a href="/src/debug/macho/reloctype.go?s=294:319#L1">RelocTypeGeneric</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			
+			<pre>type RelocTypeGeneric <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="GENERIC_RELOC_VANILLA">GENERIC_RELOC_VANILLA</span>        <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 0
+    <span id="GENERIC_RELOC_PAIR">GENERIC_RELOC_PAIR</span>           <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 1
+    <span id="GENERIC_RELOC_SECTDIFF">GENERIC_RELOC_SECTDIFF</span>       <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 2
+    <span id="GENERIC_RELOC_PB_LA_PTR">GENERIC_RELOC_PB_LA_PTR</span>      <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 3
+    <span id="GENERIC_RELOC_LOCAL_SECTDIFF">GENERIC_RELOC_LOCAL_SECTDIFF</span> <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 4
+    <span id="GENERIC_RELOC_TLV">GENERIC_RELOC_TLV</span>            <a href="#RelocTypeGeneric">RelocTypeGeneric</a> = 5
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RelocTypeGeneric.GoString">func (RelocTypeGeneric) <a href="/src/debug/macho/reloctype.go?s=638:681#L10">GoString</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (r <a href="#RelocTypeGeneric">RelocTypeGeneric</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="RelocTypeGeneric.String">func (RelocTypeGeneric) <a href="/src/debug/macho/reloctype_string.go?s=787:828#L13">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (i <a href="#RelocTypeGeneric">RelocTypeGeneric</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RelocTypeX86_64">type <a href="/src/debug/macho/reloctype.go?s=716:740#L12">RelocTypeX86_64</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			
+			<pre>type RelocTypeX86_64 <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="X86_64_RELOC_UNSIGNED">X86_64_RELOC_UNSIGNED</span>   <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 0
+    <span id="X86_64_RELOC_SIGNED">X86_64_RELOC_SIGNED</span>     <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 1
+    <span id="X86_64_RELOC_BRANCH">X86_64_RELOC_BRANCH</span>     <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 2
+    <span id="X86_64_RELOC_GOT_LOAD">X86_64_RELOC_GOT_LOAD</span>   <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 3
+    <span id="X86_64_RELOC_GOT">X86_64_RELOC_GOT</span>        <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 4
+    <span id="X86_64_RELOC_SUBTRACTOR">X86_64_RELOC_SUBTRACTOR</span> <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 5
+    <span id="X86_64_RELOC_SIGNED_1">X86_64_RELOC_SIGNED_1</span>   <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 6
+    <span id="X86_64_RELOC_SIGNED_2">X86_64_RELOC_SIGNED_2</span>   <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 7
+    <span id="X86_64_RELOC_SIGNED_4">X86_64_RELOC_SIGNED_4</span>   <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 8
+    <span id="X86_64_RELOC_TLV">X86_64_RELOC_TLV</span>        <a href="#RelocTypeX86_64">RelocTypeX86_64</a> = 9
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RelocTypeX86_64.GoString">func (RelocTypeX86_64) <a href="/src/debug/macho/reloctype.go?s=1203:1245#L27">GoString</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (r <a href="#RelocTypeX86_64">RelocTypeX86_64</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="RelocTypeX86_64.String">func (RelocTypeX86_64) <a href="/src/debug/macho/reloctype_string.go?s=1880:1920#L40">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (i <a href="#RelocTypeX86_64">RelocTypeX86_64</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Rpath">type <a href="/src/debug/macho/file.go?s=3944:3989#L155">Rpath</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>Rpath 表示一条 Mach-O rpath 命令。<pre>type Rpath struct {
+    <a href="#LoadBytes">LoadBytes</a>
+<span id="Rpath.Path"></span>    Path <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RpathCmd">type <a href="/src/debug/macho/macho.go?s=4639:4702#L178">RpathCmd</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>RpathCmd 是一条 Mach-O rpath 命令。<pre>type RpathCmd struct {
+<span id="RpathCmd.Cmd"></span>    Cmd  <a href="#LoadCmd">LoadCmd</a>
+<span id="RpathCmd.Len"></span>    Len  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="RpathCmd.Path"></span>    Path <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Section">type <a href="/src/debug/macho/file.go?s=2802:3127#L109">Section</a>
+				
+				
+			</h2>
+			
+			<pre>type Section struct {
+    <a href="#SectionHeader">SectionHeader</a>
+<span id="Section.Relocs"></span>    Relocs []<a href="#Reloc">Reloc</a> <span class="comment">// Go 1.10</span>
+
+    <span class="comment">// 嵌入 ReaderAt 以提供 ReadAt 方法。</span>
+    <span class="comment">// 不直接嵌入 SectionReader，</span>
+    <span class="comment">// 以避免引入 Read 和 Seek 方法。</span>
+    <span class="comment">// 如果调用方需要 Read 和 Seek，必须使用</span>
+    <span class="comment">// Open()，以避免与其他调用方</span>
+    <span class="comment">// 争用定位偏移量。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Section.Data">func (*Section) <a href="/src/debug/macho/file.go?s=3191:3231#L124">Data</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Section">Section</a>) Data() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Data 读取并返回 Mach-O 节的内容。<h3 id="Section.Open">func (*Section) <a href="/src/debug/macho/file.go?s=3342:3380#L129">Open</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Section">Section</a>) Open() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadSeeker">ReadSeeker</a></pre>
+				<p>Open 返回一个新的 ReadSeeker，用于读取 Mach-O 节。<h2 id="Section32">type <a href="/src/debug/macho/macho.go?s=6006:6222#L223">Section32</a>
+				
+				
+			</h2>
+			<p>Section32 是一个 32 位 Mach-O 节头。<pre>type Section32 struct {
+<span id="Section32.Name"></span>    Name     [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Section32.Seg"></span>    Seg      [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Section32.Addr"></span>    Addr     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Size"></span>    Size     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Offset"></span>    Offset   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Align"></span>    Align    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Reloff"></span>    Reloff   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Nreloc"></span>    Nreloc   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Flags"></span>    Flags    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Reserve1"></span>    Reserve1 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section32.Reserve2"></span>    Reserve2 <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Section64">type <a href="/src/debug/macho/macho.go?s=6274:6507#L238">Section64</a>
+				
+				
+			</h2>
+			<p>Section64 是一个 64 位 Mach-O 节头。<pre>type Section64 struct {
+<span id="Section64.Name"></span>    Name     [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Section64.Seg"></span>    Seg      [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Section64.Addr"></span>    Addr     <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Section64.Size"></span>    Size     <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Section64.Offset"></span>    Offset   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Align"></span>    Align    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Reloff"></span>    Reloff   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Nreloc"></span>    Nreloc   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Flags"></span>    Flags    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Reserve1"></span>    Reserve1 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Reserve2"></span>    Reserve2 <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Section64.Reserve3"></span>    Reserve3 <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SectionHeader">type <a href="/src/debug/macho/file.go?s=2169:2333#L83">SectionHeader</a>
+				
+				
+			</h2>
+			
+			<pre>type SectionHeader struct {
+<span id="SectionHeader.Name"></span>    Name   <a href="/pkg/builtin/#string">string</a>
+<span id="SectionHeader.Seg"></span>    Seg    <a href="/pkg/builtin/#string">string</a>
+<span id="SectionHeader.Addr"></span>    Addr   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SectionHeader.Size"></span>    Size   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SectionHeader.Offset"></span>    Offset <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Align"></span>    Align  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Reloff"></span>    Reloff <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Nreloc"></span>    Nreloc <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SectionHeader.Flags"></span>    Flags  <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Segment">type <a href="/src/debug/macho/file.go?s=1557:1877#L61">Segment</a>
+				
+				
+			</h2>
+			<p>Segment 表示一条 Mach-O 的 32 位或 64 位段加载命令。<pre>type Segment struct {
+    <a href="#LoadBytes">LoadBytes</a>
+    <a href="#SegmentHeader">SegmentHeader</a>
+
+    <span class="comment">// 嵌入 ReaderAt 以提供 ReadAt 方法。</span>
+    <span class="comment">// 不直接嵌入 SectionReader，</span>
+    <span class="comment">// 以避免引入 Read 和 Seek 方法。</span>
+    <span class="comment">// 如果调用方需要 Read 和 Seek，必须使用</span>
+    <span class="comment">// Open()，以避免与其他调用方</span>
+    <span class="comment">// 争用定位偏移量。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Segment.Data">func (*Segment) <a href="/src/debug/macho/file.go?s=1934:1974#L76">Data</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Segment">Segment</a>) Data() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Data 读取并返回段的内容。<h3 id="Segment.Open">func (*Segment) <a href="/src/debug/macho/file.go?s=2080:2118#L81">Open</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Segment">Segment</a>) Open() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadSeeker">ReadSeeker</a></pre>
+				<p>Open 返回一个新的 ReadSeeker，用于读取段。<h2 id="Segment32">type <a href="/src/debug/macho/macho.go?s=3143:3354#L104">Segment32</a>
+				
+				
+			</h2>
+			<p>Segment32 是一条 Mach-O 的 32 位段加载命令。<pre>type Segment32 struct {
+<span id="Segment32.Cmd"></span>    Cmd     <a href="#LoadCmd">LoadCmd</a>
+<span id="Segment32.Len"></span>    Len     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Name"></span>    Name    [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Segment32.Addr"></span>    Addr    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Memsz"></span>    Memsz   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Offset"></span>    Offset  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Filesz"></span>    Filesz  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Maxprot"></span>    Maxprot <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Prot"></span>    Prot    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Nsect"></span>    Nsect   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment32.Flag"></span>    Flag    <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Segment64">type <a href="/src/debug/macho/macho.go?s=3414:3625#L119">Segment64</a>
+				
+				
+			</h2>
+			<p>Segment64 是一条 Mach-O 的 64 位段加载命令。<pre>type Segment64 struct {
+<span id="Segment64.Cmd"></span>    Cmd     <a href="#LoadCmd">LoadCmd</a>
+<span id="Segment64.Len"></span>    Len     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment64.Name"></span>    Name    [16]<a href="/pkg/builtin/#byte">byte</a>
+<span id="Segment64.Addr"></span>    Addr    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Segment64.Memsz"></span>    Memsz   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Segment64.Offset"></span>    Offset  <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Segment64.Filesz"></span>    Filesz  <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Segment64.Maxprot"></span>    Maxprot <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment64.Prot"></span>    Prot    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment64.Nsect"></span>    Nsect   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Segment64.Flag"></span>    Flag    <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SegmentHeader">type <a href="/src/debug/macho/file.go?s=1277:1483#L46">SegmentHeader</a>
+				
+				
+			</h2>
+			<p>SegmentHeader 是 Mach-O 的 32 位或 64 位段加载命令的头部。<pre>type SegmentHeader struct {
+<span id="SegmentHeader.Cmd"></span>    Cmd     <a href="#LoadCmd">LoadCmd</a>
+<span id="SegmentHeader.Len"></span>    Len     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SegmentHeader.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a>
+<span id="SegmentHeader.Addr"></span>    Addr    <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SegmentHeader.Memsz"></span>    Memsz   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SegmentHeader.Offset"></span>    Offset  <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SegmentHeader.Filesz"></span>    Filesz  <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="SegmentHeader.Maxprot"></span>    Maxprot <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SegmentHeader.Prot"></span>    Prot    <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SegmentHeader.Nsect"></span>    Nsect   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SegmentHeader.Flag"></span>    Flag    <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Symbol">type <a href="/src/debug/macho/file.go?s=4052:4142#L161">Symbol</a>
+				
+				
+			</h2>
+			<p>Symbol 是 Mach-O 的 32 位或 64 位符号表条目。<pre>type Symbol struct {
+<span id="Symbol.Name"></span>    Name  <a href="/pkg/builtin/#string">string</a>
+<span id="Symbol.Type"></span>    Type  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Symbol.Sect"></span>    Sect  <a href="/pkg/builtin/#uint8">uint8</a>
+<span id="Symbol.Desc"></span>    Desc  <a href="/pkg/builtin/#uint16">uint16</a>
+<span id="Symbol.Value"></span>    Value <a href="/pkg/builtin/#uint64">uint64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Symtab">type <a href="/src/debug/macho/file.go?s=3672:3731#L141">Symtab</a>
+				
+				
+			</h2>
+			<p>Symtab 表示一条 Mach-O 符号表命令。<pre>type Symtab struct {
+    <a href="#LoadBytes">LoadBytes</a>
+    <a href="#SymtabCmd">SymtabCmd</a>
+<span id="Symtab.Syms"></span>    Syms []<a href="#Symbol">Symbol</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SymtabCmd">type <a href="/src/debug/macho/macho.go?s=3678:3802#L134">SymtabCmd</a>
+				
+				
+			</h2>
+			<p>SymtabCmd 是一条 Mach-O 符号表命令。<pre>type SymtabCmd struct {
+<span id="SymtabCmd.Cmd"></span>    Cmd     <a href="#LoadCmd">LoadCmd</a>
+<span id="SymtabCmd.Len"></span>    Len     <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SymtabCmd.Symoff"></span>    Symoff  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SymtabCmd.Nsyms"></span>    Nsyms   <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SymtabCmd.Stroff"></span>    Stroff  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="SymtabCmd.Strsize"></span>    Strsize <a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Thread">type <a href="/src/debug/macho/macho.go?s=4752:4829#L185">Thread</a>
+				
+				
+			</h2>
+			<p>Thread 是一条 Mach-O 线程状态命令。<pre>type Thread struct {
+<span id="Thread.Cmd"></span>    Cmd  <a href="#LoadCmd">LoadCmd</a>
+<span id="Thread.Len"></span>    Len  <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Thread.Type"></span>    Type <a href="/pkg/builtin/#uint32">uint32</a>
+<span id="Thread.Data"></span>    Data []<a href="/pkg/builtin/#uint32">uint32</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Type">type <a href="/src/debug/macho/macho.go?s=1070:1086#L30">Type</a>
+				
+				
+			</h2>
+			<p>Type 是 Mach-O 文件类型，例如目标文件、可执行文件或动态库。<pre>type Type <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="TypeObj">TypeObj</span>    <a href="#Type">Type</a> = 1
+    <span id="TypeExec">TypeExec</span>   <a href="#Type">Type</a> = 2
+    <span id="TypeDylib">TypeDylib</span>  <a href="#Type">Type</a> = 6
+    <span id="TypeBundle">TypeBundle</span> <a href="#Type">Type</a> = 8
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Type.GoString">func (Type) <a href="/src/debug/macho/macho.go?s=1420:1451#L47">GoString</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (t <a href="#Type">Type</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Type.String">func (Type) <a href="/src/debug/macho/macho.go?s=1335:1364#L46">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (t <a href="#Type">Type</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

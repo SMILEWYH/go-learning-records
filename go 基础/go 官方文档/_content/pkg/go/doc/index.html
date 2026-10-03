@@ -1,0 +1,633 @@
+<!--{
+  "Title": "go/doc 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/doc 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/doc"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>doc 包从 Go AST 中提取源代码文档。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#IsPredeclared">func IsPredeclared(s string) bool</a></dd>
+			
+				<dd><a href="#Synopsis">func Synopsis(text string) string</a></dd>
+			
+				<dd><a href="#ToHTML">func ToHTML(w io.Writer, text string, words map[string]string)</a></dd>
+			
+				<dd><a href="#ToText">func ToText(w io.Writer, text string, prefix, codePrefix string, width int)</a></dd>
+			
+			
+				
+				<dd><a href="#Example">type Example</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Examples">func Examples(testFiles ...*ast.File) []*Example</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Filter">type Filter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Note">type Note</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Package">type Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(pkg *ast.Package, importPath string, mode Mode) *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFromFiles">func NewFromFiles(fset *token.FileSet, files []*ast.File, importPath string, opts ...any) (*Package, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Filter">func (p *Package) Filter(f Filter)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.HTML">func (p *Package) HTML(text string) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Markdown">func (p *Package) Markdown(text string) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Parser">func (p *Package) Parser() *comment.Parser</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Printer">func (p *Package) Printer() *comment.Printer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Synopsis">func (p *Package) Synopsis(text string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Text">func (p *Package) Text(text string) []byte</a></dd>
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewFromFiles">NewFromFiles</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/doc/comment.go">comment.go</a>
+			
+				<a href="/src/go/doc/doc.go">doc.go</a>
+			
+				<a href="/src/go/doc/example.go">example.go</a>
+			
+				<a href="/src/go/doc/exports.go">exports.go</a>
+			
+				<a href="/src/go/doc/filter.go">filter.go</a>
+			
+				<a href="/src/go/doc/reader.go">reader.go</a>
+			
+				<a href="/src/go/doc/synopsis.go">synopsis.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>IllegalPrefixes 是一组小写前缀，用于标识某条注释不是文档注释。这有助于避免将紧挨 package 语句之前的版权声明误认为文档注释；这是一种常见错误。<pre>var <span id="IllegalPrefixes">IllegalPrefixes</span> = []<a href="/pkg/builtin/#string">string</a>{
+    &#34;copyright&#34;,
+    &#34;all rights&#34;,
+    &#34;author&#34;,
+}</pre>
+			
+		
+		
+			
+			<h2 id="IsPredeclared">func <a href="/src/go/doc/reader.go?s=26322:26355#L919">IsPredeclared</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func IsPredeclared(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsPredeclared 报告 s 是否为预声明标识符。<h2 id="Synopsis">func <a href="/src/go/doc/synopsis.go?s=900:933#L27">Synopsis</a>
+				
+				
+			</h2>
+			<pre>func Synopsis(text <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Synopsis 返回 text 中第一句话经过清理后的版本。<p>已弃用：新程序应改用 <a href="#Package.Synopsis">Package.Synopsis</a>，它能正确处理文本中的链接。<h2 id="ToHTML">func <a href="/src/go/doc/comment.go?s=822:884#L22">ToHTML</a>
+				
+				
+			</h2>
+			<pre>func ToHTML(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, text <a href="/pkg/builtin/#string">string</a>, words map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>ToHTML 将注释文本转换为格式化的 HTML。<p>已弃用：ToHTML 无法识别文档注释中的文档链接，因为识别这些链接需要知道文本来自哪个包，而此 API 不包含该信息。<p>已知包含 text 的 *<a href="#Package">doc.Package</a> p 时，可以将 ToHTML(w, text, nil) 替换为：<pre>w.Write(p.HTML(text))
+</pre>
+<p>这又是以下写法的简写：<pre>w.Write(p.Printer().HTML(p.Parser().Parse(text)))
+</pre>
+<p>如果 words 可能非 nil，则需要使用更完整的替代写法：<pre>parser := p.Parser()
+parser.Words = words
+w.Write(p.Printer().HTML(parser.Parse(d)))
+</pre>
+
+			
+		
+			
+			<h2 id="ToText">func <a href="/src/go/doc/comment.go?s=1727:1802#L53">ToText</a>
+				
+				
+			</h2>
+			<pre>func ToText(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, text <a href="/pkg/builtin/#string">string</a>, prefix, codePrefix <a href="/pkg/builtin/#string">string</a>, width <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>ToText 将注释文本转换为格式化文本。<p>已弃用：ToText 无法识别文档注释中的文档链接，因为识别这些链接需要知道文本来自哪个包，而此 API 不包含该信息。<p>已知包含 text 的 *<a href="#Package">doc.Package</a> p 时，可以将 ToText(w, text, &quot;&quot;, &quot;	&quot;, 80) 替换为：<pre>w.Write(p.Text(text))
+</pre>
+<p>在一般情况下，可以将 ToText(w, text, prefix, codePrefix, width) 替换为：<pre>d := p.Parser().Parse(text)
+pr := p.Printer()
+pr.TextPrefix = prefix
+pr.TextCodePrefix = codePrefix
+pr.TextWidth = width
+w.Write(pr.Text(d))
+</pre>
+<p>详情请参阅 <a href="#Package.Text">Package.Text</a> 和 <a href="/pkg/go/doc/comment/#Printer.Text">comment.Printer.Text</a> 的文档。<h2 id="Example">type <a href="/src/go/doc/example.go?s=416:934#L12">Example</a>
+				
+				
+			</h2>
+			<p>Example 表示在测试源文件中找到的一个示例函数。<pre>type Example struct {
+<span id="Example.Name"></span>    Name        <a href="/pkg/builtin/#string">string</a> <span class="comment">// 被示例演示的条目名称（含可选后缀）</span>
+<span id="Example.Suffix"></span>    Suffix      <a href="/pkg/builtin/#string">string</a> <span class="comment">// 示例后缀，不包含前导 '_'（仅由 NewFromFiles 填充）；Go 1.14 中加入</span>
+<span id="Example.Doc"></span>    Doc         <a href="/pkg/builtin/#string">string</a> <span class="comment">// 示例函数的文档字符串</span>
+<span id="Example.Code"></span>    Code        <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Node">Node</a>
+<span id="Example.Play"></span>    Play        *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a> <span class="comment">// 示例的完整程序版本；Go 1.1 中加入</span>
+<span id="Example.Comments"></span>    Comments    []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#CommentGroup">CommentGroup</a>
+<span id="Example.Output"></span>    Output      <a href="/pkg/builtin/#string">string</a> <span class="comment">// 预期输出</span>
+<span id="Example.Unordered"></span>    Unordered   <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.7</span>
+<span id="Example.EmptyOutput"></span>    EmptyOutput <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// 预期输出为空；Go 1.1 中加入</span>
+<span id="Example.Order"></span>    Order       <a href="/pkg/builtin/#int">int</a>  <span class="comment">// 原始源代码中的顺序；Go 1.1 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Examples">func <a href="/src/go/doc/example.go?s=1891:1939#L40">Examples</a>
+					
+					
+				</h3>
+				<pre>func Examples(testFiles ...*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>) []*<a href="#Example">Example</a></pre>
+				<p>Examples 返回在 testFiles 中找到的示例，并按 Name 字段排序。Order 字段记录找到示例的先后顺序。直接调用 Examples 时不会填充 Suffix 字段；只有 <a href="#NewFromFiles">NewFromFiles</a> 会为它在 _test.go 文件中找到的示例填充该字段。<p>可运行的示例必须位于名称以 &quot;_test&quot; 结尾的包中。满足以下任一条件时，Example 就是“可运行的”（Play 字段非 nil）：<ul>
+<li>示例函数自包含：该函数只引用其他包中的标识符（或 &quot;int&quot; 等预声明标识符），并且测试文件不包含点导入。<li>整个测试文件就是示例：文件恰好包含一个示例函数，不包含任何测试函数、模糊测试函数或基准测试函数，并且除示例函数之外，还至少包含一个顶层函数、类型、变量或常量声明。</ul>
+
+				
+			
+
+			
+		
+			
+			<h2 id="Filter">type <a href="/src/go/doc/filter.go?s=190:219#L1">Filter</a>
+				
+				
+			</h2>
+			
+			<pre>type Filter func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Func">type <a href="/src/go/doc/doc.go?s=1830:2356#L62">Func</a>
+				
+				
+			</h2>
+			<p>Func 是 func 声明的文档。<pre>type Func struct {
+<span id="Func.Doc"></span>    Doc  <a href="/pkg/builtin/#string">string</a>
+<span id="Func.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Func.Decl"></span>    Decl *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#FuncDecl">FuncDecl</a>
+
+    <span class="comment">// 方法</span>
+    <span class="comment">// （对于函数，这些字段为各自的零值）</span>
+<span id="Func.Recv"></span>    Recv  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 实际接收者 "T" 或 "*T"，后面可能跟类型参数 [P1, ..., Pn]</span>
+<span id="Func.Orig"></span>    Orig  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 原始接收者 "T" 或 "*T"</span>
+<span id="Func.Level"></span>    Level <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 嵌入层级；0 表示未嵌入</span>
+
+<span id="Func.Examples"></span>    <span class="comment">// Examples 是与此函数或方法关联的</span>
+    <span class="comment">// 已排序示例列表。示例的来源是</span>
+    <span class="comment">// 提供给 NewFromFiles 的 _test.go 文件。</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Mode">type <a href="/src/go/doc/doc.go?s=2920:2933#L90">Mode</a>
+				
+				
+			</h2>
+			<p>Mode 值控制 <a href="#New">New</a> 和 <a href="#NewFromFiles">NewFromFiles</a> 的行为。<pre>type Mode <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// AllDecls 表示提取所有包级声明的文档，</span>
+    <span class="comment">// 而不局限于导出的声明。</span>
+    <span id="AllDecls">AllDecls</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// AllMethods 表示显示所有嵌入方法，而不局限于</span>
+    <span class="comment">// 不可见（未导出）的匿名字段的方法。</span>
+    <span id="AllMethods">AllMethods</span>
+
+    <span class="comment">// PreserveAST 表示不修改 AST。最初，为了在 godoc 中</span>
+    <span class="comment">// 节省内存，会将 AST 的某些部分（例如函数体）置为 nil，</span>
+    <span class="comment">// 但并非所有程序都需要这种行为。</span>
+    <span id="PreserveAST">PreserveAST</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Note">type <a href="/src/go/doc/doc.go?s=2670:2852#L83">Note</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Note 表示以 &quot;MARKER(uid): note body&quot; 开头的标记注释。只要标记由至少两个大写字母 [A-Z] 组成，且 uid 至少有一个字符，该注记就会被识别。uid 后面的 &quot;:&quot; 可省略。注记收集在 Package.Notes 映射中，以注记标记为索引。<pre>type Note struct {
+<span id="Note.Pos"></span>    Pos, End <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 包含该标记的注释的位置范围</span>
+<span id="Note.UID"></span>    UID      <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 与标记一起找到的 uid</span>
+<span id="Note.Body"></span>    Body     <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 注记的正文文本</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Package">type <a href="/src/go/doc/doc.go?s=363:964#L7">Package</a>
+				
+				
+			</h2>
+			<p>Package 是整个包的文档。<pre>type Package struct {
+<span id="Package.Doc"></span>    Doc        <a href="/pkg/builtin/#string">string</a>
+<span id="Package.Name"></span>    Name       <a href="/pkg/builtin/#string">string</a>
+<span id="Package.ImportPath"></span>    ImportPath <a href="/pkg/builtin/#string">string</a>
+<span id="Package.Imports"></span>    Imports    []<a href="/pkg/builtin/#string">string</a>
+<span id="Package.Filenames"></span>    Filenames  []<a href="/pkg/builtin/#string">string</a>
+<span id="Package.Notes"></span>    Notes      map[<a href="/pkg/builtin/#string">string</a>][]*<a href="#Note">Note</a> <span class="comment">// Go 1.1</span>
+
+    <span class="comment">// 已弃用：为了向后兼容，仍会填充 Bugs，</span>
+    <span class="comment">// 但所有新代码都应改用 Notes。</span>
+<span id="Package.Bugs"></span>    Bugs []<a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// 声明</span>
+<span id="Package.Consts"></span>    Consts []*<a href="#Value">Value</a>
+<span id="Package.Types"></span>    Types  []*<a href="#Type">Type</a>
+<span id="Package.Vars"></span>    Vars   []*<a href="#Value">Value</a>
+<span id="Package.Funcs"></span>    Funcs  []*<a href="#Func">Func</a>
+
+<span id="Package.Examples"></span>    <span class="comment">// Examples 是已排序的示例列表，关联对象为</span>
+    <span class="comment">// 当前包。示例的来源是</span>
+    <span class="comment">// 提供给 NewFromFiles 的 _test.go 文件。</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/go/doc/doc.go?s=3662:3727#L111">New</a>
+					
+					
+				</h3>
+				<pre>func New(pkg *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Package">Package</a>, importPath <a href="/pkg/builtin/#string">string</a>, mode <a href="#Mode">Mode</a>) *<a href="#Package">Package</a></pre>
+				<p>New 为给定的包 AST 生成包文档。New 接管 AST pkg 的所有权，可能编辑或覆盖它。要填充 <a href="#Examples">Examples</a> 字段，请使用 <a href="#NewFromFiles">NewFromFiles</a>，并包含该包的 _test.go 文件。<h3 id="NewFromFiles">func <a href="/src/go/doc/doc.go?s=7662:7769#L246">NewFromFiles</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func NewFromFiles(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, files []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>, importPath <a href="/pkg/builtin/#string">string</a>, opts ...<a href="/pkg/builtin/#any">any</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewFromFiles 为包生成文档。<p>包通过一个 *ast.File 列表及其对应的文件集指定；文件集不能为 nil。<p>NewFromFiles 在生成文档时会使用所有提供的文件，因此调用方有责任仅提供与目标构建上下文匹配的文件。可以使用 &quot;go/build&quot;.Context.MatchFile，判断文件是否匹配具有指定 GOOS、GOARCH 值及其他构建约束的构建上下文。包的导入路径由 importPath 指定。<p>在 _test.go 文件中找到的示例，会根据其名称与相应的类型、函数、方法或包关联。如果示例名称带有后缀，则将其设置到 <a href="#Example.Suffix">Example.Suffix</a> 字段。名称格式不正确的 <a href="#Examples">Examples</a> 会被跳过。<p>可以选择额外提供一个 <a href="#Mode">Mode</a> 类型的参数，以控制文档提取行为的底层细节。<p>NewFromFiles 接管 AST 文件的所有权，并可能编辑它们，除非启用了 PreserveAST Mode 位。<div id="example_NewFromFiles" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例展示如何使用 NewFromFiles 生成包含示例的包文档。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/doc&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src 和 test 是两个源文件，它们组成的包
+	// 正是要为之生成文档的包。
+	const src = `
+// This is the package comment.
+package p
+
+import &#34;fmt&#34;
+
+// This comment is associated with the Greet function.
+func Greet(who string) {
+	fmt.Printf(&#34;Hello, %s!\n&#34;, who)
+}
+`
+	const test = `
+package p_test
+
+// This comment is associated with the ExampleGreet_world example.
+func ExampleGreet_world() {
+	Greet(&#34;world&#34;)
+}
+`
+
+	// 通过解析 src 和 test 创建 AST。
+	fset := token.NewFileSet()
+	files := []*ast.File{
+		mustParse(fset, &#34;src.go&#34;, src),
+		mustParse(fset, &#34;src_test.go&#34;, test),
+	}
+
+	// 生成包含示例的包文档。
+	p, err := doc.NewFromFiles(fset, files, &#34;example.com/p&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(&#34;package %s - %s&#34;, p.Name, p.Doc)
+	fmt.Printf(&#34;func %s - %s&#34;, p.Funcs[0].Name, p.Funcs[0].Doc)
+	fmt.Printf(&#34; ⤷ example with suffix %q - %s&#34;, p.Funcs[0].Examples[0].Suffix, p.Funcs[0].Examples[0].Doc)
+
+}
+
+func mustParse(fset *token.FileSet, filename, src string) *ast.File {
+	f, err := parser.ParseFile(fset, filename, src, parser.ParseComments|parser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+</textarea></div>
+        <div class="output"><pre>package p - This is the package comment.
+func Greet - This comment is associated with the Greet function.
+ ⤷ example with suffix &#34;world&#34; - This comment is associated with the ExampleGreet_world example.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Package.Filter">func (*Package) <a href="/src/go/doc/filter.go?s=2040:2074#L90">Filter</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Filter(f <a href="#Filter">Filter</a>)</pre>
+				<p>Filter 移除名称未通过过滤函数 f 的文档。
+TODO(gri)：将 &quot;Type.Method&quot; 识别为名称。<h3 id="Package.HTML">func (*Package) <a href="/src/go/doc/doc.go?s=11441:11483#L359">HTML</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) HTML(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>HTML 返回文档注释文本的格式化 HTML。<p>要自定义 HTML 的细节，请使用 <a href="#Package.Printer">Package.Printer</a> 获取 <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>，并在调用其 HTML 方法之前进行配置。<h3 id="Package.Markdown">func (*Package) <a href="/src/go/doc/doc.go?s=11759:11805#L368">Markdown</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Markdown(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Markdown 返回文档注释文本的格式化 Markdown。<p>要自定义 Markdown 的细节，请使用 <a href="#Package.Printer">Package.Printer</a> 获取 <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>，并在调用其 Markdown 方法之前进行配置。<h3 id="Package.Parser">func (*Package) <a href="/src/go/doc/doc.go?s=10710:10752#L337">Parser</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Parser() *<a href="/pkg/go/doc/comment/">comment</a>.<a href="/pkg/go/doc/comment/#Parser">Parser</a></pre>
+				<p>Parser 返回配置好用于解析包 p 文档注释的解析器。每次调用都返回一个新的解析器，以便调用方在使用前自定义它。<h3 id="Package.Printer">func (*Package) <a href="/src/go/doc/doc.go?s=11034:11078#L348">Printer</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Printer() *<a href="/pkg/go/doc/comment/">comment</a>.<a href="/pkg/go/doc/comment/#Printer">Printer</a></pre>
+				<p>Printer 返回配置好用于输出包 p 文档注释的格式化器。每次调用都返回一个新的格式化器，以便调用方在使用前自定义它。<h3 id="Package.Synopsis">func (*Package) <a href="/src/go/doc/synopsis.go?s=1712:1758#L49">Synopsis</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Synopsis(text <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Synopsis 返回 text 中第一句话经过清理后的版本。该句子在首个满足以下条件的句点之后结束：句点后跟空格，且其前面不是恰好一个大写字母；也会在首次段落分隔处结束。结果字符串不包含 \n、\r 或 \t 字符，单词之间只使用单个空格。如果 text 以 <a href="#IllegalPrefixes">IllegalPrefixes</a> 中的任何前缀开头，结果为空字符串。<h3 id="Package.Text">func (*Package) <a href="/src/go/doc/doc.go?s=12158:12200#L379">Text</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Text(text <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Text 返回文档注释文本的格式化文本，按 80 个 Unicode 码点换行，并用制表符缩进代码块。<p>要自定义格式化细节，请使用 <a href="#Package.Printer">Package.Printer</a> 获取 <a href="/pkg/go/doc/comment/#Printer">comment.Printer</a>，并在调用其 Text 方法之前进行配置。<h2 id="Type">type <a href="/src/go/doc/doc.go?s=1228:1775#L44">Type</a>
+				
+				
+			</h2>
+			<p>Type 是类型声明的文档。<pre>type Type struct {
+<span id="Type.Doc"></span>    Doc  <a href="/pkg/builtin/#string">string</a>
+<span id="Type.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Type.Decl"></span>    Decl *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#GenDecl">GenDecl</a>
+
+    <span class="comment">// 关联的声明</span>
+<span id="Type.Consts"></span>    Consts  []*<a href="#Value">Value</a> <span class="comment">// 主要属于此类型的常量的已排序列表</span>
+<span id="Type.Vars"></span>    Vars    []*<a href="#Value">Value</a> <span class="comment">// 主要属于此类型的变量的已排序列表</span>
+<span id="Type.Funcs"></span>    Funcs   []*<a href="#Func">Func</a>  <span class="comment">// 返回此类型的函数的已排序列表</span>
+<span id="Type.Methods"></span>    Methods []*<a href="#Func">Func</a>  <span class="comment">// 此类型的方法的已排序列表（包括嵌入方法）</span>
+
+<span id="Type.Examples"></span>    <span class="comment">// Examples 是已排序的示例列表，关联对象为</span>
+    <span class="comment">// 此类型。示例的来源是</span>
+    <span class="comment">// 提供给 NewFromFiles 的 _test.go 文件。</span>
+    Examples []*<a href="#Example">Example</a> <span class="comment">// Go 1.14</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/go/doc/doc.go?s=1047:1173#L35">Value</a>
+				
+				
+			</h2>
+			<p>Value 是 var 或 const 声明的文档，这些声明也可以成组出现。<pre>type Value struct {
+<span id="Value.Doc"></span>    Doc   <a href="/pkg/builtin/#string">string</a>
+<span id="Value.Names"></span>    Names []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 按声明顺序排列的 var 或 const 名称</span>
+<span id="Value.Decl"></span>    Decl  *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#GenDecl">GenDecl</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="comment/">comment</a>
+					</td>
+				
+					<td class="pkg-synopsis">comment 包实现 Go 文档注释的解析和重新格式化。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

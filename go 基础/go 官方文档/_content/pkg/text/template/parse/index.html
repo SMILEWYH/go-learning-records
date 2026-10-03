@@ -1,0 +1,1411 @@
+<!--{
+  "Title": "text/template/parse 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>text/template/parse 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "text/template/parse"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>parse 包为 text/template 和 html/template 定义的模板构建语法树。使用者应通过这两个包构建模板；本包提供的是共享的内部数据结构，不供一般用途使用。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#IsEmptyTree">func IsEmptyTree(n Node) bool</a></dd>
+			
+				<dd><a href="#Parse">func Parse(name, text, leftDelim, rightDelim string, funcs ...map[string]any) (map[string]*Tree, error)</a></dd>
+			
+			
+				
+				<dd><a href="#ActionNode">type ActionNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ActionNode.Copy">func (a *ActionNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ActionNode.String">func (a *ActionNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BoolNode">type BoolNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BoolNode.Copy">func (b *BoolNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BoolNode.String">func (b *BoolNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BranchNode">type BranchNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BranchNode.Copy">func (b *BranchNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BranchNode.String">func (b *BranchNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BreakNode">type BreakNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BreakNode.Copy">func (b *BreakNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BreakNode.String">func (b *BreakNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#ChainNode">type ChainNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ChainNode.Add">func (c *ChainNode) Add(field string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChainNode.Copy">func (c *ChainNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChainNode.String">func (c *ChainNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#CommandNode">type CommandNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommandNode.Copy">func (c *CommandNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommandNode.String">func (c *CommandNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#CommentNode">type CommentNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentNode.Copy">func (c *CommentNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentNode.String">func (c *CommentNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#ContinueNode">type ContinueNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ContinueNode.Copy">func (c *ContinueNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ContinueNode.String">func (c *ContinueNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#DotNode">type DotNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DotNode.Copy">func (d *DotNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DotNode.String">func (d *DotNode) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DotNode.Type">func (d *DotNode) Type() NodeType</a></dd>
+				
+			
+				
+				<dd><a href="#FieldNode">type FieldNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FieldNode.Copy">func (f *FieldNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FieldNode.String">func (f *FieldNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#IdentifierNode">type IdentifierNode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewIdentifier">func NewIdentifier(ident string) *IdentifierNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IdentifierNode.Copy">func (i *IdentifierNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IdentifierNode.SetPos">func (i *IdentifierNode) SetPos(pos Pos) *IdentifierNode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IdentifierNode.SetTree">func (i *IdentifierNode) SetTree(t *Tree) *IdentifierNode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IdentifierNode.String">func (i *IdentifierNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#IfNode">type IfNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IfNode.Copy">func (i *IfNode) Copy() Node</a></dd>
+				
+			
+				
+				<dd><a href="#ListNode">type ListNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ListNode.Copy">func (l *ListNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ListNode.CopyList">func (l *ListNode) CopyList() *ListNode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ListNode.String">func (l *ListNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NilNode">type NilNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NilNode.Copy">func (n *NilNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NilNode.String">func (n *NilNode) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NilNode.Type">func (n *NilNode) Type() NodeType</a></dd>
+				
+			
+				
+				<dd><a href="#Node">type Node</a></dd>
+				
+				
+			
+				
+				<dd><a href="#NodeType">type NodeType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NodeType.Type">func (t NodeType) Type() NodeType</a></dd>
+				
+			
+				
+				<dd><a href="#NumberNode">type NumberNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NumberNode.Copy">func (n *NumberNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NumberNode.String">func (n *NumberNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#PipeNode">type PipeNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeNode.Copy">func (p *PipeNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeNode.CopyPipe">func (p *PipeNode) CopyPipe() *PipeNode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeNode.String">func (p *PipeNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Pos">type Pos</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pos.Position">func (p Pos) Position() Pos</a></dd>
+				
+			
+				
+				<dd><a href="#RangeNode">type RangeNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RangeNode.Copy">func (r *RangeNode) Copy() Node</a></dd>
+				
+			
+				
+				<dd><a href="#StringNode">type StringNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StringNode.Copy">func (s *StringNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringNode.String">func (s *StringNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#TemplateNode">type TemplateNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TemplateNode.Copy">func (t *TemplateNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TemplateNode.String">func (t *TemplateNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#TextNode">type TextNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TextNode.Copy">func (t *TextNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TextNode.String">func (t *TextNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Tree">type Tree</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(name string, funcs ...map[string]any) *Tree</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Tree.Copy">func (t *Tree) Copy() *Tree</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tree.ErrorContext">func (t *Tree) ErrorContext(n Node) (location, context string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tree.Parse">func (t *Tree) Parse(text, leftDelim, rightDelim string, treeSet map[string]*Tree, funcs ...map[string]any) (tree *Tree, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#VariableNode">type VariableNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#VariableNode.Copy">func (v *VariableNode) Copy() Node</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#VariableNode.String">func (v *VariableNode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#WithNode">type WithNode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#WithNode.Copy">func (w *WithNode) Copy() Node</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/text/template/parse/lex.go">lex.go</a>
+			
+				<a href="/src/text/template/parse/node.go">node.go</a>
+			
+				<a href="/src/text/template/parse/parse.go">parse.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="IsEmptyTree">func <a href="/src/text/template/parse/parse.go?s=8072:8101#L286">IsEmptyTree</a>
+				
+				
+			</h2>
+			<pre>func IsEmptyTree(n <a href="#Node">Node</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsEmptyTree 报告此树（节点）是否除空白和注释外不包含任何内容。<h2 id="Parse">func <a href="/src/text/template/parse/parse.go?s=2417:2520#L69">Parse</a>
+				
+				
+			</h2>
+			<pre>func Parse(name, text, leftDelim, rightDelim <a href="/pkg/builtin/#string">string</a>, funcs ...map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>) (map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Tree">Tree</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Parse 解析参数字符串中描述的模板，返回从模板名到 <a href="#Tree">Tree</a> 的映射。顶层模板采用指定的名称。如果遇到错误，解析会停止，并返回空映射和该错误。<h2 id="ActionNode">type <a href="/src/text/template/parse/node.go?s=6588:6773#L251">ActionNode</a>
+				
+				
+			</h2>
+			<p>ActionNode 保存动作（由分隔符包围的内容）。控制动作有各自的节点；ActionNode 表示字段求值、带括号的流水线等简单动作。<pre>type ActionNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="ActionNode.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>       <span class="comment">// 输入中的行号。已弃用：为兼容性而保留。</span>
+<span id="ActionNode.Pipe"></span>    Pipe *<a href="#PipeNode">PipeNode</a> <span class="comment">// 动作中的流水线。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ActionNode.Copy">func (*ActionNode) <a href="/src/text/template/parse/node.go?s=7229:7261#L279">Copy</a>
+					
+					
+				</h3>
+				<pre>func (a *<a href="#ActionNode">ActionNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="ActionNode.String">func (*ActionNode) <a href="/src/text/template/parse/node.go?s=6935:6971#L263">String</a>
+					
+					
+				</h3>
+				<pre>func (a *<a href="#ActionNode">ActionNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BoolNode">type <a href="/src/text/template/parse/node.go?s=13835:13935#L575">BoolNode</a>
+				
+				
+			</h2>
+			<p>BoolNode 保存布尔常量。<pre>type BoolNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="BoolNode.True"></span>    True <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// 布尔常量的值。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BoolNode.Copy">func (*BoolNode) <a href="/src/text/template/parse/node.go?s=14281:14311#L601">Copy</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#BoolNode">BoolNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="BoolNode.String">func (*BoolNode) <a href="/src/text/template/parse/node.go?s=14062:14096#L586">String</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#BoolNode">BoolNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BranchNode">type <a href="/src/text/template/parse/node.go?s=20230:20573#L834">BranchNode</a>
+				
+				
+			</h2>
+			<p>BranchNode 是 if、range 和 with 的通用表示。<pre>type BranchNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="BranchNode.Line"></span>    Line     <a href="/pkg/builtin/#int">int</a>       <span class="comment">// 输入中的行号。已弃用：为兼容性而保留。</span>
+<span id="BranchNode.Pipe"></span>    Pipe     *<a href="#PipeNode">PipeNode</a> <span class="comment">// 待求值的流水线。</span>
+<span id="BranchNode.List"></span>    List     *<a href="#ListNode">ListNode</a> <span class="comment">// 值非空时执行的内容。</span>
+<span id="BranchNode.ElseList"></span>    ElseList *<a href="#ListNode">ListNode</a> <span class="comment">// 值为空时执行的内容（缺省为 nil）。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BranchNode.Copy">func (*BranchNode) <a href="/src/text/template/parse/node.go?s=21333:21365#L883">Copy</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (b *<a href="#BranchNode">BranchNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="BranchNode.String">func (*BranchNode) <a href="/src/text/template/parse/node.go?s=20575:20611#L844">String</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#BranchNode">BranchNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BreakNode">type <a href="/src/text/template/parse/node.go?s=22156:22216#L910">BreakNode</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>BreakNode 表示 {{break}} 动作。<pre>type BreakNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+<span id="BreakNode.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BreakNode.Copy">func (*BreakNode) <a href="/src/text/template/parse/node.go?s=22346:22377#L921">Copy</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (b *<a href="#BreakNode">BreakNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="BreakNode.String">func (*BreakNode) <a href="/src/text/template/parse/node.go?s=22435:22470#L922">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (b *<a href="#BreakNode">BreakNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ChainNode">type <a href="/src/text/template/parse/node.go?s=12655:12773#L522">ChainNode</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>ChainNode 保存一个项，以及紧随其后的字段访问链（以“.”开头的标识符）。名称可以连用（“.x.y”）。每个标识符中的句点都会被去掉。<pre>type ChainNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="ChainNode.Node"></span>    Node  <a href="#Node">Node</a>
+<span id="ChainNode.Field"></span>    Field []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 按词法顺序排列的标识符。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ChainNode.Add">func (*ChainNode) <a href="/src/text/template/parse/node.go?s=12992:13029#L535">Add</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#ChainNode">ChainNode</a>) Add(field <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Add 将指定名称的字段（应以句点开头）添加到链末尾。<h3 id="ChainNode.Copy">func (*ChainNode) <a href="/src/text/template/parse/node.go?s=13645:13676#L570">Copy</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#ChainNode">ChainNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="ChainNode.String">func (*ChainNode) <a href="/src/text/template/parse/node.go?s=13226:13261#L546">String</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#ChainNode">ChainNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CommandNode">type <a href="/src/text/template/parse/node.go?s=7397:7527#L284">CommandNode</a>
+				
+				
+			</h2>
+			<p>CommandNode 保存命令（求值动作中的流水线）。<pre>type CommandNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="CommandNode.Args"></span>    Args []<a href="#Node">Node</a> <span class="comment">// 按词法顺序排列的参数：标识符、字段或常量。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CommandNode.Copy">func (*CommandNode) <a href="/src/text/template/parse/node.go?s=8133:8166#L324">Copy</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#CommandNode">CommandNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="CommandNode.String">func (*CommandNode) <a href="/src/text/template/parse/node.go?s=7717:7754#L299">String</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#CommandNode">CommandNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CommentNode">type <a href="/src/text/template/parse/node.go?s=4211:4295#L146">CommentNode</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>CommentNode 保存注释。<pre>type CommentNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="CommentNode.Text"></span>    Text <a href="/pkg/builtin/#string">string</a> <span class="comment">// 注释文本。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CommentNode.Copy">func (*CommentNode) <a href="/src/text/template/parse/node.go?s=4737:4770#L173">Copy</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (c *<a href="#CommentNode">CommentNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="CommentNode.String">func (*CommentNode) <a href="/src/text/template/parse/node.go?s=4436:4473#L157">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (c *<a href="#CommentNode">CommentNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ContinueNode">type <a href="/src/text/template/parse/node.go?s=22734:22797#L927">ContinueNode</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>ContinueNode 表示 {{continue}} 动作。<pre>type ContinueNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+<span id="ContinueNode.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ContinueNode.Copy">func (*ContinueNode) <a href="/src/text/template/parse/node.go?s=22939:22973#L938">Copy</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#ContinueNode">ContinueNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="ContinueNode.String">func (*ContinueNode) <a href="/src/text/template/parse/node.go?s=23034:23072#L939">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (c *<a href="#ContinueNode">ContinueNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="DotNode">type <a href="/src/text/template/parse/node.go?s=10335:10383#L417">DotNode</a>
+				
+				
+			</h2>
+			<p>DotNode 保存特殊标识符“.”。<pre>type DotNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DotNode.Copy">func (*DotNode) <a href="/src/text/template/parse/node.go?s=10874:10903#L446">Copy</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#DotNode">DotNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="DotNode.String">func (*DotNode) <a href="/src/text/template/parse/node.go?s=10694:10727#L434">String</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#DotNode">DotNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="DotNode.Type">func (*DotNode) <a href="/src/text/template/parse/node.go?s=10483:10516#L427">Type</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#DotNode">DotNode</a>) Type() <a href="#NodeType">NodeType</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="FieldNode">type <a href="/src/text/template/parse/node.go?s=11762:11868#L487">FieldNode</a>
+				
+				
+			</h2>
+			<p>FieldNode 保存字段（以“.”开头的标识符）。名称可以连用（“.x.y”）。每个标识符中的句点都会被去掉。<pre>type FieldNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="FieldNode.Ident"></span>    Ident []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 按词法顺序排列的标识符。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FieldNode.Copy">func (*FieldNode) <a href="/src/text/template/parse/node.go?s=12339:12370#L515">Copy</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FieldNode">FieldNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="FieldNode.String">func (*FieldNode) <a href="/src/text/template/parse/node.go?s=12059:12094#L498">String</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FieldNode">FieldNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IdentifierNode">type <a href="/src/text/template/parse/node.go?s=8331:8429#L336">IdentifierNode</a>
+				
+				
+			</h2>
+			<p>IdentifierNode 保存标识符。<pre>type IdentifierNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="IdentifierNode.Ident"></span>    Ident <a href="/pkg/builtin/#string">string</a> <span class="comment">// 标识符的名称。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewIdentifier">func <a href="/src/text/template/parse/node.go?s=8511:8559#L344">NewIdentifier</a>
+					
+					
+				</h3>
+				<pre>func NewIdentifier(ident <a href="/pkg/builtin/#string">string</a>) *<a href="#IdentifierNode">IdentifierNode</a></pre>
+				<p>NewIdentifier 返回具有指定标识符名称的新 <a href="#IdentifierNode">IdentifierNode</a>。<h3 id="IdentifierNode.Copy">func (*IdentifierNode) <a href="/src/text/template/parse/node.go?s=9315:9351#L376">Copy</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#IdentifierNode">IdentifierNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="IdentifierNode.SetPos">func (*IdentifierNode) <a href="/src/text/template/parse/node.go?s=8777:8833#L351">SetPos</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (i *<a href="#IdentifierNode">IdentifierNode</a>) SetPos(pos <a href="#Pos">Pos</a>) *<a href="#IdentifierNode">IdentifierNode</a></pre>
+				<p>SetPos 设置位置。<a href="#NewIdentifier">NewIdentifier</a> 是公开方法，因此无法修改其签名。为方便使用，支持链式调用。TODO：将来是否修正？<h3 id="IdentifierNode.SetTree">func (*IdentifierNode) <a href="/src/text/template/parse/node.go?s=9027:9084#L359">SetTree</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (i *<a href="#IdentifierNode">IdentifierNode</a>) SetTree(t *<a href="#Tree">Tree</a>) *<a href="#IdentifierNode">IdentifierNode</a></pre>
+				<p>SetTree 设置节点的父树。<a href="#NewIdentifier">NewIdentifier</a> 是公开方法，因此无法修改其签名。为方便使用，支持链式调用。TODO：将来是否修正？<h3 id="IdentifierNode.String">func (*IdentifierNode) <a href="/src/text/template/parse/node.go?s=9110:9150#L364">String</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#IdentifierNode">IdentifierNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IfNode">type <a href="/src/text/template/parse/node.go?s=21733:21767#L897">IfNode</a>
+				
+				
+			</h2>
+			<p>IfNode 表示 {{if}} 动作及其命令。<pre>type IfNode struct {
+    <a href="#BranchNode">BranchNode</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IfNode.Copy">func (*IfNode) <a href="/src/text/template/parse/node.go?s=21983:22011#L905">Copy</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#IfNode">IfNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ListNode">type <a href="/src/text/template/parse/node.go?s=2819:2924#L71">ListNode</a>
+				
+				
+			</h2>
+			<p>ListNode 保存节点序列。<pre>type ListNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="ListNode.Nodes"></span>    Nodes []<a href="#Node">Node</a> <span class="comment">// 按词法顺序排列的元素节点。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ListNode.Copy">func (*ListNode) <a href="/src/text/template/parse/node.go?s=3517:3547#L113">Copy</a>
+					
+					
+				</h3>
+				<pre>func (l *<a href="#ListNode">ListNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="ListNode.CopyList">func (*ListNode) <a href="/src/text/template/parse/node.go?s=3348:3387#L102">CopyList</a>
+					
+					
+				</h3>
+				<pre>func (l *<a href="#ListNode">ListNode</a>) CopyList() *<a href="#ListNode">ListNode</a></pre>
+				
+				
+			
+				<h3 id="ListNode.String">func (*ListNode) <a href="/src/text/template/parse/node.go?s=3147:3181#L90">String</a>
+					
+					
+				</h3>
+				<pre>func (l *<a href="#ListNode">ListNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Mode">type <a href="/src/text/template/parse/parse.go?s=1394:1408#L32">Mode</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>Mode 值是一组标志（或 0）。这些模式控制解析器行为。<pre>type Mode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="ParseComments">ParseComments</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 解析注释并将其添加到 AST</span>
+    <span id="SkipFuncCheck">SkipFuncCheck</span>                  <span class="comment">// 不检查函数是否已定义</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NilNode">type <a href="/src/text/template/parse/node.go?s=11020:11068#L451">NilNode</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>NilNode 保存特殊标识符“nil”，表示无类型 nil 常量。<pre>type NilNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NilNode.Copy">func (*NilNode) <a href="/src/text/template/parse/node.go?s=11561:11590#L480">Copy</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n *<a href="#NilNode">NilNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="NilNode.String">func (*NilNode) <a href="/src/text/template/parse/node.go?s=11379:11412#L468">String</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n *<a href="#NilNode">NilNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="NilNode.Type">func (*NilNode) <a href="/src/text/template/parse/node.go?s=11168:11201#L461">Type</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n *<a href="#NilNode">NilNode</a>) Type() <a href="#NodeType">NodeType</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Node">type <a href="/src/text/template/parse/node.go?s=487:1013#L10">Node</a>
+				
+				
+			</h2>
+			<p>Node 是语法树中的元素。该接口很简单，其中包含一个未导出的方法，因此只有本包中的类型才能满足它。<pre>type Node interface {
+    Type() <a href="#NodeType">NodeType</a>
+    String() <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// Copy 深拷贝 Node 及其所有组成部分。</span>
+    <span class="comment">// 为避免类型断言，某些 XxxNode 还提供专用的</span>
+    <span class="comment">// CopyXxx 方法，返回 *XxxNode。</span>
+    Copy() <a href="#Node">Node</a>
+    Position() <a href="#Pos">Pos</a> <span class="comment">// 节点在完整原始输入字符串中的起始字节位置</span>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="NodeType">type <a href="/src/text/template/parse/node.go?s=1069:1086#L26">NodeType</a>
+				
+				
+			</h2>
+			<p>NodeType 标识语法树节点的类型。<pre>type NodeType <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="NodeText">NodeText</span>    <a href="#NodeType">NodeType</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 普通文本。</span>
+    <span id="NodeAction">NodeAction</span>                  <span class="comment">// 字段求值等非控制动作。</span>
+    <span id="NodeBool">NodeBool</span>                    <span class="comment">// 布尔常量。</span>
+    <span id="NodeChain">NodeChain</span>                   <span class="comment">// 字段访问序列。</span>
+    <span id="NodeCommand">NodeCommand</span>                 <span class="comment">// 流水线中的元素。</span>
+    <span id="NodeDot">NodeDot</span>                     <span class="comment">// 游标，即 dot。</span>
+
+    <span id="NodeField">NodeField</span>      <span class="comment">// 字段或方法名。</span>
+    <span id="NodeIdentifier">NodeIdentifier</span> <span class="comment">// 标识符；始终是函数名。</span>
+    <span id="NodeIf">NodeIf</span>         <span class="comment">// if 动作。</span>
+    <span id="NodeList">NodeList</span>       <span class="comment">// Node 列表。</span>
+    <span id="NodeNil">NodeNil</span>        <span class="comment">// 无类型 nil 常量。</span>
+    <span id="NodeNumber">NodeNumber</span>     <span class="comment">// 数值常量。</span>
+    <span id="NodePipe">NodePipe</span>       <span class="comment">// 命令流水线。</span>
+    <span id="NodeRange">NodeRange</span>      <span class="comment">// range 动作。</span>
+    <span id="NodeString">NodeString</span>     <span class="comment">// 字符串常量。</span>
+    <span id="NodeTemplate">NodeTemplate</span>   <span class="comment">// 模板调用动作。</span>
+    <span id="NodeVariable">NodeVariable</span>   <span class="comment">// $ 变量。</span>
+    <span id="NodeWith">NodeWith</span>       <span class="comment">// with 动作。</span>
+    <span id="NodeComment">NodeComment</span>    <span class="comment">// 注释。</span>
+    <span id="NodeBreak">NodeBreak</span>      <span class="comment">// break 动作。</span>
+    <span id="NodeContinue">NodeContinue</span>   <span class="comment">// continue 动作。</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NodeType.Type">func (NodeType) <a href="/src/text/template/parse/node.go?s=1376:1409#L38">Type</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#NodeType">NodeType</a>) Type() <a href="#NodeType">NodeType</a></pre>
+				<p>Type 返回自身，为嵌入 Node 提供简单的默认实现。它嵌入所有非简单的 Node 中。<h2 id="NumberNode">type <a href="/src/text/template/parse/node.go?s=14596:15163#L608">NumberNode</a>
+				
+				
+			</h2>
+			<p>NumberNode 保存数值：有符号或无符号整数、浮点数或复数。该值会被解析，并以所有能够表示它的类型存储。这样用少量代码模拟了 Go 理想常量的行为。<pre>type NumberNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="NumberNode.IsInt"></span>    IsInt      <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 数值具有整数值。</span>
+<span id="NumberNode.IsUint"></span>    IsUint     <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 数值具有无符号整数值。</span>
+<span id="NumberNode.IsFloat"></span>    IsFloat    <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 数值具有浮点值。</span>
+<span id="NumberNode.IsComplex"></span>    IsComplex  <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 数值是复数。</span>
+<span id="NumberNode.Int64"></span>    Int64      <a href="/pkg/builtin/#int64">int64</a>      <span class="comment">// 有符号整数值。</span>
+<span id="NumberNode.Uint64"></span>    Uint64     <a href="/pkg/builtin/#uint64">uint64</a>     <span class="comment">// 无符号整数值。</span>
+<span id="NumberNode.Float64"></span>    Float64    <a href="/pkg/builtin/#float64">float64</a>    <span class="comment">// 浮点值。</span>
+<span id="NumberNode.Complex128"></span>    Complex128 <a href="/pkg/builtin/#complex128">complex128</a> <span class="comment">// 复数值。</span>
+<span id="NumberNode.Text"></span>    Text       <a href="/pkg/builtin/#string">string</a>     <span class="comment">// 输入中的原始文本表示。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NumberNode.Copy">func (*NumberNode) <a href="/src/text/template/parse/node.go?s=18178:18210#L738">Copy</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#NumberNode">NumberNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="NumberNode.String">func (*NumberNode) <a href="/src/text/template/parse/node.go?s=17986:18022#L726">String</a>
+					
+					
+				</h3>
+				<pre>func (n *<a href="#NumberNode">NumberNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="PipeNode">type <a href="/src/text/template/parse/node.go?s=4911:5255#L178">PipeNode</a>
+				
+				
+			</h2>
+			<p>PipeNode 保存带可选声明的流水线。<pre>type PipeNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="PipeNode.Line"></span>    Line     <a href="/pkg/builtin/#int">int</a>             <span class="comment">// 输入中的行号。已弃用：为兼容性而保留。</span>
+<span id="PipeNode.IsAssign"></span>    IsAssign <a href="/pkg/builtin/#bool">bool</a>            <span class="comment">// 对变量进行赋值，而非声明；Go 1.11 新增</span>
+<span id="PipeNode.Decl"></span>    Decl     []*<a href="#VariableNode">VariableNode</a> <span class="comment">// 按词法顺序排列的变量。</span>
+<span id="PipeNode.Cmds"></span>    Cmds     []*<a href="#CommandNode">CommandNode</a>  <span class="comment">// 按词法顺序排列的命令。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PipeNode.Copy">func (*PipeNode) <a href="/src/text/template/parse/node.go?s=6333:6363#L244">Copy</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#PipeNode">PipeNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="PipeNode.CopyPipe">func (*PipeNode) <a href="/src/text/template/parse/node.go?s=6001:6040#L228">CopyPipe</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#PipeNode">PipeNode</a>) CopyPipe() *<a href="#PipeNode">PipeNode</a></pre>
+				
+				
+			
+				<h3 id="PipeNode.String">func (*PipeNode) <a href="/src/text/template/parse/node.go?s=5506:5540#L196">String</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#PipeNode">PipeNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Pos">type <a href="/src/text/template/parse/node.go?s=1189:1201#L30">Pos</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Pos 表示解析此模板所用的原始输入文本中的字节位置。<pre>type Pos <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pos.Position">func (Pos) <a href="/src/text/template/parse/node.go?s=1203:1230#L32">Position</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (p <a href="#Pos">Pos</a>) Position() <a href="#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RangeNode">type <a href="/src/text/template/parse/node.go?s=23356:23393#L944">RangeNode</a>
+				
+				
+			</h2>
+			<p>RangeNode 表示 {{range}} 动作及其命令。<pre>type RangeNode struct {
+    <a href="#BranchNode">BranchNode</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RangeNode.Copy">func (*RangeNode) <a href="/src/text/template/parse/node.go?s=23621:23652#L952">Copy</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#RangeNode">RangeNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="StringNode">type <a href="/src/text/template/parse/node.go?s=18354:18527#L745">StringNode</a>
+				
+				
+			</h2>
+			<p>StringNode 保存字符串常量。其值已进行去引号处理。<pre>type StringNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="StringNode.Quoted"></span>    Quoted <a href="/pkg/builtin/#string">string</a> <span class="comment">// 字符串的原始文本，带引号。</span>
+<span id="StringNode.Text"></span>    Text   <a href="/pkg/builtin/#string">string</a> <span class="comment">// 经过引号处理后的字符串。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StringNode.Copy">func (*StringNode) <a href="/src/text/template/parse/node.go?s=18878:18910#L769">Copy</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#StringNode">StringNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="StringNode.String">func (*StringNode) <a href="/src/text/template/parse/node.go?s=18684:18720#L757">String</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#StringNode">StringNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TemplateNode">type <a href="/src/text/template/parse/node.go?s=24258:24522#L970">TemplateNode</a>
+				
+				
+			</h2>
+			<p>TemplateNode 表示 {{template}} 动作。<pre>type TemplateNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="TemplateNode.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>       <span class="comment">// 输入中的行号。已弃用：为兼容性而保留。</span>
+<span id="TemplateNode.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 模板名称（不带引号）。</span>
+<span id="TemplateNode.Pipe"></span>    Pipe *<a href="#PipeNode">PipeNode</a> <span class="comment">// 待求值以得到模板 dot 的命令。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TemplateNode.Copy">func (*TemplateNode) <a href="/src/text/template/parse/node.go?s=25129:25163#L1004">Copy</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TemplateNode">TemplateNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="TemplateNode.String">func (*TemplateNode) <a href="/src/text/template/parse/node.go?s=24717:24755#L983">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TemplateNode">TemplateNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TextNode">type <a href="/src/text/template/parse/node.go?s=3604:3700#L118">TextNode</a>
+				
+				
+			</h2>
+			<p>TextNode 保存普通文本。<pre>type TextNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="TextNode.Text"></span>    Text []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// 文本；可以跨越多行。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TextNode.Copy">func (*TextNode) <a href="/src/text/template/parse/node.go?s=4048:4078#L141">Copy</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TextNode">TextNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="TextNode.String">func (*TextNode) <a href="/src/text/template/parse/node.go?s=3837:3871#L129">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TextNode">TextNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Tree">type <a href="/src/text/template/parse/parse.go?s=557:1319#L10">Tree</a>
+				
+				
+			</h2>
+			<p>Tree 表示一个已解析的模板。<pre>type Tree struct {
+<span id="Tree.Name"></span>    Name      <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 此树表示的模板名称。</span>
+<span id="Tree.ParseName"></span>    ParseName <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 解析时的顶层模板名称，用于错误消息；Go 1.1 新增</span>
+<span id="Tree.Root"></span>    Root      *<a href="#ListNode">ListNode</a> <span class="comment">// 树的顶层根节点。</span>
+<span id="Tree.Mode"></span>    Mode      <a href="#Mode">Mode</a>      <span class="comment">// 解析模式；Go 1.16 新增</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/text/template/parse/parse.go?s=3948:4000#L138">New</a>
+					
+					
+				</h3>
+				<pre>func New(name <a href="/pkg/builtin/#string">string</a>, funcs ...map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>) *<a href="#Tree">Tree</a></pre>
+				<p>New 分配具有指定名称的新语法树。<h3 id="Tree.Copy">func (*Tree) <a href="/src/text/template/parse/parse.go?s=1903:1930#L51">Copy</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (t *<a href="#Tree">Tree</a>) Copy() *<a href="#Tree">Tree</a></pre>
+				<p>Copy 返回 <a href="#Tree">Tree</a> 的副本，丢弃所有解析状态。<h3 id="Tree.ErrorContext">func (*Tree) <a href="/src/text/template/parse/parse.go?s=4270:4332#L148">ErrorContext</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (t *<a href="#Tree">Tree</a>) ErrorContext(n <a href="#Node">Node</a>) (location, context <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>ErrorContext 返回节点在输入文本中位置的文本表示。只有节点内部没有指向树的指针时，才会使用接收者；旧代码中可能出现这种情况。<h3 id="Tree.Parse">func (*Tree) <a href="/src/text/template/parse/parse.go?s=7203:7334#L253">Parse</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Tree">Tree</a>) Parse(text, leftDelim, rightDelim <a href="/pkg/builtin/#string">string</a>, treeSet map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Tree">Tree</a>, funcs ...map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>) (tree *<a href="#Tree">Tree</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 解析模板定义字符串，构建用于执行的模板表示。如果任一动作分隔符字符串为空，就使用默认值（"{{" 或 "}}"）。内嵌模板定义会添加到 treeSet 映射。<h2 id="VariableNode">type <a href="/src/text/template/parse/node.go?s=9550:9668#L382">VariableNode</a>
+				
+				
+			</h2>
+			<p>VariableNode 保存变量名列表，可以带有链式字段访问。美元符号属于（第一个）名称的一部分。<pre>type VariableNode struct {
+    <a href="#NodeType">NodeType</a>
+    <a href="#Pos">Pos</a>
+
+<span id="VariableNode.Ident"></span>    Ident []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 按词法顺序排列的变量名和字段。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="VariableNode.Copy">func (*VariableNode) <a href="/src/text/template/parse/node.go?s=10143:10177#L412">Copy</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#VariableNode">VariableNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+				<h3 id="VariableNode.String">func (*VariableNode) <a href="/src/text/template/parse/node.go?s=9836:9874#L393">String</a>
+					
+					
+				</h3>
+				<pre>func (v *<a href="#VariableNode">VariableNode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="WithNode">type <a href="/src/text/template/parse/node.go?s=23815:23851#L957">WithNode</a>
+				
+				
+			</h2>
+			<p>WithNode 表示 {{with}} 动作及其命令。<pre>type WithNode struct {
+    <a href="#BranchNode">BranchNode</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="WithNode.Copy">func (*WithNode) <a href="/src/text/template/parse/node.go?s=24075:24105#L965">Copy</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#WithNode">WithNode</a>) Copy() <a href="#Node">Node</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

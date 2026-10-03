@@ -1,0 +1,203 @@
+<!--{
+    "Title": "教程：创建 Go 模块",
+    "Breadcrumb": true
+}-->
+
+<p>
+  这是一个介绍 Go 语言基本特性的系列教程的第一部分。如果你刚接触 Go，请先阅读<a href="/doc/tutorial/getting-started.html">教程：Go 入门</a>，了解 <code>go</code> 命令、Go 模块以及非常简单的 Go 代码。
+</p>
+
+<p>
+  本教程将创建两个模块。第一个模块是一个库，供其他库或应用程序导入；第二个模块是一个应用程序，作为调用方使用第一个模块。
+</p>
+
+<p>
+  本系列教程包含七个简短的主题，分别介绍语言的不同部分。
+</p>
+
+<ol>
+  <li>
+    创建模块——编写一个小模块，提供可供其他模块调用的函数。
+  </li>
+  <li>
+    <a href="/doc/tutorial/call-module-code.html">从另一个模块调用代码</a>——导入并使用刚创建的模块。
+  </li>
+  <li>
+    <a href="/doc/tutorial/handle-errors.html">返回和处理错误</a>——添加简单的错误处理。
+  </li>
+  <li>
+    <a href="/doc/tutorial/random-greeting.html">返回随机问候语</a>——使用切片（Go 中长度可动态变化的数组视图）处理数据。
+  </li>
+  <li>
+    <a href="/doc/tutorial/greetings-multiple-people.html" >为多人返回问候语</a >——使用映射（map）存储键值对。
+  </li>
+  <li>
+    <a href="/doc/tutorial/add-a-test.html">添加测试</a>——使用 Go 内置的单元测试功能测试代码。
+  </li>
+  <li>
+    <a href="/doc/tutorial/compile-install.html">编译和安装应用程序</a>——在本地编译并安装代码。
+  </li>
+</ol>
+
+<aside class="Note">
+  <strong>注意：</strong>其他教程请参阅<a href="/doc/tutorial/index.html">教程列表</a>。
+</aside>
+
+<h2 id="prerequisites">准备工作</h2>
+
+<ul>
+  <li>
+    <strong>具备一定的编程经验。</strong>本教程中的代码很简单，不过了解一些函数、循环和数组的知识会有所帮助。
+  </li>
+  <li>
+    <strong>Go。</strong>建议使用最新版本的 Go 学习本教程。安装步骤请参阅<a href="/doc/install">安装 Go</a>。
+  </li>
+  <li>
+    <strong>代码编辑工具。</strong>任何文本编辑器都可以。大多数文本编辑器都能很好地支持 Go。常用的有 VSCode（免费）、GoLand（付费）和 Vim（免费）。
+  </li>
+  <li>
+    <strong>命令行终端。</strong>Go 可以在 Linux 和 Mac 的各种终端，以及 Windows 的 PowerShell 或 cmd 中正常使用。
+  </li>
+</ul>
+
+<h2 id="start">创建可供他人使用的模块</h2>
+
+<p>
+  首先创建一个 Go 模块。模块将一个或多个相关的包组织起来，提供一组独立且实用的功能。例如，可以创建一个包含金融分析函数的模块，让编写金融应用程序的开发者复用你的工作。有关模块开发的更多说明，请参阅<a href="/doc/modules/developing">开发和发布模块</a>。
+</p>
+
+<p>
+  Go 代码按包组织，包又按模块组织。模块声明运行代码所需的依赖，包括 Go 版本以及所依赖的其他模块。
+</p>
+
+<p>
+  向模块添加功能或改进功能时，可以发布模块的新版本。调用模块中函数的开发者可以导入更新后的包，先使用新版本进行测试，再将其用于生产环境。
+</p>
+
+<ol>
+  <li>
+    打开命令行终端，使用 <code>cd</code> 切换到用户主目录。
+
+    <p>
+      在 Linux 或 Mac 上：
+    </p>
+
+    <pre>
+cd
+</pre
+    >
+
+    <p>
+      在 Windows 上：
+    </p>
+
+    <pre>
+cd %HOMEPATH%
+</pre
+    >
+  </li>
+
+  <li>
+    创建 <code>greetings</code> 目录，用来存放 Go 模块的源代码。
+
+    <p>
+      例如，在用户主目录中运行以下命令：
+    </p>
+
+    <pre>
+mkdir greetings
+cd greetings
+</pre
+    >
+  </li>
+
+  <li>
+    使用 <a href="/ref/mod#go-mod-init" ><code>go mod init</code> 命令</a >初始化模块。
+
+    <p>
+      运行 <code>go mod init</code> 命令，并传入模块路径；这里使用 <code>example.com/greetings</code>。如果要发布模块，这个路径<em>必须</em>能让 Go 工具下载到该模块，通常就是代码仓库的地址。
+    </p>
+
+    <p>
+        有关通过模块路径为模块命名的更多说明，请参阅<a href="/doc/modules/managing-dependencies#naming_module">依赖管理</a>。
+    </p>
+
+    <pre>
+$ go mod init example.com/greetings
+go: creating new go.mod: module example.com/greetings
+</pre
+    >
+
+    <p>
+      <code>go mod init</code> 命令会创建 go.mod 文件，记录代码的依赖。目前，该文件只包含模块名称和代码所支持的 Go 版本。随着依赖不断增加，go.mod 文件也会列出代码依赖的模块版本。这样既能确保构建可复现，又能让你直接控制所使用的模块版本。
+    </p>
+  </li>
+
+  <li>
+    在文本编辑器中创建 greetings.go 文件，用于编写代码。
+  </li>
+
+  <li>
+    将以下代码粘贴到 greetings.go 文件中，然后保存。
+
+    <pre>
+package greetings
+
+import "fmt"
+
+// Hello returns a greeting for the named person.
+func Hello(name string) string {
+    // Return a greeting that embeds the name in a message.
+    message := fmt.Sprintf("Hi, %v. Welcome!", name)
+    return message
+}
+</pre
+    >
+
+    <p>
+      这是模块中的第一段代码。调用方调用它时，它会返回一句问候语。下一步，你将编写调用这个函数的代码。
+    </p>
+
+    <p>
+      在这段代码中，你完成了以下操作：
+    </p>
+
+    <ul>
+      <li>
+        声明 <code>greetings</code> 包，用于组织相关函数。
+      </li>
+      <li>
+        实现 <code>Hello</code> 函数，用于返回问候语。
+        <p>
+          这个函数接收一个名为 <code>name</code>、类型为 <code>string</code> 的参数，并返回一个 <code>string</code>。在 Go 中，名称以大写字母开头的函数可以被其他包中的函数调用，这种名称称为导出名称。有关导出名称的更多说明，请参阅《Go 语言之旅》中的<a href="/tour/basics/3">导出名称</a>。
+        </p>
+        <img src="images/function-syntax.png" width="300px" />
+      </li>
+
+      <li>
+        声明 <code>message</code> 变量，用来保存问候语。
+        <p>
+          在 Go 中，<code>:=</code> 运算符可以在一行中完成变量的声明和初始化（Go 会根据右侧的值推断变量类型）。如果采用完整写法，则可以写成：
+        </p>
+        <pre>
+var message string
+message = fmt.Sprintf("Hi, %v. Welcome!", name)
+</pre
+        >
+      </li>
+
+      <li>
+        使用 <code>fmt</code> 包的 <a href="https://pkg.go.dev/fmt/#Sprintf"> <code>Sprintf</code> 函数</a>创建问候消息。第一个实参是格式字符串，<code>Sprintf</code> 会将 <code>name</code> 参数的值填入 <code>%v</code> 格式占位符所在的位置。插入 <code>name</code> 的值后，就得到了完整的问候语。
+      </li>
+      <li>将格式化后的问候语返回给调用方。</li>
+    </ul>
+  </li>
+</ol>
+
+<p>
+  下一步，你将从另一个模块调用这个函数。
+</p>
+
+<p class="Navigation">
+  <a class="Navigation-next" href="/doc/tutorial/call-module-code.html" >从另一个模块调用代码 &gt;</a >
+</p>

@@ -1,0 +1,84 @@
+<codewalk title="Go 中的一等函数">
+
+<step title="简介" src="doc/codewalk/pig.go">
+	Go 支持一等函数、高阶函数、自定义函数类型、函数字面量、闭包和多返回值。
+  <br/><br/>
+
+	这些丰富的特性让我们能够在强类型语言中采用函数式编程风格。
+	<br/><br/>
+
+	本代码导读将介绍一个简单程序：它模拟名为 <a href="http://en.wikipedia.org/wiki/Pig_(dice)">Pig</a> 的掷骰子游戏，并评估几种基本策略。
+</step>
+
+<step title="游戏概览" src="doc/codewalk/pig.go:/\/\/ A score/,/thisTurn int\n}/">
+  Pig 是使用一枚六面骰子的双人游戏。每个回合，你都可以选择掷骰或停手。
+	<ul>
+		<li>如果掷出 1 点，你会失去本回合积累的所有分数，并轮到对手行动。掷出其他点数时，就将点数加到本回合得分中。</li>
+		<li>如果选择停手，就将本回合得分计入总分，然后轮到对手行动。</li>
+	</ul>
+	
+	总分先达到 100 分的玩家获胜。
+	<br/><br/>
+
+	<code>score</code> 类型记录当前玩家、对手的总分，以及当前回合积累的分数。
+</step>
+
+<step title="自定义函数类型" src="doc/codewalk/pig.go:/\/\/ An action/,/bool\)/">
+	在 Go 中，函数可以像其他值一样传递。函数的类型签名描述了参数和返回值的类型。
+	<br/><br/>
+
+	<code>action</code> 是一种函数类型，接收一个 <code>score</code>，返回更新后的 <code>score</code>，以及当前回合是否结束。
+	<br/><br/>
+
+  如果回合已经结束，返回的 <code>score</code> 中的 <code>player</code> 和 <code>opponent</code> 字段应当交换，因为接下来轮到另一位玩家行动。
+</step>
+
+<step title="多返回值" src="doc/codewalk/pig.go:/\/\/ roll returns/,/true\n}/">
+	Go 函数可以返回多个值。
+	<br/><br/>
+
+	<code>roll</code> 和 <code>stay</code> 函数都返回两个值，其签名也都符合 <code>action</code> 类型。
+	这些 <code>action</code> 函数定义了 Pig 的游戏规则。
+</step>
+
+<step title="高阶函数" src="doc/codewalk/pig.go:/\/\/ A strategy/,/action\n/">
+	函数可以将其他函数作为参数和返回值。
+	<br/><br/>
+
+  <code>strategy</code> 是一种函数类型，接收 <code>score</code> 作为输入，并返回要执行的 <code>action</code>。<br/>
+  别忘了，<code>action</code> 本身也是函数。
+</step>
+
+<step title="函数字面量与闭包" src="doc/codewalk/pig.go:/return func/,/return roll\n\t}/">
+	Go 可以声明匿名函数，本例展示了这种写法。
+	函数字面量是闭包，可以引用其定义位置的外围函数作用域中的变量。
+	<br/><br/>
+
+	Pig 的一种基本策略是：不断掷骰，直到本回合至少积累 k 分，然后停手。
+	这个函数字面量捕获了参数 <code>k</code>，其签名符合 <code>strategy</code> 类型。
+</step>
+
+<step title="模拟游戏" src="doc/codewalk/pig.go:/\/\/ play/,/currentPlayer\n}/">
+  我们不断调用 <code>action</code> 更新 <code>score</code>，直到一位玩家达到 100 分，由此模拟一局 Pig 游戏。
+  每次执行的 <code>action</code>，都通过调用当前玩家对应的 <code>strategy</code> 函数来选择。
+</step>
+
+<step title="模拟锦标赛" src="doc/codewalk/pig.go:/\/\/ roundRobin/,/gamesPerStrategy\n}/">
+	<code>roundRobin</code> 函数模拟一场循环赛并统计胜场数。
+	每种策略都与其他每种策略对战 <code>gamesPerSeries</code> 次。
+</step>
+	
+<step title="可变参数函数声明" src="doc/codewalk/pig.go:/\/\/ ratioS/,/string {/">
+	像 <code>ratioString</code> 这样的可变参数函数可以接收数量不定的实参。
+	在函数内部，这些实参以切片形式提供。
+</step>
+
+<step title="模拟结果" src="doc/codewalk/pig.go:/func main/,/\n}/">
+	<code>main</code> 函数定义了 100 种基本策略，模拟一场循环赛，再打印每种策略的胜负记录。
+	<br/><br/>
+
+	在这些策略中，积累到 25 分时停手的效果最好；不过，<a
+	href="http://www.google.com/search?q=optimal+play+pig">Pig 的最优策略</a>要复杂得多。
+</step>
+
+</codewalk>

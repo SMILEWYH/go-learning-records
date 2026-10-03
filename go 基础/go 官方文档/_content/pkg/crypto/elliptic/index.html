@@ -1,0 +1,370 @@
+<!--{
+  "Title": "crypto/elliptic 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package elliptic</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/elliptic"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>elliptic 包实现定义在素数域上的标准 NIST P-224、P-256、P-384 和 P-521 椭圆曲线。
+<p>除使用 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 和 <a href="#P521">P521</a> 值来调用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 这一必要用途外，直接使用本包的方式已弃用。多数其他用途应迁移到更高效、更安全的 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a>；更底层的功能则应使用第三方模块。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#GenerateKey">func GenerateKey(curve Curve, rand io.Reader) (priv []byte, x, y *big.Int, err error)</a></dd>
+			
+				<dd><a href="#Marshal">func Marshal(curve Curve, x, y *big.Int) []byte</a></dd>
+			
+				<dd><a href="#MarshalCompressed">func MarshalCompressed(curve Curve, x, y *big.Int) []byte</a></dd>
+			
+				<dd><a href="#Unmarshal">func Unmarshal(curve Curve, data []byte) (x, y *big.Int)</a></dd>
+			
+				<dd><a href="#UnmarshalCompressed">func UnmarshalCompressed(curve Curve, data []byte) (x, y *big.Int)</a></dd>
+			
+			
+				
+				<dd><a href="#Curve">type Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P224">func P224() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P256">func P256() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P384">func P384() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P521">func P521() Curve</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CurveParams">type CurveParams</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.Add">func (curve *CurveParams) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.Double">func (curve *CurveParams) Double(x1, y1 *big.Int) (*big.Int, *big.Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.IsOnCurve">func (curve *CurveParams) IsOnCurve(x, y *big.Int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.Params">func (curve *CurveParams) Params() *CurveParams</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.ScalarBaseMult">func (curve *CurveParams) ScalarBaseMult(k []byte) (*big.Int, *big.Int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CurveParams.ScalarMult">func (curve *CurveParams) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int, *big.Int)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/elliptic/elliptic.go">elliptic.go</a>
+			
+				<a href="/src/crypto/elliptic/nistec.go">nistec.go</a>
+			
+				<a href="/src/crypto/elliptic/params.go">params.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="GenerateKey">func <a href="/src/crypto/elliptic/elliptic.go?s=2879:2964#L65">GenerateKey</a>
+				
+				
+			</h2>
+			<pre>func GenerateKey(curve <a href="#Curve">Curve</a>, rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (priv []<a href="/pkg/builtin/#byte">byte</a>, x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>GenerateKey 返回一对公钥和私钥。私钥使用给定 reader 生成，该 reader 必须返回随机数据。
+<p>已弃用：对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包的 GenerateKey 方法；对于 ECDSA，请使用 crypto/ecdsa 包的 GenerateKey 函数。
+
+			
+		
+			
+			<h2 id="Marshal">func <a href="/src/crypto/elliptic/elliptic.go?s=4016:4063#L99">Marshal</a>
+				
+				
+			</h2>
+			<pre>func Marshal(curve <a href="#Curve">Curve</a>, x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Marshal 将曲线上的点转换为 SEC 1 第 2.0 版第 2.3.3 节规定的未压缩形式。如果点不在曲线上（或为约定表示的无穷远点），则行为未定义。
+<p>已弃用：对于 ECDH，请使用 crypto/ecdh 包。此函数返回的编码与 crypto/ecdh 中 PublicKey.Bytes 的编码等价。
+
+			
+		
+			
+			<h2 id="MarshalCompressed">func <a href="/src/crypto/elliptic/elliptic.go?s=4540:4597#L116">MarshalCompressed</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func MarshalCompressed(curve <a href="#Curve">Curve</a>, x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>MarshalCompressed 将曲线上的点转换为 SEC 1 第 2.0 版第 2.3.3 节规定的压缩形式。如果点不在曲线上（或为约定表示的无穷远点），则行为未定义。
+
+			
+		
+			
+			<h2 id="Unmarshal">func <a href="/src/crypto/elliptic/elliptic.go?s=5618:5674#L143">Unmarshal</a>
+				
+				
+			</h2>
+			<pre>func Unmarshal(curve <a href="#Curve">Curve</a>, data []<a href="/pkg/builtin/#byte">byte</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+			<p>Unmarshal 将由 <a href="#Marshal">Marshal</a> 序列化的点转换为 x、y 坐标对。如果点不是未压缩形式、不在曲线上，或为无穷远点，则视为错误。出错时，x = nil。
+<p>已弃用：对于 ECDH，请使用 crypto/ecdh 包。此函数接受的编码与 crypto/ecdh 中 NewPublicKey 方法接受的编码等价。
+
+			
+		
+			
+			<h2 id="UnmarshalCompressed">func <a href="/src/crypto/elliptic/elliptic.go?s=6365:6431#L170">UnmarshalCompressed</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func UnmarshalCompressed(curve <a href="#Curve">Curve</a>, data []<a href="/pkg/builtin/#byte">byte</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+			<p>UnmarshalCompressed 将由 <a href="#MarshalCompressed">MarshalCompressed</a> 序列化的点转换为 x、y 坐标对。如果点不是压缩形式、不在曲线上，或为无穷远点，则视为错误。出错时，x = nil。
+
+			
+		
+		
+			
+			<h2 id="Curve">type <a href="/src/crypto/elliptic/elliptic.go?s=1131:2519#L21">Curve</a>
+				
+				
+			</h2>
+			<p>Curve 表示 a=-3 的短 Weierstrass 形式曲线。
+<p>当输入不是曲线上的点时，Add、Double 和 ScalarMult 的行为未定义。
+<p>注意，约定表示的无穷远点 (0, 0) 不被视为曲线上的点，尽管 Add、Double、ScalarMult 或 ScalarBaseMult 可以返回它（但 <a href="#Unmarshal">Unmarshal</a> 和 <a href="#UnmarshalCompressed">UnmarshalCompressed</a> 函数不会返回它）。
+<p>除 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 和 <a href="#P521">P521</a> 返回的实现外，使用其他 Curve 实现的方式已弃用。
+
+			<pre>type Curve interface {
+    <span class="comment">// Params 返回曲线参数。</span>
+    Params() *<a href="#CurveParams">CurveParams</a>
+
+    <span class="comment">// IsOnCurve 报告给定的 (x,y) 是否位于曲线上。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：这是不安全的底层 API。对于 ECDH，请使用 crypto/ecdh</span>
+    <span class="comment">// 包。crypto/ecdh 中 NIST 曲线的 NewPublicKey 方法接受</span>
+    <span class="comment">// 与 Unmarshal 函数相同的编码，并检查点是否在曲线上。</span>
+    IsOnCurve(x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Add 返回 (x1,y1) 与 (x2,y2) 的和。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：这是不安全的底层 API。</span>
+    Add(x1, y1, x2, y2 *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)
+
+    <span class="comment">// Double 返回 2*(x,y)。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：这是不安全的底层 API。</span>
+    Double(x1, y1 *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)
+
+    <span class="comment">// ScalarMult 返回 k*(x,y)，其中 k 是大端形式的整数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：这是不安全的底层 API。对于 ECDH，请使用 crypto/ecdh</span>
+    <span class="comment">// 包。多数 ScalarMult 用法可以替换为对 crypto/ecdh 中 NIST 曲线</span>
+    <span class="comment">// 的 ECDH 方法的调用。</span>
+    ScalarMult(x1, y1 *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, k []<a href="/pkg/builtin/#byte">byte</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)
+
+    <span class="comment">// ScalarBaseMult 返回 k*G，其中 G 为群的基点，</span>
+    <span class="comment">// k 为大端形式的整数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：这是不安全的底层 API。对于 ECDH，请使用 crypto/ecdh</span>
+    <span class="comment">// 包。多数 ScalarBaseMult 用法可以替换为对 crypto/ecdh 中</span>
+    <span class="comment">// PrivateKey.PublicKey 方法的调用。</span>
+    ScalarBaseMult(k []<a href="/pkg/builtin/#byte">byte</a>) (x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="P224">func <a href="/src/crypto/elliptic/elliptic.go?s=7847:7864#L230">P224</a>
+					
+					
+				</h3>
+				<pre>func P224() <a href="#Curve">Curve</a></pre>
+				<p>P224 返回实现 NIST P-224（FIPS 186-3 第 D.2.2 节）的 <a href="#Curve">Curve</a>，该曲线也称为 secp224r1。此 <a href="#Curve">Curve</a> 的 CurveParams.Name 为 &quot;P-224&quot;。
+<p>多次调用此函数会返回相同的值，因此可用于相等性检查和 switch 语句。
+<p>密码学操作使用常量时间算法实现。
+
+				
+			
+				<h3 id="P256">func <a href="/src/crypto/elliptic/elliptic.go?s=8301:8318#L243">P256</a>
+					
+					
+				</h3>
+				<pre>func P256() <a href="#Curve">Curve</a></pre>
+				<p>P256 返回实现 NIST P-256（FIPS 186-3 第 D.2.3 节）的 <a href="#Curve">Curve</a>，该曲线也称为 secp256r1 或 prime256v1。此 <a href="#Curve">Curve</a> 的 CurveParams.Name 为 &quot;P-256&quot;。
+<p>多次调用此函数会返回相同的值，因此可用于相等性检查和 switch 语句。
+<p>密码学操作使用常量时间算法实现。
+
+				
+			
+				<h3 id="P384">func <a href="/src/crypto/elliptic/elliptic.go?s=8738:8755#L255">P384</a>
+					
+					
+				</h3>
+				<pre>func P384() <a href="#Curve">Curve</a></pre>
+				<p>P384 返回实现 NIST P-384（FIPS 186-3 第 D.2.4 节）的 <a href="#Curve">Curve</a>，该曲线也称为 secp384r1。此 <a href="#Curve">Curve</a> 的 CurveParams.Name 为 &quot;P-384&quot;。
+<p>多次调用此函数会返回相同的值，因此可用于相等性检查和 switch 语句。
+<p>密码学操作使用常量时间算法实现。
+
+				
+			
+				<h3 id="P521">func <a href="/src/crypto/elliptic/elliptic.go?s=9175:9192#L267">P521</a>
+					
+					
+				</h3>
+				<pre>func P521() <a href="#Curve">Curve</a></pre>
+				<p>P521 返回实现 NIST P-521（FIPS 186-3 第 D.2.5 节）的 <a href="#Curve">Curve</a>，该曲线也称为 secp521r1。此 <a href="#Curve">Curve</a> 的 CurveParams.Name 为 &quot;P-521&quot;。
+<p>多次调用此函数会返回相同的值，因此可用于相等性检查和 switch 语句。
+<p>密码学操作使用常量时间算法实现。
+
+				
+			
+
+			
+		
+			
+			<h2 id="CurveParams">type <a href="/src/crypto/elliptic/params.go?s=529:868#L5">CurveParams</a>
+				
+				
+			</h2>
+			<p>CurveParams 包含椭圆曲线参数，并提供 <a href="#Curve">Curve</a> 的通用非常量时间实现。
+<p>通用 Curve 实现已弃用；使用自定义曲线（即非 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 和 <a href="#P521">P521</a> 返回的曲线）不保证具有任何安全属性。
+
+			<pre>type CurveParams struct {
+<span id="CurveParams.P"></span>    P       *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 底层域的阶</span>
+<span id="CurveParams.N"></span>    N       *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 基点的阶</span>
+<span id="CurveParams.B"></span>    B       *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 曲线方程的常数项</span>
+<span id="CurveParams.Gx"></span>    Gx, Gy  *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 基点的 (x,y) 坐标</span>
+<span id="CurveParams.BitSize"></span>    BitSize <a href="/pkg/builtin/#int">int</a>      <span class="comment">// 底层域的位数</span>
+<span id="CurveParams.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 曲线的规范名称；Go 1.5 新增</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CurveParams.Add">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=3668:3743#L100">Add</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) Add(x1, y1, x2, y2 *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) (*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+				<p>Add 实现 <a href="#Curve.Add">Curve.Add</a>。
+<p>已弃用：<a href="#CurveParams">CurveParams</a> 的方法已弃用，不保证具有任何安全属性。对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包。对于 ECDSA，请使用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 包，并直接传入 <a href="#Curve">Curve</a> 值，该值应来自 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 或 <a href="#P521">P521</a>。
+
+				
+			
+				<h3 id="CurveParams.Double">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=6127:6197#L198">Double</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) Double(x1, y1 *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) (*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+				<p>Double 实现 <a href="#Curve.Double">Curve.Double</a>。
+<p>已弃用：<a href="#CurveParams">CurveParams</a> 的方法已弃用，不保证具有任何安全属性。对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包。对于 ECDSA，请使用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 包，并直接传入 <a href="#Curve">Curve</a> 值，该值应来自 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 或 <a href="#P521">P521</a>。
+
+				
+			
+				<h3 id="CurveParams.IsOnCurve">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=1987:2042#L46">IsOnCurve</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) IsOnCurve(x, y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsOnCurve 实现 <a href="#Curve.IsOnCurve">Curve.IsOnCurve</a>。
+<p>已弃用：<a href="#CurveParams">CurveParams</a> 的方法已弃用，不保证具有任何安全属性。对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包。对于 ECDSA，请使用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 包，并直接传入 <a href="#Curve">Curve</a> 值，该值应来自 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 或 <a href="#P521">P521</a>。
+
+				
+			
+				<h3 id="CurveParams.Params">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=870:917#L14">Params</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) Params() *<a href="#CurveParams">CurveParams</a></pre>
+				
+				
+			
+				<h3 id="CurveParams.ScalarBaseMult">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=9244:9315#L307">ScalarBaseMult</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) ScalarBaseMult(k []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+				<p>ScalarBaseMult 实现 <a href="#Curve.ScalarBaseMult">Curve.ScalarBaseMult</a>。
+<p>已弃用：<a href="#CurveParams">CurveParams</a> 的方法已弃用，不保证具有任何安全属性。对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包。对于 ECDSA，请使用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 包，并直接传入 <a href="#Curve">Curve</a> 值，该值应来自 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 或 <a href="#P521">P521</a>。
+
+				
+			
+				<h3 id="CurveParams.ScalarMult">func (*CurveParams) <a href="/src/crypto/elliptic/params.go?s=8248:8332#L277">ScalarMult</a>
+					
+					
+				</h3>
+				<pre>func (curve *<a href="#CurveParams">CurveParams</a>) ScalarMult(Bx, By *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, k []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>)</pre>
+				<p>ScalarMult 实现 <a href="#Curve.ScalarMult">Curve.ScalarMult</a>。
+<p>已弃用：<a href="#CurveParams">CurveParams</a> 的方法已弃用，不保证具有任何安全属性。对于 ECDH，请使用 <a href="/pkg/crypto/ecdh/">crypto/ecdh</a> 包。对于 ECDSA，请使用 <a href="/pkg/crypto/ecdsa/">crypto/ecdsa</a> 包，并直接传入 <a href="#Curve">Curve</a> 值，该值应来自 <a href="#P224">P224</a>、<a href="#P256">P256</a>、<a href="#P384">P384</a> 或 <a href="#P521">P521</a>。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

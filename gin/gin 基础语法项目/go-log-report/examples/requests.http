@@ -1,0 +1,13 @@
+@base = http://127.0.0.1:8093
+
+### 先运行 go run . -serve
+GET {{base}}/healthz
+
+### 宽松报告：6 行有效、1 行无效
+GET {{base}}/reports?workers=2&strict=false
+
+### 严格模式：返回 422
+GET {{base}}/reports?strict=true
+
+### 非法并发数：返回 400
+GET {{base}}/reports?workers=0

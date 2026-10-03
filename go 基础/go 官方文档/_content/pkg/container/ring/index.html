@@ -1,0 +1,587 @@
+<!--{
+  "Title": "container/ring 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>container/ring 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "container/ring"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ring 包实现循环链表上的操作。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Ring">type Ring</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(n int) *Ring</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Do">func (r *Ring) Do(f func(any))</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Len">func (r *Ring) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Link">func (r *Ring) Link(s *Ring) *Ring</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Move">func (r *Ring) Move(n int) *Ring</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Next">func (r *Ring) Next() *Ring</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Prev">func (r *Ring) Prev() *Ring</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ring.Unlink">func (r *Ring) Unlink(n int) *Ring</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Do">Ring.Do</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Len">Ring.Len</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Link">Ring.Link</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Move">Ring.Move</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Next">Ring.Next</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Prev">Ring.Prev</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ring_Unlink">Ring.Unlink</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/container/ring/ring.go">ring.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Ring">type <a href="/src/container/ring/ring.go?s=520:622#L3">Ring</a>
+				
+				
+			</h2>
+			<p>Ring 是循环链表（也称为环）中的一个元素。环没有开头或结尾；指向任意环元素的指针都可作为对整个环的引用。空环用 nil 的 Ring 指针表示。Ring 的零值是仅含一个元素的环，该元素的 Value 为 nil。<pre>type Ring struct {
+<span id="Ring.Value"></span>    Value <a href="/pkg/builtin/#any">any</a> <span class="comment">// 供调用方使用；本库不会修改它</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/container/ring/ring.go?s=1375:1396#L50">New</a>
+					
+					
+				</h3>
+				<pre>func New(n <a href="/pkg/builtin/#int">int</a>) *<a href="#Ring">Ring</a></pre>
+				<p>New 创建一个包含 n 个元素的环。<h3 id="Ring.Do">func (*Ring) <a href="/src/container/ring/ring.go?s=3095:3125#L119">Do</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Do(f func(<a href="/pkg/builtin/#any">any</a>))</pre>
+				<p>Do 按正向顺序对环中的每个元素调用函数 f。如果 f 修改 *r，则 Do 的行为未定义。<div id="example_Ring_Do" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 5 的新环
+	r := ring.New(5)
+
+	// 获取环的长度
+	n := r.Len()
+
+	// 使用一些整数值初始化环
+	for i := 0; i &lt; n; i&#43;&#43; {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// 遍历环并打印其内容
+	r.Do(func(p any) {
+		fmt.Println(p.(int))
+	})
+
+}
+</textarea></div>
+        <div class="output"><pre>0
+1
+2
+3
+4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Len">func (*Ring) <a href="/src/container/ring/ring.go?s=2846:2870#L106">Len</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 计算环 r 中的元素数量。其执行时间与元素数量成正比。<div id="example_Ring_Len" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 4 的新环
+	r := ring.New(4)
+
+	// 打印它的长度
+	fmt.Println(r.Len())
+
+}
+</textarea></div>
+        <div class="output"><pre>4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Link">func (*Ring) <a href="/src/container/ring/ring.go?s=2204:2238#L80">Link</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Link(s *<a href="#Ring">Ring</a>) *<a href="#Ring">Ring</a></pre>
+				<p>Link 将环 r 与环 s 连接，使 r.Next() 变为 s，并返回 r.Next() 的原值。r 不得为空。<p>如果 r 和 s 指向同一个环，将它们连接会从环中移除 r 与 s 之间的元素。被移除的元素组成一个子环，返回结果是对该子环的引用（如果没有移除元素，结果仍为 r.Next() 的原值，而不是 nil）。<p>如果 r 和 s 指向不同的环，将它们连接会创建一个环，其中 s 的元素插入在 r 之后。返回结果指向插入后紧随 s 的最后一个元素的元素。<div id="example_Ring_Link" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建两个大小为 2 的环 r 和 s
+	r := ring.New(2)
+	s := ring.New(2)
+
+	// 获取环的长度
+	lr := r.Len()
+	ls := s.Len()
+
+	// 使用 0 初始化 r
+	for i := 0; i &lt; lr; i&#43;&#43; {
+		r.Value = 0
+		r = r.Next()
+	}
+
+	// 使用 1 初始化 s
+	for j := 0; j &lt; ls; j&#43;&#43; {
+		s.Value = 1
+		s = s.Next()
+	}
+
+	// 连接环 r 和环 s
+	rs := r.Link(s)
+
+	// 遍历合并后的环并打印其内容
+	rs.Do(func(p any) {
+		fmt.Println(p.(int))
+	})
+
+}
+</textarea></div>
+        <div class="output"><pre>0
+0
+1
+1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Move">func (*Ring) <a href="/src/container/ring/ring.go?s=1132:1164#L32">Move</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Move(n <a href="/pkg/builtin/#int">int</a>) *<a href="#Ring">Ring</a></pre>
+				<p>Move 在环中向后（n &lt; 0）或向前（n &gt;= 0）移动 n % r.Len() 个元素，并返回到达的环元素。r 不得为空。<div id="example_Ring_Move" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 5 的新环
+	r := ring.New(5)
+
+	// 获取环的长度
+	n := r.Len()
+
+	// 使用一些整数值初始化环
+	for i := 0; i &lt; n; i&#43;&#43; {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// 将指针向前移动三步
+	r = r.Move(3)
+
+	// 遍历环并打印其内容
+	r.Do(func(p any) {
+		fmt.Println(p.(int))
+	})
+
+}
+</textarea></div>
+        <div class="output"><pre>3
+4
+0
+1
+2
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Next">func (*Ring) <a href="/src/container/ring/ring.go?s=751:778#L15">Next</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Next() *<a href="#Ring">Ring</a></pre>
+				<p>Next 返回下一个环元素。r 不得为空。<div id="example_Ring_Next" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 5 的新环
+	r := ring.New(5)
+
+	// 获取环的长度
+	n := r.Len()
+
+	// 使用一些整数值初始化环
+	for i := 0; i &lt; n; i&#43;&#43; {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// 遍历环并打印其内容
+	for j := 0; j &lt; n; j&#43;&#43; {
+		fmt.Println(r.Value)
+		r = r.Next()
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>0
+1
+2
+3
+4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Prev">func (*Ring) <a href="/src/container/ring/ring.go?s=904:931#L23">Prev</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Prev() *<a href="#Ring">Ring</a></pre>
+				<p>Prev 返回上一个环元素。r 不得为空。<div id="example_Ring_Prev" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 5 的新环
+	r := ring.New(5)
+
+	// 获取环的长度
+	n := r.Len()
+
+	// 使用一些整数值初始化环
+	for i := 0; i &lt; n; i&#43;&#43; {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// 反向遍历环并打印其内容
+	for j := 0; j &lt; n; j&#43;&#43; {
+		r = r.Prev()
+		fmt.Println(r.Value)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>4
+3
+2
+1
+0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Ring.Unlink">func (*Ring) <a href="/src/container/ring/ring.go?s=2634:2668#L97">Unlink</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Ring">Ring</a>) Unlink(n <a href="/pkg/builtin/#int">int</a>) *<a href="#Ring">Ring</a></pre>
+				<p>Unlink 从 r.Next() 开始，从环 r 中移除 n % r.Len() 个元素。如果 n % r.Len() == 0，则 r 保持不变。结果是被移除的子环。r 不得为空。<div id="example_Ring_Unlink" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;container/ring&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// 创建一个大小为 6 的新环
+	r := ring.New(6)
+
+	// 获取环的长度
+	n := r.Len()
+
+	// 使用一些整数值初始化环
+	for i := 0; i &lt; n; i&#43;&#43; {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// 从 r.Next() 开始，从 r 中移除三个元素
+	r.Unlink(3)
+
+	// 遍历剩余的环并打印其内容
+	r.Do(func(p any) {
+		fmt.Println(p.(int))
+	})
+
+}
+</textarea></div>
+        <div class="output"><pre>0
+4
+5
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

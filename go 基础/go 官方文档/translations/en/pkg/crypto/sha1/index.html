@@ -1,0 +1,280 @@
+<!--{
+  "Title": "crypto/sha1 package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package sha1</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/sha1"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package sha1 implements the SHA-1 hash algorithm as defined in RFC 3174.
+<p>SHA-1 is cryptographically broken and should not be used for secure
+applications.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#New">func New() hash.Hash</a></dd>
+			
+				<dd><a href="#Sum">func Sum(data []byte) [Size]byte</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_New">New</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_New_file">New (File)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sum">Sum</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/sha1/sha1.go">sha1.go</a>
+			
+				<a href="/src/crypto/sha1/sha1block.go">sha1block.go</a>
+			
+				<a href="/src/crypto/sha1/sha1block_amd64.go">sha1block_amd64.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>The blocksize of SHA-1 in bytes.
+
+				<pre>const <span id="BlockSize">BlockSize</span> = 64</pre>
+			
+				<p>The size of a SHA-1 checksum in bytes.
+
+				<pre>const <span id="Size">Size</span> = 20</pre>
+			
+		
+		
+		
+			
+			<h2 id="New">func <a href="/src/crypto/sha1/sha1.go?s=2671:2691#L105">New</a>
+				
+				
+			</h2>
+			<pre>func New() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a></pre>
+			<p>New returns a new <a href="/pkg/hash/#Hash">hash.Hash</a> computing the SHA1 checksum. The Hash
+also implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>, <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a> and
+<a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> to marshal and unmarshal the internal
+state of the hash.
+
+			
+
+
+<div id="example_New" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha1&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+)
+
+func main() {
+	h := sha1.New()
+	io.WriteString(h, &#34;His money is twice tainted:&#34;)
+	io.WriteString(h, &#34; &#39;taint yours and &#39;taint mine.&#34;)
+	fmt.Printf(&#34;% x&#34;, h.Sum(nil))
+}
+</textarea></div>
+        <div class="output"><pre>59 7f 6a 54 00 10 f9 4c 15 d7 18 06 a9 9a 2c 87 10 e7 47 bd
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_New_file" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (File)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (File)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha1&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	f, err := os.Open(&#34;file.txt&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	h := sha1.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;% x&#34;, h.Sum(nil))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sum">func <a href="/src/crypto/sha1/sha1.go?s=6268:6300#L263">Sum</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func Sum(data []<a href="/pkg/builtin/#byte">byte</a>) [<a href="#Size">Size</a>]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum returns the SHA-1 checksum of the data.
+
+			
+
+
+<div id="example_Sum" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/sha1&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	data := []byte(&#34;This page intentionally left blank.&#34;)
+	fmt.Printf(&#34;% x&#34;, sha1.Sum(data))
+}
+</textarea></div>
+        <div class="output"><pre>af 06 49 23 bb f2 30 15 96 aa c4 c2 73 ba 32 17 8e bc 4a 96
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,2170 @@
+<!--{
+  "Title": "reflect 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>reflect 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "reflect"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>reflect 包实现运行时反射，使程序能够操作任意类型的对象。典型用法是取得一个静态类型为 interface{} 的值，然后调用 TypeOf 提取其动态类型信息；TypeOf 返回一个 Type。<p>调用 ValueOf 会返回表示运行时数据的 Value。Zero 接收一个 Type，并返回表示该类型零值的 Value。<p>Go 反射的入门介绍见《反射法则》：<a href="/golang.org/doc/articles/laws_of_reflection.html">https://golang.org/doc/articles/laws_of_reflection.html</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#Copy">func Copy(dst, src Value) int</a></dd>
+			
+				<dd><a href="#DeepEqual">func DeepEqual(x, y any) bool</a></dd>
+			
+				<dd><a href="#Swapper">func Swapper(slice any) func(i, j int)</a></dd>
+			
+				<dd><a href="#TypeAssert">func TypeAssert[T any](v Value) (T, bool)</a></dd>
+			
+			
+				
+				<dd><a href="#ChanDir">type ChanDir</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ChanDir.String">func (d ChanDir) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Kind">type Kind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Kind.String">func (k Kind) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#MapIter">type MapIter</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MapIter.Key">func (iter *MapIter) Key() Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapIter.Next">func (iter *MapIter) Next() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapIter.Reset">func (iter *MapIter) Reset(v Value)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapIter.Value">func (iter *MapIter) Value() Value</a></dd>
+				
+			
+				
+				<dd><a href="#Method">type Method</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Method.IsExported">func (m Method) IsExported() bool</a></dd>
+				
+			
+				
+				<dd><a href="#SelectCase">type SelectCase</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SelectDir">type SelectDir</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SliceHeader">type SliceHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StringHeader">type StringHeader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StructField">type StructField</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#VisibleFields">func VisibleFields(t Type) []StructField</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StructField.IsExported">func (f StructField) IsExported() bool</a></dd>
+				
+			
+				
+				<dd><a href="#StructTag">type StructTag</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StructTag.Get">func (tag StructTag) Get(key string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StructTag.Lookup">func (tag StructTag) Lookup(key string) (value string, ok bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ArrayOf">func ArrayOf(length int, elem Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChanOf">func ChanOf(dir ChanDir, t Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncOf">func FuncOf(in, out []Type, variadic bool) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapOf">func MapOf(key, elem Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PointerTo">func PointerTo(t Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PtrTo">func PtrTo(t Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SliceOf">func SliceOf(t Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StructOf">func StructOf(fields []StructField) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeFor">func TypeFor[T any]() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeOf">func TypeOf(i any) Type</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Append">func Append(s Value, x ...Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AppendSlice">func AppendSlice(s, t Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Indirect">func Indirect(v Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeChan">func MakeChan(typ Type, buffer int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeFunc">func MakeFunc(typ Type, fn func(args []Value) (results []Value)) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeMap">func MakeMap(typ Type) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeMapWithSize">func MakeMapWithSize(typ Type, n int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeSlice">func MakeSlice(typ Type, len, cap int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(typ Type) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewAt">func NewAt(typ Type, p unsafe.Pointer) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Select">func Select(cases []SelectCase) (chosen int, recv Value, recvOK bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SliceAt">func SliceAt(typ Type, p unsafe.Pointer, n int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ValueOf">func ValueOf(i any) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Zero">func Zero(typ Type) Value</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Addr">func (v Value) Addr() Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Bool">func (v Value) Bool() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Bytes">func (v Value) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Call">func (v Value) Call(in []Value) []Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CallSlice">func (v Value) CallSlice(in []Value) []Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanAddr">func (v Value) CanAddr() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanComplex">func (v Value) CanComplex() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanConvert">func (v Value) CanConvert(t Type) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanFloat">func (v Value) CanFloat() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanInt">func (v Value) CanInt() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanInterface">func (v Value) CanInterface() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanSet">func (v Value) CanSet() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.CanUint">func (v Value) CanUint() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Cap">func (v Value) Cap() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Clear">func (v Value) Clear()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Close">func (v Value) Close()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Comparable">func (v Value) Comparable() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Complex">func (v Value) Complex() complex128</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Convert">func (v Value) Convert(t Type) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Elem">func (v Value) Elem() Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Equal">func (v Value) Equal(u Value) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Field">func (v Value) Field(i int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.FieldByIndex">func (v Value) FieldByIndex(index []int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.FieldByIndexErr">func (v Value) FieldByIndexErr(index []int) (Value, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.FieldByName">func (v Value) FieldByName(name string) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.FieldByNameFunc">func (v Value) FieldByNameFunc(match func(string) bool) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Fields">func (v Value) Fields() iter.Seq2[StructField, Value]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Float">func (v Value) Float() float64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Grow">func (v Value) Grow(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Index">func (v Value) Index(i int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Int">func (v Value) Int() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Interface">func (v Value) Interface() (i any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.InterfaceData">func (v Value) InterfaceData() [2]uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.IsNil">func (v Value) IsNil() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.IsValid">func (v Value) IsValid() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.IsZero">func (v Value) IsZero() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Kind">func (v Value) Kind() Kind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Len">func (v Value) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.MapIndex">func (v Value) MapIndex(key Value) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.MapKeys">func (v Value) MapKeys() []Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.MapRange">func (v Value) MapRange() *MapIter</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Method">func (v Value) Method(i int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.MethodByName">func (v Value) MethodByName(name string) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Methods">func (v Value) Methods() iter.Seq2[Method, Value]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.NumField">func (v Value) NumField() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.NumMethod">func (v Value) NumMethod() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.OverflowComplex">func (v Value) OverflowComplex(x complex128) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.OverflowFloat">func (v Value) OverflowFloat(x float64) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.OverflowInt">func (v Value) OverflowInt(x int64) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.OverflowUint">func (v Value) OverflowUint(x uint64) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Pointer">func (v Value) Pointer() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Recv">func (v Value) Recv() (x Value, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Send">func (v Value) Send(x Value)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Seq">func (v Value) Seq() iter.Seq[Value]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Seq2">func (v Value) Seq2() iter.Seq2[Value, Value]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Set">func (v Value) Set(x Value)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetBool">func (v Value) SetBool(x bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetBytes">func (v Value) SetBytes(x []byte)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetCap">func (v Value) SetCap(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetComplex">func (v Value) SetComplex(x complex128)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetFloat">func (v Value) SetFloat(x float64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetInt">func (v Value) SetInt(x int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetIterKey">func (v Value) SetIterKey(iter *MapIter)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetIterValue">func (v Value) SetIterValue(iter *MapIter)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetLen">func (v Value) SetLen(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetMapIndex">func (v Value) SetMapIndex(key, elem Value)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetPointer">func (v Value) SetPointer(x unsafe.Pointer)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetString">func (v Value) SetString(x string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetUint">func (v Value) SetUint(x uint64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.SetZero">func (v Value) SetZero()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Slice">func (v Value) Slice(i, j int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Slice3">func (v Value) Slice3(i, j, k int) Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.String">func (v Value) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.TryRecv">func (v Value) TryRecv() (x Value, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.TrySend">func (v Value) TrySend(x Value) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Type">func (v Value) Type() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Uint">func (v Value) Uint() uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.UnsafeAddr">func (v Value) UnsafeAddr() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.UnsafePointer">func (v Value) UnsafePointer() unsafe.Pointer</a></dd>
+				
+			
+				
+				<dd><a href="#ValueError">type ValueError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ValueError.Error">func (e *ValueError) Error() string</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Kind">Kind</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MakeFunc">MakeFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_StructOf">StructOf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_StructTag">StructTag</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_StructTag_Lookup">StructTag.Lookup</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TypeOf">TypeOf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value_FieldByIndex">Value.FieldByIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value_FieldByName">Value.FieldByName</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value_Fields">Value.Fields</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Value_Methods">Value.Methods</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/reflect/abi.go">abi.go</a>
+			
+				<a href="/src/reflect/badlinkname.go">badlinkname.go</a>
+			
+				<a href="/src/reflect/deepequal.go">deepequal.go</a>
+			
+				<a href="/src/reflect/float32reg_generic.go">float32reg_generic.go</a>
+			
+				<a href="/src/reflect/iter.go">iter.go</a>
+			
+				<a href="/src/reflect/makefunc.go">makefunc.go</a>
+			
+				<a href="/src/reflect/map.go">map.go</a>
+			
+				<a href="/src/reflect/swapper.go">swapper.go</a>
+			
+				<a href="/src/reflect/type.go">type.go</a>
+			
+				<a href="/src/reflect/value.go">value.go</a>
+			
+				<a href="/src/reflect/visiblefields.go">visiblefields.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Ptr 是 <a href="#Pointer">Pointer</a> 类别的旧名称。<pre>const <span id="Ptr">Ptr</span> = <a href="#Pointer">Pointer</a></pre>
+			
+		
+		
+		
+			
+			<h2 id="Copy">func <a href="/src/reflect/value.go?s=89496:89525#L2824">Copy</a>
+				
+				
+			</h2>
+			<pre>func Copy(dst, src <a href="#Value">Value</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Copy 将 src 的内容复制到 dst，直到 dst 被填满或 src 的元素被复制完，并返回复制的元素数。dst 和 src 的类别都必须是 <a href="#Slice">Slice</a> 或 <a href="#Array">Array</a>，且元素类型必须相同。如果 dst 是 <a href="#Array">Array</a>，且 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<p>有一个特例：如果 dst 的元素类型的类别为 <a href="#Uint8">Uint8</a>，则 src 的类别可以是 <a href="#String">String</a>。<h2 id="DeepEqual">func <a href="/src/reflect/deepequal.go?s=7382:7411#L219">DeepEqual</a>
+				
+				
+			</h2>
+			<pre>func DeepEqual(x, y <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>DeepEqual 报告 x 和 y 是否“深度相等”，定义如下。两个类型相同的值满足下列某一种情况时，便深度相等。不同类型的值永远不会深度相等。<p>两个数组值在其对应元素深度相等时深度相等。<p>两个结构体值在其所有对应字段（包括导出和未导出的字段）深度相等时深度相等。<p>两个函数值仅在都为 nil 时深度相等，否则不深度相等。<p>两个接口值在其持有的具体值深度相等时深度相等。<p>两个映射值在满足以下所有条件时深度相等：它们都为 nil 或都不为 nil；长度相同；并且它们是同一个映射对象，或者其对应的键（使用 Go 的相等比较进行匹配）所映射的值深度相等。<p>两个指针值在使用 Go 的 == 运算符比较相等，或其指向的值深度相等时深度相等。<p>两个切片值在满足以下所有条件时深度相等：它们都为 nil 或都不为 nil；长度相同；并且它们指向同一个底层数组中的同一个起始元素（即 &amp;x[0] == &amp;y[0]），或者其长度范围内的对应元素深度相等。注意，非 nil 的空切片与 nil 切片（例如 []byte{} 和 []byte(nil)）不深度相等。<p>其他值——数值、布尔值、字符串和通道——在使用 Go 的 == 运算符比较相等时深度相等。<p>总体而言，DeepEqual 是对 Go 的 == 运算符进行递归放宽后的比较。但这种思路无法完全一致地实现。具体来说，一个值可能与自身不相等：它可能是函数类型（通常不可比较），也可能是浮点 NaN 值（在浮点比较中与自身不相等），还可能是包含此类值的数组、结构体或接口。另一方面，指针值始终与自身相等，即使它们指向或包含此类特殊值也是如此，因为使用 Go 的 == 运算符比较时它们相等；无论其内容是什么，这都是深度相等的充分条件。DeepEqual 的定义使同样的快捷判定也适用于切片和映射：如果 x 和 y 是同一个切片或同一个映射，无论其内容是什么，都深度相等。<p>DeepEqual 遍历数据值时可能遇到环。当 DeepEqual 第二次及以后比较之前已经比较过的两个指针值时，会将它们视为相等，而不再检查所指向的值。这保证了 DeepEqual 能够终止。<h2 id="Swapper">func <a href="/src/reflect/swapper.go?s=402:440#L8">Swapper</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Swapper(slice <a href="/pkg/builtin/#any">any</a>) func(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>Swapper 返回一个用于交换给定切片中元素的函数。<p>如果给定接口中存储的值不是切片，Swapper 会触发 panic。<h2 id="TypeAssert">func <a href="/src/reflect/value.go?s=49787:49828#L1519">TypeAssert</a>
+				
+				
+			</h2>
+			<pre>func TypeAssert[T <a href="/pkg/builtin/#any">any</a>](v <a href="#Value">Value</a>) (<a href="#T">T</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>TypeAssert 在语义上等价于：<pre>v2, ok := v.Interface().(T)
+</pre>
+<p>注意，与上面的类型断言一样，此函数可能返回以下结果：<ul>
+<li><p>当 v.Type() == reflect.TypeFor[T]() 时，ok == false。例如，T 和 v 都是接口类型且 v.IsNil() == true 时，v.Interface() 返回 nil 接口值，断言 .(T) 失败，ok 为 false。<li><p>当 v.Type() != reflect.TypeFor[T]() 时，ok == true。例如，T 是接口类型，而 v 持有的值的具体类型实现了 T。</ul>
+
+			
+		
+		
+			
+			<h2 id="ChanDir">type <a href="/src/reflect/type.go?s=12948:12964#L358">ChanDir</a>
+				
+				
+			</h2>
+			<p>ChanDir 表示通道类型的方向。<pre>type ChanDir <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="RecvDir">RecvDir</span> <a href="#ChanDir">ChanDir</a>             = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// &lt;-chan</span>
+    <span id="SendDir">SendDir</span>                                 <span class="comment">// chan&lt;-</span>
+    <span id="BothDir">BothDir</span> = <a href="#RecvDir">RecvDir</a> | <a href="#SendDir">SendDir</a>             <span class="comment">// chan</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ChanDir.String">func (ChanDir) <a href="/src/reflect/type.go?s=29164:29196#L1005">String</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#ChanDir">ChanDir</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Kind">type <a href="/src/reflect/type.go?s=11682:11696#L288">Kind</a>
+				
+				
+			</h2>
+			<p>Kind 表示 <a href="#Type">Type</a> 所代表类型的具体类别。Kind 的零值不是有效类别。<pre>type Kind <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="Invalid">Invalid</span> <a href="#Kind">Kind</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="Bool">Bool</span>
+    <span id="Int">Int</span>
+    <span id="Int8">Int8</span>
+    <span id="Int16">Int16</span>
+    <span id="Int32">Int32</span>
+    <span id="Int64">Int64</span>
+    <span id="Uint">Uint</span>
+    <span id="Uint8">Uint8</span>
+    <span id="Uint16">Uint16</span>
+    <span id="Uint32">Uint32</span>
+    <span id="Uint64">Uint64</span>
+    <span id="Uintptr">Uintptr</span>
+    <span id="Float32">Float32</span>
+    <span id="Float64">Float64</span>
+    <span id="Complex64">Complex64</span>
+    <span id="Complex128">Complex128</span>
+    <span id="Array">Array</span>
+    <span id="Chan">Chan</span>
+    <span id="Func">Func</span>
+    <span id="Interface">Interface</span>
+    <span id="Map">Map</span>
+    <span id="Pointer">Pointer</span>
+    <span id="Slice">Slice</span>
+    <span id="String">String</span>
+    <span id="Struct">Struct</span>
+    <span id="UnsafePointer">UnsafePointer</span>
+)</pre>
+			
+
+			
+
+			
+
+
+<div id="example_Kind" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	for _, v := range []any{&#34;hi&#34;, 42, func() {}} {
+		switch v := reflect.ValueOf(v); v.Kind() {
+		case reflect.String:
+			fmt.Println(v.String())
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			fmt.Println(v.Int())
+		default:
+			fmt.Printf(&#34;unhandled kind %s&#34;, v.Kind())
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>hi
+42
+unhandled kind func
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Kind.String">func (Kind) <a href="/src/reflect/type.go?s=16154:16183#L482">String</a>
+					
+					
+				</h3>
+				<pre>func (k <a href="#Kind">Kind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 k 的名称。<h2 id="MapIter">type <a href="/src/reflect/map.go?s=7299:7352#L272">MapIter</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<p>MapIter 是用于遍历映射的迭代器。参见 <a href="#Value.MapRange">Value.MapRange</a>。<pre>type MapIter struct {
+    <span class="comment">// 包含经过筛选或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MapIter.Key">func (*MapIter) <a href="/src/reflect/map.go?s=7406:7438#L278">Key</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (iter *<a href="#MapIter">MapIter</a>) Key() <a href="#Value">Value</a></pre>
+				<p>Key 返回 iter 当前映射条目的键。<h3 id="MapIter.Next">func (*MapIter) <a href="/src/reflect/map.go?s=10325:10357#L368">Next</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (iter *<a href="#MapIter">MapIter</a>) Next() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Next 推进映射迭代器，并报告是否还有下一条目。当 iter 耗尽时，它返回 false；此后调用 <a href="#MapIter.Key">MapIter.Key</a>、<a href="#MapIter.Value">MapIter.Value</a> 或 <a href="#MapIter.Next">MapIter.Next</a> 都会触发 panic。<h3 id="MapIter.Reset">func (*MapIter) <a href="/src/reflect/map.go?s=11039:11074#L389">Reset</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (iter *<a href="#MapIter">MapIter</a>) Reset(v <a href="#Value">Value</a>)</pre>
+				<p>Reset 修改 iter，使其遍历 v。如果 v 的 Kind 不是 <a href="#Map">Map</a> 且 v 不是零 Value，则触发 panic。Reset(Value{}) 会使 iter 不再引用任何映射，从而可能使先前遍历的映射能够被垃圾回收。<h3 id="MapIter.Value">func (*MapIter) <a href="/src/reflect/map.go?s=8772:8806#L322">Value</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (iter *<a href="#MapIter">MapIter</a>) Value() <a href="#Value">Value</a></pre>
+				<p>Value 返回 iter 当前映射条目的值。<h2 id="Method">type <a href="/src/reflect/type.go?s=15507:16002#L460">Method</a>
+				
+				
+			</h2>
+			<p>Method 表示一个方法。<pre>type Method struct {
+<span id="Method.Name"></span>    <span class="comment">// Name 是方法名。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="Method.PkgPath"></span>    <span class="comment">// PkgPath 是用于限定小写（未导出）名称的包路径；对应名称可以是</span>
+    <span class="comment">// 方法名。对于大写（导出）方法名，此值为空。</span>
+    <span class="comment">// PkgPath 与 Name 的组合可在方法集中</span>
+    <span class="comment">// 唯一标识一个方法。</span>
+    <span class="comment">// 参见 https://golang.org/ref/spec#Uniqueness_of_identifiers</span>
+    PkgPath <a href="/pkg/builtin/#string">string</a>
+
+<span id="Method.Type"></span>    Type  <a href="#Type">Type</a>  <span class="comment">// 方法类型</span>
+<span id="Method.Func"></span>    Func  <a href="#Value">Value</a> <span class="comment">// 以接收者为第一个实参的函数</span>
+<span id="Method.Index"></span>    Index <a href="/pkg/builtin/#int">int</a>   <span class="comment">// 用于 Type.Method 的索引</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Method.IsExported">func (Method) <a href="/src/reflect/type.go?s=16058:16091#L477">IsExported</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (m <a href="#Method">Method</a>) IsExported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsExported 报告该方法是否导出。<h2 id="SelectCase">type <a href="/src/reflect/value.go?s=92667:92830#L2924">SelectCase</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>SelectCase 描述 select 操作中的一个分支。分支的类别取决于通信方向 Dir。<p>如果 Dir 为 SelectDefault，该分支表示 default 分支。Chan 和 Send 都必须是零 Value。<p>如果 Dir 为 SelectSend，该分支表示发送操作。通常，Chan 的底层值必须是通道，而 Send 的底层值必须可赋值给该通道的元素类型。有一个特例：如果 Chan 是零 Value，则忽略此分支，同时忽略 Send 字段，此时 Send 可以是零 Value，也可以不是。<p>如果 Dir 为 <a href="#SelectRecv">SelectRecv</a>，该分支表示接收操作。通常，Chan 的底层值必须是通道，Send 必须是零 Value。如果 Chan 是零 Value，则忽略此分支，但 Send 仍必须是零 Value。选中接收操作时，Select 会返回接收到的 Value。<pre>type SelectCase struct {
+<span id="SelectCase.Dir"></span>    Dir  <a href="#SelectDir">SelectDir</a> <span class="comment">// 分支方向</span>
+<span id="SelectCase.Chan"></span>    Chan <a href="#Value">Value</a>     <span class="comment">// 使用的通道（用于发送或接收）</span>
+<span id="SelectCase.Send"></span>    Send <a href="#Value">Value</a>     <span class="comment">// 要发送的值（用于发送）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SelectDir">type <a href="/src/reflect/value.go?s=91497:91515#L2897">SelectDir</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>SelectDir 描述 select 分支的通信方向。<pre>type SelectDir <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="SelectSend">SelectSend</span>    <a href="#SelectDir">SelectDir</a> <span class="comment">// case Chan &lt;- Send</span>
+    <span id="SelectRecv">SelectRecv</span>              <span class="comment">// case &lt;-Chan:</span>
+    <span id="SelectDefault">SelectDefault</span>           <span class="comment">// default</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SliceHeader">type <a href="/src/reflect/value.go?s=85801:85862#L2705">SliceHeader</a>
+				
+				
+			</h2>
+			<p>SliceHeader 是切片在运行时的表示。它无法以安全或可移植的方式使用，其表示形式可能在以后的版本中变化。此外，仅有 Data 字段不足以保证它引用的数据不被垃圾回收，因此程序必须另外保留一个指向底层数据且类型正确的指针。<p>已弃用：请改用 unsafe.Slice 或 unsafe.SliceData。<pre>type SliceHeader struct {
+<span id="SliceHeader.Data"></span>    Data <a href="/pkg/builtin/#uintptr">uintptr</a>
+<span id="SliceHeader.Len"></span>    Len  <a href="/pkg/builtin/#int">int</a>
+<span id="SliceHeader.Cap"></span>    Cap  <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StringHeader">type <a href="/src/reflect/value.go?s=85328:85380#L2692">StringHeader</a>
+				
+				
+			</h2>
+			<p>StringHeader 是字符串在运行时的表示。它无法以安全或可移植的方式使用，其表示形式可能在以后的版本中变化。此外，仅有 Data 字段不足以保证它引用的数据不被垃圾回收，因此程序必须另外保留一个指向底层数据且类型正确的指针。<p>已弃用：请改用 unsafe.String 或 unsafe.StringData。<pre>type StringHeader struct {
+<span id="StringHeader.Data"></span>    Data <a href="/pkg/builtin/#uintptr">uintptr</a>
+<span id="StringHeader.Len"></span>    Len  <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StructField">type <a href="/src/reflect/type.go?s=30283:30808#L1055">StructField</a>
+				
+				
+			</h2>
+			<p>StructField 描述结构体中的一个字段。<pre>type StructField struct {
+<span id="StructField.Name"></span>    <span class="comment">// Name 是字段名。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+
+<span id="StructField.PkgPath"></span>    <span class="comment">// PkgPath 是用于限定小写（未导出）名称的包路径；对应名称可以是</span>
+    <span class="comment">// 字段名。对于大写（导出）字段名，此值为空。</span>
+    <span class="comment">// 参见 https://golang.org/ref/spec#Uniqueness_of_identifiers</span>
+    PkgPath <a href="/pkg/builtin/#string">string</a>
+
+<span id="StructField.Type"></span>    Type      <a href="#Type">Type</a>      <span class="comment">// 字段类型</span>
+<span id="StructField.Tag"></span>    Tag       <a href="#StructTag">StructTag</a> <span class="comment">// 字段标签字符串</span>
+<span id="StructField.Offset"></span>    Offset    <a href="/pkg/builtin/#uintptr">uintptr</a>   <span class="comment">// 在结构体内的偏移量，单位为字节</span>
+<span id="StructField.Index"></span>    Index     []<a href="/pkg/builtin/#int">int</a>     <span class="comment">// 用于 Type.FieldByIndex 的索引序列</span>
+<span id="StructField.Anonymous"></span>    Anonymous <a href="/pkg/builtin/#bool">bool</a>      <span class="comment">// 是否为嵌入字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="VisibleFields">func <a href="/src/reflect/visiblefields.go?s=718:758#L6">VisibleFields</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func VisibleFields(t <a href="#Type">Type</a>) []<a href="#StructField">StructField</a></pre>
+				<p>VisibleFields 返回 t 中所有可见字段，t 必须是结构体类型。如果某个字段能通过 FieldByName 调用直接访问，就称其为可见字段。返回的字段包括匿名结构体成员中的字段和未导出的字段。它们按在结构体中出现的顺序排列，匿名字段之后紧跟其提升字段。<p>对于返回切片中的每个元素 e，可以在类型为 t 的值 v 上调用 v.FieldByIndex(e.Index) 获取对应字段。<h3 id="StructField.IsExported">func (StructField) <a href="/src/reflect/type.go?s=30863:30901#L1072">IsExported</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (f <a href="#StructField">StructField</a>) IsExported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsExported 报告该字段是否导出。<h2 id="StructTag">type <a href="/src/reflect/type.go?s=31323:31344#L1084">StructTag</a>
+				
+				
+			</h2>
+			<p>StructTag 是结构体字段中的标签字符串。<p>按照约定，标签字符串由若干 key:&quot;value&quot; 对拼接而成，各对之间可以用空格分隔。每个键都是非空字符串，由除空格（U+0020 &apos; &apos;）、引号（U+0022 &apos;&quot;&apos;）和冒号（U+003A &apos;:&apos;）以外的非控制字符组成。每个值使用 U+0022 &apos;&quot;&apos; 字符括起，并遵循 Go 字符串字面量语法。<pre>type StructTag <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_StructTag" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	type S struct {
+		F string `species:&#34;gopher&#34; color:&#34;blue&#34;`
+	}
+
+	s := S{}
+	st := reflect.TypeOf(s)
+	field := st.Field(0)
+	fmt.Println(field.Tag.Get(&#34;color&#34;), field.Tag.Get(&#34;species&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>blue gopher
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="StructTag.Get">func (StructTag) <a href="/src/reflect/type.go?s=31670:31713#L1091">Get</a>
+					
+					
+				</h3>
+				<pre>func (tag <a href="#StructTag">StructTag</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Get 返回标签字符串中与 key 关联的值。如果标签中没有该键，Get 返回空字符串。如果标签不符合约定格式，Get 的返回值未作规定。要判断标签是否显式设置为空字符串，请使用 <a href="#StructTag.Lookup">StructTag.Lookup</a>。<h3 id="StructTag.Lookup">func (StructTag) <a href="/src/reflect/type.go?s=32147:32210#L1102">Lookup</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (tag <a href="#StructTag">StructTag</a>) Lookup(key <a href="/pkg/builtin/#string">string</a>) (value <a href="/pkg/builtin/#string">string</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Lookup 返回标签字符串中与 key 关联的值。如果标签中存在该键，则返回其值（可能为空）；否则返回空字符串。返回值 ok 报告该值是否在标签字符串中显式设置。如果标签不符合约定格式，Lookup 的返回值未作规定。<div id="example_StructTag_Lookup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	type S struct {
+		F0 string `alias:&#34;field_0&#34;`
+		F1 string `alias:&#34;&#34;`
+		F2 string
+	}
+
+	s := S{}
+	st := reflect.TypeOf(s)
+	for field := range st.Fields() {
+		if alias, ok := field.Tag.Lookup(&#34;alias&#34;); ok {
+			if alias == &#34;&#34; {
+				fmt.Println(&#34;(blank)&#34;)
+			} else {
+				fmt.Println(alias)
+			}
+		} else {
+			fmt.Println(&#34;(not specified)&#34;)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>field_0
+(blank)
+(not specified)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="Type">type <a href="/src/reflect/type.go?s=1364:10829#L31">Type</a>
+				
+				
+			</h2>
+			<p>Type 表示一个 Go 类型。<p>并非所有方法都适用于所有类别的类型。每个方法的文档会注明其限制（如果有）。调用特定类别的方法之前，应先用 Kind 方法确定类型的类别。调用不适用于该类型类别的方法会在运行时触发 panic。<p>Type 值是可比较的，例如可使用 == 运算符比较，因此可以用作映射的键。两个 Type 值相等，当且仅当它们表示相同的类型。<pre>type Type interface {
+
+    <span class="comment">// Align 返回此类型的值在内存中分配时的</span>
+    <span class="comment">// 对齐要求，单位为字节。</span>
+    Align() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// FieldAlign 返回此类型的值作为结构体字段时的</span>
+    <span class="comment">// 对齐要求，单位为字节。</span>
+    FieldAlign() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Method 返回该类型的方法集中的第 i 个方法。</span>
+    <span class="comment">// 如果 i 不在 [0, NumMethod()) 范围内，则触发 panic。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于非接口类型 T 或 *T，返回的 Method 的 Type 和 Func</span>
+    <span class="comment">// 字段描述一个以接收者为第一个实参的函数，</span>
+    <span class="comment">// 且只能访问导出方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于接口类型，返回的 Method 的 Type 字段给出</span>
+    <span class="comment">// 不含接收者的方法签名，而 Func 字段为 nil。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 方法按字典序排列。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用此方法会强制链接器保留所有包中的所有导出方法。</span>
+    <span class="comment">// 这可能增大可执行文件的体积，但不会影响执行时间。</span>
+    Method(<a href="/pkg/builtin/#int">int</a>) <a href="#Method">Method</a>
+
+    <span class="comment">// Methods 返回遍历该类型的方法集中每个方法的迭代器。此序列</span>
+    <span class="comment">// 等价于对 [0, NumMethod()) 范围内的每个索引 i 依次调用 Method。</span>
+    Methods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Method">Method</a>]
+
+    <span class="comment">// MethodByName 返回该类型的方法集中具有给定名称的方法，</span>
+    <span class="comment">// 以及表示是否找到该方法的布尔值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于非接口类型 T 或 *T，返回的 Method 的 Type 和 Func</span>
+    <span class="comment">// 字段描述一个以接收者为第一个实参的函数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于接口类型，返回的 Method 的 Type 字段给出</span>
+    <span class="comment">// 不含接收者的方法签名，而 Func 字段为 nil。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用此方法会使链接器保留所有包中具有该名称的方法。</span>
+    <span class="comment">// 如果链接器无法确定名称，则会保留所有导出方法。</span>
+    <span class="comment">// 这可能增大可执行文件的体积，但不会影响执行时间。</span>
+    MethodByName(<a href="/pkg/builtin/#string">string</a>) (<a href="#Method">Method</a>, <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// NumMethod 返回可通过 Method 访问的方法数量。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于非接口类型，它返回导出方法的数量。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于接口类型，它返回导出和未导出方法的总数。</span>
+    NumMethod() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// 对于定义类型，Name 返回该类型在其包内的名称。</span>
+    <span class="comment">// 对于其他（非定义）类型，它返回空字符串。</span>
+    Name() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// PkgPath 返回定义类型的包路径，即唯一标识其所属包的导入路径，</span>
+    <span class="comment">// 例如 "encoding/base64"。</span>
+    <span class="comment">// 如果类型是预声明类型（string、error），或者不是定义类型（*T、struct{}、</span>
+    <span class="comment">// []int，或 A，其中 A 是非定义类型的别名），则包路径</span>
+    <span class="comment">// 为空字符串。</span>
+    PkgPath() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// Size 返回存储给定类型的一个值所需的字节数，</span>
+    <span class="comment">// 类似于 unsafe.Sizeof。</span>
+    Size() <a href="/pkg/builtin/#uintptr">uintptr</a>
+
+    <span class="comment">// String 返回该类型的字符串表示。</span>
+    <span class="comment">// 字符串表示可能使用缩短的包名</span>
+    <span class="comment">// （例如使用 base64 而非 "encoding/base64"），且不保证</span>
+    <span class="comment">// 不同类型的表示唯一。要判断类型是否相同，</span>
+    <span class="comment">// 应直接比较 Type 值。</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// Kind 返回该类型的具体类别。</span>
+    Kind() <a href="#Kind">Kind</a>
+
+    <span class="comment">// Implements 报告该类型是否实现了接口类型 u。</span>
+    Implements(u <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// AssignableTo 报告该类型的值是否可赋值给类型 u。</span>
+    AssignableTo(u <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// ConvertibleTo 报告该类型的值是否可转换为类型 u。</span>
+    <span class="comment">// 即使 ConvertibleTo 返回 true，转换仍可能触发 panic。</span>
+    <span class="comment">// 例如，类型为 []T 的切片可转换为 *[N]T，</span>
+    <span class="comment">// 但如果切片长度小于 N，转换就会触发 panic。</span>
+    ConvertibleTo(u <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Comparable 报告该类型的值是否可比较。</span>
+    <span class="comment">// 即使 Comparable 返回 true，比较仍可能触发 panic。</span>
+    <span class="comment">// 例如，接口类型的值可比较，</span>
+    <span class="comment">// 但如果其动态类型不可比较，比较就会触发 panic。</span>
+    Comparable() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Bits 返回该类型的大小，单位为位。</span>
+    <span class="comment">// 如果该类型的 Kind 不是固定大小或非固定大小的</span>
+    <span class="comment">// Int、Uint、Float 或 Complex 类别之一，则触发 panic。</span>
+    Bits() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// ChanDir 返回通道类型的方向。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Chan，则触发 panic。</span>
+    ChanDir() <a href="#ChanDir">ChanDir</a>
+
+    <span class="comment">// IsVariadic 报告函数类型的最后一个输入形参</span>
+    <span class="comment">// 是否为 "..." 参数。如果是，则 t.In(t.NumIn() - 1) 返回该参数</span>
+    <span class="comment">// 隐含的实际类型 []T。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 具体来说，如果 t 表示 func(x int, y ... float64)，则：</span>
+    <span class="comment">//</span>
+    <span class="comment">//	t.NumIn() == 2</span>
+    <span class="comment">// 	t.In(0) 是表示 "int" 的 reflect.Type</span>
+    <span class="comment">// 	t.In(1) 是表示 "[]float64" 的 reflect.Type</span>
+    <span class="comment">//	t.IsVariadic() == true</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，IsVariadic 会触发 panic。</span>
+    IsVariadic() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Elem 返回该类型的元素类型。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Array、Chan、Map、Pointer 或 Slice，则触发 panic。</span>
+    Elem() <a href="#Type">Type</a>
+
+    <span class="comment">// Field 返回结构体类型的第 i 个字段。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Struct，则触发 panic。</span>
+    <span class="comment">// 如果 i 不在 [0, NumField()) 范围内，则触发 panic。</span>
+    Field(i <a href="/pkg/builtin/#int">int</a>) <a href="#StructField">StructField</a>
+
+    <span class="comment">// Fields 返回遍历结构体类型 t 的每个字段的迭代器。此序列</span>
+    <span class="comment">// 等价于对 [0, NumField()) 范围内的每个索引 i 依次调用 Field。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Struct，则触发 panic。</span>
+    Fields() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#StructField">StructField</a>]
+
+    <span class="comment">// FieldByIndex 返回与索引序列对应的</span>
+    <span class="comment">// 嵌套字段。它等价于对每个索引 i</span>
+    <span class="comment">// 依次调用 Field。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Struct，则触发 panic。</span>
+    FieldByIndex(index []<a href="/pkg/builtin/#int">int</a>) <a href="#StructField">StructField</a>
+
+    <span class="comment">// FieldByName 返回具有给定名称的结构体字段，</span>
+    <span class="comment">// 以及表示是否找到该字段的布尔值。</span>
+    <span class="comment">// 如果返回的字段是从嵌入结构体提升而来的，</span>
+    <span class="comment">// 则返回的 StructField 中的 Offset 是该字段在</span>
+    <span class="comment">// 嵌入结构体中的偏移量。</span>
+    FieldByName(name <a href="/pkg/builtin/#string">string</a>) (<a href="#StructField">StructField</a>, <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// FieldByNameFunc 返回名称满足 match 函数的</span>
+    <span class="comment">// 结构体字段，以及表示是否找到该字段的</span>
+    <span class="comment">// 布尔值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// FieldByNameFunc 先检查结构体自身的字段，</span>
+    <span class="comment">// 再按广度优先顺序检查各嵌入结构体的字段，</span>
+    <span class="comment">// 在包含一个或多个满足 match 函数字段的</span>
+    <span class="comment">// 最浅嵌套层级停止。如果该层级有多个字段</span>
+    <span class="comment">// 满足 match 函数，它们会相互抵消，</span>
+    <span class="comment">// FieldByNameFunc 不返回任何匹配项。</span>
+    <span class="comment">// 此行为与 Go 对包含嵌入字段的结构体</span>
+    <span class="comment">// 进行名称查找时的处理方式一致。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果返回的字段是从嵌入结构体提升而来的，</span>
+    <span class="comment">// 则返回的 StructField 中的 Offset 是该字段在</span>
+    <span class="comment">// 嵌入结构体中的偏移量。</span>
+    FieldByNameFunc(match func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) (<a href="#StructField">StructField</a>, <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// In 返回函数类型的第 i 个输入形参的类型。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    <span class="comment">// 如果 i 不在 [0, NumIn()) 范围内，则触发 panic。</span>
+    In(i <a href="/pkg/builtin/#int">int</a>) <a href="#Type">Type</a>
+
+    <span class="comment">// Ins 返回遍历函数类型 t 的每个输入形参的迭代器。此序列</span>
+    <span class="comment">// 等价于对 [0, NumIn()) 范围内的每个索引 i 依次调用 In。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    Ins() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Type">Type</a>]
+
+    <span class="comment">// Key 返回映射类型的键类型。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Map，则触发 panic。</span>
+    Key() <a href="#Type">Type</a>
+
+    <span class="comment">// Len 返回数组类型的长度。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Array，则触发 panic。</span>
+    Len() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// NumField 返回结构体类型的字段数量。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Struct，则触发 panic。</span>
+    NumField() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// NumIn 返回函数类型的输入形参数量。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    NumIn() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// NumOut 返回函数类型的输出参数数量。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    NumOut() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// Out 返回函数类型的第 i 个输出参数的类型。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    <span class="comment">// 如果 i 不在 [0, NumOut()) 范围内，则触发 panic。</span>
+    Out(i <a href="/pkg/builtin/#int">int</a>) <a href="#Type">Type</a>
+
+    <span class="comment">// Outs 返回遍历函数类型 t 的每个输出参数的迭代器。此序列</span>
+    <span class="comment">// 等价于对 [0, NumOut()) 范围内的每个索引 i 依次调用 Out。</span>
+    <span class="comment">// 如果该类型的 Kind 不是 Func，则触发 panic。</span>
+    Outs() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Type">Type</a>]
+
+    <span class="comment">// OverflowComplex 报告 complex128 值 x 是否无法由类型 t 表示。</span>
+    <span class="comment">// 如果 t 的 Kind 不是 Complex64 或 Complex128，则触发 panic。</span>
+    OverflowComplex(x <a href="/pkg/builtin/#complex128">complex128</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// OverflowFloat 报告 float64 值 x 是否无法由类型 t 表示。</span>
+    <span class="comment">// 如果 t 的 Kind 不是 Float32 或 Float64，则触发 panic。</span>
+    OverflowFloat(x <a href="/pkg/builtin/#float64">float64</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// OverflowInt 报告 int64 值 x 是否无法由类型 t 表示。</span>
+    <span class="comment">// 如果 t 的 Kind 不是 Int、Int8、Int16、Int32 或 Int64，则触发 panic。</span>
+    OverflowInt(x <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// OverflowUint 报告 uint64 值 x 是否无法由类型 t 表示。</span>
+    <span class="comment">// 如果 t 的 Kind 不是 Uint、Uintptr、Uint8、Uint16、Uint32 或 Uint64，则触发 panic。</span>
+    OverflowUint(x <a href="/pkg/builtin/#uint64">uint64</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// CanSeq 报告能否使用 [Value.Seq] 遍历具有此类型的 [Value]。</span>
+    CanSeq() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// CanSeq2 报告能否使用 [Value.Seq2] 遍历具有此类型的 [Value]。</span>
+    CanSeq2() <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含经过筛选或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ArrayOf">func <a href="/src/reflect/type.go?s=76182:76222#L2645">ArrayOf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func ArrayOf(length <a href="/pkg/builtin/#int">int</a>, elem <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>ArrayOf 返回具有给定长度和元素类型的数组类型。例如，如果 t 表示 int，则 ArrayOf(5, t) 表示 [5]int。<p>如果生成的类型大小会超过可用地址空间，ArrayOf 会触发 panic。<h3 id="ChanOf">func <a href="/src/reflect/type.go?s=52610:52647#L1812">ChanOf</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func ChanOf(dir <a href="#ChanDir">ChanDir</a>, t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>ChanOf 返回具有给定方向和元素类型的通道类型。例如，如果 t 表示 int，则 ChanOf(RecvDir, t) 表示 &lt;-chan int。<p>gc 运行时将通道元素类型的大小限制为小于 64 kB。如果 t 的大小达到或超过此限制，ChanOf 会触发 panic。<h3 id="FuncOf">func <a href="/src/reflect/type.go?s=55079:55126#L1905">FuncOf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func FuncOf(in, out []<a href="#Type">Type</a>, variadic <a href="/pkg/builtin/#bool">bool</a>) <a href="#Type">Type</a></pre>
+				<p>FuncOf 返回具有给定参数类型和结果类型的函数类型。例如，如果 k 表示 int、e 表示 string，则 FuncOf([]Type{k}, []Type{e}, false) 表示 func(int) string。<p>variadic 参数控制函数是否为可变参数函数。如果 variadic 为 true 且 in[len(in)-1] 不表示切片，则 FuncOf 会触发 panic。<h3 id="MapOf">func <a href="/src/reflect/map.go?s=773:804#L20">MapOf</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func MapOf(key, elem <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>MapOf 返回具有给定键类型和元素类型的映射类型。例如，如果 k 表示 int、e 表示 string，则 MapOf(k, e) 表示 map[int]string。<p>如果键类型不是有效的映射键类型（即不支持 Go 的 == 运算符），MapOf 会触发 panic。<h3 id="PointerTo">func <a href="/src/reflect/type.go?s=40883:40910#L1388">PointerTo</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func PointerTo(t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>PointerTo 返回元素类型为 t 的指针类型。例如，如果 t 表示类型 Foo，则 PointerTo(t) 表示 *Foo。<h3 id="PtrTo">func <a href="/src/reflect/type.go?s=40708:40731#L1384">PtrTo</a>
+					
+					
+				</h3>
+				<pre>func PtrTo(t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>PtrTo 返回元素类型为 t 的指针类型。例如，如果 t 表示类型 Foo，则 PtrTo(t) 表示 *Foo。<p>PtrTo 是 <a href="#PointerTo">PointerTo</a> 的旧名称。两个函数的行为相同。<p>已弃用：由 <a href="#PointerTo">PointerTo</a> 取代。<h3 id="SliceOf">func <a href="/src/reflect/type.go?s=60868:60893#L2120">SliceOf</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func SliceOf(t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>SliceOf 返回元素类型为 t 的切片类型。例如，如果 t 表示 int，则 SliceOf(t) 表示 []int。<h3 id="StructOf">func <a href="/src/reflect/type.go?s=64262:64302#L2246">StructOf</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func StructOf(fields []<a href="#StructField">StructField</a>) <a href="#Type">Type</a></pre>
+				<p>StructOf 返回包含 fields 中各字段的结构体类型。Offset 和 Index 字段会被忽略，并按编译器的方式计算。<p>StructOf 目前不支持嵌入字段的提升方法，如果传入未导出的 StructField，会触发 panic。<div id="example_StructOf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	typ := reflect.StructOf([]reflect.StructField{
+		{
+			Name: &#34;Height&#34;,
+			Type: reflect.TypeOf(float64(0)),
+			Tag:  `json:&#34;height&#34;`,
+		},
+		{
+			Name: &#34;Age&#34;,
+			Type: reflect.TypeOf(int(0)),
+			Tag:  `json:&#34;age&#34;`,
+		},
+	})
+
+	v := reflect.New(typ).Elem()
+	v.Field(0).SetFloat(0.4)
+	v.Field(1).SetInt(2)
+	s := v.Addr().Interface()
+
+	w := new(bytes.Buffer)
+	if err := json.NewEncoder(w).Encode(s); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(&#34;value: %&#43;v\n&#34;, s)
+	fmt.Printf(&#34;json:  %s&#34;, w.Bytes())
+
+	r := bytes.NewReader([]byte(`{&#34;height&#34;:1.5,&#34;age&#34;:10}`))
+	if err := json.NewDecoder(r).Decode(s); err != nil {
+		panic(err)
+	}
+	fmt.Printf(&#34;value: %&#43;v\n&#34;, s)
+
+}
+</textarea></div>
+        <div class="output"><pre>value: &amp;{Height:0.4 Age:2}
+json:  {&#34;height&#34;:0.4,&#34;age&#34;:2}
+value: &amp;{Height:1.5 Age:10}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="TypeFor">func <a href="/src/reflect/type.go?s=40092:40118#L1362">TypeFor</a>
+					
+					
+				</h3>
+				<pre>func TypeFor[T <a href="/pkg/builtin/#any">any</a>]() <a href="#Type">Type</a></pre>
+				<p>TypeFor 返回表示类型实参 T 的 <a href="#Type">Type</a>。<h3 id="TypeOf">func <a href="/src/reflect/type.go?s=39966:39989#L1357">TypeOf</a>
+					
+					
+				</h3>
+				<pre>func TypeOf(i <a href="/pkg/builtin/#any">any</a>) <a href="#Type">Type</a></pre>
+				<p>TypeOf 返回表示 i 的动态类型的反射 <a href="#Type">Type</a>。如果 i 是 nil 接口值，则 TypeOf 返回 nil。<div id="example_TypeOf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	// 由于接口类型只用于静态类型描述，
+	// 获取接口类型 Foo 对应的反射 Type 时，
+	// 一种常见做法是使用 *Foo 值。
+	writerType := reflect.TypeOf((*io.Writer)(nil)).Elem()
+
+	fileType := reflect.TypeOf((*os.File)(nil))
+	fmt.Println(fileType.Implements(writerType))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="Value">type <a href="/src/reflect/value.go?s=1321:2610#L30">Value</a>
+				
+				
+			</h2>
+			<p>Value 是访问 Go 值的反射接口。<p>并非所有方法都适用于所有类别的值。每个方法的文档会注明其限制（如果有）。调用特定类别的方法之前，应先用 Kind 方法确定值的类别。调用不适用于该类型类别的方法会在运行时触发 panic。<p>零 Value 不表示任何值。其 <a href="#Value.IsValid">Value.IsValid</a> 方法返回 false，Kind 方法返回 <a href="#Invalid">Invalid</a>，String 方法返回 &quot;&lt;invalid Value&gt;&quot;，其他所有方法都触发 panic。大多数函数和方法从不返回无效值；如果会返回，文档中会明确说明相应条件。<p>只要底层 Go 值能够并发进行等价的直接操作，多个 goroutine 就可以并发使用同一个 Value。<p>要比较两个 Value，应比较它们的 Interface 方法的结果。对两个 Value 使用 == 并不是比较它们表示的底层值。<pre>type Value struct {
+    <span class="comment">// 包含经过筛选或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Append">func <a href="/src/reflect/value.go?s=88538:88576#L2793">Append</a>
+					
+					
+				</h3>
+				<pre>func Append(s <a href="#Value">Value</a>, x ...<a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Append 将各个值 x 追加到切片 s，并返回结果切片。与 Go 中一样，每个 x 的值都必须可赋值给切片的元素类型。<h3 id="AppendSlice">func <a href="/src/reflect/value.go?s=88834:88868#L2805">AppendSlice</a>
+					
+					
+				</h3>
+				<pre>func AppendSlice(s, t <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>AppendSlice 将切片 t 追加到切片 s，并返回结果切片。切片 s 和 t 的元素类型必须相同。<h3 id="Indirect">func <a href="/src/reflect/value.go?s=99160:99188#L3141">Indirect</a>
+					
+					
+				</h3>
+				<pre>func Indirect(v <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>Indirect 返回 v 指向的值。如果 v 是 nil 指针，则返回零 Value。如果 v 不是指针，则返回 v。<h3 id="MakeChan">func <a href="/src/reflect/value.go?s=98164:98205#L3105">MakeChan</a>
+					
+					
+				</h3>
+				<pre>func MakeChan(typ <a href="#Type">Type</a>, buffer <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>MakeChan 创建具有指定类型和缓冲区大小的新通道。<h3 id="MakeFunc">func <a href="/src/reflect/makefunc.go?s=1613:1683#L37">MakeFunc</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func MakeFunc(typ <a href="#Type">Type</a>, fn func(args []<a href="#Value">Value</a>) (results []<a href="#Value">Value</a>)) <a href="#Value">Value</a></pre>
+				<p>MakeFunc 返回一个具有给定 <a href="#Type">Type</a> 的新函数，它包装函数 fn。调用此新函数时，会执行以下操作：<ul>
+<li>将实参转换为 Value 切片。<li>执行 results := fn(args)。<li>将结果作为 Value 切片返回，每个形式结果对应一个 Value。</ul>
+<p>实现函数 fn 可以假定参数 <a href="#Value">Value</a> 切片中的参数个数和类型符合 typ。如果 typ 描述可变参数函数，最后一个 Value 本身就是表示可变参数的切片，与可变参数函数体中的情况一样。fn 返回的结果 Value 切片中的结果个数和类型必须符合 typ。<p><a href="#Value.Call">Value.Call</a> 方法允许调用者通过 Value 来调用具有具体类型的函数；MakeFunc 则允许调用者通过 Value 来实现具有具体类型的函数。<p>文档的示例部分展示了如何使用 MakeFunc 为不同类型构造交换函数。<div id="example_MakeFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	// swap 是传给 MakeFunc 的实现函数。
+	// 它必须通过 reflect.Value 工作，
+	// 这样编写代码时便无须预先知道
+	// 实际类型。
+	swap := func(in []reflect.Value) []reflect.Value {
+		return []reflect.Value{in[1], in[0]}
+	}
+
+	// makeSwap 要求 fptr 是指向 nil 函数的指针。
+	// 它将该指针指向的值设为通过 MakeFunc 创建的新函数。
+	// 调用此函数时，reflect 将实参转换为
+	// Value，调用 swap，然后把 swap 的结果切片
+	// 转换为新函数返回的值。
+	makeSwap := func(fptr any) {
+		// fptr 是指向函数的指针。
+		// 获取函数值本身（可能为 nil）对应的 reflect.Value，
+		// 以便查询其类型并设置该值。
+		fn := reflect.ValueOf(fptr).Elem()
+
+		// 创建类型正确的函数。
+		v := reflect.MakeFunc(fn.Type(), swap)
+
+		// 将它赋给 fn 表示的值。
+		fn.Set(v)
+	}
+
+	// 创建并调用用于 int 的交换函数。
+	var intSwap func(int, int) (int, int)
+	makeSwap(&amp;intSwap)
+	fmt.Println(intSwap(0, 1))
+
+	// 创建并调用用于 float64 的交换函数。
+	var floatSwap func(float64, float64) (float64, float64)
+	makeSwap(&amp;floatSwap)
+	fmt.Println(floatSwap(2.72, 3.14))
+
+}
+</textarea></div>
+        <div class="output"><pre>1 0
+3.14 2.72
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="MakeMap">func <a href="/src/reflect/value.go?s=98606:98634#L3122">MakeMap</a>
+					
+					
+				</h3>
+				<pre>func MakeMap(typ <a href="#Type">Type</a>) <a href="#Value">Value</a></pre>
+				<p>MakeMap 创建具有指定类型的新映射。<h3 id="MakeMapWithSize">func <a href="/src/reflect/value.go?s=98784:98827#L3128">MakeMapWithSize</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func MakeMapWithSize(typ <a href="#Type">Type</a>, n <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>MakeMapWithSize 创建具有指定类型的新映射，并为大约 n 个元素预留初始空间。<h3 id="MakeSlice">func <a href="/src/reflect/value.go?s=97196:97240#L3075">MakeSlice</a>
+					
+					
+				</h3>
+				<pre>func MakeSlice(typ <a href="#Type">Type</a>, len, cap <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>MakeSlice 为指定的切片类型、长度和容量创建经过零值初始化的新切片值。<h3 id="New">func <a href="/src/reflect/value.go?s=100357:100381#L3185">New</a>
+					
+					
+				</h3>
+				<pre>func New(typ <a href="#Type">Type</a>) <a href="#Value">Value</a></pre>
+				<p>New 返回一个 Value，它表示指向指定类型的新零值的指针。也就是说，返回的 Value 的 Type 为 <a href="#PointerTo">PointerTo</a>(typ)。<h3 id="NewAt">func <a href="/src/reflect/value.go?s=100827:100871#L3202">NewAt</a>
+					
+					
+				</h3>
+				<pre>func NewAt(typ <a href="#Type">Type</a>, p <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>) <a href="#Value">Value</a></pre>
+				<p>NewAt 返回一个 Value，它表示指向指定类型的值的指针，并以 p 作为该指针。<h3 id="Select">func <a href="/src/reflect/value.go?s=93522:93591#L2942">Select</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func Select(cases []<a href="#SelectCase">SelectCase</a>) (chosen <a href="/pkg/builtin/#int">int</a>, recv <a href="#Value">Value</a>, recvOK <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Select 执行 cases 列表描述的 select 操作。与 Go 的 select 语句一样，它会阻塞，直到至少有一个分支可以执行，然后通过均匀的伪随机选择选出一个分支并执行。它返回选中分支的索引；如果该分支是接收操作，还返回接收到的值，以及一个布尔值，表示该值是否来自通道上的发送操作（而非因通道关闭而收到的零值）。Select 最多支持 65536 个分支。<h3 id="SliceAt">func <a href="/src/reflect/value.go?s=97865:97918#L3098">SliceAt</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func SliceAt(typ <a href="#Type">Type</a>, p <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>, n <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>SliceAt 返回一个表示切片的 <a href="#Value">Value</a>，其底层数据从 p 开始，长度和容量都为 n。<p>这类似于 <a href="/pkg/unsafe/#Slice">unsafe.Slice</a>。<h3 id="ValueOf">func <a href="/src/reflect/value.go?s=99383:99408#L3150">ValueOf</a>
+					
+					
+				</h3>
+				<pre>func ValueOf(i <a href="/pkg/builtin/#any">any</a>) <a href="#Value">Value</a></pre>
+				<p>ValueOf 返回一个新的 Value，以接口 i 中存储的具体值进行初始化。ValueOf(nil) 返回零 Value。<h3 id="Zero">func <a href="/src/reflect/value.go?s=99790:99815#L3162">Zero</a>
+					
+					
+				</h3>
+				<pre>func Zero(typ <a href="#Type">Type</a>) <a href="#Value">Value</a></pre>
+				<p>Zero 返回一个表示指定类型零值的 Value。它不同于 Value 结构体的零值，后者根本不表示任何值。例如，Zero(TypeOf(42)) 返回 Kind 为 <a href="#Int">Int</a>、值为 0 的 Value。返回的值既不可寻址，也不可设置。<h3 id="Value.Addr">func (Value) <a href="/src/reflect/value.go?s=8225:8252#L259">Addr</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Addr() <a href="#Value">Value</a></pre>
+				<p>Addr 返回表示 v 地址的指针值。如果 <a href="#Value.CanAddr">Value.CanAddr</a> 返回 false，则触发 panic。Addr 通常用于获取结构体字段或切片元素的指针，以调用需要指针接收者的方法。<h3 id="Value.Bool">func (Value) <a href="/src/reflect/value.go?s=8604:8630#L271">Bool</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Bool() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Bool 返回 v 的底层值。如果 v 的类别不是 <a href="#Bool">Bool</a>，则触发 panic。<h3 id="Value.Bytes">func (Value) <a href="/src/reflect/value.go?s=8988:9017#L288">Bytes</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes 返回 v 的底层值。如果 v 的底层值既不是字节切片，也不是可寻址的字节数组，则触发 panic。<h3 id="Value.Call">func (Value) <a href="/src/reflect/value.go?s=11538:11577#L356">Call</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Call(in []<a href="#Value">Value</a>) []<a href="#Value">Value</a></pre>
+				<p>Call 使用输入实参 in 调用函数 v。例如，如果 len(in) == 3，则 v.Call(in) 表示 Go 调用 v(in[0], in[1], in[2])。如果 v 的 Kind 不是 <a href="#Func">Func</a>，Call 会触发 panic。它以 Value 形式返回输出结果。与 Go 中一样，每个输入实参都必须可赋值给函数对应的输入形参类型。如果 v 是可变参数函数，Call 会自行创建可变参数切片，并将对应值复制进去。如果该 Value 是通过访问未导出的结构体字段获得的，则触发 panic。<h3 id="Value.CallSlice">func (Value) <a href="/src/reflect/value.go?s=12195:12239#L370">CallSlice</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CallSlice(in []<a href="#Value">Value</a>) []<a href="#Value">Value</a></pre>
+				<p>CallSlice 使用输入实参 in 调用可变参数函数 v，将切片 in[len(in)-1] 赋给 v 的最后一个可变参数。例如，如果 len(in) == 3，则 v.CallSlice(in) 表示 Go 调用 v(in[0], in[1], in[2]...)。如果 v 的 Kind 不是 <a href="#Func">Func</a>，或者 v 不是可变参数函数，CallSlice 会触发 panic。它以 Value 形式返回输出结果。与 Go 中一样，每个输入实参都必须可赋值给函数对应的输入形参类型。如果该 Value 是通过访问未导出的结构体字段获得的，则触发 panic。<h3 id="Value.CanAddr">func (Value) <a href="/src/reflect/value.go?s=10538:10567#L334">CanAddr</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanAddr() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanAddr 报告是否可以通过 <a href="#Value.Addr">Value.Addr</a> 获取该值的地址。这样的值称为可寻址的值。如果一个值是切片元素、可寻址数组的元素、可寻址结构体的字段，或指针解引用的结果，则它可寻址。如果 CanAddr 返回 false，调用 <a href="#Value.Addr">Value.Addr</a> 会触发 panic。<h3 id="Value.CanComplex">func (Value) <a href="/src/reflect/value.go?s=39612:39644#L1184">CanComplex</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanComplex() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanComplex 报告调用 <a href="#Value.Complex">Value.Complex</a> 是否不会触发 panic。<h3 id="Value.CanConvert">func (Value) <a href="/src/reflect/value.go?s=102909:102947#L3266">CanConvert</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanConvert(t <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanConvert 报告值 v 是否能转换为类型 t。如果 v.CanConvert(t) 返回 true，则 v.Convert(t) 不会触发 panic。<h3 id="Value.CanFloat">func (Value) <a href="/src/reflect/value.go?s=45312:45342#L1364">CanFloat</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanFloat() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanFloat 报告调用 <a href="#Value.Float">Value.Float</a> 是否不会触发 panic。<h3 id="Value.CanInt">func (Value) <a href="/src/reflect/value.go?s=47435:47463#L1435">CanInt</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanInt() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanInt 报告调用 Int 是否不会触发 panic。<h3 id="Value.CanInterface">func (Value) <a href="/src/reflect/value.go?s=48098:48132#L1465">CanInterface</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanInterface() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanInterface 报告调用 <a href="#Value.Interface">Value.Interface</a> 是否不会触发 panic。<h3 id="Value.CanSet">func (Value) <a href="/src/reflect/value.go?s=10908:10936#L343">CanSet</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanSet() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanSet 报告是否可以修改 v 的值。只有当 <a href="#Value">Value</a> 可寻址且不是通过未导出的结构体字段获得时，才可修改。如果 CanSet 返回 false，调用 <a href="#Value.Set">Value.Set</a> 或任何针对特定类型的设置方法（例如 <a href="#Value.SetBool">Value.SetBool</a>、<a href="#Value.SetInt">Value.SetInt</a>）都会触发 panic。<h3 id="Value.CanUint">func (Value) <a href="/src/reflect/value.go?s=80097:80126#L2534">CanUint</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) CanUint() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>CanUint 报告调用 <a href="#Value.Uint">Value.Uint</a> 是否不会触发 panic。<h3 id="Value.Cap">func (Value) <a href="/src/reflect/value.go?s=38660:38684#L1145">Cap</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Cap() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Cap 返回 v 的容量。如果 v 的 Kind 不是 <a href="#Array">Array</a>、<a href="#Chan">Chan</a>、<a href="#Slice">Slice</a> 或指向 <a href="#Array">Array</a> 的指针，则触发 panic。<h3 id="Value.Clear">func (Value) <a href="/src/reflect/value.go?s=88086:88108#L2778">Clear</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Clear()</pre>
+				<p>Clear 清空映射内容，或将切片内容置零。<p>如果 v 的 Kind 不是 <a href="#Map">Map</a> 或 <a href="#Slice">Slice</a>，则触发 panic。<h3 id="Value.Close">func (Value) <a href="/src/reflect/value.go?s=39314:39336#L1172">Close</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Close()</pre>
+				<p>Close 关闭通道 v。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>，或者 v 是只接收通道，则触发 panic。<h3 id="Value.Comparable">func (Value) <a href="/src/reflect/value.go?s=103628:103660#L3292">Comparable</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Comparable() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Comparable 报告值 v 是否可比较。如果 v 的类型是接口，则检查其动态类型。如果返回 true，那么对于任意 x，v.Interface() == x 都不会触发 panic；对于任意 Value u，v.Equal(u) 也不会触发 panic。<h3 id="Value.Complex">func (Value) <a href="/src/reflect/value.go?s=39858:39893#L1195">Complex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Complex() <a href="/pkg/builtin/#complex128">complex128</a></pre>
+				<p>Complex 以 complex128 形式返回 v 的底层值。如果 v 的 Kind 不是 <a href="#Complex64">Complex64</a> 或 <a href="#Complex128">Complex128</a>，则触发 panic。<h3 id="Value.Convert">func (Value) <a href="/src/reflect/value.go?s=102445:102481#L3252">Convert</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Convert(t <a href="#Type">Type</a>) <a href="#Value">Value</a></pre>
+				<p>Convert 返回将值 v 转换为类型 t 后的值。如果通常的 Go 转换规则不允许将 v 转换为 t，或者将 v 转换为 t 会触发 panic，则 Convert 会触发 panic。<h3 id="Value.Elem">func (Value) <a href="/src/reflect/value.go?s=40284:40311#L1210">Elem</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Elem() <a href="#Value">Value</a></pre>
+				<p>Elem 返回接口 v 包含的值，或指针 v 指向的值。如果 v 的 Kind 不是 <a href="#Interface">Interface</a> 或 <a href="#Pointer">Pointer</a>，则触发 panic。如果 v 为 nil，则返回零 Value。<h3 id="Value.Equal">func (Value) <a href="/src/reflect/value.go?s=104683:104717#L3334">Equal</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Equal(u <a href="#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>如果 v 等于 u，Equal 返回 true。对于两个无效值，Equal 返回 true。对于接口值，Equal 比较接口内部的值。否则，如果值的类型不同，Equal 返回 false；如果类型相同，则对于数组和结构体，Equal 会依次比较每个元素，并在发现不相等的元素时返回 false。在所有比较过程中，如果要比较的值具有相同类型，而该类型不可比较，Equal 就会触发 panic。<h3 id="Value.Field">func (Value) <a href="/src/reflect/value.go?s=41815:41848#L1254">Field</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Field(i <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>Field 返回结构体 v 的第 i 个字段。如果 v 的 Kind 不是 <a href="#Struct">Struct</a>，或者 i 超出范围，则触发 panic。<h3 id="Value.FieldByIndex">func (Value) <a href="/src/reflect/value.go?s=43486:43532#L1299">FieldByIndex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) FieldByIndex(index []<a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>FieldByIndex 返回与 index 对应的嵌套字段。如果求值时需要经过 nil 指针或非结构体字段，则触发 panic。<div id="example_Value_FieldByIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	// 此示例展示了提升字段的名称被
+	// 另一个字段遮蔽的情况：FieldByName 无法满足要求，
+	// 因此必须改用 FieldByIndex。
+	type user struct {
+		firstName string
+		lastName  string
+	}
+
+	type data struct {
+		user
+		firstName string
+		lastName  string
+	}
+
+	u := data{
+		user:      user{&#34;Embedded John&#34;, &#34;Embedded Doe&#34;},
+		firstName: &#34;John&#34;,
+		lastName:  &#34;Doe&#34;,
+	}
+
+	s := reflect.ValueOf(u).FieldByIndex([]int{0, 1})
+	fmt.Println(&#34;embedded last name:&#34;, s)
+
+}
+</textarea></div>
+        <div class="output"><pre>embedded last name: Embedded Doe
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Value.FieldByIndexErr">func (Value) <a href="/src/reflect/value.go?s=44087:44145#L1322">FieldByIndexErr</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) FieldByIndexErr(index []<a href="/pkg/builtin/#int">int</a>) (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>FieldByIndexErr 返回与 index 对应的嵌套字段。如果求值时需要经过 nil 指针，则返回错误；如果需要经过非结构体字段，则触发 panic。<h3 id="Value.FieldByName">func (Value) <a href="/src/reflect/value.go?s=44698:44743#L1344">FieldByName</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) FieldByName(name <a href="/pkg/builtin/#string">string</a>) <a href="#Value">Value</a></pre>
+				<p>FieldByName 返回具有给定名称的结构体字段。如果未找到字段，则返回零 Value。如果 v 的 Kind 不是 <a href="#Struct">Struct</a>，则触发 panic。<div id="example_Value_FieldByName" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	type user struct {
+		firstName string
+		lastName  string
+	}
+	u := user{firstName: &#34;John&#34;, lastName: &#34;Doe&#34;}
+	s := reflect.ValueOf(u)
+
+	fmt.Println(&#34;Name:&#34;, s.FieldByName(&#34;firstName&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>Name: John
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Value.FieldByNameFunc">func (Value) <a href="/src/reflect/value.go?s=45061:45122#L1356">FieldByNameFunc</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) FieldByNameFunc(match func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="#Value">Value</a></pre>
+				<p>FieldByNameFunc 返回名称满足 match 函数的结构体字段。如果 v 的 Kind 不是 <a href="#Struct">Struct</a>，则触发 panic。如果未找到字段，则返回零 Value。<h3 id="Value.Fields">func (Value) <a href="/src/reflect/value.go?s=83781:83834#L2647">Fields</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Fields() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq2">Seq2</a>[<a href="#StructField">StructField</a>, <a href="#Value">Value</a>]</pre>
+				<p>Fields 返回一个迭代器，遍历 v 的每个 <a href="#StructField">StructField</a> 及其 <a href="#Value">Value</a>。<p>该序列等价于针对 [0, NumField()) 范围内的每个索引 i 依次调用 <a href="#Value.Field">Value.Field</a>。<p>如果 v 的 Kind 不是 Struct，则触发 panic。<div id="example_Value_Fields" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	type Person struct {
+		Name    string
+		Age     int
+		City    string
+		Country string
+	}
+
+	p := Person{Name: &#34;Alice&#34;, Age: 30, City: &#34;New York&#34;, Country: &#34;USA&#34;}
+	v := reflect.ValueOf(p)
+
+	fmt.Println(&#34;Iterating over all struct fields:&#34;)
+	for field, value := range v.Fields() {
+		fmt.Printf(&#34;  %s = %v\n&#34;, field.Name, value)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Iterating over all struct fields:
+  Name = Alice
+  Age = 30
+  City = New York
+  Country = USA
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Value.Float">func (Value) <a href="/src/reflect/value.go?s=45541:45571#L1375">Float</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Float() <a href="/pkg/builtin/#float64">float64</a></pre>
+				<p>Float 以 float64 形式返回 v 的底层值。如果 v 的 Kind 不是 <a href="#Float32">Float32</a> 或 <a href="#Float64">Float64</a>，则触发 panic。<h3 id="Value.Grow">func (Value) <a href="/src/reflect/value.go?s=86872:86898#L2734">Grow</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Grow(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Grow 在必要时增加切片容量，保证还能容纳 n 个元素。调用 Grow(n) 后，至少可以向切片追加 n 个元素而无须再次分配内存。<p>如果 v 的 Kind 不是 <a href="#Slice">Slice</a>，n 为负数或太大而无法分配内存，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.Index">func (Value) <a href="/src/reflect/value.go?s=45909:45942#L1390">Index</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Index(i <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>Index 返回 v 的第 i 个元素。如果 v 的 Kind 不是 <a href="#Array">Array</a>、<a href="#Slice">Slice</a> 或 <a href="#String">String</a>，或者 i 超出范围，则触发 panic。<h3 id="Value.Int">func (Value) <a href="/src/reflect/value.go?s=47695:47721#L1446">Int</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Int() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Int 以 int64 形式返回 v 的底层值。如果 v 的 Kind 不是 <a href="#Int">Int</a>、<a href="#Int8">Int8</a>、<a href="#Int16">Int16</a>、<a href="#Int32">Int32</a> 或 <a href="#Int64">Int64</a>，则触发 panic。<h3 id="Value.Interface">func (Value) <a href="/src/reflect/value.go?s=48461:48495#L1479">Interface</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Interface() (i <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Interface 以 interface{} 形式返回 v 的当前值。它等价于：<pre>var i interface{} = (v&apos;s underlying value)
+</pre>
+<p>如果该 Value 是通过访问未导出的结构体字段获得的，则触发 panic。<h3 id="Value.InterfaceData">func (Value) <a href="/src/reflect/value.go?s=52911:52952#L1614">InterfaceData</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) InterfaceData() [2]<a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>InterfaceData 返回两个含义未作规定的 uintptr 值。如果 v 的 Kind 不是 Interface，则触发 panic。<p>在 Go 的早期版本中，此函数将接口的值作为两个 uintptr 值返回。自 Go 1.4 起，接口值的实现方式使 InterfaceData 不再有任何定义明确的用途。<p>已弃用：接口值的内存表示与 InterfaceData 不兼容。<h3 id="Value.IsNil">func (Value) <a href="/src/reflect/value.go?s=53761:53788#L1633">IsNil</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) IsNil() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsNil 报告参数 v 是否为 nil。参数必须是通道、函数、接口、映射、指针或切片值，否则 IsNil 会触发 panic。注意，IsNil 并不总是等价于 Go 中通常的 nil 比较。例如，若使用未初始化的接口变量 i 调用 <a href="#ValueOf">ValueOf</a> 创建 v，则 i==nil 为 true，但 v.IsNil 会触发 panic，因为此时 v 是零 Value。<h3 id="Value.IsValid">func (Value) <a href="/src/reflect/value.go?s=54556:54585#L1658">IsValid</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) IsValid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告 v 是否表示一个值。如果 v 是零 Value，则返回 false。如果 <a href="#Value.IsValid">Value.IsValid</a> 返回 false，则除 String 外的所有其他方法都触发 panic。大多数函数和方法从不返回无效 Value；如果会返回，文档中会明确说明相应条件。<h3 id="Value.IsZero">func (Value) <a href="/src/reflect/value.go?s=54712:54740#L1664">IsZero</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) IsZero() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsZero 报告 v 是否为其类型的零值。如果参数无效，则触发 panic。<h3 id="Value.Kind">func (Value) <a href="/src/reflect/value.go?s=59534:59560#L1845">Kind</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Kind() <a href="#Kind">Kind</a></pre>
+				<p>Kind 返回 v 的 Kind。如果 v 是零 Value（<a href="#Value.IsValid">Value.IsValid</a> 返回 false），则 Kind 返回 Invalid。<h3 id="Value.Len">func (Value) <a href="/src/reflect/value.go?s=59708:59732#L1851">Len</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回 v 的长度。如果 v 的 Kind 不是 <a href="#Array">Array</a>、<a href="#Chan">Chan</a>、<a href="#Map">Map</a>、<a href="#Slice">Slice</a>、<a href="#String">String</a> 或指向 <a href="#Array">Array</a> 的指针，则触发 panic。<h3 id="Value.MapIndex">func (Value) <a href="/src/reflect/map.go?s=4617:4657#L172">MapIndex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) MapIndex(key <a href="#Value">Value</a>) <a href="#Value">Value</a></pre>
+				<p>MapIndex 返回映射 v 中与 key 关联的值。如果 v 的 Kind 不是 <a href="#Map">Map</a>，则触发 panic。如果映射中没有找到 key，或 v 表示 nil 映射，则返回零 Value。与 Go 中一样，key 的值必须可赋值给映射的键类型。<h3 id="Value.MapKeys">func (Value) <a href="/src/reflect/map.go?s=6402:6434#L236">MapKeys</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) MapKeys() []<a href="#Value">Value</a></pre>
+				<p>MapKeys 返回包含映射中所有键的切片，顺序未作规定。如果 v 的 Kind 不是 <a href="#Map">Map</a>，则触发 panic。如果 v 表示 nil 映射，则返回空切片。<h3 id="Value.MapRange">func (Value) <a href="/src/reflect/map.go?s=11619:11653#L412">MapRange</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) MapRange() *<a href="#MapIter">MapIter</a></pre>
+				<p>MapRange 返回用于遍历映射的迭代器。如果 v 的 Kind 不是 <a href="#Map">Map</a>，则触发 panic。<p>调用 <a href="#MapIter.Next">MapIter.Next</a> 推进迭代器，调用 <a href="#MapIter.Key">MapIter.Key</a>/<a href="#MapIter.Value">MapIter.Value</a> 访问各条目。迭代器耗尽时，<a href="#MapIter.Next">MapIter.Next</a> 返回 false。MapRange 遵循与 range 语句相同的迭代语义。<p>示例：<pre>iter := reflect.ValueOf(m).MapRange()
+for iter.Next() {
+	k := iter.Key()
+	v := iter.Value()
+	...
+}
+</pre>
+
+				
+			
+				<h3 id="Value.Method">func (Value) <a href="/src/reflect/value.go?s=61342:61376#L1900">Method</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Method(i <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>Method 返回与 v 的第 i 个方法对应的函数值。对返回的函数调用 Call 时，实参不应包含接收者；返回的函数始终使用 v 作为接收者。如果 i 超出范围，或者 v 是 nil 接口值，则 Method 会触发 panic。<p>调用此方法会强制链接器保留所有包中的所有导出方法。这可能增大可执行文件的体积，但不会影响执行时间。<h3 id="Value.MethodByName">func (Value) <a href="/src/reflect/value.go?s=62817:62863#L1940">MethodByName</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) MethodByName(name <a href="/pkg/builtin/#string">string</a>) <a href="#Value">Value</a></pre>
+				<p>MethodByName 返回与 v 的给定名称方法对应的函数值。对返回的函数调用 Call 时，实参不应包含接收者；返回的函数始终使用 v 作为接收者。如果未找到方法，则返回零 Value。<p>调用此方法会使链接器保留所有包中具有该名称的方法。如果链接器无法确定名称，则会保留所有导出方法。这可能增大可执行文件的体积，但不会影响执行时间。<h3 id="Value.Methods">func (Value) <a href="/src/reflect/value.go?s=84675:84724#L2672">Methods</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Methods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq2">Seq2</a>[<a href="#Method">Method</a>, <a href="#Value">Value</a>]</pre>
+				<p>Methods 返回一个迭代器，遍历 v 的每个 <a href="#Method">Method</a> 及其对应的方法 <a href="#Value">Value</a>；后者是已将 v 绑定为接收者的函数。因此，调用 <a href="#Value.Call">Value.Call</a> 时，实参中不应包含接收者。<p>该序列等价于针对 [0, NumMethod()) 范围内的每个索引 i 依次调用 <a href="#Value.Method">Value.Method</a>。<p>如果 v 是 nil 接口值，Methods 会触发 panic。<p>调用此方法会强制链接器保留所有包中的所有导出方法。这可能增大可执行文件的体积，但不会影响执行时间。<div id="example_Value_Methods" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;reflect&#34;
+)
+
+func main() {
+	r := bytes.NewReader([]byte(&#34;hello&#34;))
+	v := reflect.ValueOf(r)
+
+	fmt.Println(&#34;Methods of *bytes.Reader:&#34;)
+	for method, methodValue := range v.Methods() {
+		fmt.Printf(&#34;  %s\n&#34;, method.Name)
+		// 以调用 Len 方法为例
+		if method.Name == &#34;Len&#34; {
+			result := methodValue.Call(nil)
+			fmt.Printf(&#34;  Len() = %v\n&#34;, result[0])
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Methods of *bytes.Reader:
+  Len
+  Len() = 5
+  Read
+  ReadAt
+  ReadByte
+  ReadRune
+  Reset
+  Seek
+  Size
+  UnreadByte
+  UnreadRune
+  WriteTo
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Value.NumField">func (Value) <a href="/src/reflect/value.go?s=63204:63233#L1956">NumField</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) NumField() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumField 返回结构体 v 的字段数量。如果 v 的 Kind 不是 <a href="#Struct">Struct</a>，则触发 panic。<h3 id="Value.NumMethod">func (Value) <a href="/src/reflect/value.go?s=62062:62092#L1921">NumMethod</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) NumMethod() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumMethod 返回该值的方法集中方法的数量。<p>对于非接口类型，它返回导出方法的数量。<p>对于接口类型，它返回导出和未导出方法的总数。<h3 id="Value.OverflowComplex">func (Value) <a href="/src/reflect/value.go?s=63474:63523#L1964">OverflowComplex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) OverflowComplex(x <a href="/pkg/builtin/#complex128">complex128</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>OverflowComplex 报告 complex128 值 x 是否无法由 v 的类型表示。如果 v 的 Kind 不是 <a href="#Complex64">Complex64</a> 或 <a href="#Complex128">Complex128</a>，则触发 panic。<h3 id="Value.OverflowFloat">func (Value) <a href="/src/reflect/value.go?s=63872:63916#L1977">OverflowFloat</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) OverflowFloat(x <a href="/pkg/builtin/#float64">float64</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>OverflowFloat 报告 float64 值 x 是否无法由 v 的类型表示。如果 v 的 Kind 不是 <a href="#Float32">Float32</a> 或 <a href="#Float64">Float64</a>，则触发 panic。<h3 id="Value.OverflowInt">func (Value) <a href="/src/reflect/value.go?s=64359:64399#L1997">OverflowInt</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) OverflowInt(x <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>OverflowInt 报告 int64 值 x 是否无法由 v 的类型表示。如果 v 的 Kind 不是 <a href="#Int">Int</a>、<a href="#Int8">Int8</a>、<a href="#Int16">Int16</a>、<a href="#Int32">Int32</a> 或 <a href="#Int64">Int64</a>，则触发 panic。<h3 id="Value.OverflowUint">func (Value) <a href="/src/reflect/value.go?s=64808:64850#L2010">OverflowUint</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) OverflowUint(x <a href="/pkg/builtin/#uint64">uint64</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>OverflowUint 报告 uint64 值 x 是否无法由 v 的类型表示。如果 v 的 Kind 不是 <a href="#Uint">Uint</a>、<a href="#Uintptr">Uintptr</a>、<a href="#Uint8">Uint8</a>、<a href="#Uint16">Uint16</a>、<a href="#Uint32">Uint32</a> 或 <a href="#Uint64">Uint64</a>，则触发 panic。<h3 id="Value.Pointer">func (Value) <a href="/src/reflect/value.go?s=66234:66266#L2044">Pointer</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Pointer() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Pointer 以 uintptr 形式返回 v 的值。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>、<a href="#Func">Func</a>、<a href="#Map">Map</a>、<a href="#Pointer">Pointer</a>、<a href="#Slice">Slice</a>、<a href="#String">String</a> 或 <a href="#UnsafePointer">UnsafePointer</a>，则触发 panic。<p>如果 v 的 Kind 为 <a href="#Func">Func</a>，返回的指针是底层代码指针，但未必足以唯一标识某个函数。特别是，代码指针相等的函数在调用时可能具有不同的行为。唯一的保证是：结果为零，当且仅当 v 是表示 nil 函数的 Value。<p>如果 v 的 Kind 为 <a href="#Slice">Slice</a>，返回的指针指向切片的第一个元素。如果切片为 nil，则返回 0。如果切片为空但不为 nil，则返回非零值。<p>如果 v 的 Kind 为 <a href="#String">String</a>，返回的指针指向字符串底层字节序列的第一个元素。<p>建议使用 uintptr(Value.UnsafePointer()) 获取等价结果。<h3 id="Value.Recv">func (Value) <a href="/src/reflect/value.go?s=67903:67943#L2093">Recv</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Recv() (x <a href="#Value">Value</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Recv 从通道 v 接收并返回一个值。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>，则触发 panic。接收操作会阻塞，直到有值可接收。如果值 x 来自通道上的发送操作，则布尔值 ok 为 true；如果因通道关闭而收到零值，则 ok 为 false。<h3 id="Value.Send">func (Value) <a href="/src/reflect/value.go?s=68759:68787#L2126">Send</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Send(x <a href="#Value">Value</a>)</pre>
+				<p>Send 在通道 v 上发送 x。如果 v 的类别不是 <a href="#Chan">Chan</a>，或者 x 的类型与 v 的元素类型不同，则触发 panic。与 Go 中一样，x 的值必须可赋值给通道的元素类型。<h3 id="Value.Seq">func (Value) <a href="/src/reflect/iter.go?s=1169:1205#L28">Seq</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Seq() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Value">Value</a>]</pre>
+				<p>Seq 返回用于遍历 v 中元素的 iter.Seq[Value]。如果 v 的类别是 <a href="#Func">Func</a>，它必须是没有返回结果、只接收一个 func(T) bool 类型实参的函数，其中 T 为某个类型。如果 v 的类别是 <a href="#Pointer">Pointer</a>，指针元素类型的类别必须为 <a href="#Array">Array</a>。否则，v 的类别必须为 <a href="#Int">Int</a>、<a href="#Int8">Int8</a>、<a href="#Int16">Int16</a>、<a href="#Int32">Int32</a>、<a href="#Int64">Int64</a>、<a href="#Uint">Uint</a>、<a href="#Uint8">Uint8</a>、<a href="#Uint16">Uint16</a>、<a href="#Uint32">Uint32</a>、<a href="#Uint64">Uint64</a>、<a href="#Uintptr">Uintptr</a>、<a href="#Array">Array</a>、<a href="#Chan">Chan</a>、<a href="#Map">Map</a>、<a href="#Slice">Slice</a> 或 <a href="#String">String</a>。<h3 id="Value.Seq2">func (Value) <a href="/src/reflect/iter.go?s=3327:3372#L114">Seq2</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Seq2() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq2">Seq2</a>[<a href="#Value">Value</a>, <a href="#Value">Value</a>]</pre>
+				<p>Seq2 返回用于遍历 v 中元素的 iter.Seq2[Value, Value]。如果 v 的类别是 <a href="#Func">Func</a>，它必须是没有返回结果、只接收一个 func(K, V) bool 类型实参的函数，其中 K、V 为某些类型。如果 v 的类别是 <a href="#Pointer">Pointer</a>，指针元素类型的类别必须为 <a href="#Array">Array</a>。否则，v 的类别必须为 <a href="#Array">Array</a>、<a href="#Map">Map</a>、<a href="#Slice">Slice</a> 或 <a href="#String">String</a>。<h3 id="Value.Set">func (Value) <a href="/src/reflect/value.go?s=69505:69532#L2154">Set</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Set(x <a href="#Value">Value</a>)</pre>
+				<p>Set 将 x 赋给值 v。如果 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。与 Go 中一样，x 的值必须可赋值给 v 的类型，且不得来自未导出的字段。<h3 id="Value.SetBool">func (Value) <a href="/src/reflect/value.go?s=70054:70084#L2175">SetBool</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetBool(x <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>SetBool 设置 v 的底层值。如果 v 的 Kind 不是 <a href="#Bool">Bool</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetBytes">func (Value) <a href="/src/reflect/value.go?s=70288:70321#L2184">SetBytes</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetBytes(x []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>SetBytes 设置 v 的底层值。如果 v 的底层值不是字节切片，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetCap">func (Value) <a href="/src/reflect/value.go?s=72784:72812#L2274">SetCap</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetCap(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>SetCap 将 v 的容量设为 n。如果 v 的 Kind 不是 <a href="#Slice">Slice</a>，n 小于切片的长度或大于切片的容量，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetComplex">func (Value) <a href="/src/reflect/value.go?s=71041:71080#L2208">SetComplex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetComplex(x <a href="/pkg/builtin/#complex128">complex128</a>)</pre>
+				<p>SetComplex 将 v 的底层值设为 x。如果 v 的 Kind 不是 <a href="#Complex64">Complex64</a> 或 <a href="#Complex128">Complex128</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetFloat">func (Value) <a href="/src/reflect/value.go?s=71447:71481#L2223">SetFloat</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetFloat(x <a href="/pkg/builtin/#float64">float64</a>)</pre>
+				<p>SetFloat 将 v 的底层值设为 x。如果 v 的 Kind 不是 <a href="#Float32">Float32</a> 或 <a href="#Float64">Float64</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetInt">func (Value) <a href="/src/reflect/value.go?s=71853:71883#L2238">SetInt</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetInt(x <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>SetInt 将 v 的底层值设为 x。如果 v 的 Kind 不是 <a href="#Int">Int</a>、<a href="#Int8">Int8</a>、<a href="#Int16">Int16</a>、<a href="#Int32">Int32</a> 或 <a href="#Int64">Int64</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetIterKey">func (Value) <a href="/src/reflect/map.go?s=8058:8098#L297">SetIterKey</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetIterKey(iter *<a href="#MapIter">MapIter</a>)</pre>
+				<p>SetIterKey 将 iter 当前映射条目的键赋给 v。它等价于 v.Set(iter.Key())，但避免了分配新的 Value。与 Go 中一样，该键必须可赋值给 v 的类型，且不得来自未导出的字段。如果 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetIterValue">func (Value) <a href="/src/reflect/map.go?s=9443:9485#L341">SetIterValue</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetIterValue(iter *<a href="#MapIter">MapIter</a>)</pre>
+				<p>SetIterValue 将 iter 当前映射条目的值赋给 v。它等价于 v.Set(iter.Value())，但避免了分配新的 Value。与 Go 中一样，该值必须可赋值给 v 的类型，且不得来自未导出的字段。如果 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetLen">func (Value) <a href="/src/reflect/value.go?s=72383:72411#L2260">SetLen</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetLen(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>SetLen 将 v 的长度设为 n。如果 v 的 Kind 不是 <a href="#Slice">Slice</a>，n 为负数或大于切片的容量，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetMapIndex">func (Value) <a href="/src/reflect/map.go?s=12331:12374#L429">SetMapIndex</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetMapIndex(key, elem <a href="#Value">Value</a>)</pre>
+				<p>SetMapIndex 将映射 v 中与 key 关联的元素设为 elem。如果 v 的 Kind 不是 <a href="#Map">Map</a>，则触发 panic。如果 elem 是零 Value，SetMapIndex 会从映射中删除该键。否则，如果 v 持有 nil 映射，SetMapIndex 会触发 panic。与 Go 中一样，key 的值必须可赋值给映射的键类型，而 elem 的值必须可赋值给映射的元素类型。<h3 id="Value.SetPointer">func (Value) <a href="/src/reflect/value.go?s=73727:73770#L2310">SetPointer</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetPointer(x <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+				<p>SetPointer 将 <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a> 值 v 设为 x。如果 v 的 Kind 不是 <a href="#UnsafePointer">UnsafePointer</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetString">func (Value) <a href="/src/reflect/value.go?s=73976:74010#L2318">SetString</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetString(x <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>SetString 将 v 的底层值设为 x。如果 v 的 Kind 不是 <a href="#String">String</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetUint">func (Value) <a href="/src/reflect/value.go?s=73168:73200#L2287">SetUint</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetUint(x <a href="/pkg/builtin/#uint64">uint64</a>)</pre>
+				<p>SetUint 将 v 的底层值设为 x。如果 v 的 Kind 不是 <a href="#Uint">Uint</a>、<a href="#Uintptr">Uintptr</a>、<a href="#Uint8">Uint8</a>、<a href="#Uint16">Uint16</a>、<a href="#Uint32">Uint32</a> 或 <a href="#Uint64">Uint64</a>，或者 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.SetZero">func (Value) <a href="/src/reflect/value.go?s=58250:58274#L1791">SetZero</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) SetZero()</pre>
+				<p>SetZero 将 v 设为其类型的零值。如果 <a href="#Value.CanSet">Value.CanSet</a> 返回 false，则触发 panic。<h3 id="Value.Slice">func (Value) <a href="/src/reflect/value.go?s=74241:74277#L2327">Slice</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Slice(i, j <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>Slice 返回 v[i:j]。如果 v 的 Kind 不是 <a href="#Array">Array</a>、<a href="#Slice">Slice</a> 或 <a href="#String">String</a>，v 是不可寻址的数组，或者索引越界，则触发 panic。<h3 id="Value.Slice3">func (Value) <a href="/src/reflect/value.go?s=75922:75962#L2389">Slice3</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Slice3(i, j, k <a href="/pkg/builtin/#int">int</a>) <a href="#Value">Value</a></pre>
+				<p>Slice3 是切片操作的三索引形式：返回 v[i:j:k]。如果 v 的 Kind 不是 <a href="#Array">Array</a> 或 <a href="#Slice">Slice</a>，v 是不可寻址的数组，或者索引越界，则触发 panic。<h3 id="Value.String">func (Value) <a href="/src/reflect/value.go?s=77534:77564#L2444">String</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 以 string 形式返回字符串 v 的底层值。由于 Go 对 String 方法的约定，String 是一个特例。与其他取值方法不同，v 的 Kind 不是 <a href="#String">String</a> 时，它不会触发 panic，而是返回形如 &quot;&lt;T value&gt;&quot; 的字符串，其中 T 为 v 的类型。fmt 包会特殊处理 Value：它不会隐式调用 Value 的 String 方法，而是打印其持有的具体值。<h3 id="Value.TryRecv">func (Value) <a href="/src/reflect/value.go?s=78384:78427#L2466">TryRecv</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) TryRecv() (x <a href="#Value">Value</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>TryRecv 尝试从通道 v 接收一个值，但不会阻塞。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>，则触发 panic。如果接收到了发送的值，则 x 是传送的值，ok 为 true。如果接收操作无法在不阻塞的情况下完成，则 x 是零 Value，ok 为 false。如果通道已关闭，则 x 是通道元素类型的零值，ok 为 false。<h3 id="Value.TrySend">func (Value) <a href="/src/reflect/value.go?s=78712:78748#L2476">TrySend</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) TrySend(x <a href="#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TrySend 尝试在通道 v 上发送 x，但不会阻塞。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>，则触发 panic。它报告该值是否已发送。与 Go 中一样，x 的值必须可赋值给通道的元素类型。<h3 id="Value.Type">func (Value) <a href="/src/reflect/value.go?s=78840:78866#L2483">Type</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回 v 的类型。<h3 id="Value.Uint">func (Value) <a href="/src/reflect/value.go?s=80389:80417#L2545">Uint</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Uint() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Uint 以 uint64 形式返回 v 的底层值。如果 v 的 Kind 不是 <a href="#Uint">Uint</a>、<a href="#Uintptr">Uintptr</a>、<a href="#Uint8">Uint8</a>、<a href="#Uint16">Uint16</a>、<a href="#Uint32">Uint32</a> 或 <a href="#Uint64">Uint64</a>，则触发 panic。<h3 id="Value.UnsafeAddr">func (Value) <a href="/src/reflect/value.go?s=81157:81192#L2574">UnsafeAddr</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) UnsafeAddr() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>UnsafeAddr 以 uintptr 形式返回指向 v 的数据的指针。如果 v 不可寻址，则触发 panic。<p>建议使用 uintptr(Value.Addr().UnsafePointer()) 获取等价结果。<h3 id="Value.UnsafePointer">func (Value) <a href="/src/reflect/value.go?s=82201:82246#L2600">UnsafePointer</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) UnsafePointer() <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a></pre>
+				<p>UnsafePointer 以 <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a> 形式返回 v 的值。如果 v 的 Kind 不是 <a href="#Chan">Chan</a>、<a href="#Func">Func</a>、<a href="#Map">Map</a>、<a href="#Pointer">Pointer</a>、<a href="#Slice">Slice</a>、<a href="#String">String</a> 或 <a href="#UnsafePointer">UnsafePointer</a>，则触发 panic。<p>如果 v 的 Kind 为 <a href="#Func">Func</a>，返回的指针是底层代码指针，但未必足以唯一标识某个函数。唯一的保证是：结果为零，当且仅当 v 是表示 nil 函数的 Value。<p>如果 v 的 Kind 为 <a href="#Slice">Slice</a>，返回的指针指向切片的第一个元素。如果切片为 nil，则返回 nil。如果切片为空但不为 nil，则返回非 nil 值。<p>如果 v 的 Kind 为 <a href="#String">String</a>，返回的指针指向字符串底层字节序列的第一个元素。<h2 id="ValueError">type <a href="/src/reflect/value.go?s=5420:5474#L164">ValueError</a>
+				
+				
+			</h2>
+			<p>在不支持某个方法的 <a href="#Value">Value</a> 上调用该 Value 方法时，会发生 ValueError。每个方法的说明中会记录此类情况。<pre>type ValueError struct {
+<span id="ValueError.Method"></span>    Method <a href="/pkg/builtin/#string">string</a>
+<span id="ValueError.Kind"></span>    Kind   <a href="#Kind">Kind</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ValueError.Error">func (*ValueError) <a href="/src/reflect/value.go?s=5476:5511#L169">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#ValueError">ValueError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+		<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/reflect/type.go?s=10831:11344#L272" style="float: left;">&#x261e;</a> <p>FieldByName 及相关函数只要发现结构体字段的名称相同，就会认为它们的名称相等，即使这些名称来自不同包且未导出也是如此。这意味着，如果结构体类型 t 包含多个名为 x 的字段（从不同包嵌入），则 t.FieldByName(&quot;x&quot;) 的结果没有明确定义。FieldByName 可能返回其中一个名为 x 的字段，也可能报告没有找到字段。更多详情参见 <a href="/golang.org/issue/4876">https://golang.org/issue/4876</a>。</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

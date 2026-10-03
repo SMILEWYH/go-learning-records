@@ -1,0 +1,729 @@
+<!--{
+  "Title": "go/token 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/token 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/token"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>token 包定义表示 Go 编程语言词法单元的常量，以及针对词法单元的基本操作（输出、判定）。<div id="example__retrievePositionInfo" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (RetrievePositionInfo)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (RetrievePositionInfo)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	fset := token.NewFileSet()
+
+	const src = `package main
+
+import &#34;fmt&#34;
+
+import &#34;go/token&#34;
+
+           
+type p = token.Pos
+
+const bad = token.NoPos
+
+                    
+func ok(pos p) bool {
+	return pos != bad
+}
+
+/*line :7:9*/func main() {
+	fmt.Println(ok(bad) == bad.IsValid())
+}
+`
+
+	f, err := parser.ParseFile(fset, &#34;main.go&#34;, src, parser.SkipObjectResolution)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// 输出 f 中每个声明的位置和种类。
+	for _, decl := range f.Decls {
+		// 通过文件集取回文件名、行号和列号。
+		// 同时获取相对位置和绝对位置。
+		// 相对位置是相对于最后一条行指令的位置。
+		// 绝对位置是源代码中的确切位置。
+		pos := decl.Pos()
+		relPosition := fset.Position(pos)
+		absPosition := fset.PositionFor(pos, false)
+
+		// 由于遇到错误时会退出，这里只可能是 FuncDecl 或 GenDecl。
+		kind := &#34;func&#34;
+		if gen, ok := decl.(*ast.GenDecl); ok {
+			kind = gen.Tok.String()
+		}
+
+		// 如果相对位置与绝对位置不同，则同时显示两者。
+		fmtPosition := relPosition.String()
+		if relPosition != absPosition {
+			fmtPosition &#43;= &#34;[&#34; &#43; absPosition.String() &#43; &#34;]&#34;
+		}
+
+		fmt.Printf(&#34;%s: %s\n&#34;, fmtPosition, kind)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+main.go:3:1: import
+main.go:5:1: import
+main.go:1:5[main.go:8:1]: type
+main.go:3:1[main.go:10:1]: const
+fake.go:42:11[main.go:13:1]: func
+fake.go:7:9[main.go:17:14]: func
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#IsExported">func IsExported(name string) bool</a></dd>
+			
+				<dd><a href="#IsIdentifier">func IsIdentifier(name string) bool</a></dd>
+			
+				<dd><a href="#IsKeyword">func IsKeyword(name string) bool</a></dd>
+			
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.AddLine">func (f *File) AddLine(offset int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.AddLineColumnInfo">func (f *File) AddLineColumnInfo(offset int, filename string, line, column int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.AddLineInfo">func (f *File) AddLineInfo(offset int, filename string, line int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Base">func (f *File) Base() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.End">func (f *File) End() Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Line">func (f *File) Line(p Pos) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.LineCount">func (f *File) LineCount() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.LineStart">func (f *File) LineStart(line int) Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Lines">func (f *File) Lines() []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.MergeLine">func (f *File) MergeLine(line int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Name">func (f *File) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Offset">func (f *File) Offset(p Pos) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Pos">func (f *File) Pos(offset int) Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Position">func (f *File) Position(p Pos) (pos Position)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.PositionFor">func (f *File) PositionFor(p Pos, adjusted bool) (pos Position)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SetLines">func (f *File) SetLines(lines []int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SetLinesForContent">func (f *File) SetLinesForContent(content []byte)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Size">func (f *File) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.String">func (f *File) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#FileSet">type FileSet</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFileSet">func NewFileSet() *FileSet</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.AddExistingFiles">func (s *FileSet) AddExistingFiles(files ...*File)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.AddFile">func (s *FileSet) AddFile(filename string, base, size int) *File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.Base">func (s *FileSet) Base() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.File">func (s *FileSet) File(p Pos) (f *File)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.Iterate">func (s *FileSet) Iterate(yield func(*File) bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.Position">func (s *FileSet) Position(p Pos) (pos Position)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.PositionFor">func (s *FileSet) PositionFor(p Pos, adjusted bool) (pos Position)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.Read">func (s *FileSet) Read(decode func(any) error) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.RemoveFile">func (s *FileSet) RemoveFile(file *File)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileSet.Write">func (s *FileSet) Write(encode func(any) error) error</a></dd>
+				
+			
+				
+				<dd><a href="#Pos">type Pos</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pos.IsValid">func (p Pos) IsValid() bool</a></dd>
+				
+			
+				
+				<dd><a href="#Position">type Position</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Position.IsValid">func (pos *Position) IsValid() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Position.String">func (pos Position) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Token">type Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lookup">func Lookup(ident string) Token</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.IsKeyword">func (tok Token) IsKeyword() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.IsLiteral">func (tok Token) IsLiteral() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.IsOperator">func (tok Token) IsOperator() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Precedence">func (op Token) Precedence() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.String">func (tok Token) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__retrievePositionInfo">包 (RetrievePositionInfo)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/token/position.go">position.go</a>
+			
+				<a href="/src/go/token/serialize.go">serialize.go</a>
+			
+				<a href="/src/go/token/token.go">token.go</a>
+			
+				<a href="/src/go/token/tree.go">tree.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>一组用于按优先级解析表达式的常量。非运算符的优先级最低，其后是从优先级 1 开始的各类运算符，直到一元运算符。最高优先级作为“兜底”优先级，用于选择器、索引及其他运算符和分隔符词法单元。<pre>const (
+    <span id="LowestPrec">LowestPrec</span>  = 0 <span class="comment">// 非运算符</span>
+    <span id="UnaryPrec">UnaryPrec</span>   = 6
+    <span id="HighestPrec">HighestPrec</span> = 7
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="IsExported">func <a href="/src/go/token/token.go?s=5752:5785#L306">IsExported</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func IsExported(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsExported 报告 name 是否以大写字母开头。<h2 id="IsIdentifier">func <a href="/src/go/token/token.go?s=6288:6323#L321">IsIdentifier</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func IsIdentifier(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsIdentifier 报告 name 是否为 Go 标识符，即由字母、数字和下划线组成、且首字符不是数字的非空字符串。关键字不是标识符。<h2 id="IsKeyword">func <a href="/src/go/token/token.go?s=5938:5970#L312">IsKeyword</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func IsKeyword(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsKeyword 报告 name 是否为 Go 关键字，例如 &quot;func&quot; 或 &quot;return&quot;。<h2 id="File">type <a href="/src/go/token/position.go?s=3653:4028#L94">File</a>
+				
+				
+			</h2>
+			<p>File 是属于某个 <a href="#FileSet">FileSet</a> 的文件句柄。File 包含名称、大小和行偏移表。<p>使用 <a href="#FileSet.AddFile">FileSet.AddFile</a> 创建 File。一个 File 可以属于多个 FileSet；参见 <a href="#FileSet.AddExistingFiles">FileSet.AddExistingFiles</a>。<pre>type File struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="File.AddLine">func (*File) <a href="/src/go/token/position.go?s=4994:5028#L141">AddLine</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) AddLine(offset <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>AddLine 为新行添加行偏移量。该偏移量必须大于前一行的偏移量，且小于文件大小；否则忽略该偏移量。<h3 id="File.AddLineColumnInfo">func (*File) <a href="/src/go/token/position.go?s=9113:9192#L264">AddLineColumnInfo</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) AddLineColumnInfo(offset <a href="/pkg/builtin/#int">int</a>, filename <a href="/pkg/builtin/#string">string</a>, line, column <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>AddLineColumnInfo 为给定文件偏移量添加替代的文件名、行号和列号信息。该偏移量必须大于上一次添加的替代行信息的偏移量，且小于文件大小；否则忽略该信息。<p>AddLineColumnInfo 通常用于为 //line filename:line:column 等行指令注册替代位置信息。<h3 id="File.AddLineInfo">func (*File) <a href="/src/go/token/position.go?s=8571:8636#L252">AddLineInfo</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) AddLineInfo(offset <a href="/pkg/builtin/#int">int</a>, filename <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>AddLineInfo 相当于以 column = 1 调用 <a href="#File.AddLineColumnInfo">File.AddLineColumnInfo</a>。保留它是为了向后兼容 Go 1.11 之前的代码。<h3 id="File.Base">func (*File) <a href="/src/go/token/position.go?s=4366:4391#L116">Base</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Base() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Base 返回通过 AddFile 注册的文件 f 的基准偏移量。<h3 id="File.End">func (*File) <a href="/src/go/token/position.go?s=4591:4615#L126">End</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) End() <a href="#Pos">Pos</a></pre>
+				<p>End 返回通过 AddFile 注册的文件 f 的结束位置。<h3 id="File.Line">func (*File) <a href="/src/go/token/position.go?s=10800:10830#L310">Line</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Line(p <a href="#Pos">Pos</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Line 返回给定文件位置 p 的行号；p 必须是该文件中的 <a href="#Pos">Pos</a> 值或 <a href="#NoPos">NoPos</a>。<h3 id="File.LineCount">func (*File) <a href="/src/go/token/position.go?s=4702:4732#L131">LineCount</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) LineCount() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>LineCount 返回文件 f 的行数。<h3 id="File.LineStart">func (*File) <a href="/src/go/token/position.go?s=7808:7846#L228">LineStart</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) LineStart(line <a href="/pkg/builtin/#int">int</a>) <a href="#Pos">Pos</a></pre>
+				<p>LineStart 返回指定行起始位置的 <a href="#Pos">Pos</a> 值。它忽略通过 <a href="#File.AddLineColumnInfo">File.AddLineColumnInfo</a> 设置的所有替代位置。如果从 1 开始的行号无效，LineStart 会引发 panic。<h3 id="File.Lines">func (*File) <a href="/src/go/token/position.go?s=6291:6319#L173">Lines</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Lines() []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>Lines 返回当前生效的行偏移表，其形式如 <a href="#File.SetLines">File.SetLines</a> 所述。调用方不得修改结果。<h3 id="File.MergeLine">func (*File) <a href="/src/go/token/position.go?s=5478:5512#L153">MergeLine</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) MergeLine(line <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>MergeLine 将一行与其下一行合并。这相当于将该行末尾的换行符替换为空格（从而不改变其余偏移量）。要获取行号，可以查询 <a href="#Position.Line">Position.Line</a> 等。如果给定的行号无效，MergeLine 会引发 panic。<h3 id="File.Name">func (*File) <a href="/src/go/token/position.go?s=4247:4275#L111">Name</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回通过 AddFile 注册的文件 f 的文件名。<h3 id="File.Offset">func (*File) <a href="/src/go/token/position.go?s=10610:10642#L304">Offset</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Offset(p <a href="#Pos">Pos</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Offset 返回给定文件位置 p 的偏移量。<p>如果 p 位于文件起始位置之前（或者 p 为 NoPos），结果为 0；如果 p 位于文件结束位置之后，结果为文件大小（另见 go.dev/issue/57490）。<p>以下不变式虽然不对所有 offset 值成立，但对返回的 offset 成立：
+f.Offset(f.Pos(offset)) == offset<h3 id="File.Pos">func (*File) <a href="/src/go/token/position.go?s=10135:10169#L291">Pos</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Pos(offset <a href="/pkg/builtin/#int">int</a>) <a href="#Pos">Pos</a></pre>
+				<p>Pos 返回给定文件偏移量的 Pos 值。<p>如果 offset 为负数，结果为文件起始位置；如果 offset 过大，结果为文件结束位置（另见 go.dev/issue/57490）。<p>以下不变式虽然不对所有 Pos 值成立，但对返回的 p 成立：
+f.Pos(f.Offset(p)) == p。<h3 id="File.Position">func (*File) <a href="/src/go/token/position.go?s=13512:13557#L386">Position</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Position(p <a href="#Pos">Pos</a>) (pos <a href="#Position">Position</a>)</pre>
+				<p>Position 返回给定文件位置 p 的 Position 值。如果 p 越界，会按 File.Offset 的行为进行调整。调用 f.Position(p) 等价于调用 f.PositionFor(p, true)。<h3 id="File.PositionFor">func (*File) <a href="/src/go/token/position.go?s=13163:13226#L376">PositionFor</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) PositionFor(p <a href="#Pos">Pos</a>, adjusted <a href="/pkg/builtin/#bool">bool</a>) (pos <a href="#Position">Position</a>)</pre>
+				<p>PositionFor 返回给定文件位置 p 的 Position 值。如果 p 越界，会按 File.Offset 的行为进行调整。如果 adjusted 为 true，位置可能会根据用于改变位置的 //line 注释进行调整；否则忽略这些注释。p 必须是 f 中的 Pos 值或 NoPos。<h3 id="File.SetLines">func (*File) <a href="/src/go/token/position.go?s=6888:6929#L188">SetLines</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SetLines(lines []<a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>SetLines 设置文件的行偏移量，并报告是否成功。行偏移量是每行首字符的偏移量；例如，对于内容 &quot;ab\nc\n&quot;，行偏移量为 {0, 3}。空文件的行偏移表为空。每个行偏移量必须大于前一行的偏移量，且小于文件大小；否则 SetLines 失败并返回 false。SetLines 返回后，调用方不得修改传入的切片。<h3 id="File.SetLinesForContent">func (*File) <a href="/src/go/token/position.go?s=7302:7351#L206">SetLinesForContent</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SetLinesForContent(content []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>SetLinesForContent 根据给定的文件内容设置行偏移量。它忽略用于改变位置的 //line 注释。<h3 id="File.Size">func (*File) <a href="/src/go/token/position.go?s=4475:4500#L121">Size</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回通过 AddFile 注册的文件 f 的大小。<h3 id="File.String">func (*File) <a href="/src/go/token/position.go?s=4081:4111#L106">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 File 的简短描述。<h2 id="FileSet">type <a href="/src/go/token/position.go?s=14878:15144#L415">FileSet</a>
+				
+				
+			</h2>
+			<p>FileSet 表示一组源文件。文件集的方法会进行同步；多个 goroutine 可以并发调用它们。<p>文件集中每个文件的字节偏移量会映射到互不相交的整数区间，每个文件对应一个区间 [base, base+size]。<a href="#FileSet.Base">FileSet.Base</a> 表示文件的第一个字节，size 是相应的文件大小。<a href="#Pos">Pos</a> 值是此类区间内的值。通过确定 <a href="#Pos">Pos</a> 值所属的区间，可以计算出文件、文件基准偏移量，进而计算该 <a href="#Pos">Pos</a> 值所表示的字节偏移量（位置）。<p>添加新文件时，必须提供文件基准偏移量。它可以是大于文件集中所有已有文件的任何区间终点的任意整数。为方便使用，<a href="#FileSet.Base">FileSet.Base</a> 提供了这样的值，即最近添加文件的 Pos 区间终点加一。除非需要稍后扩展某个区间，否则应使用 <a href="#FileSet.Base">FileSet.Base</a> 作为 <a href="#FileSet.AddFile">FileSet.AddFile</a> 的参数。<p>当不再需要某个 <a href="#File">File</a> 时，可以将它从 FileSet 中移除。这可以减少长期运行应用程序的内存占用。<pre>type FileSet struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewFileSet">func <a href="/src/go/token/position.go?s=15184:15210#L423">NewFileSet</a>
+					
+					
+				</h3>
+				<pre>func NewFileSet() *<a href="#FileSet">FileSet</a></pre>
+				<p>NewFileSet 创建一个新的文件集。<h3 id="FileSet.AddExistingFiles">func (*FileSet) <a href="/src/go/token/position.go?s=17180:17230#L485">AddExistingFiles</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) AddExistingFiles(files ...*<a href="#File">File</a>)</pre>
+				<p>AddExistingFiles 将指定文件添加到 FileSet 中，但已存在的文件不会重复添加。调用方必须确保最终 FileSet 中任意两个 File 的位置区间都不重叠。<h3 id="FileSet.AddFile">func (*FileSet) <a href="/src/go/token/position.go?s=16276:16340#L453">AddFile</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) AddFile(filename <a href="/pkg/builtin/#string">string</a>, base, size <a href="/pkg/builtin/#int">int</a>) *<a href="#File">File</a></pre>
+				<p>AddFile 根据给定的文件名、基准偏移量和文件大小，将新文件添加到文件集 s，并返回该文件。多个文件可以同名。基准偏移量不能小于 <a href="#FileSet.Base">FileSet.Base</a>，size 不能为负数。特殊情况下，如果提供负数 base，则改用 <a href="#FileSet.Base">FileSet.Base</a> 的当前值。<p>添加文件会将文件集的 <a href="#FileSet.Base">FileSet.Base</a> 设置为 base + size + 1，作为下一个文件的最小基准偏移量。给定文件偏移量 offs 与其 <a href="#Pos">Pos</a> 值 p 之间有如下关系：<pre>int(p) = base + offs
+</pre>
+<p>其中 offs 位于区间 [0, size]，因此 p 位于区间 [base, base+size]。为方便使用，可以通过 <a href="#File.Pos">File.Pos</a> 根据文件偏移量创建该文件特定的位置值。<h3 id="FileSet.Base">func (*FileSet) <a href="/src/go/token/position.go?s=15375:15403#L431">Base</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) Base() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Base 返回添加下一个文件时，必须提供给 <a href="#FileSet.AddFile">FileSet.AddFile</a> 的最小基准偏移量。<h3 id="FileSet.File">func (*FileSet) <a href="/src/go/token/position.go?s=19547:19586#L569">File</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) File(p <a href="#Pos">Pos</a>) (f *<a href="#File">File</a>)</pre>
+				<p>File 返回包含位置 p 的文件。如果找不到这样的文件（例如 p == <a href="#NoPos">NoPos</a>），结果为 nil。<h3 id="FileSet.Iterate">func (*FileSet) <a href="/src/go/token/position.go?s=18646:18695#L533">Iterate</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) Iterate(yield func(*<a href="#File">File</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Iterate 按 Base 升序对文件集中的文件调用 yield，直到 yield 返回 false。<h3 id="FileSet.Position">func (*FileSet) <a href="/src/go/token/position.go?s=20198:20246#L591">Position</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) Position(p <a href="#Pos">Pos</a>) (pos <a href="#Position">Position</a>)</pre>
+				<p>Position 将文件集中的 <a href="#Pos">Pos</a> p 转换为 Position 值。调用 s.Position(p) 等价于调用 s.PositionFor(p, true)。<h3 id="FileSet.PositionFor">func (*FileSet) <a href="/src/go/token/position.go?s=19885:19951#L580">PositionFor</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) PositionFor(p <a href="#Pos">Pos</a>, adjusted <a href="/pkg/builtin/#bool">bool</a>) (pos <a href="#Position">Position</a>)</pre>
+				<p>PositionFor 将文件集中的 <a href="#Pos">Pos</a> p 转换为 <a href="#Position">Position</a> 值。如果 adjusted 为 true，位置可能会根据用于改变位置的 //line 注释进行调整；否则忽略这些注释。p 必须是 s 中的 <a href="#Pos">Pos</a> 值或 <a href="#NoPos">NoPos</a>。<h3 id="FileSet.Read">func (*FileSet) <a href="/src/go/token/serialize.go?s=507:559#L14">Read</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) Read(decode func(<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Read 调用 decode，将文件集反序列化到 s；s 不能为 nil。<h3 id="FileSet.RemoveFile">func (*FileSet) <a href="/src/go/token/position.go?s=18294:18334#L519">RemoveFile</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) RemoveFile(file *<a href="#File">File</a>)</pre>
+				<p>RemoveFile 将文件从 <a href="#FileSet">FileSet</a> 中移除，使后续对其 <a href="#Pos">Pos</a> 区间的查询找不到该文件。对于持续接收无界文件流的长期存活的 <a href="#FileSet">FileSet</a>，这可以减少内存占用。<p>移除不属于此集合的文件不会产生任何影响。<h3 id="FileSet.Write">func (*FileSet) <a href="/src/go/token/serialize.go?s=930:983#L38">Write</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#FileSet">FileSet</a>) Write(encode func(<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Write 调用 encode，将文件集 s 序列化。<h2 id="Pos">type <a href="/src/go/token/position.go?s=2925:2937#L73">Pos</a>
+				
+				
+			</h2>
+			<p>Pos 是文件集内源代码位置的紧凑编码。它可以转换为 <a href="#Position">Position</a>，后者使用更方便，但占用的空间大得多。<p>给定文件的 Pos 值是区间 [base, base+size] 中的数字，其中 base 和 size 在将文件加入文件集时指定。Pos 值与相应文件基准偏移量之差，对应该位置相对于文件起点的字节偏移量。因此，文件基准偏移量就是表示文件第一个字节的 Pos 值。<p>要为特定源代码偏移量（以字节计）创建 Pos 值，应先使用 <a href="#FileSet.AddFile">FileSet.AddFile</a> 将相应文件加入当前文件集，然后对该文件调用 <a href="#File.Pos">File.Pos</a>(offset)。给定特定文件集 fset 中的 Pos 值 p，可以通过调用 fset.Position(p) 获得对应的 <a href="#Position">Position</a> 值。<p>Pos 值可以直接使用通常的比较运算符进行比较：如果两个 Pos 值 p 和 q 位于同一文件中，比较 p 和 q 等价于比较相应的源文件偏移量。如果 p 和 q 位于不同文件中，那么当 p 对应的文件比 q 对应的文件更早加入相应文件集时，p &lt; q 为 true。<pre>type Pos <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p><a href="#Pos">Pos</a> 的零值是 NoPos；它不关联任何文件和行信息，且 NoPos.IsValid() 为 false。NoPos 始终小于任何其他 <a href="#Pos">Pos</a> 值。NoPos 对应的 <a href="#Position">Position</a> 值是 <a href="#Position">Position</a> 的零值。<pre>const <span id="NoPos">NoPos</span> <a href="#Pos">Pos</a> = 0</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pos.IsValid">func (Pos) <a href="/src/go/token/position.go?s=3276:3303#L82">IsValid</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#Pos">Pos</a>) IsValid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告该位置是否有效。<h2 id="Position">type <a href="/src/go/token/position.go?s=606:818#L16">Position</a>
+				
+				
+			</h2>
+			<p>Position 描述任意源代码位置，包括文件、行和列。如果行号 &gt; 0，则 Position 有效。<pre>type Position struct {
+<span id="Position.Filename"></span>    Filename <a href="/pkg/builtin/#string">string</a> <span class="comment">// 文件名（如果有）</span>
+<span id="Position.Offset"></span>    Offset   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 偏移量，从 0 开始</span>
+<span id="Position.Line"></span>    Line     <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 行号，从 1 开始</span>
+<span id="Position.Column"></span>    Column   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 列号，从 1 开始（按字节计数）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Position.IsValid">func (*Position) <a href="/src/go/token/position.go?s=870:905#L24">IsValid</a>
+					
+					
+				</h3>
+				<pre>func (pos *<a href="#Position">Position</a>) IsValid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告该位置是否有效。<h3 id="Position.String">func (Position) <a href="/src/go/token/position.go?s=1373:1408#L34">String</a>
+					
+					
+				</h3>
+				<pre>func (pos <a href="#Position">Position</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回以下形式之一的字符串：<pre>file:line:column    带文件名的有效位置
+file:line           带文件名但没有列号的有效位置（column == 0）
+line:column         不带文件名的有效位置
+line                不带文件名且没有列号的有效位置（column == 0）
+file                带文件名的无效位置
+-                   不带文件名的无效位置
+</pre>
+
+				
+			
+		
+			
+			<h2 id="Token">type <a href="/src/go/token/token.go?s=451:465#L6">Token</a>
+				
+				
+			</h2>
+			<p>Token 表示 Go 编程语言的词法单元集合。<pre>type Token <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>词法单元列表。<pre>const (
+    <span class="comment">// 特殊词法单元</span>
+    <span id="ILLEGAL">ILLEGAL</span> <a href="#Token">Token</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="EOF">EOF</span>
+    <span id="COMMENT">COMMENT</span>
+
+    <span class="comment">// 标识符和基本类型字面量</span>
+    <span class="comment">// （这些词法单元代表各类字面量）</span>
+    <span id="IDENT">IDENT</span>  <span class="comment">// main</span>
+    <span id="INT">INT</span>    <span class="comment">// 12345</span>
+    <span id="FLOAT">FLOAT</span>  <span class="comment">// 123.45</span>
+    <span id="IMAG">IMAG</span>   <span class="comment">// 123.45i</span>
+    <span id="CHAR">CHAR</span>   <span class="comment">// &#39;a&#39;</span>
+    <span id="STRING">STRING</span> <span class="comment">// &#34;abc&#34;</span>
+
+    <span class="comment">// 运算符和分隔符</span>
+    <span id="ADD">ADD</span> <span class="comment">// +</span>
+    <span id="SUB">SUB</span> <span class="comment">// -</span>
+    <span id="MUL">MUL</span> <span class="comment">// *</span>
+    <span id="QUO">QUO</span> <span class="comment">// /</span>
+    <span id="REM">REM</span> <span class="comment">// %</span>
+
+    <span id="AND">AND</span>     <span class="comment">// &amp;</span>
+    <span id="OR">OR</span>      <span class="comment">// |</span>
+    <span id="XOR">XOR</span>     <span class="comment">// ^</span>
+    <span id="SHL">SHL</span>     <span class="comment">// &lt;&lt;</span>
+    <span id="SHR">SHR</span>     <span class="comment">// &gt;&gt;</span>
+    <span id="AND_NOT">AND_NOT</span> <span class="comment">// &amp;^</span>
+
+    <span id="ADD_ASSIGN">ADD_ASSIGN</span> <span class="comment">// +=</span>
+    <span id="SUB_ASSIGN">SUB_ASSIGN</span> <span class="comment">// -=</span>
+    <span id="MUL_ASSIGN">MUL_ASSIGN</span> <span class="comment">// *=</span>
+    <span id="QUO_ASSIGN">QUO_ASSIGN</span> <span class="comment">// /=</span>
+    <span id="REM_ASSIGN">REM_ASSIGN</span> <span class="comment">// %=</span>
+
+    <span id="AND_ASSIGN">AND_ASSIGN</span>     <span class="comment">// &amp;=</span>
+    <span id="OR_ASSIGN">OR_ASSIGN</span>      <span class="comment">// |=</span>
+    <span id="XOR_ASSIGN">XOR_ASSIGN</span>     <span class="comment">// ^=</span>
+    <span id="SHL_ASSIGN">SHL_ASSIGN</span>     <span class="comment">// &lt;&lt;=</span>
+    <span id="SHR_ASSIGN">SHR_ASSIGN</span>     <span class="comment">// &gt;&gt;=</span>
+    <span id="AND_NOT_ASSIGN">AND_NOT_ASSIGN</span> <span class="comment">// &amp;^=</span>
+
+    <span id="LAND">LAND</span>  <span class="comment">// &amp;&amp;</span>
+    <span id="LOR">LOR</span>   <span class="comment">// ||</span>
+    <span id="ARROW">ARROW</span> <span class="comment">// &lt;-</span>
+    <span id="INC">INC</span>   <span class="comment">// ++</span>
+    <span id="DEC">DEC</span>   <span class="comment">// --</span>
+
+    <span id="EQL">EQL</span>    <span class="comment">// ==</span>
+    <span id="LSS">LSS</span>    <span class="comment">// &lt;</span>
+    <span id="GTR">GTR</span>    <span class="comment">// &gt;</span>
+    <span id="ASSIGN">ASSIGN</span> <span class="comment">// =</span>
+    <span id="NOT">NOT</span>    <span class="comment">// !</span>
+
+    <span id="NEQ">NEQ</span>      <span class="comment">// !=</span>
+    <span id="LEQ">LEQ</span>      <span class="comment">// &lt;=</span>
+    <span id="GEQ">GEQ</span>      <span class="comment">// &gt;=</span>
+    <span id="DEFINE">DEFINE</span>   <span class="comment">// :=</span>
+    <span id="ELLIPSIS">ELLIPSIS</span> <span class="comment">// ...</span>
+
+    <span id="LPAREN">LPAREN</span> <span class="comment">// (</span>
+    <span id="LBRACK">LBRACK</span> <span class="comment">// [</span>
+    <span id="LBRACE">LBRACE</span> <span class="comment">// {</span>
+    <span id="COMMA">COMMA</span>  <span class="comment">// ,</span>
+    <span id="PERIOD">PERIOD</span> <span class="comment">// .</span>
+
+    <span id="RPAREN">RPAREN</span>    <span class="comment">// )</span>
+    <span id="RBRACK">RBRACK</span>    <span class="comment">// ]</span>
+    <span id="RBRACE">RBRACE</span>    <span class="comment">// }</span>
+    <span id="SEMICOLON">SEMICOLON</span> <span class="comment">// ;</span>
+    <span id="COLON">COLON</span>     <span class="comment">// :</span>
+
+    <span class="comment">// 关键字</span>
+    <span id="BREAK">BREAK</span>
+    <span id="CASE">CASE</span>
+    <span id="CHAN">CHAN</span>
+    <span id="CONST">CONST</span>
+    <span id="CONTINUE">CONTINUE</span>
+
+    <span id="DEFAULT">DEFAULT</span>
+    <span id="DEFER">DEFER</span>
+    <span id="ELSE">ELSE</span>
+    <span id="FALLTHROUGH">FALLTHROUGH</span>
+    <span id="FOR">FOR</span>
+
+    <span id="FUNC">FUNC</span>
+    <span id="GO">GO</span>
+    <span id="GOTO">GOTO</span>
+    <span id="IF">IF</span>
+    <span id="IMPORT">IMPORT</span>
+
+    <span id="INTERFACE">INTERFACE</span>
+    <span id="MAP">MAP</span>
+    <span id="PACKAGE">PACKAGE</span>
+    <span id="RANGE">RANGE</span>
+    <span id="RETURN">RETURN</span>
+
+    <span id="SELECT">SELECT</span>
+    <span id="STRUCT">STRUCT</span>
+    <span id="SWITCH">SWITCH</span>
+    <span id="TYPE">TYPE</span>
+    <span id="VAR">VAR</span>
+
+    <span class="comment">// 以特殊方式处理的额外词法单元</span>
+    <span id="TILDE">TILDE</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+				<h3 id="Lookup">func <a href="/src/go/token/token.go?s=4942:4973#L282">Lookup</a>
+					
+					
+				</h3>
+				<pre>func Lookup(ident <a href="/pkg/builtin/#string">string</a>) <a href="#Token">Token</a></pre>
+				<p>Lookup 将标识符映射到其关键字词法单元；如果不是关键字，则映射到 <a href="#IDENT">IDENT</a>。<h3 id="Token.IsKeyword">func (Token) <a href="/src/go/token/token.go?s=5598:5631#L303">IsKeyword</a>
+					
+					
+				</h3>
+				<pre>func (tok <a href="#Token">Token</a>) IsKeyword() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>对于关键字对应的词法单元，IsKeyword 返回 true；否则返回 false。<h3 id="Token.IsLiteral">func (Token) <a href="/src/go/token/token.go?s=5199:5232#L293">IsLiteral</a>
+					
+					
+				</h3>
+				<pre>func (tok <a href="#Token">Token</a>) IsLiteral() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>对于标识符和基本类型字面量对应的词法单元，IsLiteral 返回 true；否则返回 false。<h3 id="Token.IsOperator">func (Token) <a href="/src/go/token/token.go?s=5396:5430#L297">IsOperator</a>
+					
+					
+				</h3>
+				<pre>func (tok <a href="#Token">Token</a>) IsOperator() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>对于运算符和分隔符对应的词法单元，IsOperator 返回 true；否则返回 false。<h3 id="Token.Precedence">func (Token) <a href="/src/go/token/token.go?s=4413:4445#L256">Precedence</a>
+					
+					
+				</h3>
+				<pre>func (op <a href="#Token">Token</a>) Precedence() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Precedence 返回二元运算符 op 的运算符优先级。如果 op 不是二元运算符，结果为 LowestPrecedence。<h3 id="Token.String">func (Token) <a href="/src/go/token/token.go?s=3701:3733#L231">String</a>
+					
+					
+				</h3>
+				<pre>func (tok <a href="#Token">Token</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回词法单元 tok 对应的字符串。对于运算符、分隔符和关键字，字符串是该词法单元的实际字符序列（例如，对于词法单元 <a href="#ADD">ADD</a>，字符串为 &quot;+&quot;）。对于所有其他词法单元，字符串对应该词法单元的常量名（例如，对于词法单元 <a href="#IDENT">IDENT</a>，字符串为 &quot;IDENT&quot;）。</article>

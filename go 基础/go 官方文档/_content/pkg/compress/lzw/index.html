@@ -1,0 +1,210 @@
+<!--{
+  "Title": "compress/lzw 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>compress/lzw 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "compress/lzw"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>lzw 包实现 Lempel-Ziv-Welch 压缩数据格式，该格式见 T. A. Welch 的论文《A Technique for High-Performance Data Compression》，发表于 Computer，17(6)（1984 年 6 月），第 8–19 页。<p>具体而言，它实现 GIF 和 PDF 文件格式使用的 LZW：编码宽度可变，最多为 12 位，前两个非字面值编码分别是清除码和 EOF 码。<p>TIFF 文件格式使用的是一种相似但不兼容的 LZW 算法版本。其实现见 <a href="/pkg/golang.org/x/image/tiff/lzw/">golang.org/x/image/tiff/lzw</a> 包。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#NewReader">func NewReader(r io.Reader, order Order, litWidth int) io.ReadCloser</a></dd>
+			
+				<dd><a href="#NewWriter">func NewWriter(w io.Writer, order Order, litWidth int) io.WriteCloser</a></dd>
+			
+			
+				
+				<dd><a href="#Order">type Order</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Close">func (r *Reader) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (r *Reader) Read(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Reset">func (r *Reader) Reset(src io.Reader, order Order, litWidth int)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Reset">func (w *Writer) Reset(dst io.Writer, order Order, litWidth int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (w *Writer) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/compress/lzw/reader.go">reader.go</a>
+			
+				<a href="/src/compress/lzw/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="NewReader">func <a href="/src/compress/lzw/reader.go?s=7296:7364#L244">NewReader</a>
+				
+				
+			</h2>
+			<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a></pre>
+			<p>NewReader 创建一个新的 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a>。从返回的 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> 读取，会从 r 读取并解压缩数据。如果 r 没有同时实现 <a href="/pkg/io/#ByteReader">io.ByteReader</a>，解压缩器从 r 读取的数据可能多于实际所需的数据。调用方有责任在读取结束后调用 ReadCloser 的 Close。字面值编码使用的位数 litWidth 必须在 [2,8] 范围内，通常为 8。它必须与压缩时使用的 litWidth 相同。<p>保证返回的 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> 的底层类型为 *<a href="#Reader">Reader</a>。<h2 id="NewWriter">func <a href="/src/compress/lzw/writer.go?s=7252:7321#L247">NewWriter</a>
+				
+				
+			</h2>
+			<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+			<p>NewWriter 创建一个新的 <a href="/pkg/io/#WriteCloser">io.WriteCloser</a>。写入返回的 <a href="/pkg/io/#WriteCloser">io.WriteCloser</a> 的数据会被压缩并写入 w。调用方有责任在写入结束后调用 WriteCloser 的 Close。字面值编码使用的位数 litWidth 必须在 [2,8] 范围内，通常为 8。输入字节必须小于 1&lt;&lt;litWidth。<p>保证返回的 <a href="/pkg/io/#WriteCloser">io.WriteCloser</a> 的底层类型为 *<a href="#Writer">Writer</a>。<h2 id="Order">type <a href="/src/compress/lzw/reader.go?s=942:956#L19">Order</a>
+				
+				
+			</h2>
+			<p>Order 指定 LZW 数据流中的位顺序。<pre>type Order <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// LSB 表示最低有效位优先，GIF 文件格式使用此顺序。</span>
+    <span id="LSB">LSB</span> <a href="#Order">Order</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span class="comment">// MSB 表示最高有效位优先，TIFF 和 PDF</span>
+    <span class="comment">// 文件格式使用此顺序。</span>
+    <span id="MSB">MSB</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/compress/lzw/reader.go?s=1350:2929#L37">Reader</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>Reader 是一个 <a href="/pkg/io/#Reader">io.Reader</a>，可用于读取 LZW 格式的压缩数据。<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Reader.Close">func (*Reader) <a href="/src/compress/lzw/reader.go?s=6402:6432#L220">Close</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#Reader">Reader</a>，之后的任何读取操作都会返回错误。它不会关闭底层 <a href="/pkg/io/#Reader">io.Reader</a>。<h3 id="Reader.Read">func (*Reader) <a href="/src/compress/lzw/reader.go?s=3751:3795#L112">Read</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 实现 io.Reader，从底层读取器读取并得到解压缩后的字节。<h3 id="Reader.Reset">func (*Reader) <a href="/src/compress/lzw/reader.go?s=6593:6657#L227">Reset</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Reset(src <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Reset 清除 <a href="#Reader">Reader</a> 的状态，使其可以作为新的 <a href="#Reader">Reader</a> 再次使用。<h2 id="Writer">type <a href="/src/compress/lzw/writer.go?s=973:2033#L26">Writer</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>Writer 是 LZW 压缩器。它将数据的压缩形式写入底层写入器（参见 <a href="#NewWriter">NewWriter</a>）。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Writer.Close">func (*Writer) <a href="/src/compress/lzw/writer.go?s=5711:5741#L190">Close</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#Writer">Writer</a>，刷新所有待输出的数据。它不会关闭 w 的底层写入器。<h3 id="Writer.Reset">func (*Writer) <a href="/src/compress/lzw/writer.go?s=6669:6733#L233">Reset</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Reset(dst <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, order <a href="#Order">Order</a>, litWidth <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Reset 清除 <a href="#Writer">Writer</a> 的状态，使其可以作为新的 <a href="#Writer">Writer</a> 再次使用。<h3 id="Writer.Write">func (*Writer) <a href="/src/compress/lzw/writer.go?s=3503:3554#L112">Write</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 p 的压缩表示写入 w 的底层写入器。</article>

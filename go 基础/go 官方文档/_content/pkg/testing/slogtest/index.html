@@ -1,0 +1,161 @@
+<!--{
+  "Title": "testing/slogtest 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>testing/slogtest 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/slogtest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>slogtest 包提供测试 log/slog.Handler 实现的支持。<div id="example__parsing" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Parsing)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Parsing)</span></p>
+    <p>本示例展示使用此包测试处理器的一种方法。为处理器提供一个 [bytes.Buffer] 作为写入目标，然后解析其输出的每一行。对于 JSON 输出，将 map[string]any 的指针传给 [encoding/json.Unmarshal] 即可得到所需格式的结果。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;encoding/json&#34;
+	&#34;log&#34;
+	&#34;log/slog&#34;
+	&#34;testing/slogtest&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	h := slog.NewJSONHandler(&amp;buf, nil)
+
+	results := func() []map[string]any {
+		var ms []map[string]any
+		for line := range bytes.SplitSeq(buf.Bytes(), []byte{&#39;\n&#39;}) {
+			if len(line) == 0 {
+				continue
+			}
+			var m map[string]any
+			if err := json.Unmarshal(line, &amp;m); err != nil {
+				panic(err) // 在真正的测试中，应使用 t.Fatal。
+			}
+			ms = append(ms, m)
+		}
+		return ms
+	}
+	err := slogtest.TestHandler(h, results)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Run">func Run(t *testing.T, newHandler func(*testing.T) slog.Handler, result func(*testing.T) map[string]any)</a></dd>
+			
+				<dd><a href="#TestHandler">func TestHandler(h slog.Handler, results func() []map[string]any) error</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__parsing">包 (Parsing)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/slogtest/slogtest.go">slogtest.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Run">func <a href="/src/testing/slogtest/slogtest.go?s=8625:8729#L289">Run</a>
+				
+				<span title="自 Go 1.22 起提供">1.22</span>
+			</h2>
+			<pre>func Run(t *<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>, newHandler func(*<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>) <a href="/pkg/log/slog/">slog</a>.<a href="/pkg/log/slog/#Handler">Handler</a>, result func(*<a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#T">T</a>) map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Run 使用与 <a href="#TestHandler">TestHandler</a> 相同的测试用例测试 <a href="/pkg/log/slog/#Handler">slog.Handler</a>，但将每个用例放在子测试中运行。对于每个用例，它先调用 newHandler 获取被测处理器实例，再运行测试用例，最后调用 result 获取结果。如果用例失败，则调用 t.Error。<h2 id="TestHandler">func <a href="/src/testing/slogtest/slogtest.go?s=7671:7742#L257">TestHandler</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func TestHandler(h <a href="/pkg/log/slog/">slog</a>.<a href="/pkg/log/slog/#Handler">Handler</a>, results func() []map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>TestHandler 测试 <a href="/pkg/log/slog/#Handler">slog.Handler</a>。如果发现任何不正确的行为，它会为每个问题返回一个错误，并通过 <a href="/pkg/errors/#Join">errors.Join</a> 合并为单个错误。<p>TestHandler 将给定 Handler 安装到一个 <a href="/pkg/log/slog/#Logger">slog.Logger</a> 中，并多次调用该 Logger 的输出方法。Handler 应启用 Info 及以上级别。<p>所有这些调用完成后，会调用 results 函数。它应返回 map[string]any 的切片，每个元素对应一次 Logger 输出方法调用。映射的键和值应与 Handler 输出中的键和值对应。输出中的每个组都应表示为各自嵌套的 map[string]any。应使用标准键 <a href="/pkg/log/slog/#TimeKey">slog.TimeKey</a>、<a href="/pkg/log/slog/#LevelKey">slog.LevelKey</a> 和 <a href="/pkg/log/slog/#MessageKey">slog.MessageKey</a>。<p>如果 Handler 输出 JSON，则以 `map[string]any` 调用 <a href="/pkg/encoding/json/#Unmarshal">encoding/json.Unmarshal</a> 会创建正确的数据结构。<p>如果 Handler 有意丢弃某个测试会检查的属性，则 results 函数应检查该属性确实缺失，并将其添加到返回的映射中。</article>

@@ -1,0 +1,212 @@
+<!--{
+  "Title": "crypto/hkdf 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package hkdf</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/hkdf"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>hkdf 包实现 RFC 5869 定义的基于 HMAC 的提取与扩展密钥派生函数（HKDF）。
+<p>HKDF 是密码学密钥派生函数（KDF），旨在将有限的输入密钥材料扩展为一个或多个具有密码学强度的秘密密钥。
+
+				
+
+
+<div id="example__usage" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Usage)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Usage)</span></p>
+    <p>此用法示例将一个主秘密扩展为另外三个密码学安全的密钥。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"crypto/hkdf"
+	"crypto/rand"
+	"crypto/sha256"
+	"fmt"
+	"strconv"
+)
+
+func main() {
+	// HMAC 使用的底层哈希函数。
+	hash := sha256.New
+	keyLen := hash().Size() / 2
+
+	// 密码学安全的主秘密。
+	secret := []byte{0x00, 0x01, 0x02, 0x03} // 也就是说，不能使用这里的示例值。
+
+	// 非机密的盐值，可选（可以为 nil）。
+	// 推荐使用长度等于哈希输出长度的随机值。
+	salt := make([]byte, hash().Size())
+	if _, err := rand.Read(salt); err != nil {
+		panic(err)
+	}
+
+	// 非机密的上下文信息，可选（可以为 nil）。
+	info := "hkdf example"
+
+	// 生成三个 128 位派生密钥。
+	var keys [][]byte
+	for i := range 3 {
+		key, err := hkdf.Key(hash, secret, salt, info+strconv.Itoa(i), keyLen)
+		if err != nil {
+			panic(err)
+		}
+		keys = append(keys, key)
+	}
+
+	for i := range keys {
+		fmt.Printf("Key #%d: %v\n", i+1, !bytes.Equal(keys[i], make([]byte, 16)))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Key #1: true
+Key #2: true
+Key #3: true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Expand">func Expand[H hash.Hash](h func() H, pseudorandomKey []byte, info string, keyLength int) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Extract">func Extract[H hash.Hash](h func() H, secret, salt []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Key">func Key[Hash hash.Hash](h func() Hash, secret, salt []byte, info string, keyLength int) ([]byte, error)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__usage">包 (Usage)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/hkdf/hkdf.go">hkdf.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Expand">func <a href="/src/crypto/hkdf/hkdf.go?s=1581:1685#L32">Expand</a>
+				
+				
+			</h2>
+			<pre>func Expand[H <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>](h func() <a href="#H">H</a>, pseudorandomKey []<a href="/pkg/builtin/#byte">byte</a>, info <a href="/pkg/builtin/#string">string</a>, keyLength <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Expand 根据给定的哈希函数、密钥及可选上下文信息 info 派生密钥，返回长度为 keyLength 的 []byte，可用作密码学密钥。此过程跳过提取步骤。
+<p>key 应由 <a href="#Extract">Extract</a> 生成，或者是均匀随机或伪随机、具有密码学强度的密钥。参见 RFC 5869 第 3.3 节。多数常见场景应改用 <a href="#Key">Key</a>。
+
+			
+		
+			
+			<h2 id="Extract">func <a href="/src/crypto/hkdf/hkdf.go?s=944:1018#L17">Extract</a>
+				
+				
+			</h2>
+			<pre>func Extract[H <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>](h func() <a href="#H">H</a>, secret, salt []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Extract 根据输入秘密和可选的独立盐值生成伪随机密钥，供 <a href="#Expand">Expand</a> 使用。
+<p>只有需要在多次 Expand 调用中搭配不同上下文值复用提取出的密钥时，才应使用此函数。多数常见场景（包括生成多个密钥）都应改用 <a href="#Key">Key</a>。
+
+			
+		
+			
+			<h2 id="Key">func <a href="/src/crypto/hkdf/hkdf.go?s=2175:2279#L49">Key</a>
+				
+				
+			</h2>
+			<pre>func Key[Hash <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>](h func() <a href="#Hash">Hash</a>, secret, salt []<a href="/pkg/builtin/#byte">byte</a>, info <a href="/pkg/builtin/#string">string</a>, keyLength <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Key 根据给定的哈希函数、secret、salt 和上下文信息 info 派生密钥，返回长度为 keyLength 的 []byte，可用作密码学密钥。salt 和 info 可以为 nil。
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

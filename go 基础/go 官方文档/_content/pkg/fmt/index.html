@@ -1,0 +1,1641 @@
+<!--{
+  "Title": "fmt 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>fmt 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "fmt"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>fmt 包提供格式化 I/O，函数与 C 的 printf 和 scanf 类似。格式“动词”源自 C，但规则更简单。
+<h3 id="hdr-Printing">格式化输出
+</h3>
+<p>按照输出目标，输出函数分为四组：<a href="#Print">Print</a>、<a href="#Println">Println</a> 和 <a href="#Printf">Printf</a> 写入 <a href="/pkg/os/#Stdout">os.Stdout</a>；<a href="#Sprint">Sprint</a>、<a href="#Sprintln">Sprintln</a> 和 <a href="#Sprintf">Sprintf</a> 返回字符串；<a href="#Fprint">Fprint</a>、<a href="#Fprintln">Fprintln</a> 和 <a href="#Fprintf">Fprintf</a> 写入 <a href="/pkg/io/#Writer">io.Writer</a>；<a href="#Append">Append</a>、<a href="#Appendln">Appendln</a> 和 <a href="#Appendf">Appendf</a> 将输出追加到字节切片。
+<p>每组函数的格式化方式由名称后缀决定。Print、Sprint、Fprint 和 Append 对每个参数使用默认格式，仅当相邻两个操作数都不是字符串时，才在它们之间添加空格。Println、Sprintln、Fprintln 和 Appendln 总是在操作数之间添加空格，并在末尾追加换行符。Printf、Sprintf、Fprintf 和 Appendf 则通过一系列格式动词控制输出。
+<p>格式动词如下：
+<p>通用：
+<pre>%v	值的默认格式
+	输出结构体时，加号标志（%+v）会额外输出字段名
+%#v	值的 Go 语法表示
+	（浮点数的无穷值和 NaN 分别输出为 ±Inf 和 NaN）
+%T	值的类型的 Go 语法表示
+%%	字面量百分号，不消耗任何操作数
+</pre>
+<p>布尔值：
+<pre>%t	单词 true 或 false
+</pre>
+<p>整数：
+<pre>%b	二进制
+%c	对应 Unicode 码点表示的字符
+%d	十进制
+%o	八进制
+%O	带 0o 前缀的八进制
+%q	按 Go 语法安全转义、以单引号包围的 rune 字面量
+%x	十六进制，使用小写字母 a-f
+%X	十六进制，使用大写字母 A-F
+%U	Unicode 格式：U+1234，等同于 &quot;U+%04X&quot;
+</pre>
+<p>浮点数，以及复数的实部和虚部：
+<pre>%b	尾数不带小数点、指数部分表示 2 的幂的科学计数法，
+	与 strconv.FormatFloat 的 &apos;b&apos; 格式相同，
+	例如 -123456p-78
+%e	科学计数法，例如 -1.234456e+78
+%E	科学计数法，例如 -1.234456E+78
+%f	带小数点，不带指数，例如 123.456
+%F	与 %f 相同
+%g	指数较大时使用 %e，否则使用 %f；精度规则见下文
+%G	指数较大时使用 %E，否则使用 %F
+%x	十六进制表示，指数以十进制书写、以 2 为底，例如 -0x1.23abcp+20
+%X	大写的十六进制表示，例如 -0X1.23ABCP+20
+
+指数始终写为十进制整数。
+除 %b 外，其他格式的指数至少包含两位数字。
+</pre>
+<p>字符串和字节切片（对以下动词，两者的处理方式相同）：
+<pre>%s	字符串或切片中未经解释的原始字节
+%q	按 Go 语法安全转义、以双引号包围的字符串
+%x	小写十六进制，每个字节输出两个字符
+%X	大写十六进制，每个字节输出两个字符
+</pre>
+<p>切片：
+<pre>%p	第 0 个元素的地址，使用带 0x 前缀的十六进制表示
+</pre>
+<p>指针：
+<pre>%p	带 0x 前缀的十六进制表示
+%b、%d、%o、%x 和 %X 也适用于指针，
+会将指针值完全按照整数进行格式化。
+</pre>
+<p>%v 对各类型使用的默认格式如下：
+<pre>bool:                    %t
+int, int8 等:            %d
+uint, uint8 等:          %d；使用 %#v 输出时为 %#x
+float32, complex64 等:   %g
+string:                  %s
+chan:                    %p
+指针:                    %p
+</pre>
+<p>对于复合对象，递归地按照这些规则输出各元素，布局如下：
+<pre>结构体:             {field0 field1 ...}
+数组、切片:         [elem0 elem1 ...]
+映射:               map[key1:value1 key2:value2 ...]
+指向上述对象的指针: &amp;{}, &amp;[], &amp;map[]
+</pre>
+<p>宽度由紧邻动词之前的可选十进制数指定。如果未指定，就使用表示该值所需的宽度。精度位于可选宽度之后，由一个点和后面的十进制数指定。没有点时使用默认精度；有点但后面没有数字时，精度为零。例如：
+<pre>%f     默认宽度，默认精度
+%9f    宽度 9，默认精度
+%.2f   默认宽度，精度 2
+%9.2f  宽度 9，精度 2
+%9.f   宽度 9，精度 0
+</pre>
+<p>宽度和精度以 Unicode 码点（即 rune）为单位，这与始终以字节为单位的 C printf 不同。宽度或精度中的任意一个或两个都可以用字符 &apos;*&apos; 替代，此时相应数值取自下一个操作数，该操作数位于待格式化值之前，且必须为 int 类型。
+<p>对大多数值，宽度表示最少输出的 rune 数；不足时会用空格填充格式化结果。
+<p>但对于字符串、字节切片和字节数组，精度限制的是待格式化输入的长度，而不是输出的大小，必要时会截断输入。通常以 rune 为单位，但使用 %x 或 %X 格式处理这些类型时，以字节为单位。
+<p>对于浮点数，宽度设置输出字段的最小宽度，精度通常设置小数点后的位数；但 %g/%G 的精度设置的是有效数字的最大位数，并会移除末尾的零。例如，对 12.345 使用 %6.3f 会输出 12.345，而 %.3g 会输出 12.3。%e、%f 和 %#g 的默认精度为 6；%g 则采用能唯一确定该值所需的最少数字位数。
+<p>对于复数，宽度和精度分别应用于实部和虚部，结果以圆括号包围。因此，对 1.2+3.4i 使用 %f，会得到 (1.200000+3.400000i)。
+<p>使用 %q 格式化单个整数码点或 rune 序列（[]rune）时，无效 Unicode 码点会像 <a href="/pkg/strconv/#QuoteRune">strconv.QuoteRune</a> 一样，被替换为 Unicode 替换字符 U+FFFD。
+<p>其他标志：
+<pre>&apos;+&apos;	对数值始终输出正负号；
+	对 %q 保证只输出 ASCII 字符（%+q）
+&apos;-&apos;	在右侧而非左侧补空格，即字段左对齐
+&apos;#&apos;	使用替代格式：二进制加前缀 0b（%#b），八进制加 0（%#o），
+	十六进制加 0x 或 0X（%#x 或 %#X）；对 %p 去掉 0x（%#p）；
+	对 %q，如果 [strconv.CanBackquote] 返回 true，
+	则输出反引号包围的原始字符串；
+	对 %e、%E、%f、%F、%g 和 %G 始终输出小数点；
+	对 %g 和 %G 不移除末尾的零；
+	对 %U，如果字符可打印，则输出例如 U+0078 &apos;x&apos;（%#U）
+&apos; &apos;	空格标志：为数值中省略的正号保留一个空格（% d）；
+	以十六进制输出字符串或切片时，在字节之间加空格（% x、% X）
+&apos;0&apos;	在前面补零，而不是补空格；
+	对数值，填充的零位于正负号之后
+</pre>
+<p>不支持某个标志的动词会忽略它。例如，十进制没有替代格式，因此 %#d 与 %d 行为相同。
+<p>每个类似 Printf 的函数，都有一个不接收格式字符串的 Print 版本，等价于对每个操作数使用 %v。另一个变体 Println 则在操作数之间插入空格，并在末尾追加换行符。
+<p>无论使用哪种动词，如果操作数是接口值，实际格式化的都是其中的具体值，而不是接口本身。因此：
+<pre>var i interface{} = 23
+fmt.Printf(&quot;%v\n&quot;, i)
+</pre>
+<p>会输出 23。
+<p>除使用 %T 和 %p 输出外，对于实现了特定接口的操作数，会按以下顺序应用特殊格式化规则：
+<p>1. 如果操作数是 <a href="/pkg/reflect/#Value">reflect.Value</a>，将其替换为它持有的具体值，再继续应用下一条规则。
+<p>2. 如果操作数实现了 <a href="#Formatter">Formatter</a> 接口，就调用该接口。此时动词和标志的解释方式由该实现决定。
+<p>3. 如果使用带 # 标志的 %v（即 %#v），且操作数实现了 <a href="#GoStringer">GoStringer</a> 接口，就调用该接口。
+<p>如果格式适用于字符串（%s、%q、%x、%X），或格式为 %v 而非 %#v，则应用下面两条规则（<a href="#Println">Println</a> 等函数隐式使用 %v）：
+<p>4. 如果操作数实现了 error 接口，就调用 Error 方法将对象转换为字符串，再按动词要求进行格式化（如果有动词）。
+<p>5. 如果操作数实现了 String() string 方法，就调用该方法将对象转换为字符串，再按动词要求进行格式化（如果有动词）。
+<p>对于切片、结构体等复合操作数，格式递归地应用于各个元素，而不是整个操作数。因此，%q 会为字符串切片的每个元素加引号，%6.2f 会控制浮点数数组中每个元素的格式。
+<p>但使用字符串类动词（%s、%q、%x、%X）输出字节切片时，会将它作为单个整体，按与字符串相同的方式处理。
+<p>为避免以下情况发生递归：
+<pre>type X string
+func (x X) String() string { return Sprintf(&quot;&lt;%s&gt;&quot;, x) }
+</pre>
+<p>应在再次调用格式化函数之前转换值的类型：
+<pre>func (x X) String() string { return Sprintf(&quot;&lt;%s&gt;&quot;, string(x)) }
+</pre>
+<p>具有 String 方法的自引用数据结构也可能触发无限递归，例如将自身作为元素的切片。这种异常情况比较少见，本包不提供防护。
+<p>输出结构体时，fmt 无法调用未导出字段上的 Error、String 等格式化方法，因此不会调用它们。
+<h3 id="hdr-Explicit_argument_indexes">显式参数索引
+</h3>
+<p>在 <a href="#Printf">Printf</a>、<a href="#Sprintf">Sprintf</a>、<a href="#Fprintf">Fprintf</a> 和 <a href="#Appendf">Appendf</a> 中，默认情况下各格式动词依次使用调用时传入的参数。不过，在动词前紧接 [n] 可以指定改为格式化第 n 个参数，索引从 1 开始。将同样的写法放在宽度或精度的 &apos;*&apos; 前，可指定提供该数值的参数索引。处理完 [n] 后，后续动词依次使用第 n+1、n+2 等参数，除非再次显式指定。
+<p>例如，
+<pre>fmt.Sprintf(&quot;%[2]d %[1]d\n&quot;, 11, 22)
+</pre>
+<p>会得到 &quot;22 11&quot;，而
+<pre>fmt.Sprintf(&quot;%[3]*.[2]*[1]f&quot;, 12.0, 2, 6)
+</pre>
+<p>等价于
+<pre>fmt.Sprintf(&quot;%6.2f&quot;, 12.0)
+</pre>
+<p>会得到 &quot; 12.00&quot;。由于显式索引会影响后续动词，可以通过将索引重置为要重复输出的第一个参数，来多次输出同一组值：
+<pre>fmt.Sprintf(&quot;%d %d %#[1]x %#x&quot;, 16, 17)
+</pre>
+<p>会得到 &quot;16 17 0x10 0x11&quot;。
+<h3 id="hdr-Format_errors">格式错误
+</h3>
+<p>如果传给动词的参数无效，例如向 %d 传入字符串，生成的字符串会包含问题说明，如下例所示：
+<pre>类型错误或未知动词：%!verb(type=value)
+	Printf(&quot;%d&quot;, &quot;hi&quot;):        %!d(string=hi)
+参数过多：%!(EXTRA type=value)
+	Printf(&quot;hi&quot;, &quot;guys&quot;):      hi%!(EXTRA string=guys)
+参数过少：%!verb(MISSING)
+	Printf(&quot;hi%d&quot;):            hi%!d(MISSING)
+宽度或精度不是 int：%!(BADWIDTH) 或 %!(BADPREC)
+	Printf(&quot;%*s&quot;, 4.5, &quot;hi&quot;):  %!(BADWIDTH)hi
+	Printf(&quot;%.*s&quot;, 4.5, &quot;hi&quot;): %!(BADPREC)hi
+参数索引无效或用法无效：%!(BADINDEX)
+	Printf(&quot;%*[2]d&quot;, 7):       %!d(BADINDEX)
+	Printf(&quot;%.[2]d&quot;, 7):       %!d(BADINDEX)
+</pre>
+<p>所有错误都以字符串 &quot;%!&quot; 开头，后面有时会跟一个字符（格式动词），最后是圆括号包围的说明。
+<p>如果输出函数调用 Error 或 String 方法时触发了 panic，fmt 包会重新格式化 panic 中的错误消息，并添加标记，说明它经过了 fmt 包。例如，如果 String 方法调用 panic(&quot;bad&quot;)，最终格式化消息会类似于：
+<pre>%!s(PANIC=bad)
+</pre>
+<p>%!s 只表示出错时正在使用的格式动词。不过，如果 panic 是由 Error、String 或 GoString 方法的 nil 接收者引起的，则输出不带额外标记的字符串 &quot;&lt;nil&gt;&quot;。
+<p>很多涉及字符串格式化的包都会提供类似 <a href="#Print">Print</a>、<a href="#Printf">Printf</a> 和 <a href="#Println">Println</a> 的三个函数。例如，<a href="/pkg/log/#Print">log.Print</a>、<a href="/pkg/log/#Printf">log.Printf</a> 和 <a href="/pkg/log/#Println">log.Println</a> 会把参数转发给本包中的对应函数。为避免混淆，其他包装函数也应遵循本包建立的命名和行为约定。特别是，不应让同一个函数根据参数个数，在直接输出（如 <a href="#Print">Print</a>）与格式化输出（如 <a href="#Printf">Printf</a>）之间选择；应分别提供函数。
+<h3 id="hdr-Scanning">格式化扫描
+</h3>
+<p>另一组对应函数用于扫描格式化文本并取得值。<a href="#Scan">Scan</a>、<a href="#Scanf">Scanf</a> 和 <a href="#Scanln">Scanln</a> 从 <a href="/pkg/os/#Stdin">os.Stdin</a> 读取；<a href="#Fscan">Fscan</a>、<a href="#Fscanf">Fscanf</a> 和 <a href="#Fscanln">Fscanln</a> 从指定的 <a href="/pkg/io/#Reader">io.Reader</a> 读取；<a href="#Sscan">Sscan</a>、<a href="#Sscanf">Sscanf</a> 和 <a href="#Sscanln">Sscanln</a> 从传入的字符串读取。
+<p><a href="#Scan">Scan</a>、<a href="#Fscan">Fscan</a> 和 <a href="#Sscan">Sscan</a> 将输入中的换行符视为空白。
+<p><a href="#Scanln">Scanln</a>、<a href="#Fscanln">Fscanln</a> 和 <a href="#Sscanln">Sscanln</a> 在换行符处停止扫描，并要求最后一项之后紧跟换行符或 EOF。
+<p><a href="#Scanf">Scanf</a>、<a href="#Fscanf">Fscanf</a> 和 <a href="#Sscanf">Sscanf</a> 根据格式字符串解析参数，格式与 <a href="#Printf">Printf</a> 类似。下文中的“空白”指除换行符外的任意 Unicode 空白字符。
+<p>在格式字符串中，以 % 开头的动词会消耗并解析输入，其详细规则见下文。格式中除 %、空白和换行符以外的字符，会恰好消耗输入中的同一个字符，且该字符必须存在。格式字符串中，一个换行符及其前面的零个或多个空白，会消耗输入中的零个或多个空白，再匹配一个换行符或输入结束。格式字符串中紧跟换行符的空白，会消耗输入中的零个或多个空白。其他情况下，格式字符串中连续的一个或多个空白，会尽可能多地消耗输入中的空白。除非这段格式空白紧邻换行符，否则它必须至少消耗输入中的一个空白，或遇到输入结束。
+<p>空白和换行符的处理与 C 的 scanf 系列不同：在 C 中，换行符与其他空白一视同仁，而且格式字符串中的连续空白即使在输入中找不到可消耗的空白，也不会出错。
+<p>动词行为与 <a href="#Printf">Printf</a> 中类似。例如，%x 将整数按十六进制扫描，%v 按该值的默认表示扫描。不支持 <a href="#Printf">Printf</a> 中的 %p、%T 动词以及 #、+ 标志。对于浮点数和复数，所有有效动词（%b、%e、%E、%f、%F、%g、%G、%x、%X 和 %v）都等价，既接受十进制，也接受十六进制表示，例如 &quot;2.3e+7&quot;、&quot;0x4.5p-8&quot;，还接受用于分隔数位的下划线，例如 &quot;3.14159_26535_89793&quot;。
+<p>动词处理的输入隐式以空白分隔：除 %c 外，每个动词都会先丢弃剩余输入开头的空白；%s（以及将数据读入字符串的 %v）在第一个空白或换行符处停止消耗输入。
+<p>在不指定格式或使用 %v 动词扫描整数时，可以使用常见的进制前缀：0b 表示二进制，0o 和 0 表示八进制，0x 表示十六进制，也允许用下划线分隔数位。
+<p>宽度作用于输入文本，但扫描不支持精度语法，只能写 %5f，不能写 %5.2f。如果指定宽度，它在去掉前导空白后生效，限制该动词最多读取的 rune 数。例如，
+<pre>Sscanf(&quot; 1234567 &quot;, &quot;%5s%d&quot;, &amp;s, &amp;i)
+</pre>
+<p>会将 s 设为 &quot;12345&quot;、i 设为 67，而
+<pre>Sscanf(&quot; 12 34 567 &quot;, &quot;%5s%d&quot;, &amp;s, &amp;i)
+</pre>
+<p>会将 s 设为 &quot;12&quot;、i 设为 34。
+<p>所有扫描函数都将紧接换行符的回车符视为普通换行的一部分，即 \r\n 与 \n 含义相同。
+<p>在所有扫描函数中，如果操作数实现了 <a href="#Scan">Scan</a> 方法，也就是实现了 <a href="#Scanner">Scanner</a> 接口，就会使用该方法为此操作数扫描文本。此外，如果成功扫描的参数个数少于传入的参数个数，会返回错误。
+<p>所有接收扫描结果的参数都必须是指向基本类型的指针，或者是实现了 <a href="#Scanner">Scanner</a> 接口的值。
+<p>与 <a href="#Scanf">Scanf</a> 和 <a href="#Fscanf">Fscanf</a> 一样，<a href="#Sscanf">Sscanf</a> 不必消耗全部输入。无法获知 <a href="#Sscanf">Sscanf</a> 究竟使用了输入字符串中的多少内容。
+<p>注意：<a href="#Fscan">Fscan</a> 等函数可能在返回的数据之后额外读取一个字符（rune），因此循环调用扫描函数可能跳过部分输入。通常只有输入值之间没有空白时，这才会成为问题。如果传给 <a href="#Fscan">Fscan</a> 的读取器实现了 ReadRune，就会用该方法读取字符。如果还实现了 UnreadRune，则会用它回退额外读取的字符，连续调用时就不会丢失数据。对于没有这些能力的读取器，可以用 <a href="/pkg/bufio/#NewReader">bufio.NewReader</a> 包装，为其添加 ReadRune 和 UnreadRune 方法。
+<div id="example__formats" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Formats)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Formats)</span></p>
+    <p>这些示例演示使用格式字符串输出的基本方法。Printf、Sprintf 和 Fprintf 都接收格式字符串，用于指定后续参数的格式。例如，%d（称为“格式动词”）表示以十进制输出对应参数，该参数必须是整数，或包含整数的对象，例如整数切片。%v 中的 v 取自 value，始终使用参数的默认格式，与 Print 或 Println 的显示方式相同。特殊动词 %T 中的 T 取自 Type，输出参数的类型，而不是其值。这些示例并未涵盖所有情况，完整细节请参阅包概览。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	// 下面这组基础示例说明，%v 是默认格式；在此例中，
+	// 整数默认按十进制输出，也可以用 %d 显式指定。
+	// 输出与 Println 产生的结果相同。
+	integer := 23
+	// 以下每次调用都会打印 "23"（不含引号）。
+	fmt.Println(integer)
+	fmt.Printf(&#34;%v\n&#34;, integer)
+	fmt.Printf(&#34;%d\n&#34;, integer)
+
+	// 特殊格式动词 %T 显示值的类型，而不是值本身。
+	fmt.Printf(&#34;%T %T\n&#34;, integer, &amp;integer)
+	// 结果：int *int
+
+	// Println(x) 等同于 Printf("%v\n", x)，因此下面的示例
+	// 只使用 Printf。每个示例演示如何格式化某种
+	// 特定类型的值，例如整数或字符串。每个格式字符串都以
+	// %v 开头，展示默认输出，后面再接一种或
+	// 多种自定义格式。
+
+	// 使用 %v 或 %t 时，布尔值打印为 "true" 或 "false"。
+	truth := true
+	fmt.Printf(&#34;%v %t\n&#34;, truth, truth)
+	// 结果：true true
+
+	// 使用 %v 和 %d 时，整数以十进制打印；
+	// %x 输出十六进制，%o 输出八进制，%b 输出二进制。
+	answer := 42
+	fmt.Printf(&#34;%v %d %x %o %b\n&#34;, answer, answer, answer, answer, answer)
+	// 结果：42 42 2a 52 101010
+
+	// 浮点数有多种格式：%v 和 %g 输出紧凑表示，
+	// %f 输出十进制小数形式，%e 使用科学计数法。
+	// 这里使用的 %6.2f 展示如何设置宽度和精度，
+	// 控制浮点数的输出形式。在此例中，6 表示
+	// 该值打印后文本的总宽度（注意输出中额外的
+	// 空格），2 表示显示的小数位数。
+	pi := math.Pi
+	fmt.Printf(&#34;%v %g %.2f (%6.2f) %e\n&#34;, pi, pi, pi, pi, pi)
+	// 结果：3.141592653589793 3.141592653589793 3.14 (  3.14) 3.141593e+00
+
+	// 复数的格式是一对用圆括号括起来的浮点数，
+	// 虚部后带有 'i'。
+	point := 110.7 &#43; 22.5i
+	fmt.Printf(&#34;%v %g %.2f %.2e\n&#34;, point, point, point, point)
+	// 结果：(110.7+22.5i) (110.7+22.5i) (110.70+22.50i) (1.11e+02+2.25e+01i)
+
+	// rune 是整数，但使用 %c 打印时，会显示该
+	// Unicode 值对应的字符。%q 将其显示为带引号的字符，%U 显示
+	// 十六进制 Unicode 码点；如果 rune 可打印，%#U 会同时显示
+	// 码点和带引号的可打印形式。
+	smile := &#39;😀&#39;
+	fmt.Printf(&#34;%v %d %c %q %U %#U\n&#34;, smile, smile, smile, smile, smile, smile)
+	// 结果：128512 128512 😀 '😀' U+1F600 U+1F600 '😀'
+
+	// 字符串使用 %v 和 %s 时原样输出，%q 输出带引号的字符串，
+	// %#q 输出带反引号的字符串。
+	placeholders := `foo &#34;bar&#34;`
+	fmt.Printf(&#34;%v %s %q %#q\n&#34;, placeholders, placeholders, placeholders, placeholders)
+	// 结果：foo "bar" foo "bar" "foo \"bar\"" `foo "bar"`
+
+	// 映射使用 %v 时，键和值都按各自的默认格式输出。
+	// %#v（这里的 # 称为“标志”）会将映射输出为
+	// Go 源代码形式。映射按键值排序，
+	// 以一致的顺序打印。
+	isLegume := map[string]bool{
+		&#34;peanut&#34;:    true,
+		&#34;dachshund&#34;: false,
+	}
+	fmt.Printf(&#34;%v %#v\n&#34;, isLegume, isLegume)
+	// 结果：map[dachshund:false peanut:true] map[string]bool{"dachshund":false, "peanut":true}
+
+	// 结构体使用 %v 时，各字段值按默认格式输出。
+	// %+v 会显示字段名，而 %#v 将结构体格式化为
+	// Go 源代码形式。
+	person := struct {
+		Name string
+		Age  int
+	}{&#34;Kim&#34;, 22}
+	fmt.Printf(&#34;%v %&#43;v %#v\n&#34;, person, person, person)
+	// 结果：{Kim 22} {Name:Kim Age:22} struct { Name string; Age int }{Name:"Kim", Age:22}
+
+	// 指针的默认格式会在所指向的值前面加上
+	// &amp; 符号。%p 以十六进制打印指针值。这里向 %p 传入
+	// 带类型的 nil，因为任何非 nil 指针的值
+	// 都可能在每次运行时变化；可以自行运行注释掉的 Printf
+	// 调用，观察实际结果。
+	pointer := &amp;person
+	fmt.Printf(&#34;%v %p\n&#34;, pointer, (*int)(nil))
+	// 结果：&amp;{Kim 22} 0x0
+	// fmt.Printf(&#34;%v %p\n&#34;, pointer, pointer)
+	// 结果：&amp;{Kim 22} 0x010203 // 参见上面的说明。
+
+	// 数组和切片通过对每个元素应用指定格式来输出。
+	greats := [5]string{&#34;Kitano&#34;, &#34;Kobayashi&#34;, &#34;Kurosawa&#34;, &#34;Miyazaki&#34;, &#34;Ozu&#34;}
+	fmt.Printf(&#34;%v %q\n&#34;, greats, greats)
+	// 结果：[Kitano Kobayashi Kurosawa Miyazaki Ozu] ["Kitano" "Kobayashi" "Kurosawa" "Miyazaki" "Ozu"]
+
+	kGreats := greats[:3]
+	fmt.Printf(&#34;%v %q %#v\n&#34;, kGreats, kGreats, kGreats)
+	// 结果：[Kitano Kobayashi Kurosawa] ["Kitano" "Kobayashi" "Kurosawa"] []string{"Kitano", "Kobayashi", "Kurosawa"}
+
+	// 字节切片比较特殊。%d 等整数格式动词会
+	// 按该格式打印各元素。%s 和 %q 会将切片视为字符串。
+	// %x 有一种带空格标志的特殊形式，会在
+	// 字节之间插入空格。
+	cmd := []byte(&#34;a⌘&#34;)
+	fmt.Printf(&#34;%v %d %s %q %x % x\n&#34;, cmd, cmd, cmd, cmd, cmd, cmd)
+	// 结果：[97 226 140 152] [97 226 140 152] a⌘ "a⌘" 61e28c98 61 e2 8c 98
+
+	// 实现 Stringer 的类型与字符串采用相同的打印方式。
+	// 由于 Stringer 返回字符串，因此可以使用字符串专用的
+	// 格式动词，例如 %q。
+	now := time.Unix(123456789, 0).UTC() // time.Time 实现了 fmt.Stringer。
+	fmt.Printf(&#34;%v %q\n&#34;, now, now)
+	// 结果：1973-11-29 21:33:09 +0000 UTC "1973-11-29 21:33:09 +0000 UTC"
+
+}
+</textarea></div>
+        <div class="output"><pre>23
+23
+23
+int *int
+true true
+42 42 2a 52 101010
+3.141592653589793 3.141592653589793 3.14 (  3.14) 3.141593e+00
+(110.7+22.5i) (110.7+22.5i) (110.70+22.50i) (1.11e+02+2.25e+01i)
+128512 128512 😀 &#39;😀&#39; U+1F600 U+1F600 &#39;😀&#39;
+foo &#34;bar&#34; foo &#34;bar&#34; &#34;foo \&#34;bar\&#34;&#34; `foo &#34;bar&#34;`
+map[dachshund:false peanut:true] map[string]bool{&#34;dachshund&#34;:false, &#34;peanut&#34;:true}
+{Kim 22} {Name:Kim Age:22} struct { Name string; Age int }{Name:&#34;Kim&#34;, Age:22}
+&amp;{Kim 22} 0x0
+[Kitano Kobayashi Kurosawa Miyazaki Ozu] [&#34;Kitano&#34; &#34;Kobayashi&#34; &#34;Kurosawa&#34; &#34;Miyazaki&#34; &#34;Ozu&#34;]
+[Kitano Kobayashi Kurosawa] [&#34;Kitano&#34; &#34;Kobayashi&#34; &#34;Kurosawa&#34;] []string{&#34;Kitano&#34;, &#34;Kobayashi&#34;, &#34;Kurosawa&#34;}
+[97 226 140 152] [97 226 140 152] a⌘ &#34;a⌘&#34; 61e28c98 61 e2 8c 98
+1973-11-29 21:33:09 +0000 UTC &#34;1973-11-29 21:33:09 +0000 UTC&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__printers" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Printers)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Printers)</span></p>
+    <p>Print、Println 和 Printf 对参数的排版方式不同，本例可用于比较它们的行为。Println 总是在输出项之间加空格；Print 只在相邻两个参数都不是字符串时加空格；Printf 则完全按格式要求输出。Sprint、Sprintln、Sprintf、Fprint、Fprintln 和 Fprintf，与这里对应的 Print、Println 和 Printf 行为相同。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	a, b := 3.0, 4.0
+	h := math.Hypot(a, b)
+
+	// 相邻两个实参都不是字符串时，Print 会在它们之间插入空格。
+	// 它不会在输出末尾添加换行，因此这里显式添加一个换行。
+	fmt.Print(&#34;The vector (&#34;, a, b, &#34;) has length &#34;, h, &#34;.\n&#34;)
+
+	// Println 始终在实参之间插入空格，
+	// 因此在本例中，它无法产生与 Print 相同的输出；
+	// 它的输出包含额外的空格。
+	// 此外，Println 始终在输出末尾添加换行。
+	fmt.Println(&#34;The vector (&#34;, a, b, &#34;) has length&#34;, h, &#34;.&#34;)
+
+	// Printf 能完全控制输出格式，但使用起来更复杂。
+	// 它不会在输出末尾添加换行，因此这里显式地
+	// 在格式字符串末尾添加换行符。
+	fmt.Printf(&#34;The vector (%g %g) has length %g.\n&#34;, a, b, h)
+
+}
+</textarea></div>
+        <div class="output"><pre>The vector (3 4) has length 5.
+The vector ( 3 4 ) has length 5 .
+The vector (3 4) has length 5.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Append">func Append(b []byte, a ...any) []byte</a></dd>
+			
+				<dd><a href="#Appendf">func Appendf(b []byte, format string, a ...any) []byte</a></dd>
+			
+				<dd><a href="#Appendln">func Appendln(b []byte, a ...any) []byte</a></dd>
+			
+				<dd><a href="#Errorf">func Errorf(format string, a ...any) (err error)</a></dd>
+			
+				<dd><a href="#FormatString">func FormatString(state State, verb rune) string</a></dd>
+			
+				<dd><a href="#Fprint">func Fprint(w io.Writer, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Fprintf">func Fprintf(w io.Writer, format string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Fprintln">func Fprintln(w io.Writer, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Fscan">func Fscan(r io.Reader, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Fscanf">func Fscanf(r io.Reader, format string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Fscanln">func Fscanln(r io.Reader, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Print">func Print(a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Printf">func Printf(format string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Println">func Println(a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Scan">func Scan(a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Scanf">func Scanf(format string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Scanln">func Scanln(a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Sprint">func Sprint(a ...any) string</a></dd>
+			
+				<dd><a href="#Sprintf">func Sprintf(format string, a ...any) string</a></dd>
+			
+				<dd><a href="#Sprintln">func Sprintln(a ...any) string</a></dd>
+			
+				<dd><a href="#Sscan">func Sscan(str string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Sscanf">func Sscanf(str string, format string, a ...any) (n int, err error)</a></dd>
+			
+				<dd><a href="#Sscanln">func Sscanln(str string, a ...any) (n int, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#Formatter">type Formatter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#GoStringer">type GoStringer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ScanState">type ScanState</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#State">type State</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Stringer">type Stringer</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Errorf">Errorf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fprint">Fprint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fprintf">Fprintf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fprintln">Fprintln</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fscanf">Fscanf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fscanln">Fscanln</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_GoStringer">GoStringer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Print">Print</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Printf">Printf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Println">Println</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sprint">Sprint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sprintf">Sprintf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sprintln">Sprintln</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Sscanf">Sscanf</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Stringer">Stringer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__formats">包 (Formats)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__printers">包 (Printers)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/fmt/doc.go">doc.go</a>
+			
+				<a href="/src/fmt/errors.go">errors.go</a>
+			
+				<a href="/src/fmt/format.go">format.go</a>
+			
+				<a href="/src/fmt/print.go">print.go</a>
+			
+				<a href="/src/fmt/scan.go">scan.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Append">func <a href="/src/fmt/print.go?s=8448:8486#L270">Append</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Append(b []<a href="/pkg/builtin/#byte">byte</a>, a ...<a href="/pkg/builtin/#any">any</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Append 使用各操作数的默认格式，将结果追加到字节切片，并返回更新后的切片。仅当相邻两个操作数都不是字符串时，才在它们之间添加空格。
+<h2 id="Appendf">func <a href="/src/fmt/print.go?s=7135:7189#L229">Appendf</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Appendf(b []<a href="/pkg/builtin/#byte">byte</a>, format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Appendf 按格式说明进行格式化，将结果追加到字节切片，并返回更新后的切片。
+<h2 id="Appendln">func <a href="/src/fmt/print.go?s=9886:9926#L313">Appendln</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Appendln(b []<a href="/pkg/builtin/#byte">byte</a>, a ...<a href="/pkg/builtin/#any">any</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Appendln 使用各操作数的默认格式，将结果追加到字节切片，并返回更新后的切片。操作数之间总是添加空格，末尾追加换行符。
+<h2 id="Errorf">func <a href="/src/fmt/errors.go?s=822:870#L13">Errorf</a>
+				
+				
+			</h2>
+			<pre>func Errorf(format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Errorf 按格式说明进行格式化，并将结果字符串作为实现了 error 接口的值返回。
+<p>如果格式说明中包含一个对应 error 操作数的 %w 动词，返回的错误就会实现 Unwrap 方法，并由该方法返回这个操作数。如果有多个 %w，返回错误的 Unwrap 方法会返回 []error，其中包含所有 %w 对应的操作数，按它们在实参列表中出现的顺序排列。向 %w 提供未实现 error 接口的操作数是无效的。除此之外，%w 与 %v 相同。
+<div id="example_Errorf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>Errorf 函数让我们可以利用格式化功能，创建包含详细说明的错误消息。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	const name, id = &#34;bueller&#34;, 17
+	err := fmt.Errorf(&#34;user %q (id %d) not found&#34;, name, id)
+	fmt.Println(err.Error())
+
+}
+</textarea></div>
+        <div class="output"><pre>user &#34;bueller&#34; (id 17) not found
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FormatString">func <a href="/src/fmt/print.go?s=2764:2812#L71">FormatString</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func FormatString(state <a href="#State">State</a>, verb <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatString 返回完整格式指令的字符串表示，由 <a href="#State">State</a> 中记录的信息和传入的 verb 组成（<a href="#State">State</a> 本身不包含动词）。结果以百分号开头，后面依次包含标志、宽度和精度；未设置的部分会被省略。通过该函数，<a href="#Formatter">Formatter</a> 可以重建触发 Format 调用的原始指令。
+<h2 id="Fprint">func <a href="/src/fmt/print.go?s=7545:7598#L242">Fprint</a>
+				
+				
+			</h2>
+			<pre>func Fprint(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fprint 使用各操作数的默认格式，并写入 w。仅当相邻两个操作数都不是字符串时，才在它们之间添加空格。它返回写入的字节数，以及遇到的写入错误。
+<div id="example_Fprint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	n, err := fmt.Fprint(os.Stdout, name, &#34; is &#34;, age, &#34; years old.\n&#34;)
+
+	// Fprint 返回的 n 和 err
+	// 就是底层 io.Writer 返回的值。
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Fprint: %v\n&#34;, err)
+	}
+	fmt.Print(n, &#34; bytes written.\n&#34;)
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+21 bytes written.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Fprintf">func <a href="/src/fmt/print.go?s=6376:6445#L204">Fprintf</a>
+				
+				
+			</h2>
+			<pre>func Fprintf(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fprintf 按格式说明进行格式化并写入 w，返回写入的字节数，以及遇到的写入错误。
+<div id="example_Fprintf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	n, err := fmt.Fprintf(os.Stdout, &#34;%s is %d years old.\n&#34;, name, age)
+
+	// Fprintf 返回的 n 和 err
+	// 就是底层 io.Writer 返回的值。
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Fprintf: %v\n&#34;, err)
+	}
+	fmt.Printf(&#34;%d bytes written.\n&#34;, n)
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+21 bytes written.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Fprintln">func <a href="/src/fmt/print.go?s=8941:8996#L285">Fprintln</a>
+				
+				
+			</h2>
+			<pre>func Fprintln(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fprintln 使用各操作数的默认格式并写入 w。操作数之间总是添加空格，末尾追加换行符。它返回写入的字节数，以及遇到的写入错误。
+<div id="example_Fprintln" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	n, err := fmt.Fprintln(os.Stdout, name, &#34;is&#34;, age, &#34;years old.&#34;)
+
+	// Fprintln 返回的 n 和 err
+	// 就是底层 io.Writer 返回的值。
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Fprintln: %v\n&#34;, err)
+	}
+	fmt.Println(n, &#34;bytes written.&#34;)
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+21 bytes written.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Fscan">func <a href="/src/fmt/scan.go?s=4873:4925#L111">Fscan</a>
+				
+				
+			</h2>
+			<pre>func Fscan(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fscan 扫描从 r 读取的文本，将连续的空白分隔值依次存入各个参数。换行符也视为空白。它返回成功扫描的项数；如果少于参数个数，err 会说明原因。
+<h2 id="Fscanf">func <a href="/src/fmt/scan.go?s=5532:5600#L131">Fscanf</a>
+				
+				
+			</h2>
+			<pre>func Fscanf(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fscanf 扫描从 r 读取的文本，按 format 的要求，将连续的空白分隔值依次存入各个参数。它返回成功解析的项数。输入中的换行符必须与格式中的换行符匹配。
+<div id="example_Fscanf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	var (
+		i int
+		b bool
+		s string
+	)
+	r := strings.NewReader(&#34;5 true gophers&#34;)
+	n, err := fmt.Fscanf(r, &#34;%d %t %s&#34;, &amp;i, &amp;b, &amp;s)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Fscanf: %v\n&#34;, err)
+	}
+	fmt.Println(i, b, s)
+	fmt.Println(n)
+}
+</textarea></div>
+        <div class="output"><pre>5 true gophers
+3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Fscanln">func <a href="/src/fmt/scan.go?s=5140:5194#L120">Fscanln</a>
+				
+				
+			</h2>
+			<pre>func Fscanln(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Fscanln 与 <a href="#Fscan">Fscan</a> 类似，但在换行符处停止扫描，并且最后一项之后必须是换行符或 EOF。
+<div id="example_Fscanln" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	s := `dmr 1771 1.61803398875
+	ken 271828 3.14159`
+	r := strings.NewReader(s)
+	var a string
+	var b int
+	var c float64
+	for {
+		n, err := fmt.Fscanln(r, &amp;a, &amp;b, &amp;c)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf(&#34;%d: %s, %d, %f\n&#34;, n, a, b, c)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>3: dmr, 1771, 1.618034
+3: ken, 271828, 3.141590
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Print">func <a href="/src/fmt/print.go?s=7909:7948#L253">Print</a>
+				
+				
+			</h2>
+			<pre>func Print(a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Print 使用各操作数的默认格式，并写入标准输出。仅当相邻两个操作数都不是字符串时，才在它们之间添加空格。它返回写入的字节数，以及遇到的写入错误。
+<div id="example_Print" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	fmt.Print(name, &#34; is &#34;, age, &#34; years old.\n&#34;)
+
+	// 通常的惯用做法是忽略
+	// Print 返回的错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Printf">func <a href="/src/fmt/print.go?s=6692:6747#L214">Printf</a>
+				
+				
+			</h2>
+			<pre>func Printf(format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Printf 按格式说明进行格式化并写入标准输出，返回写入的字节数，以及遇到的写入错误。
+<div id="example_Printf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	fmt.Printf(&#34;%s is %d years old.\n&#34;, name, age)
+
+	// 通常的惯用做法是忽略
+	// Printf 返回的错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Println">func <a href="/src/fmt/print.go?s=9319:9360#L296">Println</a>
+				
+				
+			</h2>
+			<pre>func Println(a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Println 使用各操作数的默认格式，并写入标准输出。操作数之间总是添加空格，末尾追加换行符。它返回写入的字节数，以及遇到的写入错误。
+<div id="example_Println" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	fmt.Println(name, &#34;is&#34;, age, &#34;years old.&#34;)
+
+	// 通常的惯用做法是忽略
+	// Println 返回的错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Scan">func <a href="/src/fmt/scan.go?s=2659:2697#L53">Scan</a>
+				
+				
+			</h2>
+			<pre>func Scan(a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Scan 扫描从标准输入读取的文本，将连续的空白分隔值依次存入各个参数。换行符也视为空白。它返回成功扫描的项数；如果少于参数个数，err 会说明原因。
+<h2 id="Scanf">func <a href="/src/fmt/scan.go?s=3393:3447#L70">Scanf</a>
+				
+				
+			</h2>
+			<pre>func Scanf(format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Scanf 扫描从标准输入读取的文本，按 format 的要求，将连续的空白分隔值依次存入各个参数。它返回成功扫描的项数；如果少于参数个数，err 会说明原因。输入中的换行符必须与格式中的换行符匹配。有一个例外：%c 总是扫描输入中的下一个 rune，即使它是空格、制表符等空白字符或换行符。
+<h2 id="Scanln">func <a href="/src/fmt/scan.go?s=2857:2897#L59">Scanln</a>
+				
+				
+			</h2>
+			<pre>func Scanln(a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Scanln 与 <a href="#Scan">Scan</a> 类似，但在换行符处停止扫描，并且最后一项之后必须是换行符或 EOF。
+<h2 id="Sprint">func <a href="/src/fmt/print.go?s=8144:8172#L259">Sprint</a>
+				
+				
+			</h2>
+			<pre>func Sprint(a ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Sprint 使用各操作数的默认格式，并返回结果字符串。仅当相邻两个操作数都不是字符串时，才在它们之间添加空格。
+<div id="example_Sprint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	s := fmt.Sprint(name, &#34; is &#34;, age, &#34; years old.\n&#34;)
+
+	io.WriteString(os.Stdout, s) // 为简洁起见，此处忽略错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sprintf">func <a href="/src/fmt/print.go?s=6879:6923#L219">Sprintf</a>
+				
+				
+			</h2>
+			<pre>func Sprintf(format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Sprintf 按格式说明进行格式化，并返回结果字符串。
+<div id="example_Sprintf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	s := fmt.Sprintf(&#34;%s is %d years old.\n&#34;, name, age)
+
+	io.WriteString(os.Stdout, s) // 为简洁起见，此处忽略错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sprintln">func <a href="/src/fmt/print.go?s=9568:9598#L302">Sprintln</a>
+				
+				
+			</h2>
+			<pre>func Sprintln(a ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Sprintln 使用各操作数的默认格式，并返回结果字符串。操作数之间总是添加空格，末尾追加换行符。
+<div id="example_Sprintln" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const name, age = &#34;Kim&#34;, 22
+	s := fmt.Sprintln(name, &#34;is&#34;, age, &#34;years old.&#34;)
+
+	io.WriteString(os.Stdout, s) // 为简洁起见，此处忽略错误。
+
+}
+</textarea></div>
+        <div class="output"><pre>Kim is 22 years old.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sscan">func <a href="/src/fmt/scan.go?s=3910:3961#L89">Sscan</a>
+				
+				
+			</h2>
+			<pre>func Sscan(str <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Sscan 扫描传入的字符串，将连续的空白分隔值依次存入各个参数。换行符也视为空白。它返回成功扫描的项数；如果少于参数个数，err 会说明原因。
+<h2 id="Sscanf">func <a href="/src/fmt/scan.go?s=4492:4559#L103">Sscanf</a>
+				
+				
+			</h2>
+			<pre>func Sscanf(str <a href="/pkg/builtin/#string">string</a>, format <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Sscanf 扫描传入的字符串，按 format 的要求，将连续的空白分隔值依次存入各个参数。它返回成功解析的项数。输入中的换行符必须与格式中的换行符匹配。
+<div id="example_Sscanf" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+func main() {
+	var name string
+	var age int
+	n, err := fmt.Sscanf(&#34;Kim is 22 years old&#34;, &#34;%s is %d years old&#34;, &amp;name, &amp;age)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf(&#34;%d: %s, %d\n&#34;, n, name, age)
+
+}
+</textarea></div>
+        <div class="output"><pre>2: Kim, 22
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Sscanln">func <a href="/src/fmt/scan.go?s=4136:4189#L95">Sscanln</a>
+				
+				
+			</h2>
+			<pre>func Sscanln(str <a href="/pkg/builtin/#string">string</a>, a ...<a href="/pkg/builtin/#any">any</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Sscanln 与 <a href="#Sscan">Sscan</a> 类似，但在换行符处停止扫描，并且最后一项之后必须是换行符或 EOF。
+<h2 id="Formatter">type <a href="/src/fmt/print.go?s=1682:1738#L44">Formatter</a>
+				
+				
+			</h2>
+			<p>任何具有 Format 方法的值都实现了 Formatter。具体实现决定如何解释 <a href="#State">State</a> 和 rune，并可以调用 <a href="#Sprint">Sprint</a>、<a href="#Fprint">Fprint</a>(f) 等函数生成输出。
+<pre>type Formatter interface {
+    Format(f <a href="#State">State</a>, verb <a href="/pkg/builtin/#rune">rune</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="GoStringer">type <a href="/src/fmt/print.go?s=2268:2316#L61">GoStringer</a>
+				
+				
+			</h2>
+			<p>任何具有 GoString 方法的值都实现了 GoStringer，该方法定义此值的 Go 语法表示。使用 %#v 格式输出值时，会调用 GoString 方法。
+<pre>type GoStringer interface {
+    GoString() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_GoStringer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+// Address 包含城市 City、州 State 和国家 Country。
+type Address struct {
+	City    string
+	State   string
+	Country string
+}
+
+// Person 包含姓名 Name、年龄 Age 和地址 Address。
+type Person struct {
+	Name string
+	Age  uint
+	Addr *Address
+}
+
+// GoString 使 Person 满足 GoStringer 接口。
+// 返回值是有效的 Go 代码，可用于重新构造该 Person 结构体。
+func (p Person) GoString() string {
+	if p.Addr != nil {
+		return fmt.Sprintf(&#34;Person{Name: %q, Age: %d, Addr: &amp;Address{City: %q, State: %q, Country: %q}}&#34;, p.Name, int(p.Age), p.Addr.City, p.Addr.State, p.Addr.Country)
+	}
+	return fmt.Sprintf(&#34;Person{Name: %q, Age: %d}&#34;, p.Name, int(p.Age))
+}
+
+func main() {
+	p1 := Person{
+		Name: &#34;Warren&#34;,
+		Age:  31,
+		Addr: &amp;Address{
+			City:    &#34;Denver&#34;,
+			State:   &#34;CO&#34;,
+			Country: &#34;U.S.A.&#34;,
+		},
+	}
+	// 如果没有实现 GoString()，`fmt.Printf("%#v", p1)` 的输出会类似于：
+	// Person{Name:&#34;Warren&#34;, Age:0x1f, Addr:(*main.Address)(0x10448240)}
+	fmt.Printf(&#34;%#v\n&#34;, p1)
+
+	p2 := Person{
+		Name: &#34;Theia&#34;,
+		Age:  4,
+	}
+	// 如果没有实现 GoString()，`fmt.Printf("%#v", p2)` 的输出会类似于：
+	// Person{Name:&#34;Theia&#34;, Age:0x4, Addr:(*main.Address)(nil)}
+	fmt.Printf(&#34;%#v\n&#34;, p2)
+
+}
+</textarea></div>
+        <div class="output"><pre>Person{Name: &#34;Warren&#34;, Age: 31, Addr: &amp;Address{City: &#34;Denver&#34;, State: &#34;CO&#34;, Country: &#34;U.S.A.&#34;}}
+Person{Name: &#34;Theia&#34;, Age: 4}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="ScanState">type <a href="/src/fmt/scan.go?s=441:2021#L11">ScanState</a>
+				
+				
+			</h2>
+			<p>ScanState 表示传给自定义扫描器的扫描状态。扫描器可以逐个 rune 扫描，也可以让 ScanState 查找下一个空白分隔的 token。ReadRune 从输入读取下一个 Unicode 码点；在 Scanln、Fscanln 或 Sscanln 中，它会在返回第一个 \n 之后，或读取超出指定宽度时返回 EOF。UnreadRune 使下一次 ReadRune 返回同一个 rune。SkipSpace 跳过输入空白，并按当前扫描操作的规则处理换行符。Token 在 skipSpace 为 true 时先跳过空白，再返回连续满足 f(c) 的码点；f 为 nil 时使用 !unicode.IsSpace(c)，即返回非空白字符，换行符仍按当前操作的规则处理。Token 返回的切片指向共享数据，可能在下一次 Token 调用、以此 ScanState 为输入的 Scan 函数调用，或调用它的 Scan 方法返回时被覆盖。Width 返回宽度及其是否已设置，单位为 Unicode 码点。由于接口已经实现 ReadRune，扫描函数不应调用 Read；有效的 ScanState 实现可以让 Read 始终返回错误。
+<pre>type ScanState interface {
+    <span class="comment">// ReadRune 从输入读取下一个 rune（Unicode 码点）。</span>
+    <span class="comment">// 如果在 Scanln、Fscanln 或 Sscanln 期间调用，ReadRune()</span>
+    <span class="comment">// 会在返回第一个 '\n' 之后，或者读取超出</span>
+    <span class="comment">// 指定宽度时，返回 EOF。</span>
+    ReadRune() (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// UnreadRune 使下一次 ReadRune 调用返回同一个 rune。</span>
+    UnreadRune() <a href="/pkg/builtin/#error">error</a>
+    <span class="comment">// SkipSpace 跳过输入中的空白。换行符会根据当前</span>
+    <span class="comment">// 执行的操作作相应处理；更多信息请参阅</span>
+    <span class="comment">// 包文档。</span>
+    SkipSpace()
+    <span class="comment">// 如果 skipSpace 为 true，Token 先跳过输入中的空白，然后返回</span>
+    <span class="comment">// 满足 f(c) 的连续 Unicode 码点 c。如果 f 为 nil，</span>
+    <span class="comment">// 则使用 !unicode.IsSpace(c)；也就是说，返回的 token</span>
+    <span class="comment">// 包含非空白字符。换行符会根据当前执行的操作</span>
+    <span class="comment">// 作相应处理；更多信息请参阅包文档。</span>
+    <span class="comment">// 返回的切片指向共享数据；这些数据可能在下次调用 Token、</span>
+    <span class="comment">// 调用以此 ScanState 作为输入的 Scan 函数，</span>
+    <span class="comment">// 或者当前 Scan 方法返回时被覆盖。</span>
+    Token(skipSpace <a href="/pkg/builtin/#bool">bool</a>, f func(<a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) (token []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// Width 返回宽度选项的值，以及该选项是否已经设置。</span>
+    <span class="comment">// 宽度的单位是 Unicode 码点。</span>
+    Width() (wid <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+    <span class="comment">// 由于该接口已经实现 ReadRune，扫描例程不应</span>
+    <span class="comment">// 调用 Read；合法的 ScanState 实现可以选择</span>
+    <span class="comment">// 始终从 Read 返回错误。</span>
+    Read(buf []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Scanner">type <a href="/src/fmt/scan.go?s=2323:2389#L45">Scanner</a>
+				
+				
+			</h2>
+			<p>任何具有 Scan 方法的值都实现了 Scanner。Scan 从输入扫描某个值的表示，并将结果存入接收者；要让结果有效保存，接收者必须是指针。传给 <a href="#Scan">Scan</a>、<a href="#Scanf">Scanf</a> 或 <a href="#Scanln">Scanln</a> 的任意参数如果实现了该方法，就会调用它。
+<pre>type Scanner interface {
+    Scan(state <a href="#ScanState">ScanState</a>, verb <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="State">type <a href="/src/fmt/print.go?s=1035:1475#L29">State</a>
+				
+				
+			</h2>
+			<p>State 表示传给自定义格式化器的输出状态。它提供 <a href="/pkg/io/#Writer">io.Writer</a> 接口，以及操作数格式说明中的标志和选项信息。Write 用于写出格式化后的内容；Width 返回宽度及其是否已设置；Precision 返回精度及其是否已设置；Flag 报告字符 c 对应的标志是否已设置。
+<pre>type State interface {
+    <span class="comment">// Write 用于写出待打印的格式化输出。</span>
+    Write(b []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// Width 返回宽度选项的值，以及该选项是否已经设置。</span>
+    Width() (wid <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+    <span class="comment">// Precision 返回精度选项的值，以及该选项是否已经设置。</span>
+    Precision() (prec <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+
+    <span class="comment">// Flag 报告字符 c 对应的标志是否已经设置。</span>
+    Flag(c <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Stringer">type <a href="/src/fmt/print.go?s=2017:2061#L53">Stringer</a>
+				
+				
+			</h2>
+			<p>任何具有 String 方法的值都实现了 Stringer，该方法定义此值的“原生”文本格式。当值作为操作数传给接受字符串的格式，或传给 <a href="#Print">Print</a> 等不带格式字符串的输出函数时，会使用 String 方法。
+<pre>type Stringer interface {
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Stringer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+)
+
+// Animal 使用姓名 Name 和年龄 Age 表示一只动物。
+type Animal struct {
+	Name string
+	Age  uint
+}
+
+// String 使 Animal 满足 Stringer 接口。
+func (a Animal) String() string {
+	return fmt.Sprintf(&#34;%v (%d)&#34;, a.Name, a.Age)
+}
+
+func main() {
+	a := Animal{
+		Name: &#34;Gopher&#34;,
+		Age:  2,
+	}
+	fmt.Println(a)
+}
+</textarea></div>
+        <div class="output"><pre>Gopher (2)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,487 @@
+<!--{
+  "Title": "runtime/debug 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>runtime/debug 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime/debug"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>debug 包提供程序在运行过程中进行自我调试的功能。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#FreeOSMemory">func FreeOSMemory()</a></dd>
+			
+				<dd><a href="#PrintStack">func PrintStack()</a></dd>
+			
+				<dd><a href="#ReadGCStats">func ReadGCStats(stats *GCStats)</a></dd>
+			
+				<dd><a href="#SetCrashOutput">func SetCrashOutput(f *os.File, opts CrashOptions) error</a></dd>
+			
+				<dd><a href="#SetGCPercent">func SetGCPercent(percent int) int</a></dd>
+			
+				<dd><a href="#SetMaxStack">func SetMaxStack(bytes int) int</a></dd>
+			
+				<dd><a href="#SetMaxThreads">func SetMaxThreads(threads int) int</a></dd>
+			
+				<dd><a href="#SetMemoryLimit">func SetMemoryLimit(limit int64) int64</a></dd>
+			
+				<dd><a href="#SetPanicOnFault">func SetPanicOnFault(enabled bool) bool</a></dd>
+			
+				<dd><a href="#SetTraceback">func SetTraceback(level string)</a></dd>
+			
+				<dd><a href="#Stack">func Stack() []byte</a></dd>
+			
+				<dd><a href="#WriteHeapDump">func WriteHeapDump(fd uintptr)</a></dd>
+			
+			
+				
+				<dd><a href="#BuildInfo">type BuildInfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseBuildInfo">func ParseBuildInfo(data string) (bi *BuildInfo, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReadBuildInfo">func ReadBuildInfo() (info *BuildInfo, ok bool)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BuildInfo.String">func (bi *BuildInfo) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BuildSetting">type BuildSetting</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CrashOptions">type CrashOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#GCStats">type GCStats</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Module">type Module</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_SetCrashOutput_monitor">SetCrashOutput (Monitor)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/debug/garbage.go">garbage.go</a>
+			
+				<a href="/src/runtime/debug/mod.go">mod.go</a>
+			
+				<a href="/src/runtime/debug/stack.go">stack.go</a>
+			
+				<a href="/src/runtime/debug/stubs.go">stubs.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="FreeOSMemory">func <a href="/src/runtime/debug/garbage.go?s=3937:3956#L91">FreeOSMemory</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func FreeOSMemory()</pre>
+			<p>FreeOSMemory 强制执行一次垃圾回收，然后尝试将尽可能多的内存归还给操作系统。（即使不调用此函数，运行时也会通过后台任务逐步向操作系统归还内存。）<h2 id="PrintStack">func <a href="/src/runtime/debug/stack.go?s=430:447#L7">PrintStack</a>
+				
+				
+			</h2>
+			<pre>func PrintStack()</pre>
+			<p>PrintStack 将 <a href="/pkg/runtime/#Stack">runtime.Stack</a> 返回的栈轨迹输出到标准错误。<h2 id="ReadGCStats">func <a href="/src/runtime/debug/garbage.go?s=1208:1240#L21">ReadGCStats</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func ReadGCStats(stats *<a href="#GCStats">GCStats</a>)</pre>
+			<p>ReadGCStats 将垃圾回收统计信息读入 stats。暂停历史中的条目数量取决于系统；如果 stats.Pause 切片足够大，就会复用它，否则重新分配。ReadGCStats 可能使用 stats.Pause 切片的全部容量。如果 stats.PauseQuantiles 非空，ReadGCStats 会用概括暂停时间分布的分位数填充它。例如，如果 len(stats.PauseQuantiles) 为 5，就会依次填入最短、25%、50%、75% 和最长暂停时间。<h2 id="SetCrashOutput">func <a href="/src/runtime/debug/stack.go?s=1539:1595#L39">SetCrashOutput</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func SetCrashOutput(f *<a href="/pkg/os/">os</a>.<a href="/pkg/os/#File">File</a>, opts <a href="#CrashOptions">CrashOptions</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>SetCrashOutput 配置一个额外的文件，使未处理的 panic 和其他致命错误除了输出到标准错误，还会输出到该文件。额外文件只能有一个：再次调用 SetCrashOutput 会覆盖之前的调用。SetCrashOutput 会复制 f 的文件描述符，因此调用方可以在 SetCrashOutput 返回后立即安全地关闭 f。要禁用此额外的崩溃输出，请调用 SetCrashOutput(nil)。如果此调用与崩溃并发发生，即使覆盖配置的 SetCrashOutput 调用已经返回，某些正在进行的输出仍可能写入旧文件。<div id="example_SetCrashOutput_monitor" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Monitor)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Monitor)</span></p>
+    <p>ExampleSetCrashOutput_monitor 演示如何使用 [debug.SetCrashOutput] 将崩溃信息定向到“监控”进程，以自动报告崩溃。监控进程使用同一个可执行文件，通过环境变量指定的特殊模式启动。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;os/exec&#34;
+	&#34;runtime/debug&#34;
+)
+
+// ExampleSetCrashOutput_monitor 演示如何使用
+// [debug.SetCrashOutput] 将崩溃信息定向到“监控”进程，
+// 以自动报告崩溃。监控进程使用同一个可执行文件，
+// 通过环境变量指定的特殊模式启动。
+func main() {
+	appmain()
+
+	// 此示例实际上不会作为测试运行，因为它
+	// 旨在触发崩溃，所以函数体内没有
+	// "Output:" 注释。
+	//
+	// 要观察监控进程的运行情况，请将此注释的
+	// 全部文本替换为 "Output:"，然后运行以下命令：
+	//
+	//    $ go test -run=ExampleSetCrashOutput_monitor runtime/debug
+	//    panic: oops
+	//    ...stack...
+	//    monitor: saved crash report at /tmp/10804884239807998216.crash
+}
+
+// appmain 表示应用程序的 'main' 函数。
+func appmain() {
+	monitor()
+
+	// 运行应用程序。
+	println(&#34;hello&#34;)
+	panic(&#34;oops&#34;)
+}
+
+// monitor 启动监控进程，自动报告崩溃。
+// 应在 main 内立即调用此函数。
+//
+// 此函数将同一个可执行文件作为子进程重新执行，
+// 并采用特殊模式。在该模式下，monitor 调用永远
+// 不会返回。
+func monitor() {
+	const monitorVar = &#34;RUNTIME_DEBUG_MONITOR&#34;
+	if os.Getenv(monitorVar) != &#34;&#34; {
+		// 这是监控进程（子进程）。
+		log.SetFlags(0)
+		log.SetPrefix(&#34;monitor: &#34;)
+
+		crash, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf(&#34;failed to read from input pipe: %v&#34;, err)
+		}
+		if len(crash) == 0 {
+			// 父进程已终止，且未报告崩溃。
+			os.Exit(0)
+		}
+
+		// 将崩溃报告安全地保存到文件系统。
+		f, err := os.CreateTemp(&#34;&#34;, &#34;*.crash&#34;)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if _, err := f.Write(crash); err != nil {
+			log.Fatal(err)
+		}
+		if err := f.Close(); err != nil {
+			log.Fatal(err)
+		}
+		log.Fatalf(&#34;saved crash report at %s&#34;, f.Name())
+	}
+
+	// 这是应用程序进程。
+	// 通过 fork+exec 在监控模式下运行同一个可执行文件。
+	exe, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	cmd := exec.Command(exe, &#34;-test.run=^ExampleSetCrashOutput_monitor$&#34;)
+	// 有选择地允许子进程继承环境变量。
+	// 根据应用程序的情况，有些变量可能必需，
+	// 而另一些（例如 GOGC、GOMEMLIMIT）可能有害；参见 #73490。
+	cmd.Env = []string{monitorVar &#43; &#34;=1&#34;}
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stderr
+	pipe, err := cmd.StdinPipe()
+	if err != nil {
+		log.Fatalf(&#34;StdinPipe: %v&#34;, err)
+	}
+	debug.SetCrashOutput(pipe.(*os.File), debug.CrashOptions{}) // （此转换是安全的）
+	if err := cmd.Start(); err != nil {
+		log.Fatalf(&#34;can&#39;t start monitor: %v&#34;, err)
+	}
+	// 现在返回并开始运行应用程序本身……
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SetGCPercent">func <a href="/src/runtime/debug/garbage.go?s=3604:3638#L83">SetGCPercent</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func SetGCPercent(percent <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SetGCPercent 设置垃圾回收的目标百分比：新分配数据与上一次回收后剩余存活数据的比值达到此百分比时，触发回收。SetGCPercent 返回先前的设置。初始设置取启动时 GOGC 环境变量的值；若未设置该变量，则为 100。为了满足内存限制，实际使用的百分比可能会降低。负数百分比实际上会禁用垃圾回收，除非达到内存限制。详情参见 <a href="#SetMemoryLimit">SetMemoryLimit</a>。<h2 id="SetMaxStack">func <a href="/src/runtime/debug/garbage.go?s=4544:4575#L107">SetMaxStack</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SetMaxStack(bytes <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SetMaxStack 设置单个 goroutine 栈可以使用的最大内存量。如果任何 goroutine 在扩展其栈时超过此限制，程序就会崩溃。SetMaxStack 返回先前的设置。初始设置在 64 位系统上为 1 GB，在 32 位系统上为 250 MB。无论传给 SetMaxStack 的值是多少，系统仍可能施加最大栈限制。<p>SetMaxStack 主要用于限制陷入无限递归的 goroutine 所造成的损害。它只限制后续的栈增长。<h2 id="SetMaxThreads">func <a href="/src/runtime/debug/garbage.go?s=5390:5425#L125">SetMaxThreads</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SetMaxThreads(threads <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SetMaxThreads 设置 Go 程序可以使用的操作系统线程数上限。如果程序尝试使用超过该数量的线程，就会崩溃。SetMaxThreads 返回先前的设置。初始设置为 10,000 个线程。<p>此限制控制的是操作系统线程数，而不是 goroutine 数量。只有在某个 goroutine 已准备好运行，但所有现有线程都阻塞在系统调用或 cgo 调用中，或者因使用 <a href="/pkg/runtime/#LockOSThread">runtime.LockOSThread</a> 而绑定到其他 goroutine 时，Go 程序才会创建新线程。<p>SetMaxThreads 主要用于限制创建无界数量线程的程序所造成的损害。其目的是在程序拖垮操作系统之前，先让程序自身终止。<h2 id="SetMemoryLimit">func <a href="/src/runtime/debug/garbage.go?s=10039:10077#L224">SetMemoryLimit</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func SetMemoryLimit(limit <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>SetMemoryLimit 为运行时设置一个软内存限制。<p>运行时会采取多种措施来尽量遵守此内存限制，包括调整垃圾回收频率，以及更积极地将内存归还给底层系统。即使设置了 GOGC=off（或执行了 <a href="#SetGCPercent">SetGCPercent</a>(-1)），此限制仍然生效。<p>输入的限制以字节为单位，涵盖 Go 运行时映射、管理且尚未释放的全部内存。特别是，它不包括 Go 二进制文件占用的空间，也不包括 Go 之外的内存，例如底层系统为该进程管理的内存，或同一进程中由非 Go 代码管理的内存。未计入的内存来源包括：操作系统内核为进程持有的内存、C 代码分配的内存，以及 syscall.Mmap 映射的内存（因为它不由 Go 运行时管理）。<p>更具体地说，以下表达式准确反映了运行时试图维持在限制以内的值：<pre>runtime.MemStats.Sys - runtime.MemStats.HeapReleased
+</pre>
+<p>或者用 <a href="/pkg/runtime/metrics/">runtime/metrics</a> 包表示为：<pre>/memory/classes/total:bytes - /memory/classes/heap/released:bytes
+</pre>
+<p>将限制设为零，或设为低于 Go 运行时已使用内存的值，可能导致垃圾回收器几乎持续运行。不过，应用程序仍可能继续推进执行。<p>Go 运行时始终会遵循内存限制，因此要实际禁用此行为，应将限制设得很高。<a href="/pkg/math/#MaxInt64">math.MaxInt64</a> 是用于禁用限制的标准取值，但远大于底层系统可用内存的值也同样有效。<p>有关软内存限制的详细解释，以及各种常见用例和场景，请参阅指南 <a href="/doc/gc-guide">https://go.dev/doc/gc-guide</a>。<p>初始设置为 <a href="/pkg/math/#MaxInt64">math.MaxInt64</a>，除非设置了 GOMEMLIMIT 环境变量，此时由该变量提供初始值。GOMEMLIMIT 是以字节为单位的数值，可以带可选的单位后缀。支持的后缀包括 B、KiB、MiB、GiB 和 TiB。这些后缀表示 IEC 80000-13 标准定义的字节数量，即以 2 的幂为基数：KiB 表示 2^10 字节，MiB 表示 2^20 字节，依此类推。<p>SetMemoryLimit 返回先前设置的内存限制。输入负数不会调整限制，可用于获取当前设置的内存限制。<h2 id="SetPanicOnFault">func <a href="/src/runtime/debug/garbage.go?s=6341:6380#L145">SetPanicOnFault</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<pre>func SetPanicOnFault(enabled <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>SetPanicOnFault 控制程序在意外的非 nil 地址发生内存访问故障时，运行时如何处理。此类故障通常由运行时内存损坏等缺陷造成，因此默认处理方式是使程序崩溃。处理内存映射文件或进行不安全内存操作的程序，在较轻微的情况下也可能于非 nil 地址发生故障；SetPanicOnFault 允许这些程序请求运行时仅触发 panic，而不直接使程序崩溃。运行时 panic 携带的 <a href="/pkg/runtime/#Error">runtime.Error</a> 可能还具有一个额外的方法：<pre>Addr() uintptr
+</pre>
+<p>如果该方法存在，它会返回触发故障的内存地址。Addr 尽力给出结果，其准确性可能取决于平台。SetPanicOnFault 仅对当前 goroutine 生效。它返回先前的设置。<h2 id="SetTraceback">func <a href="/src/runtime/debug/garbage.go?s=7429:7460#L169">SetTraceback</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func SetTraceback(level <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>SetTraceback 设置运行时因未恢复的 panic 或内部运行时错误而退出前输出栈回溯时的详细程度。level 参数与 GOTRACEBACK 环境变量使用相同的取值。例如，SetTraceback(&quot;all&quot;) 确保程序在崩溃时输出所有 goroutine。详情请参阅 runtime 包文档。如果调用 SetTraceback 时指定的级别低于环境变量设置的级别，则忽略该调用。<h2 id="Stack">func <a href="/src/runtime/debug/stack.go?s=636:655#L13">Stack</a>
+				
+				
+			</h2>
+			<pre>func Stack() []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Stack 返回调用它的 goroutine 的格式化栈轨迹。它使用足够大的缓冲区调用 <a href="/pkg/runtime/#Stack">runtime.Stack</a>，以捕获完整轨迹。<h2 id="WriteHeapDump">func <a href="/src/runtime/debug/garbage.go?s=6874:6904#L158">WriteHeapDump</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<pre>func WriteHeapDump(fd <a href="/pkg/builtin/#uintptr">uintptr</a>)</pre>
+			<p>WriteHeapDump 将堆及其中对象的描述写入给定的文件描述符。<p>WriteHeapDump 会暂停所有 goroutine 的执行，直到堆转储全部写入完成。因此，文件描述符不能连接到另一端位于同一 Go 进程内的管道或套接字；应使用临时文件或网络套接字。<p>堆转储格式定义于 <a href="/golang.org/s/go15heapdump">https://golang.org/s/go15heapdump</a>。<h2 id="BuildInfo">type <a href="/src/runtime/debug/mod.go?s=1023:1724#L31">BuildInfo</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<p>BuildInfo 表示从 Go 二进制文件读取的构建信息。<pre>type BuildInfo struct {
+<span id="BuildInfo.GoVersion"></span>    <span class="comment">// GoVersion 是构建该二进制文件的 Go 工具链版本</span>
+    <span class="comment">// （例如 "go1.19.2"）。</span>
+    GoVersion <a href="/pkg/builtin/#string">string</a> `json:&#34;,omitempty&#34;` <span class="comment">// Go 1.18</span>
+
+<span id="BuildInfo.Path"></span>    <span class="comment">// Path 是该二进制文件主包的包路径</span>
+    <span class="comment">// （例如 "golang.org/x/tools/cmd/stringer"）。</span>
+    Path <a href="/pkg/builtin/#string">string</a> `json:&#34;,omitempty&#34;`
+
+<span id="BuildInfo.Main"></span>    <span class="comment">// Main 描述包含该二进制文件主包的模块。</span>
+    Main <a href="#Module">Module</a> `json:&#34;&#34;`
+
+<span id="BuildInfo.Deps"></span>    <span class="comment">// Deps 描述为该二进制文件的构建提供包的</span>
+    <span class="comment">// 所有依赖模块，包括直接和间接依赖。</span>
+    Deps []*<a href="#Module">Module</a> `json:&#34;,omitempty&#34;`
+
+<span id="BuildInfo.Settings"></span>    <span class="comment">// Settings 描述构建该二进制文件时使用的构建设置。</span>
+    Settings []<a href="#BuildSetting">BuildSetting</a> `json:&#34;,omitempty&#34;` <span class="comment">// Go 1.18</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseBuildInfo">func <a href="/src/runtime/debug/mod.go?s=5098:5157#L149">ParseBuildInfo</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func ParseBuildInfo(data <a href="/pkg/builtin/#string">string</a>) (bi *<a href="#BuildInfo">BuildInfo</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseBuildInfo 解析 <a href="#BuildInfo.String">*BuildInfo.String</a> 返回的字符串，恢复原始 <a href="#BuildInfo">BuildInfo</a>，但不设置 GoVersion 字段。程序通常不应调用此函数，而应调用 <a href="#ReadBuildInfo">ReadBuildInfo</a>、<a href="/pkg/debug/buildinfo/#ReadFile">debug/buildinfo.ReadFile</a> 或 <a href="/pkg/debug/buildinfo/#Read">debug/buildinfo.Read</a>。<h3 id="ReadBuildInfo">func <a href="/src/runtime/debug/mod.go?s=434:481#L10">ReadBuildInfo</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func ReadBuildInfo() (info *<a href="#BuildInfo">BuildInfo</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>ReadBuildInfo 返回嵌入当前运行的二进制文件中的构建信息。只有以支持模块的方式构建的二进制文件才提供这些信息。<h3 id="BuildInfo.String">func (*BuildInfo) <a href="/src/runtime/debug/mod.go?s=3845:3881#L98">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (bi *<a href="#BuildInfo">BuildInfo</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 <a href="#BuildInfo">BuildInfo</a> 的字符串表示。<h2 id="BuildSetting">type <a href="/src/runtime/debug/mod.go?s=3224:3473#L79">BuildSetting</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>BuildSetting 是一个键值对，描述影响构建的某项设置。<p>已定义的键包括：<ul>
+<li>-buildmode：所用的 buildmode 标志（通常为 &quot;exe&quot;）<li>-compiler：所用的编译器工具链标志（通常为 &quot;gc&quot;）<li>CGO_ENABLED：实际生效的 CGO_ENABLED 环境变量<li>CGO_CFLAGS：实际生效的 CGO_CFLAGS 环境变量<li>CGO_CPPFLAGS：实际生效的 CGO_CPPFLAGS 环境变量<li>CGO_CXXFLAGS：实际生效的 CGO_CXXFLAGS 环境变量<li>CGO_LDFLAGS：实际生效的 CGO_LDFLAGS 环境变量<li>DefaultGODEBUG：实际生效的 GODEBUG 设置<li>GOARCH：目标架构<li>GOAMD64/GOARM/GO386/等：GOARCH 对应的架构特性级别<li>GOOS：目标操作系统<li>GOFIPS140：固定的 FIPS 140-3 模块版本（如果有）<li>vcs：执行构建时源代码树使用的版本控制系统<li>vcs.revision：当前提交或检出版本的修订标识符<li>vcs.time：与 vcs.revision 关联的修改时间，采用 RFC3339 格式<li>vcs.modified：true 或 false，表示源代码树是否存在本地修改</ul>
+
+			<pre>type BuildSetting struct {
+<span id="BuildSetting.Key"></span>    <span class="comment">// Key 和 Value 描述构建设置。</span>
+    <span class="comment">// Key 不能包含等号、空格、制表符或换行符。</span>
+    Key <a href="/pkg/builtin/#string">string</a> `json:&#34;,omitempty&#34;`
+<span id="BuildSetting.Value"></span>    <span class="comment">// Value 不能包含换行符（'\n'）。</span>
+    Value <a href="/pkg/builtin/#string">string</a> `json:&#34;,omitempty&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="CrashOptions">type <a href="/src/runtime/debug/stack.go?s=898:954#L26">CrashOptions</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<p>CrashOptions 提供用于控制致命崩溃消息格式的选项。<pre>type CrashOptions struct {
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="GCStats">type <a href="/src/runtime/debug/garbage.go?s=281:673#L4">GCStats</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>GCStats 收集最近几次垃圾回收的信息。<pre>type GCStats struct {
+<span id="GCStats.LastGC"></span>    LastGC         <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>       <span class="comment">// 最近一次回收的时间</span>
+<span id="GCStats.NumGC"></span>    NumGC          <a href="/pkg/builtin/#int64">int64</a>           <span class="comment">// 垃圾回收次数</span>
+<span id="GCStats.PauseTotal"></span>    PauseTotal     <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>   <span class="comment">// 所有回收的总暂停时间</span>
+<span id="GCStats.Pause"></span>    Pause          []<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a> <span class="comment">// 暂停历史，最近的在前</span>
+<span id="GCStats.PauseEnd"></span>    PauseEnd       []<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>     <span class="comment">// 暂停结束时间的历史，最近的在前；Go 1.4 中加入</span>
+<span id="GCStats.PauseQuantiles"></span>    PauseQuantiles []<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Module">type <a href="/src/runtime/debug/mod.go?s=1785:2027#L52">Module</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<p>Module 描述构建所包含的单个模块。<pre>type Module struct {
+<span id="Module.Path"></span>    Path    <a href="/pkg/builtin/#string">string</a>  `json:&#34;,omitempty&#34;` <span class="comment">// 模块路径</span>
+<span id="Module.Version"></span>    Version <a href="/pkg/builtin/#string">string</a>  `json:&#34;,omitempty&#34;` <span class="comment">// 模块版本</span>
+<span id="Module.Sum"></span>    Sum     <a href="/pkg/builtin/#string">string</a>  `json:&#34;,omitempty&#34;` <span class="comment">// 校验和</span>
+<span id="Module.Replace"></span>    Replace *<a href="#Module">Module</a> `json:&#34;,omitempty&#34;` <span class="comment">// 由此模块替换</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

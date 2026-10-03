@@ -1,0 +1,622 @@
+<!--{
+	"Title": "从源代码安装 Go",
+	"Breadcrumb": true
+}-->
+
+<p>
+本文介绍如何从源代码构建并运行 Go。若使用安装程序，请参阅<a href="/doc/install">下载与安装</a>。
+</p>
+
+<h2 id="introduction">简介</h2>
+
+<p>
+Go 是一个开源项目，采用 <a href="/LICENSE">BSD 风格许可证</a>发布。本文介绍如何获取源代码，在本机上构建并运行。
+</p>
+
+<p>
+大多数用户不需要自行构建，而是按照<a href="/doc/install">下载与安装</a>中的说明安装预编译二进制包，过程更简单。如果你希望参与这些预编译包所包含内容的开发，请继续阅读。
+</p>
+
+<div class="detail">
+
+<p>
+Go 官方提供两套编译器工具链。本文主要介绍 <code>gc</code> Go 编译器及其工具。<code>gccgo</code> 是使用 GCC 后端的较传统编译器，有关它的开发说明，请参阅<a href="/doc/install/gccgo">配置和使用 gccgo</a>。
+</p>
+
+<p>
+Go 编译器支持以下指令集：
+
+<dl>
+<dt>
+  <code>amd64</code>, <code>386</code>
+</dt>
+<dd>
+  <code>x86</code> 指令集，支持 64 位和 32 位。
+</dd>
+<dt>
+  <code>arm64</code>, <code>arm</code>
+</dt>
+<dd>
+  <code>ARM</code> 指令集，支持 64 位（<code>AArch64</code>）和 32 位。
+</dd>
+<dt>
+  <code>loong64</code>
+</dt>
+<dd>
+  64 位 LoongArch 指令集。
+</dd>
+<dt>
+  <code>mips64</code>, <code>mips64le</code>, <code>mips</code>,  <code>mipsle</code>
+</dt>
+<dd>
+  <code>MIPS</code> 指令集，支持大端、小端以及 64 位和 32 位。
+</dd>
+<dt>
+  <code>ppc64</code>, <code>ppc64le</code>
+</dt>
+<dd>
+  64 位 PowerPC 指令集，支持大端和小端。
+</dd>
+<dt>
+  <code>riscv64</code>
+</dt>
+<dd>
+  64 位 RISC-V 指令集。
+</dd>
+<dt>
+  <code>s390x</code>
+</dt>
+<dd>
+  IBM z/Architecture 架构。
+</dd>
+<dt>
+  <code>wasm</code>
+</dt>
+<dd>
+  <a href="https://webassembly.org">WebAssembly</a>.
+</dd>
+</dl>
+</p>
+
+<p>
+这些编译器可面向 AIX、Android、DragonFly BSD、FreeBSD、Illumos、Linux、macOS/iOS（Darwin）、NetBSD、OpenBSD、Plan 9、Solaris 和 Windows 操作系统生成代码，但并非每个操作系统都支持所有架构。
+</p>
+
+<p>
+被列为“一等支持”的平台移植列表见 Wiki 中的<a href="/wiki/PortingPolicy#first-class-ports">一等支持平台</a>页面。
+</p>
+
+<p>
+所有支持的组合都列在下文的<a href="#environment">环境变量</a>一节中。
+</p>
+
+<p>
+完整的<a href="/wiki/MinimumRequirements">系统要求</a>请参阅 Go Wiki 的 MinimumRequirements 页面。
+</p>
+
+</div>
+
+<h2 id="go14">安装用于引导的 Go 编译器二进制文件</h2>
+
+<p>
+Go 工具链本身由 Go 编写，因此构建它之前需要先安装 Go 编译器。首次构建工具的脚本会在 <code>$PATH</code> 中查找“go”命令；只要系统已经安装 Go，并配置好了 <code>$PATH</code>，就可以从源代码构建 Go。你也可以将 <code>$GOROOT_BOOTSTRAP</code> 设置为某个 Go 安装的根目录，用它来构建新的 Go 工具链；此时将使用 <code>$GOROOT_BOOTSTRAP/bin/go</code> 这个 go 命令。
+</p>
+
+<p>
+所需的最低 Go 版本取决于要构建的目标 Go 版本：
+</p>
+
+<ul>
+<li> Go &lt;= 1.4：C 工具链。
+<li> 1.5 &lt;= Go &lt;= 1.19：Go 1.4 编译器。
+<li> 1.20 &lt;= Go &lt;= 1.21：Go 1.17 编译器。
+<li> 1.22 &lt;= Go &lt;= 1.23：Go 1.20 编译器。
+<li> 此后，Go 1.N 需要 Go 1.M 编译器，其中 M 是将 N-2 向下取整到偶数所得的值。例如，Go 1.24 和 1.25 需要 Go 1.22。
+</ul>
+
+<p>
+有四种方法可以获得引导工具链：
+</p>
+
+<ul>
+<li>下载较新的 Go 二进制发行版。
+<li>在已安装可用 Go 的系统上交叉编译工具链。
+<li>使用 gccgo。
+<li>从 Go 1.4 编译工具链，这是最后一个使用 C 编写编译器的 Go 发行版本。
+</ul>
+
+<p>
+下面分别介绍这些方法。
+</p>
+
+<h3 id="bootstrapFromBinaryRelease">使用二进制发行版作为引导工具链</h3>
+
+<p>
+要使用二进制发行版作为引导工具链，请访问<a href="/dl/">下载页面</a>，或使用其他满足最低版本要求的 Go 安装包。
+</p>
+
+<h3 id="bootstrapFromCrosscompiledSource">交叉编译源代码获得引导工具链</h3>
+
+<p>
+对于 Go 1.4 未支持的系统（例如 <code>linux/ppc64le</code>），需要从源代码交叉编译引导工具链。先在另一台系统上安装 Go，然后运行 <a href="/src/bootstrap.bash">bootstrap.bash</a>。
+</p>
+
+<p>
+例如，执行：
+</p>
+
+<pre>
+$ GOOS=linux GOARCH=ppc64 ./bootstrap.bash
+</pre>
+
+<p>
+<code>bootstrap.bash</code> 会针对指定的 <code>GOOS/GOARCH</code> 组合交叉编译工具链，并将生成的目录树保存在 <code>../../go-${GOOS}-${GOARCH}-bootstrap</code>。将该目录树复制到相应目标平台的机器上，再将其作为 <code>GOROOT_BOOTSTRAP</code>，即可引导本地构建。
+</p>
+
+<h3 id="bootstrapFromGccgo">使用 gccgo 引导工具链</h3>
+
+<p>
+使用 gccgo 作为引导工具链时，需要确保 <code>$GOROOT_BOOTSTRAP/bin/go</code> 指向 gccgo 5 附带的 go 工具。例如，在 Ubuntu Vivid 上：
+</p>
+
+<pre>
+$ sudo apt-get install gccgo-5
+$ sudo update-alternatives --set go /usr/bin/go-5
+$ GOROOT_BOOTSTRAP=/usr ./make.bash
+</pre>
+
+<h3 id="bootstrapFromSource">从 C 源代码构建引导工具链</h3>
+
+<p>
+要从 C 源代码构建引导工具链，请使用 Git 分支 <code>release-branch.go1.4</code> 或 <a href="https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz">go1.4-bootstrap-20171003.tar.gz</a>。它包含 Go 1.4 源代码，以及为了让工具在较新操作系统上运行而积累的修复。（Go 1.4 是最后一个以 C 编写工具链的发行版本。）解压 Go 1.4 源代码后，使用 <code>cd</code> 进入 <code>src</code> 子目录，在环境中设置 <code>CGO_ENABLED=0</code>，然后运行 <code>make.bash</code>（Windows 上运行 <code>make.bat</code>）。
+</p>
+
+<p>
+将 Go 1.4 源代码解压到 GOROOT_BOOTSTRAP 目录后，必须让这个 Git 克隆始终保持在 <code>release-branch.go1.4</code> 分支。尤其不要在后文“获取代码仓库”的步骤中复用这个克隆。Go 1.4 引导工具链假定仓库根目录下存在 Go 1.4 源代码，并且<b>必须能够</b>正确遍历这些源文件。
+</p>
+
+<p>
+注意，Go 1.4 无法在后续 Go 版本所支持的所有系统上运行，尤其不支持当前版本的 macOS。在这些系统上，必须通过其他方法获得引导工具链。
+</p>
+
+<h2 id="git">按需安装 Git</h2>
+
+<p>
+下一步需要安装 Git。继续之前，请确认 <code>git</code> 命令可用。
+</p>
+
+<p>
+如果尚未安装可用的 Git，请按照 <a href="https://git-scm.com/downloads">Git 下载页面</a>中的说明安装。
+</p>
+
+<h2 id="ccompiler">（可选）安装 C 编译器</h2>
+
+<p>
+要构建支持 <code><a href="/cmd/cgo">cgo</a></code> 的 Go 安装，使 Go 程序能够导入 C 库，需要先安装 <code>gcc</code> 或 <code>clang</code> 等 C 编译器。请使用系统常规的安装方式完成安装。
+</p>
+
+<p>
+要在不支持 <code>cgo</code> 的情况下构建，请在运行 <code>all.bash</code> 或 <code>make.bash</code> 之前设置环境变量 <code>CGO_ENABLED=0</code>。
+</p>
+
+<h2 id="fetch">获取代码仓库</h2>
+
+<p>
+进入准备安装 Go 的目录，并确保其中不存在 <code>goroot</code> 目录。然后克隆仓库，检出最新发行版标签或发布分支（例如 <code class="versionTag">go1.22.0</code> 或 <code class="versionTag">release-branch.go1.22</code>）：
+</p>
+
+<pre>
+$ git clone https://go.googlesource.com/go goroot
+$ cd goroot
+$ git checkout <span class="versionTag"><i>&lt;tag&gt;</i></span>
+</pre>
+
+<p class="whereTag">
+其中，<code>&lt;tag&gt;</code> 是发行版的版本字符串。
+</p>
+
+<p>
+Go 会安装到源代码的检出目录中。例如，若检出到 <code>$HOME/goroot</code>，可执行文件会安装到 <code>$HOME/goroot/bin</code>。该目录可以使用任意名称，但如果检出到 <code>$HOME/go</code>，就会与 <code>$GOPATH</code> 的默认位置冲突。请参阅下文的 <a href="#gopath"><code>GOPATH</code></a>。
+</p>
+
+<p>
+提醒：如果你在前文选择从源代码编译引导工具链，此处仍然需要再次执行 <code>git clone</code>，以检出最新的 <code>&lt;tag&gt;</code>。必须单独保留 Go 1.4 仓库。
+</p>
+
+<h2 id="head">（可选）切换到 master 分支</h2>
+
+<p>
+如果你准备修改 Go 源代码并向项目<a href="/doc/contribute.html">贡献修改</a>，请将仓库从发行版标签切换到 master（开发）分支；否则跳过此步骤。
+</p>
+
+<pre>
+$ git checkout master
+</pre>
+
+<h2 id="install">安装 Go</h2>
+
+<p>
+运行以下命令构建 Go 发行版：
+</p>
+
+<pre>
+$ cd src
+$ ./make.bash
+</pre>
+
+<p>
+（在 Windows 上构建时使用 <code>make.bat</code>。）
+</p>
+
+<p>
+如果一切顺利，完成时会输出类似以下内容：
+</p>
+
+<pre>
+---
+Installed Go for linux/amd64 in /home/you/go.
+Installed commands in /home/you/go/bin.
+*** You need to add /home/you/go/bin to your $PATH. ***
+</pre>
+
+<p>
+最后几行的具体内容取决于安装时使用的操作系统、架构和根目录。
+</p>
+
+<div class="detail">
+<p>
+有关控制构建过程的更多信息，请参阅下文的<a href="#environment">环境变量</a>一节。也可以运行 <code>all.bash</code>（或 <code>all.bat</code>）来执行 Go 的重要测试，这比仅构建 Go 花费的时间更长。
+</p>
+</div>
+
+
+<h2 id="testing">验证安装</h2>
+
+<p>
+构建一个简单程序，检查 Go 是否安装正确。
+</p>
+
+<p>
+创建名为 <code>hello.go</code> 的文件，并写入以下程序：
+</p>
+
+<pre>
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Printf("hello, world\n")
+}
+</pre>
+
+<p>
+然后使用 <code>go</code> 工具运行：
+</p>
+
+<pre>
+$ go run hello.go
+hello, world
+</pre>
+
+<p>
+如果看到“hello, world”消息，说明 Go 已正确安装。
+</p>
+
+<h2 id="gopath">配置工作环境</h2>
+
+<p>
+已经快完成了，只需再做少量配置。
+</p>
+
+<p>
+<a href="/doc/code.html" class="download" id="start">
+<span class="big">如何编写 Go 代码</span>
+<span class="desc">了解如何配置和使用 Go 工具</span>
+</a>
+</p>
+
+<p>
+<a href="/doc/code.html">《如何编写 Go 代码》</a>提供了使用 Go 工具所需的<b>基本配置说明</b>。
+</p>
+
+
+<h2 id="tools">安装其他工具</h2>
+
+<p>
+一些 Go 工具（包括 <a href="https://pkg.go.dev/golang.org/x/tools/gopls">gopls</a>）的源代码保存在 <a href="https://golang.org/x/tools">golang.org/x/tools 仓库</a>中。要安装其中一个工具（以 <code>gopls</code> 为例）：
+</p>
+
+<pre>
+$ go install golang.org/x/tools/gopls@latest
+</pre>
+
+<h2 id="community">社区资源</h2>
+
+<p>
+<a href="/help/">帮助页面</a>列出了常用的社区资源，其中活跃的开发者可以帮助你解决安装和开发过程中的问题。若希望跟进最新变化，还可以订阅 <a href="https://groups.google.com/group/golang-checkins">golang-checkins</a> 邮件列表，它会为 Go 仓库中的每次提交发送摘要。
+</p>
+
+<p>
+可以通过 <a href="/issue/new">Go 问题跟踪系统</a>报告缺陷。
+</p>
+
+
+<h2 id="releases">跟进版本发布</h2>
+
+<p>
+新版本会在 <a href="https://groups.google.com/group/golang-announce">golang-announce</a> 邮件列表中发布公告。每份公告都会提到最新版本标签，例如 <code class="versionTag">go1.9</code>。
+</p>
+
+<p>
+要将现有目录树更新到最新版本，可以运行：
+</p>
+
+<pre>
+$ cd go/src
+$ git fetch
+$ git checkout <span class="versionTag"><i>&lt;tag&gt;</i></span>
+$ ./all.bash
+</pre>
+
+<p class="whereTag">
+其中，<code>&lt;tag&gt;</code> 是发行版的版本字符串。
+</p>
+
+
+<h2 id="environment">可选环境变量</h2>
+
+<p>
+可以通过环境变量自定义 Go 工具。<i>构建过程不要求设置任何这些变量</i>，但你可以通过设置它们覆盖默认值。运行 make.bash 时设置这些环境变量，会为新构建的工具指定默认值。使用工具时，也可以针对某次构建覆盖这些默认值，具体见 <a href="https://pkg.go.dev/cmd/go#hdr-Environment_variables">go 命令文档</a>。
+</p>
+
+<ul>
+<li><code>$GOROOT</code>
+<p>
+Go 目录树的根目录，通常为 <code>$HOME/go1.X</code>。它的值会在编译时写入构建结果，默认是运行 <code>all.bash</code> 的目录的上一级目录。除非需要在本地多个仓库副本之间切换，否则无需设置。
+</p>
+</li>
+
+<li><code>$GOOS</code> 和 <code>$GOARCH</code>
+<p>
+目标操作系统和编译架构的名称。<code>$GOOS</code> 默认为引导工具链中的 <code>runtime.GOOS</code> 值。<code>$GOARCH</code> 默认为下文介绍的 <code>$GOHOSTARCH</code> 值。
+</p>
+
+<p>
+<code>$GOOS</code> 可取 <code>android</code>、<code>darwin</code>、<code>dragonfly</code>、<code>freebsd</code>、<code>illumos</code>、<code>ios</code>、<code>js</code>、<code>linux</code>、<code>netbsd</code>、<code>openbsd</code>、<code>plan9</code>、<code>solaris</code>、<code>wasip1</code> 和 <code>windows</code>。
+</p>
+
+<p>
+<code>$GOARCH</code> 可取 <code>amd64</code>（64 位 x86，最成熟的移植）、<code>386</code>（32 位 x86）、<code>arm</code>（32 位 ARM）、<code>arm64</code>（64 位 ARM）、<code>ppc64le</code>（64 位 PowerPC，小端）、<code>ppc64</code>（64 位 PowerPC，大端）、<code>mips64le</code>（64 位 MIPS，小端）、<code>mips64</code>（64 位 MIPS，大端）、<code>mipsle</code>（32 位 MIPS，小端）、<code>mips</code>（32 位 MIPS，大端）、<code>s390x</code>（64 位 IBM System z，大端）和 <code>wasm</code>（32 位 WebAssembly）。
+</p>
+
+<p>
+<code>$GOOS</code> 和 <code>$GOARCH</code> 的有效组合如下：
+</p>
+
+<table cellpadding="0">
+<tr>
+<th width="50"></th><th align="left" width="100"><code>$GOOS</code></th> <th align="left" width="100"><code>$GOARCH</code></th>
+</tr>
+<tr>
+<td></td><td><code>aix</code></td> <td><code>ppc64</code></td>
+</tr>
+<tr>
+<td></td><td><code>android</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>android</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>android</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>android</code></td> <td><code>arm64</code></td>
+</tr>
+<tr>
+<td></td><td><code>darwin</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>darwin</code></td> <td><code>arm64</code></td>
+</tr>
+<tr>
+<td></td><td><code>dragonfly</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>freebsd</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>freebsd</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>freebsd</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>illumos</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>ios</code></td> <td><code>arm64</code></td>
+</tr>
+<tr>
+<td></td><td><code>js</code></td> <td><code>wasm</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>arm64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>loong64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>mips</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>mipsle</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>mips64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>mips64le</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>ppc64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>ppc64le</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>riscv64</code></td>
+</tr>
+<tr>
+<td></td><td><code>linux</code></td> <td><code>s390x</code></td>
+</tr>
+<tr>
+<td></td><td><code>netbsd</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>netbsd</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>netbsd</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>openbsd</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>openbsd</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>openbsd</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>openbsd</code></td> <td><code>arm64</code></td>
+</tr>
+<tr>
+<td></td><td><code>plan9</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>plan9</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>plan9</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>solaris</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>wasip1</code></td> <td><code>wasm</code></td>
+</tr>
+<tr>
+<td></td><td><code>windows</code></td> <td><code>386</code></td>
+</tr>
+<tr>
+<td></td><td><code>windows</code></td> <td><code>amd64</code></td>
+</tr>
+<tr>
+<td></td><td><code>windows</code></td> <td><code>arm</code></td>
+</tr>
+<tr>
+<td></td><td><code>windows</code></td> <td><code>arm64</code></td>
+</tr>
+</table>
+
+<li><code>$GOHOSTARCH</code>
+<p>
+宿主机编译架构的名称，默认为本机系统架构。
+</p>
+
+<p>
+可用取值与上面列出的 <code>$GOARCH</code> 相同，但所指定的值必须与本机系统兼容。例如，在 x86 系统上不应将 <code>$GOHOSTARCH</code> 设置为 <code>arm</code>。
+</p>
+
+<li><code>$GO386</code> （仅适用于 <code>386</code>，默认值为 <code>sse2</code>）
+<p>
+此变量控制 gc 实现浮点运算的方式。
+</p>
+<ul>
+	<li><code>GO386=softfloat</code>：使用软件浮点运算，应该支持所有 x86 芯片（Pentium MMX 及更新型号）。</li>
+	<li><code>GO386=sse2</code>：使用 SSE2 执行浮点运算，性能更好，但仅适用于 Pentium 4、Opteron、Athlon 64 及更新型号。</li>
+</ul>
+</li>
+
+<li><code>$GOARM</code> （仅适用于 <code>arm</code>；在目标处理器上构建时自动检测默认值，否则默认为 7）
+<p>
+指定运行时所面向的 ARM 浮点协处理器架构版本。如果在目标系统上编译，会自动检测此值。
+</p>
+<ul>
+	<li><code>GOARM=5</code>：使用软件浮点运算，适用于没有 VFP 协处理器的 CPU</li>
+	<li><code>GOARM=6</code>：仅使用 VFPv1；原文将其列为交叉编译时的默认值，通常适用于 ARM11 及更新内核（也支持 VFPv2 及更新版本）</li>
+	<li><code>GOARM=7</code>：使用 VFPv3，通常适用于 Cortex-A 内核</li>
+</ul>
+<p>
+如果不确定，可以先不设置此变量，首次运行 Go 可执行文件时再根据需要调整。<a href="/wiki">Go 社区 Wiki</a> 中的 <a href="/wiki/GoArm">GoARM</a> 页面提供了 Go 对 ARM 支持的更多信息。
+</p>
+</li>
+
+<li><code>$GOARM64</code> （仅适用于 <code>arm64</code>，默认值为 <code>v8.0</code>）
+<p>
+指定编译所面向的 ARM64 架构版本。允许的取值见 <a href="/wiki/MinimumRequirements#arm64">Go Wiki 的 MinimumRequirements 页面</a>。
+</p>
+</li>
+
+<li><code>$GOAMD64</code> （仅适用于 <code>amd64</code>，默认值为 <code>v1</code>）
+<p>
+指定编译所面向的微架构级别。有效值为 <code>v1</code>（默认值）、<code>v2</code>、<code>v3</code> 和 <code>v4</code>。详情请参阅 <a href="/wiki/MinimumRequirements#amd64">Go Wiki 的 MinimumRequirements 页面</a>。
+</p>
+</li>
+
+<li><code>$GOMIPS</code> （仅适用于 <code>mips</code> 和 <code>mipsle</code>） <br> <code>$GOMIPS64</code> （仅适用于 <code>mips64</code> 和 <code>mips64le</code>）
+<p>
+这些变量指定是否使用浮点指令。设置为 <code>hardfloat</code> 时使用浮点指令，这也是默认值；设置为 <code>softfloat</code> 时使用软件浮点运算。
+</p>
+</li>
+
+<li><code>$GOPPC64</code> （仅适用于 <code>ppc64</code> 和 <code>ppc64le</code>）
+<p>
+此变量指定编译器面向的处理器级别，即指令集架构版本。默认值为 <code>power8</code>。
+</p>
+<ul>
+	<li><code>GOPPC64=power8</code>：生成 ISA v2.07 指令</li>
+	<li><code>GOPPC64=power9</code>：生成 ISA v3.00 指令</li>
+</ul>
+</li>
+
+<li><code>$GORISCV64</code> （仅适用于 <code>riscv64</code>）
+<p>
+此变量指定编译所面向的 RISC-V 用户态应用配置规范，默认值为 <code>rva20u64</code>。
+</p>
+<ul>
+	<li><code>GORISCV64=rva20u64</code>：仅使用  <a href="https://github.com/riscv/riscv-profiles/blob/main/src/profiles.adoc#51-rva20u64-profile">RVA20U64</a> 配置规范强制要求的 RISC-V 扩展</li>
+	<li><code>GORISCV64=rva22u64</code>：仅使用  <a href="https://github.com/riscv/riscv-profiles/blob/main/src/profiles.adoc#rva22u64-profile">RVA22U64</a> 配置规范强制要求的 RISC-V 扩展</li>
+	<li><code>GORISCV64=rva23u64</code>：仅使用  <a href="https://github.com/riscv/riscv-profiles/blob/main/src/rva23-profile.adoc#rva23u64-profile">RVA23U64</a> 配置规范强制要求的 RISC-V 扩展</li>
+</ul>
+</li>
+
+<li><code>$GOWASM</code> （仅适用于 <code>wasm</code>）
+	<p>
+此变量是以逗号分隔的<a href="https://github.com/WebAssembly/proposals">实验性 WebAssembly 特性</a>列表，指定编译后的 WebAssembly 二进制文件允许使用的特性。默认不使用任何实验性特性。
+</p>
+	<ul>
+		<li><code>GOWASM=satconv</code>：生成 <a href="https://github.com/WebAssembly/nontrapping-float-to-int-conversions/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md">饱和式（不触发陷阱的）浮点数到整数转换</a></li>
+		<li><code>GOWASM=signext</code>：生成 <a href="https://github.com/WebAssembly/sign-extension-ops/blob/master/proposals/sign-extension-ops/Overview.md">符号扩展运算符</a></li>
+	</ul>
+</li>
+
+</ul>
+
+<p>
+注意，<code>$GOARCH</code> 和 <code>$GOOS</code> 标识的是<em>目标</em>环境，而不是运行构建工具的环境。从这个意义上说，你始终在进行交叉编译。这里的架构指目标环境能够运行的二进制文件类型：如果 x86-64 机器运行的是仅支持 32 位的操作系统，就必须将 <code>GOARCH</code> 设为 <code>386</code>，而非 <code>amd64</code>。
+</p>
+
+<p>
+再次强调，构建、安装和开发 Go 目录树时，不要求设置上述任何变量。
+</p>

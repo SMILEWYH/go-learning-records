@@ -1,0 +1,248 @@
+<!--{
+  "Title": "iter 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>iter 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "iter"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>iter 包提供与序列迭代器有关的基本定义和操作。<h3 id="hdr-Iterators">迭代器</h3>
+<p>迭代器是一个函数，它将序列中连续的元素传给回调函数，该回调按惯例命名为 yield。序列结束时，或 yield 返回 false 表示应提前停止迭代时，迭代器函数停止。本包将 <a href="#Seq">Seq</a> 和 <a href="#Seq2">Seq2</a>（发音类似 seek，即 sequence 的第一个音节）定义为迭代器类型的简写，分别针对每个序列元素向 yield 传递 1 个或 2 个值：<pre>type (
+	Seq[V any]     func(yield func(V) bool)
+	Seq2[K, V any] func(yield func(K, V) bool)
+)
+</pre>
+<p>Seq2 表示成对值的序列，通常为键值对或索引值对。<p>如果迭代器应继续处理序列中的下一个元素，yield 返回 true；如果应停止，则返回 false。<p>如果在 yield 返回 false 后再次调用它，则会引发 panic。<p>例如，<a href="/pkg/maps/#Keys">maps.Keys</a> 返回一个生成映射 m 的键序列的迭代器，其实现如下：<pre>func Keys[Map ~map[K]V, K comparable, V any](m Map) iter.Seq[K] {
+	return func(yield func(K) bool) {
+		for k := range m {
+			if !yield(k) {
+				return
+			}
+		}
+	}
+}
+</pre>
+<p>更多示例见 <a href="/blog/range-functions">Go 博客：对函数类型进行 range 遍历</a>。<p>迭代器函数最常通过 <a href="/ref/spec#For_range">range 循环</a>调用，例如：<pre>func PrintAll[V any](seq iter.Seq[V]) {
+	for v := range seq {
+		fmt.Println(v)
+	}
+}
+</pre>
+<h3 id="hdr-Naming_Conventions">命名约定</h3>
+<p>迭代器函数和方法根据它们遍历的序列命名：<pre>// All 返回遍历 s 中所有元素的迭代器。
+func (s *Set[V]) All() iter.Seq[V]
+</pre>
+<p>集合类型上的迭代器方法按惯例命名为 All，因为它遍历集合中所有值构成的序列。<p>如果一个类型包含多种可能的序列，迭代器名称可以表明所提供的是哪个序列：<pre>// Cities 返回遍历该国主要城市的迭代器。
+func (c *Country) Cities() iter.Seq[*City]
+
+// Languages 返回遍历该国官方口语语言的迭代器。
+func (c *Country) Languages() iter.Seq[string]
+</pre>
+<p>如果迭代器需要额外配置，构造函数可以接受额外的配置实参：<pre>// Scan 返回遍历满足 min ≤ key ≤ max 的键值对的迭代器。
+func (m *Map[K, V]) Scan(min, max K) iter.Seq2[K, V]
+
+// Split 返回遍历 s 中以 sep 分隔的
+// 子串（可能为空）的迭代器。
+func Split(s, sep string) iter.Seq[string]
+</pre>
+<p>如果存在多种可能的迭代顺序，方法名可以表明该顺序：<pre>// All 返回从头到尾遍历链表的迭代器。
+func (l *List[V]) All() iter.Seq[V]
+
+// Backward 返回从尾到头遍历链表的迭代器。
+func (l *List[V]) Backward() iter.Seq[V]
+
+// Preorder 返回一个迭代器，以深度优先的先序顺序遍历
+// 指定根节点之下（包括根节点）的所有语法树节点，
+// 先访问父节点，再访问其子节点。
+func Preorder(root Node) iter.Seq[Node]
+</pre>
+<h3 id="hdr-Single_Use_Iterators">一次性迭代器</h3>
+<p>大多数迭代器可以遍历完整序列：调用时，迭代器完成开始序列所需的准备工作，然后依次对序列元素调用 yield，最后在返回前清理。再次调用迭代器会再次遍历该序列。<p>一些迭代器不遵循这一约定，只能遍历序列一次。这些“一次性迭代器”通常从无法倒回起点的数据流中产生值。提前停止后再次调用迭代器，可能会继续该数据流；但序列结束后再次调用它，不会产生任何值。返回一次性迭代器的函数或方法应在文档注释中说明这一点：<pre>// Lines 返回遍历从 r 读取的各行的迭代器。
+// 返回的是一次性迭代器。
+func (r *Reader) Lines() iter.Seq[string]
+</pre>
+<h3 id="hdr-Pulling_Values">拉取值</h3>
+<p>接受或返回迭代器的函数和方法应使用标准的 <a href="#Seq">Seq</a> 或 <a href="#Seq2">Seq2</a> 类型，以确保与 range 循环及其他迭代器适配器兼容。标准迭代器可视为“推送式迭代器”，它将值推送给 yield 函数。<p>有时，range 循环并不是消费序列值最自然的方式。这时，<a href="#Pull">Pull</a> 可将标准的推送式迭代器转换为“拉取式迭代器”，通过调用它一次从序列拉取一个值。<a href="#Pull">Pull</a> 启动迭代器，并返回一对函数 next 和 stop，分别用于返回迭代器的下一个值以及停止迭代器。<p>例如：<pre>// Pairs 返回遍历 seq 中连续值对的迭代器。
+func Pairs[V any](seq iter.Seq[V]) iter.Seq2[V, V] {
+	return func(yield func(V, V) bool) {
+		next, stop := iter.Pull(seq)
+		defer stop()
+		for {
+			v1, ok1 := next()
+			if !ok1 {
+				return
+			}
+			v2, ok2 := next()
+			// 如果 ok2 为 false，v2 应为
+			// 零值；产生最后一对值。
+			if !yield(v1, v2) {
+				return
+			}
+			if !ok2 {
+				return
+			}
+		}
+	}
+}
+</pre>
+<p>如果调用方没有消费完整个序列，就必须调用 stop，让迭代器函数能够结束并返回。如示例所示，通常用 defer 来确保这一点。<h3 id="hdr-Standard_Library_Usage">标准库中的用法</h3>
+<p>标准库中有几个包提供基于迭代器的 API，其中最主要的是 <a href="/pkg/maps/">maps</a> 和 <a href="/pkg/slices/">slices</a> 包。例如，<a href="/pkg/maps/#Keys">maps.Keys</a> 返回遍历映射键的迭代器，而 <a href="/pkg/slices/#Sorted">slices.Sorted</a> 将迭代器的值收集到切片中、排序并返回该切片。因此，要按排序后的顺序遍历映射的键，可以这样做：<pre>for _, key := range slices.Sorted(maps.Keys(m)) {
+	...
+}
+</pre>
+<h3 id="hdr-Mutation">修改</h3>
+<p>迭代器只提供序列的值，不提供直接修改序列的方式。如果迭代器希望提供在迭代过程中修改序列的机制，通常的做法是定义一个带有额外操作的位置类型，再提供遍历这些位置的迭代器。<p>例如，树的实现可以提供：<pre>// Positions 返回遍历序列中各个位置的迭代器。
+func (t *Tree[V]) Positions() iter.Seq[*Pos[V]]
+
+// Pos 表示序列中的位置。
+// 它仅在接收它的那次 yield 调用期间有效。
+type Pos[V any] struct { ... }
+
+// Value 返回游标处的值。
+func (p *Pos[V]) Value() V
+
+// Delete 删除迭代当前位置的值。
+func (p *Pos[V]) Delete()
+
+// Set 将游标处的值改为 v。
+func (p *Pos[V]) Set(v V)
+</pre>
+<p>随后调用方可以使用以下方式从树中删除不需要的值：<pre>for p := range t.Positions() {
+	if boring(p.Value()) {
+		p.Delete()
+	}
+}
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Pull">func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func())</a></dd>
+			
+				<dd><a href="#Pull2">func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func())</a></dd>
+			
+			
+				
+				<dd><a href="#Seq">type Seq</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Seq2">type Seq2</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/iter/iter.go">iter.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Pull">func <a href="/src/iter/iter.go?s=8857:8922#L251">Pull</a>
+				
+				
+			</h2>
+			<pre>func Pull[V <a href="/pkg/builtin/#any">any</a>](seq <a href="#Seq">Seq</a>[<a href="#V">V</a>]) (next func() (<a href="#V">V</a>, <a href="/pkg/builtin/#bool">bool</a>), stop func())</pre>
+			<p>Pull 将“推送式”迭代器序列 seq 转换为通过 next 和 stop 两个函数访问的“拉取式”迭代器。<p>next 返回序列中的下一个值，以及表示该值是否有效的布尔值。序列结束时，next 返回 V 的零值和 false。到达序列末尾或调用 stop 后，仍可以合法调用 next。这些调用会继续返回 V 的零值和 false。<p>stop 结束迭代。当调用方不再需要后续值，且 next 尚未通过返回 false 表示序列结束时，必须调用 stop。多次调用 stop，或在 next 已返回 false 后调用 stop，都是合法的。通常，调用方应使用“defer stop()”。<p>多个 goroutine 同时调用 next 或 stop 是错误用法。<p>如果迭代器在调用 next（或 stop）期间发生 panic，则 next（或 stop）自身会以相同的值触发 panic。<h2 id="Pull2">func <a href="/src/iter/iter.go?s=12050:12126#L366">Pull2</a>
+				
+				
+			</h2>
+			<pre>func Pull2[K, V <a href="/pkg/builtin/#any">any</a>](seq <a href="#Seq2">Seq2</a>[<a href="#K">K</a>, <a href="#V">V</a>]) (next func() (<a href="#K">K</a>, <a href="#V">V</a>, <a href="/pkg/builtin/#bool">bool</a>), stop func())</pre>
+			<p>Pull2 将“推送式”迭代器序列 seq 转换为通过 next 和 stop 两个函数访问的“拉取式”迭代器。<p>next 返回序列中的下一对值，以及表示该值对是否有效的布尔值。序列结束时，next 返回一对零值和 false。到达序列末尾或调用 stop 后，仍可以合法调用 next。这些调用会继续返回一对零值和 false。<p>stop 结束迭代。当调用方不再需要后续值，且 next 尚未通过返回 false 表示序列结束时，必须调用 stop。多次调用 stop，或在 next 已返回 false 后调用 stop，都是合法的。通常，调用方应使用“defer stop()”。<p>多个 goroutine 同时调用 next 或 stop 是错误用法。<p>如果迭代器在调用 next（或 stop）期间发生 panic，则 next（或 stop）自身会以相同的值触发 panic。<h2 id="Seq">type <a href="/src/iter/iter.go?s=7316:7356#L213">Seq</a>
+				
+				
+			</h2>
+			<p>Seq 是遍历单值序列的迭代器。以 seq(yield) 的形式调用时，seq 对序列中的每个值 v 调用 yield(v)，如果 yield 返回 false，则提前停止。更多细节见 <a href="#">iter</a> 包文档。<pre>type Seq[V <a href="/pkg/builtin/#any">any</a>] func(yield func(<a href="#V">V</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Seq2">type <a href="/src/iter/iter.go?s=7637:7684#L219">Seq2</a>
+				
+				
+			</h2>
+			<p>Seq2 是遍历值对序列的迭代器，最常见的是键值对。以 seq(yield) 的形式调用时，seq 对序列中的每对值 (k, v) 调用 yield(k, v)，如果 yield 返回 false，则提前停止。更多细节见 <a href="#">iter</a> 包文档。<pre>type Seq2[K, V <a href="/pkg/builtin/#any">any</a>] func(yield func(<a href="#K">K</a>, <a href="#V">V</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

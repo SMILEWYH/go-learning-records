@@ -1,0 +1,559 @@
+<!--{
+  "Title": "go/build 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/build 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/build"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>build 包收集有关 Go 包的信息。<h3 id="hdr-Build_Constraints">构建约束</h3>
+<p>构建约束也称为构建标签，是决定某个文件是否应包含在包中的条件。构建约束通过以下内容开头的行注释给出：<pre>//go:build
+</pre>
+<p>构建约束也可以是文件名的一部分（例如，只有目标操作系统为 windows 时，才会包含 source_windows.go）。<p>详情参见 &apos;go help buildconstraint&apos;（<a href="https://pkg.go.dev/cmd/go#hdr-Build_constraints">https://pkg.go.dev/cmd/go#hdr-Build_constraints</a>）。<h3 id="hdr-Go_Path">Go 路径</h3>
+<p>Go 路径是一组包含 Go 源代码的目录树。在标准 Go 目录树中找不到导入的包时，会查询这些目录。默认路径是 GOPATH 环境变量的值，并按操作系统适用的方式解释为路径列表（在 Unix 上为冒号分隔的字符串；在 Windows 上为分号分隔的字符串；在 Plan 9 上为列表）。<p>Go 路径中列出的每个目录都必须采用规定的结构：<p>src/ 目录存放源代码。src 下的路径决定导入路径或可执行文件名。<p>pkg/ 目录存放已安装的包目标文件。与 Go 目录树相同，每一对目标操作系统和架构在 pkg 下都有自己的子目录（pkg/GOOS_GOARCH）。<p>如果 DIR 是 Go 路径中列出的目录，那么源代码位于 DIR/src/foo/bar 的包可以通过 &quot;foo/bar&quot; 导入，其编译后的形式安装到 &quot;DIR/pkg/GOOS_GOARCH/foo/bar.a&quot;（使用 gccgo 时为 &quot;DIR/pkg/gccgo/foo/libbar.a&quot;）。<p>bin/ 目录存放编译后的命令。每个命令以其源代码目录命名，但只使用最后一个路径元素，而非完整路径。也就是说，源代码位于 DIR/src/foo/quux 的命令会安装到 DIR/bin/quux，而不是 DIR/bin/foo/quux。去掉 foo/ 后，你只需将 DIR/bin 加入 PATH，就能访问已安装的命令。<p>下面是一个目录布局示例：<pre>GOPATH=/home/user/gocode
+
+/home/user/gocode/
+    src/
+        foo/
+            bar/               （bar 包的 Go 代码）
+                x.go
+            quux/              （main 包的 Go 代码）
+                y.go
+    bin/
+        quux                   （已安装的命令）
+    pkg/
+        linux_amd64/
+            foo/
+                bar.a          （已安装的包目标文件）
+</pre>
+<h3 id="hdr-Binary_Only_Packages">仅含二进制的包</h3>
+<p>在 Go 1.12 及更早版本中，可以以二进制形式分发包，而不包含编译该包所使用的源代码。分发的包需要附带一个未被构建约束排除、且包含 &quot;//go:binary-only-package&quot; 注释的源文件。与构建约束类似，该注释位于文件顶部，前面只能有空行和其他行注释，后面跟一个空行，以便与包文档分隔。与构建约束不同，只有非测试 Go 源文件中的这种注释才会被识别。<p>因此，仅含二进制的包所需的最小源代码为：<pre>//go:binary-only-package
+
+package mypkg
+</pre>
+<p>源代码可以包含额外的 Go 代码。这些代码从不会被编译，但会被 godoc 等工具处理，可作为面向最终用户的文档。<p>&quot;go build&quot; 等命令已不再支持仅含二进制的包。对于包含这些注释的包，<a href="#Import">Import</a> 和 <a href="#ImportDir">ImportDir</a> 仍会设置 BinaryOnly 标志，以供工具和错误消息使用。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#ArchChar">func ArchChar(goarch string) (string, error)</a></dd>
+			
+				<dd><a href="#IsLocalImport">func IsLocalImport(path string) bool</a></dd>
+			
+			
+				
+				<dd><a href="#Context">type Context</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Context.Import">func (ctxt *Context) Import(path string, srcDir string, mode ImportMode) (*Package, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Context.ImportDir">func (ctxt *Context) ImportDir(dir string, mode ImportMode) (*Package, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Context.MatchFile">func (ctxt *Context) MatchFile(dir, name string) (match bool, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Context.SrcDirs">func (ctxt *Context) SrcDirs() []string</a></dd>
+				
+			
+				
+				<dd><a href="#Directive">type Directive</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ImportMode">type ImportMode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#MultiplePackageError">type MultiplePackageError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiplePackageError.Error">func (e *MultiplePackageError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#NoGoError">type NoGoError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NoGoError.Error">func (e *NoGoError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Package">type Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Import">func Import(path, srcDir string, mode ImportMode) (*Package, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ImportDir">func ImportDir(dir string, mode ImportMode) (*Package, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.IsCommand">func (p *Package) IsCommand() bool</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/build/build.go">build.go</a>
+			
+				<a href="/src/go/build/doc.go">doc.go</a>
+			
+				<a href="/src/go/build/gc.go">gc.go</a>
+			
+				<a href="/src/go/build/read.go">read.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ToolDir 是存放构建工具的目录。<pre>var <span id="ToolDir">ToolDir</span> = getToolDir()</pre>
+			
+		
+		
+			
+			<h2 id="ArchChar">func <a href="/src/go/build/build.go?s=63559:63603#L2034">ArchChar</a>
+				
+				
+			</h2>
+			<pre>func ArchChar(goarch <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ArchChar 返回 &quot;?&quot; 和一个错误。在 Go 的早期版本中，返回的字符串用于推导编译器和链接器的工具名、默认目标文件后缀，以及默认链接器输出名。自 Go 1.5 起，这些字符串不再随架构变化，分别固定为 compile、link、.o 和 a.out。<h2 id="IsLocalImport">func <a href="/src/go/build/build.go?s=63079:63115#L2024">IsLocalImport</a>
+				
+				
+			</h2>
+			<pre>func IsLocalImport(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsLocalImport 报告导入路径是否为本地导入路径，例如 &quot;.&quot;、&quot;..&quot;、&quot;./foo&quot; 或 &quot;../foo&quot;。<h2 id="Context">type <a href="/src/go/build/build.go?s=613:4286#L27">Context</a>
+				
+				
+			</h2>
+			<p>Context 指定构建所依赖的上下文。<pre>type Context struct {
+<span id="Context.GOARCH"></span>    GOARCH <a href="/pkg/builtin/#string">string</a> <span class="comment">// 目标架构</span>
+<span id="Context.GOOS"></span>    GOOS   <a href="/pkg/builtin/#string">string</a> <span class="comment">// 目标操作系统</span>
+<span id="Context.GOROOT"></span>    GOROOT <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 根目录</span>
+<span id="Context.GOPATH"></span>    GOPATH <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 路径</span>
+
+<span id="Context.Dir"></span>    <span class="comment">// Dir 是调用方的工作目录，若为空字符串则使用</span>
+    <span class="comment">// 运行中进程的当前目录。在模块模式下，它用于</span>
+    <span class="comment">// 定位主模块。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 Dir 非空，传给 Import 和 ImportDir 的目录</span>
+    <span class="comment">// 必须是绝对路径。</span>
+    Dir <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.14</span>
+
+<span id="Context.CgoEnabled"></span>    CgoEnabled  <a href="/pkg/builtin/#bool">bool</a>   <span class="comment">// 是否包含 cgo 文件</span>
+<span id="Context.UseAllFiles"></span>    UseAllFiles <a href="/pkg/builtin/#bool">bool</a>   <span class="comment">// 使用文件时忽略 go:build 行和文件名的限制</span>
+<span id="Context.Compiler"></span>    Compiler    <a href="/pkg/builtin/#string">string</a> <span class="comment">// 计算目标路径时所假定使用的编译器</span>
+
+    <span class="comment">// 构建标签、工具标签和发布版本标签指定处理 go:build 行时</span>
+    <span class="comment">// 应视为已满足的构建约束。</span>
+    <span class="comment">// 创建新上下文的调用方可以自定义 BuildTags，它默认为空，</span>
+    <span class="comment">// 但自定义 ToolTags 或 ReleaseTags 通常是错误的。</span>
+<span id="Context.ToolTags"></span>    <span class="comment">// ToolTags 默认为适用于当前 Go 工具链配置的构建标签。</span>
+<span id="Context.ReleaseTags"></span>    <span class="comment">// ReleaseTags 默认为当前版本所兼容的 Go 发布版本列表。</span>
+<span id="Context.BuildTags"></span>    <span class="comment">// 默认构建上下文 Default 不设置 BuildTags。</span>
+    <span class="comment">// 除 BuildTags、ToolTags 和 ReleaseTags 外，构建约束</span>
+    <span class="comment">// 也将 GOARCH 和 GOOS 的值视为已满足的标签。</span>
+    <span class="comment">// 假定 ReleaseTags 的最后一个元素为当前发布版本。</span>
+    BuildTags   []<a href="/pkg/builtin/#string">string</a>
+    ToolTags    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.17</span>
+    ReleaseTags []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.1</span>
+
+    <span class="comment">// 安装后缀指定安装目录名称中使用的后缀。</span>
+    <span class="comment">// 默认情况下它为空，但需要将输出分开存放的</span>
+    <span class="comment">// 自定义构建可以通过设置 InstallSuffix 达到此目的。例如，</span>
+    <span class="comment">// 使用竞态检测器时，go 命令会设置 InstallSuffix = "race"，</span>
+    <span class="comment">// 因此在 Linux/386 系统上，包会写入名为</span>
+    <span class="comment">// "linux_386_race" 的目录，而非通常的 "linux_386"。</span>
+<span id="Context.InstallSuffix"></span>    InstallSuffix <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.1</span>
+
+<span id="Context.JoinPath"></span>    <span class="comment">// JoinPath 将一组路径片段连接为单个路径。</span>
+    <span class="comment">// 如果 JoinPath 为 nil，Import 使用 filepath.Join。</span>
+    JoinPath func(elem ...<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a>
+
+<span id="Context.SplitPathList"></span>    <span class="comment">// SplitPathList 将路径列表拆分为由各条路径组成的切片。</span>
+    <span class="comment">// 如果 SplitPathList 为 nil，Import 使用 filepath.SplitList。</span>
+    SplitPathList func(list <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#string">string</a>
+
+<span id="Context.IsAbsPath"></span>    <span class="comment">// IsAbsPath 报告 path 是否为绝对路径。</span>
+    <span class="comment">// 如果 IsAbsPath 为 nil，Import 使用 filepath.IsAbs。</span>
+    IsAbsPath func(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="Context.IsDir"></span>    <span class="comment">// IsDir 报告该路径是否指向目录。</span>
+    <span class="comment">// 如果 IsDir 为 nil，Import 调用 os.Stat，并使用结果的 IsDir 方法。</span>
+    IsDir func(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="Context.HasSubdir"></span>    <span class="comment">// HasSubdir 报告从路径文本上看，dir 是否为</span>
+    <span class="comment">// root 的子目录，可以相隔多层。它不会尝试检查</span>
+    <span class="comment">// dir 是否存在。</span>
+    <span class="comment">// 如果是，HasSubdir 将 rel 设置为用斜杠分隔的路径，</span>
+    <span class="comment">// 该路径与 root 连接后得到的路径与 dir 等价。</span>
+    <span class="comment">// 如果 HasSubdir 为 nil，Import 使用基于</span>
+    <span class="comment">// filepath.EvalSymlinks 的实现。</span>
+    HasSubdir func(root, dir <a href="/pkg/builtin/#string">string</a>) (rel <a href="/pkg/builtin/#string">string</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+
+<span id="Context.ReadDir"></span>    <span class="comment">// ReadDir 返回按 Name 排序的 fs.FileInfo 切片，</span>
+    <span class="comment">// 描述指定目录的内容。</span>
+    <span class="comment">// 如果 ReadDir 为 nil，Import 使用 os.ReadDir。</span>
+    ReadDir func(dir <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)
+
+<span id="Context.OpenFile"></span>    <span class="comment">// OpenFile 以读取方式打开文件（不能是目录）。</span>
+    <span class="comment">// 如果 OpenFile 为 nil，Import 使用 os.Open。</span>
+    OpenFile func(path <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)
+}
+</pre>
+
+			
+
+			
+				<p>Default 是构建的默认 Context。如果设置了 GOARCH、GOOS、GOROOT 和 GOPATH 环境变量，它会使用这些值；否则使用已编译代码的 GOARCH、GOOS 和 GOROOT。<pre>var <span id="Default">Default</span> <a href="#Context">Context</a> = defaultContext()</pre>
+			
+
+			
+
+			
+
+			
+				<h3 id="Context.Import">func (*Context) <a href="/src/go/build/build.go?s=20086:20176#L566">Import</a>
+					
+					
+				</h3>
+				<pre>func (ctxt *<a href="#Context">Context</a>) Import(path <a href="/pkg/builtin/#string">string</a>, srcDir <a href="/pkg/builtin/#string">string</a>, mode <a href="#ImportMode">ImportMode</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Import 返回由导入路径指定的 Go 包的详细信息，并将本地导入路径解释为相对于 srcDir 目录的路径。如果 path 是本地导入路径，而该包也能通过标准导入路径导入，则返回的包会将 p.ImportPath 设置为该标准路径。<p>在包含该包的目录中，.go、.c、.h 和 .s 文件都被视为包的一部分，以下情况除外：<ul>
+<li>属于 documentation 包的 .go 文件<li>以 _ 或 . 开头的文件（可能是编辑器临时文件）<li>构建约束不被当前上下文满足的文件</ul>
+<p>如果发生错误，Import 返回非 nil 错误，以及包含部分信息的非 nil *<a href="#Package">Package</a>。<h3 id="Context.ImportDir">func (*Context) <a href="/src/go/build/build.go?s=18192:18269#L513">ImportDir</a>
+					
+					
+				</h3>
+				<pre>func (ctxt *<a href="#Context">Context</a>) ImportDir(dir <a href="/pkg/builtin/#string">string</a>, mode <a href="#ImportMode">ImportMode</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportDir 与 <a href="#Import">Import</a> 类似，但处理的是指定目录中的 Go 包。<h3 id="Context.MatchFile">func (*Context) <a href="/src/go/build/build.go?s=44891:44963#L1398">MatchFile</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (ctxt *<a href="#Context">Context</a>) MatchFile(dir, name <a href="/pkg/builtin/#string">string</a>) (match <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MatchFile 报告给定目录中指定名称的文件是否匹配当前上下文，因而会被包含在对该目录调用 <a href="#ImportDir">ImportDir</a> 所创建的 <a href="#Package">Package</a> 中。<p>MatchFile 会考虑文件名，并可能使用 ctxt.OpenFile 读取文件的部分或全部内容。<h3 id="Context.SrcDirs">func (*Context) <a href="/src/go/build/build.go?s=8552:8591#L259">SrcDirs</a>
+					
+					
+				</h3>
+				<pre>func (ctxt *<a href="#Context">Context</a>) SrcDirs() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>SrcDirs 返回包源代码根目录列表。它从当前 Go 根目录和 Go 路径中获取目录，但会省略不存在的目录。<h2 id="Directive">type <a href="/src/go/build/build.go?s=17740:17877#L499">Directive</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Directive 是源文件中找到的 Go 指令注释（//go:zzz...）。<pre>type Directive struct {
+<span id="Directive.Text"></span>    Text <a href="/pkg/builtin/#string">string</a>         <span class="comment">// 完整行注释，含开头的斜杠</span>
+<span id="Directive.Pos"></span>    Pos  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// 注释的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ImportMode">type <a href="/src/go/build/build.go?s=11865:11885#L380">ImportMode</a>
+				
+				
+			</h2>
+			<p>ImportMode 控制 Import 方法的行为。<pre>type ImportMode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// 如果设置了 FindOnly，Import 在定位到应包含</span>
+    <span class="comment">// 包源代码的目录后就会停止。它不会</span>
+    <span class="comment">// 读取该目录中的任何文件。</span>
+    <span id="FindOnly">FindOnly</span> <a href="#ImportMode">ImportMode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// 如果设置了 AllowBinary，Import 可以接受</span>
+    <span class="comment">// 没有对应源代码的已编译包目标文件。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：</span>
+    <span class="comment">// 创建仅含编译结果的包所支持的方式是</span>
+    <span class="comment">// 编写源代码，并在文件顶部包含</span>
+    <span class="comment">// //go:binary-only-package 注释。无论此标志</span>
+    <span class="comment">// 如何设置，这类包都会被识别（因为它有源代码），</span>
+    <span class="comment">// 且返回的 Package 中 BinaryOnly 会设为 true。</span>
+    <span id="AllowBinary">AllowBinary</span>
+
+    <span class="comment">// 如果设置了 ImportComment，则解析 package 语句上的导入注释。</span>
+    <span class="comment">// 如果 Import 发现无法理解的注释，</span>
+    <span class="comment">// 或多个源文件中有相互冲突的注释，则返回错误。</span>
+    <span class="comment">// 更多信息参见 golang.org/s/go14customimport。</span>
+    <span id="ImportComment">ImportComment</span>
+
+    <span class="comment">// 默认情况下，Import 会先搜索</span>
+    <span class="comment">// 适用于给定源目录的 vendor 目录，再搜索</span>
+    <span class="comment">// GOROOT 和 GOPATH 根目录。</span>
+    <span class="comment">// 如果 Import 通过 vendor 目录找到并返回某个包，</span>
+    <span class="comment">// 结果中的 ImportPath 就是该包的完整路径，</span>
+    <span class="comment">// 包含通往 "vendor" 的各级路径元素，</span>
+    <span class="comment">// 也包含 "vendor" 本身。</span>
+    <span class="comment">// 例如，如果 Import("y", "x/subdir", 0) 找到了</span>
+    <span class="comment">// "x/vendor/y"，返回包的 ImportPath 就是 "x/vendor/y"，</span>
+    <span class="comment">// 而不只是 "y"。</span>
+    <span class="comment">// 更多信息参见 golang.org/s/go15vendor。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 设置 IgnoreVendor 会忽略 vendor 目录。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 与包的 ImportPath 不同，</span>
+    <span class="comment">// 返回包的 Imports、TestImports 和 XTestImports</span>
+    <span class="comment">// 始终精确保留源文件中的导入路径：</span>
+    <span class="comment">// Import 不会尝试解析或检查这些路径。</span>
+    <span id="IgnoreVendor">IgnoreVendor</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="MultiplePackageError">type <a href="/src/go/build/build.go?s=18747:18955#L530">MultiplePackageError</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>MultiplePackageError 描述某个目录包含分属多个包的多个可构建 Go 源文件的情况。<pre>type MultiplePackageError struct {
+<span id="MultiplePackageError.Dir"></span>    Dir      <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包含这些文件的目录</span>
+<span id="MultiplePackageError.Packages"></span>    Packages []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 找到的包名</span>
+<span id="MultiplePackageError.Files"></span>    Files    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 对应的文件：Files[i] 声明包 Packages[i]</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MultiplePackageError.Error">func (*MultiplePackageError) <a href="/src/go/build/build.go?s=18957:19002#L536">Error</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (e *<a href="#MultiplePackageError">MultiplePackageError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="NoGoError">type <a href="/src/go/build/build.go?s=18499:18536#L520">NoGoError</a>
+				
+				
+			</h2>
+			<p>NoGoError 是 <a href="#Import">Import</a> 用于描述某个目录不包含可构建 Go 源文件的错误。（该目录仍可能包含测试文件、被构建标签排除的文件等。）<pre>type NoGoError struct {
+<span id="NoGoError.Dir"></span>    Dir <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NoGoError.Error">func (*NoGoError) <a href="/src/go/build/build.go?s=18538:18572#L524">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#NoGoError">NoGoError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Package">type <a href="/src/go/build/build.go?s=13771:17659#L427">Package</a>
+				
+				
+			</h2>
+			<p>Package 描述在某个目录中找到的 Go 包。<pre>type Package struct {
+<span id="Package.Dir"></span>    Dir           <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包含包源代码的目录</span>
+<span id="Package.Name"></span>    Name          <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包名</span>
+<span id="Package.ImportComment"></span>    ImportComment <a href="/pkg/builtin/#string">string</a>   <span class="comment">// package 语句上导入注释中的路径；Go 1.4 中加入</span>
+<span id="Package.Doc"></span>    Doc           <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 文档摘要</span>
+<span id="Package.ImportPath"></span>    ImportPath    <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包的导入路径（未知时为 ""）</span>
+<span id="Package.Root"></span>    Root          <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 此包所在的 Go 目录树的根目录</span>
+<span id="Package.SrcRoot"></span>    SrcRoot       <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包源代码根目录（未知时为 ""）</span>
+<span id="Package.PkgRoot"></span>    PkgRoot       <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 包安装根目录（未知时为 ""）</span>
+<span id="Package.PkgTargetRoot"></span>    PkgTargetRoot <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 与架构相关的安装根目录（未知时为 ""）；Go 1.5 中加入</span>
+<span id="Package.BinDir"></span>    BinDir        <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 命令安装目录（未知时为 ""）</span>
+<span id="Package.Goroot"></span>    Goroot        <a href="/pkg/builtin/#bool">bool</a>     <span class="comment">// 是否在 Go 根目录中找到此包</span>
+<span id="Package.PkgObj"></span>    PkgObj        <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 已安装的 .a 文件</span>
+<span id="Package.AllTags"></span>    AllTags       []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 可能影响此目录中文件选择的标签；Go 1.2 中加入</span>
+<span id="Package.ConflictDir"></span>    ConflictDir   <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 此目录在 $GOPATH 中遮蔽 Dir；Go 1.2 中加入</span>
+<span id="Package.BinaryOnly"></span>    BinaryOnly    <a href="/pkg/builtin/#bool">bool</a>     <span class="comment">// 无法从源代码重新构建（含 //go:binary-only-package 注释）；Go 1.7 中加入</span>
+
+    <span class="comment">// 源文件</span>
+<span id="Package.GoFiles"></span>    GoFiles           []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .go 源文件（不包括 CgoFiles、TestGoFiles、XTestGoFiles）</span>
+<span id="Package.CgoFiles"></span>    CgoFiles          []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 导入 "C" 的 .go 源文件</span>
+<span id="Package.IgnoredGoFiles"></span>    IgnoredGoFiles    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 本次构建忽略的 .go 源文件（包括被忽略的 _test.go 文件）；Go 1.1 中加入</span>
+<span id="Package.InvalidGoFiles"></span>    InvalidGoFiles    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 检测到问题的 .go 源文件（语法分析错误、包名错误等）；Go 1.6 中加入</span>
+<span id="Package.IgnoredOtherFiles"></span>    IgnoredOtherFiles []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 本次构建忽略的非 .go 源文件；Go 1.16 中加入</span>
+<span id="Package.CFiles"></span>    CFiles            []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .c 源文件</span>
+<span id="Package.CXXFiles"></span>    CXXFiles          []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .cc、.cpp 和 .cxx 源文件；Go 1.2 中加入</span>
+<span id="Package.MFiles"></span>    MFiles            []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .m（Objective-C）源文件；Go 1.3 中加入</span>
+<span id="Package.HFiles"></span>    HFiles            []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .h、.hh、.hpp 和 .hxx 源文件</span>
+<span id="Package.FFiles"></span>    FFiles            []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .f、.F、.for 和 .f90 Fortran 源文件；Go 1.7 中加入</span>
+<span id="Package.SFiles"></span>    SFiles            []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .s 源文件</span>
+<span id="Package.SwigFiles"></span>    SwigFiles         []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .swig 文件；Go 1.1 中加入</span>
+<span id="Package.SwigCXXFiles"></span>    SwigCXXFiles      []<a href="/pkg/builtin/#string">string</a> <span class="comment">// .swigcxx 文件；Go 1.1 中加入</span>
+<span id="Package.SysoFiles"></span>    SysoFiles         []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 需加入归档的 .syso 系统目标文件</span>
+
+    <span class="comment">// Cgo 指令</span>
+<span id="Package.CgoCFLAGS"></span>    CgoCFLAGS    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo CFLAGS 指令</span>
+<span id="Package.CgoCPPFLAGS"></span>    CgoCPPFLAGS  []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo CPPFLAGS 指令；Go 1.2 中加入</span>
+<span id="Package.CgoCXXFLAGS"></span>    CgoCXXFLAGS  []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo CXXFLAGS 指令；Go 1.2 中加入</span>
+<span id="Package.CgoFFLAGS"></span>    CgoFFLAGS    []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo FFLAGS 指令；Go 1.7 中加入</span>
+<span id="Package.CgoLDFLAGS"></span>    CgoLDFLAGS   []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo LDFLAGS 指令</span>
+<span id="Package.CgoPkgConfig"></span>    CgoPkgConfig []<a href="/pkg/builtin/#string">string</a> <span class="comment">// Cgo pkg-config 指令</span>
+
+    <span class="comment">// 测试信息</span>
+<span id="Package.TestGoFiles"></span>    TestGoFiles  []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 包内的 _test.go 文件</span>
+<span id="Package.XTestGoFiles"></span>    XTestGoFiles []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 包外的 _test.go 文件</span>
+
+    <span class="comment">// 源文件中找到的 Go 指令注释（//go:zzz...）。</span>
+<span id="Package.Directives"></span>    Directives      []<a href="#Directive">Directive</a> <span class="comment">// Go 1.21</span>
+<span id="Package.TestDirectives"></span>    TestDirectives  []<a href="#Directive">Directive</a> <span class="comment">// Go 1.21</span>
+<span id="Package.XTestDirectives"></span>    XTestDirectives []<a href="#Directive">Directive</a> <span class="comment">// Go 1.21</span>
+
+    <span class="comment">// 依赖信息</span>
+<span id="Package.Imports"></span>    Imports        []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// GoFiles、CgoFiles 中的导入路径</span>
+<span id="Package.ImportPos"></span>    ImportPos      map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// Imports 的行信息</span>
+<span id="Package.TestImports"></span>    TestImports    []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// TestGoFiles 中的导入路径</span>
+<span id="Package.TestImportPos"></span>    TestImportPos  map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// TestImports 的行信息</span>
+<span id="Package.XTestImports"></span>    XTestImports   []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// XTestGoFiles 中的导入路径</span>
+<span id="Package.XTestImportPos"></span>    XTestImportPos map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// XTestImports 的行信息</span>
+
+    <span class="comment">// 在 Go 源文件中找到的 //go:embed 模式</span>
+    <span class="comment">// 例如，如果某个源文件写了</span>
+    <span class="comment">//	//go:embed a* b.c</span>
+    <span class="comment">// 那么列表会将这两个字符串包含为独立条目。</span>
+    <span class="comment">// （有关 //go:embed 的详情，请参阅 embed 包。）</span>
+<span id="Package.EmbedPatterns"></span>    EmbedPatterns        []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// GoFiles、CgoFiles 中的模式；Go 1.16 中加入</span>
+<span id="Package.EmbedPatternPos"></span>    EmbedPatternPos      map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// EmbedPatterns 的行信息；Go 1.16 中加入</span>
+<span id="Package.TestEmbedPatterns"></span>    TestEmbedPatterns    []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// TestGoFiles 中的模式；Go 1.16 中加入</span>
+<span id="Package.TestEmbedPatternPos"></span>    TestEmbedPatternPos  map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// TestEmbedPatterns 的行信息；Go 1.16 中加入</span>
+<span id="Package.XTestEmbedPatterns"></span>    XTestEmbedPatterns   []<a href="/pkg/builtin/#string">string</a>                    <span class="comment">// XTestGoFiles 中的模式；Go 1.16 中加入</span>
+<span id="Package.XTestEmbedPatternPos"></span>    XTestEmbedPatternPos map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a> <span class="comment">// XTestEmbedPatternPos 的行信息；Go 1.16 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Import">func <a href="/src/go/build/build.go?s=47855:47922#L1512">Import</a>
+					
+					
+				</h3>
+				<pre>func Import(path, srcDir <a href="/pkg/builtin/#string">string</a>, mode <a href="#ImportMode">ImportMode</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Import 是 Default.Import 的简写。<h3 id="ImportDir">func <a href="/src/go/build/build.go?s=48020:48081#L1517">ImportDir</a>
+					
+					
+				</h3>
+				<pre>func ImportDir(dir <a href="/pkg/builtin/#string">string</a>, mode <a href="#ImportMode">ImportMode</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ImportDir 是 Default.ImportDir 的简写。<h3 id="Package.IsCommand">func (*Package) <a href="/src/go/build/build.go?s=18035:18069#L507">IsCommand</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) IsCommand() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsCommand 报告该包是否被视为需要安装的命令（而不只是库）。名为 &quot;main&quot; 的包会被视为命令。<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="constraint/">constraint</a>
+					</td>
+				
+					<td class="pkg-synopsis">constraint 包实现构建约束行的解析与求值。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

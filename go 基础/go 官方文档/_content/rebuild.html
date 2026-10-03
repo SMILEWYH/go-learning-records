@@ -1,0 +1,90 @@
+<!--{
+	"Title": "Go 可复现构建报告",
+	"layout": "article",
+	"template": true
+}-->
+
+<style>
+details { margin-left: 2em; }
+pre { margin-left: 2em; }
+.time { color: #777; }
+</style>
+
+<p>
+从 Go 1.21 开始，任何人都可以在任意平台上，使用 <a href="https://pkg.go.dev/golang.org/x/build/cmd/gorebuild">golang.org/x/build/cmd/gorebuild</a> 复现并验证 <a href="/dl/">go.dev/dl/</a> 提供的 Go 二进制工具链。详情请参阅博文<a href="/blog/rebuild">《完全可复现、经过验证的 Go 工具链》</a>。
+</p>
+
+<p>
+本页每日更新在 Ubuntu 虚拟机中运行 <code>gorebuild</code> 的结果，使用以下脚本：
+</p>
+
+<pre>
+apt-get update &&
+apt-get -y install software-properties-common &&
+add-apt-repository universe &&
+apt-get -y install golang-go git msitools &&
+go run golang.org/x/build/cmd/gorebuild@latest -p=4
+</pre>
+
+<p>
+安装 <code>git</code> 后，<code>gorebuild</code> 就能从 Go 的官方 Git 仓库获取源代码；安装 <code>msitools</code> 后，<code>gorebuild</code> 就能检查 Windows MSI 安装文件的内容。<code>-p=4</code> 表示最多并行运行四次构建。
+</p>
+
+{{define "marker"}}<span style="marker">{{template "markersymbol" .}}</span>{{end}}
+{{define "markersymbol"}}
+{{- if eq . "PASS" -}} ✅
+{{- else if eq . "SKIP" -}} —
+{{- else -}}  ❌
+{{- end -}}
+{{end}}
+
+{{define "log"}}
+<pre>
+{{range .Messages}}<span class="time">{{(rfc3339 .Time).UTC.Format "15:04:05"}}</span> {{.Text}}
+{{end}}
+</pre>
+{{end}}
+
+{{define "autoopen"}} {{if not (eq . "PASS")}} open {{end}} {{end}}
+
+{{$Report := json gorebuild}}
+{{with $Report}}
+
+Gorebuild 版本：{{.Version}}。<br>
+构建所用 Go 版本：{{.GoVersion}}，{{.GOOS}}-{{.GOARCH}}。<br>
+<br>
+重新构建开始时间： {{(rfc3339 .Start).UTC.Format "2006-01-02 15:04:05"}} UTC.<br>
+重新构建结束时间： {{(rfc3339 .End).UTC.Format "2006-01-02 15:04:05"}} UTC.<br>
+耗时： {{((rfc3339 .End).Sub (rfc3339 .Start)).Round 1e9}}.
+
+<h2 id="releases">发布版本</h2>
+
+{{range .Releases}}
+<details {{template "autoopen" .Log.Status}} >
+<summary><b id="{{.Version}}">{{template "marker" .Log.Status}} {{.Version}}</b></summary>
+
+<details>
+<summary>日志</summary>
+{{template "log" .Log}}
+</details>
+
+{{range .Files}}
+<details {{template "autoopen" .Log.Status}}>
+<summary><b id="{{.Name}}">{{template "marker" .Log.Status}} {{.Name}}</b></summary>
+{{template "log" .Log}}
+</details>
+{{end}}
+
+</details>
+{{end}}
+
+<h2 id="bootstraps">引导工具链</h2>
+
+{{range .Bootstraps}}
+<details>
+<summary><b>引导工具链 {{.Version}}</b></summary>
+{{template "log" .Log}}
+</details>
+{{end}}
+
+{{end}}

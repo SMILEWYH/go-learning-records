@@ -1,0 +1,1012 @@
+<!--{
+  "Title": "crypto/rsa 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package rsa</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/rsa"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>rsa 包实现 PKCS #1 和 RFC 8017 规定的 RSA 加密。
+<p>RSA 本身是一种基本运算，本包用它实现公钥加密和公钥签名。
+<p>RSA 加密和签名最初的规范是 PKCS #1，术语“RSA 加密”和“RSA 签名”默认指 PKCS #1 第 1.5 版。不过，该规范存在缺陷，新的设计应尽可能使用第 2 版，通常直接称为 OAEP 和 PSS。
+<p>本包包含两组接口。不需要更抽象的接口时，可以使用函数通过 v1.5/OAEP 加密和解密，或通过 v1.5/PSS 签名和验证。如果需要对公钥原语进行抽象，PrivateKey 类型实现了 crypto 包中的 Decrypter 和 Signer 接口。
+<p>涉及私钥的操作使用常量时间算法实现，但 <a href="#GenerateKey">GenerateKey</a> 以及涉及已弃用的多素数密钥的某些操作除外。
+<h3 id="hdr-Minimum_key_size">最小密钥长度</h3>
+<p>请求生成少于 1024 位的密钥时，<a href="#GenerateKey">GenerateKey</a> 返回错误；所有 Sign、Verify、Encrypt 和 Decrypt 方法在使用少于 1024 位的密钥时也会返回错误。此类密钥不安全，不应使用。
+<p>GODEBUG 设置 rsa1024min=0 可以抑制此错误，但建议仅在测试确有需要时这样做。测试可以通过 <a href="/pkg/testing/#T.Setenv">testing.T.Setenv</a> 设置此选项，也可以在 *_test.go 源文件中添加 &quot;//go:debug rsa1024min=0&quot;。
+<p>也可以参阅 <a href="https://pkg.go.dev/crypto/rsa#example-GenerateKey-TestKey">GenerateKey (TestKey)</a> 示例，其中提供了预先生成、仅供测试使用的 2048 位密钥。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#DecryptOAEP">func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext []byte, label []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#DecryptPKCS1v15">func DecryptPKCS1v15(random io.Reader, priv *PrivateKey, ciphertext []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#DecryptPKCS1v15SessionKey">func DecryptPKCS1v15SessionKey(random io.Reader, priv *PrivateKey, ciphertext []byte, key []byte) error</a></dd>
+			
+				<dd><a href="#EncryptOAEP">func EncryptOAEP(hash hash.Hash, random io.Reader, pub *PublicKey, msg []byte, label []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#EncryptOAEPWithOptions">func EncryptOAEPWithOptions(random io.Reader, pub *PublicKey, msg []byte, opts *OAEPOptions) ([]byte, error)</a></dd>
+			
+				<dd><a href="#EncryptPKCS1v15">func EncryptPKCS1v15(random io.Reader, pub *PublicKey, msg []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#SignPKCS1v15">func SignPKCS1v15(random io.Reader, priv *PrivateKey, hash crypto.Hash, hashed []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#SignPSS">func SignPSS(random io.Reader, priv *PrivateKey, hash crypto.Hash, digest []byte, opts *PSSOptions) ([]byte, error)</a></dd>
+			
+				<dd><a href="#VerifyPKCS1v15">func VerifyPKCS1v15(pub *PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error</a></dd>
+			
+				<dd><a href="#VerifyPSS">func VerifyPSS(pub *PublicKey, hash crypto.Hash, digest []byte, sig []byte, opts *PSSOptions) error</a></dd>
+			
+			
+				
+				<dd><a href="#CRTValue">type CRTValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#OAEPOptions">type OAEPOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PKCS1v15DecryptOptions">type PKCS1v15DecryptOptions</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PSSOptions">type PSSOptions</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PSSOptions.HashFunc">func (opts *PSSOptions) HashFunc() crypto.Hash</a></dd>
+				
+			
+				
+				<dd><a href="#PrecomputedValues">type PrecomputedValues</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GenerateKey">func GenerateKey(random io.Reader, bits int) (*PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GenerateMultiPrimeKey">func GenerateMultiPrimeKey(random io.Reader, nprimes int, bits int) (*PrivateKey, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Decrypt">func (priv *PrivateKey) Decrypt(rand io.Reader, ciphertext []byte, opts crypto.DecrypterOpts) (plaintext []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Equal">func (priv *PrivateKey) Equal(x crypto.PrivateKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Precompute">func (priv *PrivateKey) Precompute()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Public">func (priv *PrivateKey) Public() crypto.PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Sign">func (priv *PrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Validate">func (priv *PrivateKey) Validate() error</a></dd>
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Equal">func (pub *PublicKey) Equal(x crypto.PublicKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Size">func (pub *PublicKey) Size() int</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_DecryptOAEP">DecryptOAEP</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DecryptPKCS1v15SessionKey">DecryptPKCS1v15SessionKey</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_EncryptOAEP">EncryptOAEP</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_GenerateKey">GenerateKey</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_GenerateKey_testKey">GenerateKey (TestKey)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SignPKCS1v15">SignPKCS1v15</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_VerifyPKCS1v15">VerifyPKCS1v15</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/rsa/fips.go">fips.go</a>
+			
+				<a href="/src/crypto/rsa/notboring.go">notboring.go</a>
+			
+				<a href="/src/crypto/rsa/pkcs1v15.go">pkcs1v15.go</a>
+			
+				<a href="/src/crypto/rsa/rsa.go">rsa.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// PSSSaltLengthAuto 使 PSS 签名在签名时使用尽可能长的盐值，</span>
+    <span class="comment">// 并在验证时自动检测盐值长度。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在 FIPS 140-3 模式下签名时，盐值长度的上限</span>
+    <span class="comment">// 为签名所用哈希函数的输出长度。</span>
+    <span id="PSSSaltLengthAuto">PSSSaltLengthAuto</span> = 0
+    <span class="comment">// PSSSaltLengthEqualsHash 使盐值长度等于签名中</span>
+    <span class="comment">// 所用哈希的输出长度。</span>
+    <span id="PSSSaltLengthEqualsHash">PSSSaltLengthEqualsHash</span> = -1
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrDecryption 表示消息解密失败。为避免自适应攻击，错误信息刻意保持模糊。
+
+				<pre>var <span id="ErrDecryption">ErrDecryption</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;crypto/rsa: decryption error&#34;)</pre>
+			
+				<p>尝试加密或签名的消息相对于密钥大小过大时，会返回 ErrMessageTooLong。使用 <a href="#SignPSS">SignPSS</a> 时，盐值过大也可能返回此错误。
+
+				<pre>var <span id="ErrMessageTooLong">ErrMessageTooLong</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;crypto/rsa: message too long for RSA key size&#34;)</pre>
+			
+				<p>ErrVerification 表示签名验证失败。为避免自适应攻击，错误信息刻意保持模糊。
+
+				<pre>var <span id="ErrVerification">ErrVerification</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;crypto/rsa: verification error&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="DecryptOAEP">func <a href="/src/crypto/rsa/fips.go?s=9380:9497#L266">DecryptOAEP</a>
+				
+				
+			</h2>
+			<pre>func DecryptOAEP(hash <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>, random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="/pkg/builtin/#byte">byte</a>, label []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DecryptOAEP 使用 RSA-OAEP 解密 ciphertext。
+<p>OAEP 以一个用作随机预言机的哈希函数作为参数。对同一消息加密和解密必须使用相同的哈希函数，sha256.New() 是合理的选择。
+<p>random 参数是历史遗留参数，会被忽略，可以为 nil。
+<p>label 参数必须与加密时提供的值一致。详情参见 <a href="#EncryptOAEP">EncryptOAEP</a>。
+
+			
+
+
+<div id="example_DecryptOAEP" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+ciphertext, _ := hex.DecodeString(&#34;4d1ee10e8f286390258c51a5e80802844c3e6358ad6690b7285218a7c7ed7fc3a4c7b950fbd04d4b0239cc060dcc7065ca6f84c1756deb71ca5685cadbb82be025e16449b905c568a19c088a1abfad54bf7ecc67a7df39943ec511091a34c0f2348d04e058fcff4d55644de3cd1d580791d4524b92f3e91695582e6e340a1c50b6c6d78e80b4e42c5b4d45e479b492de42bbd39cc642ebb80226bb5200020d501b24a37bcc2ec7f34e596b4fd6b063de4858dbf5a4e3dd18e262eda0ec2d19dbd8e890d672b63d368768360b20c0b6b8592a438fa275e5fa7f60bef0dd39673fd3989cc54d2cb80c08fcd19dacbc265ee1c6014616b0e04ea0328c2a04e73460&#34;)
+label := []byte(&#34;orders&#34;)
+
+plaintext, err := rsa.DecryptOAEP(sha256.New(), nil, test2048Key, ciphertext, label)
+if err != nil {
+    fmt.Fprintf(os.Stderr, &#34;Error from decryption: %s\n&#34;, err)
+    return
+}
+
+fmt.Printf(&#34;Plaintext: %s\n&#34;, plaintext)
+
+<span class="comment">// 请记住，加密只提供机密性。在认为密文具有真实性之前，</span>
+<span class="comment">// 应先对其签名；即便如此，</span>
+<span class="comment">// 仍应考虑消息可能被重新排序。</span>
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecryptPKCS1v15">func <a href="/src/crypto/rsa/pkcs1v15.go?s=3956:4047#L103">DecryptPKCS1v15</a>
+				
+				
+			</h2>
+			<pre>func DecryptPKCS1v15(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DecryptPKCS1v15 使用 RSA 和 PKCS #1 v1.5 的填充方案解密得到明文。random 参数是历史遗留参数，会被忽略，可以为 nil。
+<p>已弃用：PKCS #1 v1.5 加密存在危险，不应使用。此函数是否返回错误会泄露秘密信息。如果攻击者能够反复触发此函数，并获知每次是否返回错误，就能像拥有私钥一样解密和伪造签名。更多信息参见 <a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-rsa-guidance-05.html#name-rationale">draft-irtf-cfrg-rsa-guidance-05</a>。请改用 <a href="#EncryptOAEP">EncryptOAEP</a> 和 <a href="#DecryptOAEP">DecryptOAEP</a>。
+
+			
+		
+			
+			<h2 id="DecryptPKCS1v15SessionKey">func <a href="/src/crypto/rsa/pkcs1v15.go?s=7117:7220#L171">DecryptPKCS1v15SessionKey</a>
+				
+				
+			</h2>
+			<pre>func DecryptPKCS1v15SessionKey(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, ciphertext []<a href="/pkg/builtin/#byte">byte</a>, key []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>DecryptPKCS1v15SessionKey 使用 RSA 和 PKCS #1 v1.5 的填充方案解密会话密钥。random 参数是历史遗留参数，会被忽略，可以为 nil。
+<p>如果密文长度错误，或密文的数值大于公钥模数，DecryptPKCS1v15SessionKey 返回错误。否则不返回错误。如果填充有效，就将解密得到的明文复制到 key；否则保持 key 不变。这两种情况均以常量时间执行。此函数的预期用法是调用方预先生成随机会话密钥，然后使用最终得到的值继续执行协议。
+<p>注意，如果会话密钥过短，攻击者可能通过穷举破解。若能做到这一点，就能判断是否使用了随机值（因为同一密文对应的随机值每次不同），进而判断填充是否正确，这会使此函数失去意义。使用至少 16 字节的密钥可以防御此攻击。
+<p>此方法实现 RFC 3218 第 2.3.2 节 [1] 描述的针对 Bleichenbacher 选择密文攻击 [0] 的防护。虽然这些措施大幅提高了 Bleichenbacher 攻击的难度，但只有使用 DecryptPKCS1v15SessionKey 的协议在其余部分的设计中也考虑到这些问题，防护才有效。尤其是，如果后续使用解密会话密钥的任何操作泄露了有关密钥的信息（例如它是固定密钥还是随机密钥），就会破坏这些缓解措施。必须极其谨慎地使用此方法；通常只有为兼容已在设计中考虑这些性质的现有协议（例如 TLS），且确有必要时，才应使用。
+<ul>
+<li>[0]《针对基于 RSA 加密标准 PKCS #1 的协议的选择密文攻击》（“Chosen Ciphertext Attacks Against Protocols Based on the RSA Encryption Standard PKCS #1”），Daniel Bleichenbacher，《密码学进展》（Crypto &apos;98）。
+<li>[1] RFC 3218，《防止针对 CMS 的百万消息攻击》（Preventing the Million Message Attack on CMS），<a href="https://www.rfc-editor.org/rfc/rfc3218.html">https://www.rfc-editor.org/rfc/rfc3218.html</a>。
+</ul>
+<p>已弃用：PKCS #1 v1.5 加密存在危险，不应使用。如上所述，此函数实现的防护有限且脆弱。更多信息参见 <a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-rsa-guidance-05.html#name-rationale">draft-irtf-cfrg-rsa-guidance-05</a>。请改用 <a href="#EncryptOAEP">EncryptOAEP</a> 和 <a href="#DecryptOAEP">DecryptOAEP</a>。
+
+			
+
+
+<div id="example_DecryptPKCS1v15SessionKey" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>RSA 只能加密非常有限的数据量。要加密实际需要处理的数据量，通常采用混合方案：使用 RSA 加密供 AES-GCM 等对称密码原语使用的密钥。
+
+加密之前，会将数据嵌入已知结构来进行“填充”。这样做有多种原因，最明显的是保证数值足够大，使幂运算结果大于模数。（否则就可以通过开方解密。）
+
+在这类设计中，使用 PKCS #1 v1.5 时，必须避免泄露收到的 RSA 消息格式是否正确（即解密结果是否为填充正确的消息），因为这会泄露秘密信息。DecryptPKCS1v15SessionKey 专为这种情况设计，会以常量时间将解密得到的对称密钥（若格式正确）复制到一个原本含有随机密钥的缓冲区。因此，如果 RSA 结果格式不正确，实现就会以常量时间使用随机密钥。
+</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+<span class="comment">// 混合方案应使用至少 16 字节的对称密钥。这里</span>
+<span class="comment">// 读取随机密钥，以便在 RSA 解密结果格式</span>
+<span class="comment">// 不正确时使用。</span>
+key := make([]byte, 32)
+if _, err := rand.Read(key); err != nil {
+    panic(&#34;RNG failure&#34;)
+}
+
+rsaCiphertext, _ := hex.DecodeString(&#34;aabbccddeeff&#34;)
+
+if err := rsa.DecryptPKCS1v15SessionKey(nil, rsaPrivateKey, rsaCiphertext, key); err != nil {
+    <span class="comment">// 产生的所有错误都是“公开的”，即无需</span>
+    <span class="comment">// 任何秘密信息即可判断这些错误。（例如，</span>
+    <span class="comment">// 对于给定 RSA 公钥，key 的长度</span>
+    <span class="comment">// 不可能成立。）</span>
+    fmt.Fprintf(os.Stderr, &#34;Error from RSA decryption: %s\n&#34;, err)
+    return
+}
+
+<span class="comment">// 得到密钥后，就可以使用对称方案解密</span>
+<span class="comment">// 更长的密文。</span>
+block, err := aes.NewCipher(key)
+if err != nil {
+    panic(&#34;aes.NewCipher failed: &#34; + err.Error())
+}
+
+<span class="comment">// 由于密钥是随机的，可以使用固定 nonce，</span>
+<span class="comment">// 因为 (key, nonce) 组合仍满足唯一性要求。</span>
+var zeroNonce [12]byte
+aead, err := cipher.NewGCM(block)
+if err != nil {
+    panic(&#34;cipher.NewGCM failed: &#34; + err.Error())
+}
+ciphertext, _ := hex.DecodeString(&#34;00112233445566&#34;)
+plaintext, err := aead.Open(nil, zeroNonce[:], ciphertext, nil)
+if err != nil {
+    <span class="comment">// RSA 密文格式不正确；由于 AES-GCM 密钥错误，</span>
+    <span class="comment">// 解密将在这里失败。</span>
+    fmt.Fprintf(os.Stderr, &#34;Error decrypting: %s\n&#34;, err)
+    return
+}
+
+fmt.Printf(&#34;Plaintext: %s\n&#34;, plaintext)
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncryptOAEP">func <a href="/src/crypto/rsa/fips.go?s=6712:6820#L192">EncryptOAEP</a>
+				
+				
+			</h2>
+			<pre>func EncryptOAEP(hash <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>, random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, pub *<a href="#PublicKey">PublicKey</a>, msg []<a href="/pkg/builtin/#byte">byte</a>, label []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>EncryptOAEP 使用 RSA-OAEP 加密给定消息。
+<p>OAEP 以一个用作随机预言机的哈希函数作为参数。对同一消息加密和解密必须使用相同的哈希函数，sha256.New() 是合理的选择。
+<p>random 参数用作熵源，确保对同一消息加密两次不会得到相同密文。多数应用程序应使用 <a href="/pkg/crypto/rand/#Reader">crypto/rand.Reader</a> 作为 random。
+<p>label 参数可以包含任意数据，这些数据不会被加密，但为消息提供重要上下文。例如，如果同一公钥用于加密两类消息，可以使用不同的 label 值，确保攻击者无法将一种用途的密文挪作另一用途。如果不需要，label 可以为空。
+<p>消息长度不得超过公钥模数的字节长度减去两倍哈希长度，再减 2。
+
+			
+
+
+<div id="example_EncryptOAEP" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+secretMessage := []byte(&#34;send reinforcements, we&#39;re going to advance&#34;)
+label := []byte(&#34;orders&#34;)
+
+<span class="comment">// crypto/rand.Reader 是用于对加密函数进行随机化的</span>
+<span class="comment">// 良好熵源。</span>
+rng := rand.Reader
+
+ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, &amp;test2048Key.PublicKey, secretMessage, label)
+if err != nil {
+    fmt.Fprintf(os.Stderr, &#34;Error from encryption: %s\n&#34;, err)
+    return
+}
+
+<span class="comment">// 由于加密函数是随机化的，每次生成的密文</span>
+<span class="comment">// 都会不同。</span>
+fmt.Printf(&#34;Ciphertext: %x\n&#34;, ciphertext)
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EncryptOAEPWithOptions">func <a href="/src/crypto/rsa/fips.go?s=7160:7268#L203">EncryptOAEPWithOptions</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func EncryptOAEPWithOptions(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, pub *<a href="#PublicKey">PublicKey</a>, msg []<a href="/pkg/builtin/#byte">byte</a>, opts *<a href="#OAEPOptions">OAEPOptions</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>EncryptOAEPWithOptions 使用给定选项，通过 RSA-OAEP 加密给定消息。
+<p>只有需要分别指定 OAEP 和 MGF1 的哈希函数时，才应使用此函数来替代 <a href="#EncryptOAEP">EncryptOAEP</a>。
+<p>更多细节参见 <a href="#EncryptOAEP">EncryptOAEP</a>。
+
+			
+		
+			
+			<h2 id="EncryptPKCS1v15">func <a href="/src/crypto/rsa/pkcs1v15.go?s=2064:2146#L40">EncryptPKCS1v15</a>
+				
+				
+			</h2>
+			<pre>func EncryptPKCS1v15(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, pub *<a href="#PublicKey">PublicKey</a>, msg []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>EncryptPKCS1v15 使用 RSA 和 PKCS #1 v1.5 的填充方案加密给定消息。消息长度不得超过公钥模数的字节长度减去 11 字节。
+<p>random 参数用作熵源，确保对同一消息加密两次不会得到相同密文。自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+<p>已弃用：PKCS #1 v1.5 加密存在危险，不应使用。更多信息参见 <a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-rsa-guidance-05.html#name-rationale">draft-irtf-cfrg-rsa-guidance-05</a>。请改用 <a href="#EncryptOAEP">EncryptOAEP</a> 和 <a href="#DecryptOAEP">DecryptOAEP</a>。
+
+			
+		
+			
+			<h2 id="SignPKCS1v15">func <a href="/src/crypto/rsa/fips.go?s=11328:11430#L325">SignPKCS1v15</a>
+				
+				
+			</h2>
+			<pre>func SignPKCS1v15(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>, hashed []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>SignPKCS1v15 使用 RSA PKCS #1 v1.5 中的 RSASSA-PKCS1-V1_5-SIGN 计算 hashed 的签名。注意，hashed 必须是使用给定哈希函数对输入消息计算得到的哈希值。如果 hash 为零，则直接对 hashed 签名；除互操作需要外，不建议这样做。
+<p>random 参数是历史遗留参数，会被忽略，可以为 nil。
+<p>此函数是确定性的。因此，如果可能的消息集合很小，攻击者或许能够建立消息到签名的映射，从而识别被签名的消息。签名始终提供真实性，而不提供机密性。
+
+			
+
+
+<div id="example_SignPKCS1v15" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+message := []byte(&#34;message to be signed&#34;)
+
+<span class="comment">// 只有短消息才能直接签名，因此签名针对消息的</span>
+<span class="comment">// 哈希值，而非消息本身。这要求</span>
+<span class="comment">// 哈希函数具有抗碰撞性。在本文撰写时</span>
+<span class="comment">// （2016 年），SHA-256 是此用途应采用的</span>
+<span class="comment">// 最低强度哈希函数。</span>
+hashed := sha256.Sum256(message)
+
+signature, err := rsa.SignPKCS1v15(nil, rsaPrivateKey, crypto.SHA256, hashed[:])
+if err != nil {
+    fmt.Fprintf(os.Stderr, &#34;Error from signing: %s\n&#34;, err)
+    return
+}
+
+fmt.Printf(&#34;Signature: %x\n&#34;, signature)
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SignPSS">func <a href="/src/crypto/rsa/fips.go?s=2008:2123#L55">SignPSS</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func SignPSS(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>, digest []<a href="/pkg/builtin/#byte">byte</a>, opts *<a href="#PSSOptions">PSSOptions</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>SignPSS 使用 PSS 计算 digest 的签名。
+<p>digest 必须是使用给定哈希函数对输入消息计算得到的哈希值。opts 参数可以为 nil，此时使用合理的默认值。如果设置了 opts.Hash，它会覆盖 hash。
+<p>签名根据消息、密钥和盐值大小进行随机化，使用来自 random 的字节。多数应用程序应使用 <a href="/pkg/crypto/rand/#Reader">crypto/rand.Reader</a> 作为 random。
+
+			
+		
+			
+			<h2 id="VerifyPKCS1v15">func <a href="/src/crypto/rsa/fips.go?s=12825:12911#L370">VerifyPKCS1v15</a>
+				
+				
+			</h2>
+			<pre>func VerifyPKCS1v15(pub *<a href="#PublicKey">PublicKey</a>, hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>, hashed []<a href="/pkg/builtin/#byte">byte</a>, sig []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>VerifyPKCS1v15 验证 RSA PKCS #1 v1.5 签名。hashed 是使用给定哈希函数对输入消息计算得到的哈希值，sig 是签名。返回 nil 错误表示签名有效。如果 hash 为零，则直接使用 hashed；除互操作需要外，不建议这样做。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+
+
+<div id="example_VerifyPKCS1v15" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code">
+message := []byte(&#34;message to be signed&#34;)
+signature, _ := hex.DecodeString(&#34;ad2766728615cc7a746cc553916380ca7bfa4f8983b990913bc69eb0556539a350ff0f8fe65ddfd3ebe91fe1c299c2fac135bc8c61e26be44ee259f2f80c1530&#34;)
+
+<span class="comment">// 只有短消息才能直接签名，因此签名针对消息的</span>
+<span class="comment">// 哈希值，而非消息本身。这要求</span>
+<span class="comment">// 哈希函数具有抗碰撞性。在本文撰写时</span>
+<span class="comment">// （2016 年），SHA-256 是此用途应采用的</span>
+<span class="comment">// 最低强度哈希函数。</span>
+hashed := sha256.Sum256(message)
+
+err := rsa.VerifyPKCS1v15(&amp;rsaPrivateKey.PublicKey, crypto.SHA256, hashed[:], signature)
+if err != nil {
+    fmt.Fprintf(os.Stderr, &#34;Error from verification: %s\n&#34;, err)
+    return
+}
+
+<span class="comment">// signature 是与该公钥对应的 message 的有效签名。</span>
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="VerifyPSS">func <a href="/src/crypto/rsa/fips.go?s=4359:4458#L127">VerifyPSS</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func VerifyPSS(pub *<a href="#PublicKey">PublicKey</a>, hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>, digest []<a href="/pkg/builtin/#byte">byte</a>, sig []<a href="/pkg/builtin/#byte">byte</a>, opts *<a href="#PSSOptions">PSSOptions</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>VerifyPSS 验证 PSS 签名。
+<p>返回 nil 错误表示签名有效。digest 必须是使用给定哈希函数对输入消息计算得到的哈希值。opts 参数可以为 nil，此时使用合理的默认值。opts.Hash 被忽略。
+<p>输入不被视为机密信息，可能通过计时侧信道泄露，或在攻击者能够控制部分输入时泄露。
+
+			
+		
+		
+			
+			<h2 id="CRTValue">type <a href="/src/crypto/rsa/rsa.go?s=7960:8131#L219">CRTValue</a>
+				
+				
+			</h2>
+			<p>CRTValue 包含预先计算的中国剩余定理相关值。
+
+			<pre>type CRTValue struct {
+<span id="CRTValue.Exp"></span>    Exp   *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// D mod (prime-1).</span>
+<span id="CRTValue.Coeff"></span>    Coeff *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// R·Coeff ≡ 1 mod Prime.</span>
+<span id="CRTValue.R"></span>    R     *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 此前所有素数的乘积（包括 p 和 q）。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="OAEPOptions">type <a href="/src/crypto/rsa/rsa.go?s=3329:3664#L83">OAEPOptions</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>OAEPOptions 用于通过 <a href="#PrivateKey.Decrypt">PrivateKey.Decrypt</a> 和 <a href="#EncryptOAEPWithOptions">EncryptOAEPWithOptions</a> 函数向 OAEP 加密和解密传递选项。
+
+			<pre>type OAEPOptions struct {
+<span id="OAEPOptions.Hash"></span>    <span class="comment">// Hash 是生成掩码时使用的哈希函数。</span>
+    Hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a>
+
+<span id="OAEPOptions.MGFHash"></span>    <span class="comment">// MGFHash 是 MGF1 使用的哈希函数。</span>
+    <span class="comment">// 如果为零，则改用 Hash。</span>
+    MGFHash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a> <span class="comment">// Go 1.20</span>
+
+<span id="OAEPOptions.Label"></span>    <span class="comment">// Label 是任意字节字符串，必须等于</span>
+    <span class="comment">// 加密时使用的值。</span>
+    Label []<a href="/pkg/builtin/#byte">byte</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PKCS1v15DecryptOptions">type <a href="/src/crypto/rsa/pkcs1v15.go?s=843:1166#L17">PKCS1v15DecryptOptions</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>PKCS1v15DecryptOptions 用于通过 <a href="/pkg/crypto/#Decrypter">crypto.Decrypter</a> 接口执行 PKCS #1 v1.5 解密时传递选项。
+<p>已弃用：PKCS #1 v1.5 加密存在危险，不应使用。更多信息参见 <a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-rsa-guidance-05.html#name-rationale">draft-irtf-cfrg-rsa-guidance-05</a>。请改用 <a href="#EncryptOAEP">EncryptOAEP</a> 和 <a href="#DecryptOAEP">DecryptOAEP</a>。
+
+			<pre>type PKCS1v15DecryptOptions struct {
+<span id="PKCS1v15DecryptOptions.SessionKeyLen"></span>    <span class="comment">// SessionKeyLen 是待解密会话密钥的长度。</span>
+    <span class="comment">// 如果非零，解密时遇到填充错误会</span>
+    <span class="comment">// 返回此长度的随机明文，而不是</span>
+    <span class="comment">// 错误。这两种情况均以常量时间执行。</span>
+    SessionKeyLen <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PSSOptions">type <a href="/src/crypto/rsa/fips.go?s=881:1296#L22">PSSOptions</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>PSSOptions 包含创建和验证 PSS 签名的选项。
+
+			<pre>type PSSOptions struct {
+<span id="PSSOptions.SaltLength"></span>    <span class="comment">// SaltLength 控制 PSS 签名所用盐值的长度。</span>
+    <span class="comment">// 可以是正的字节数，也可以是某个特殊的</span>
+    <span class="comment">// PSSSaltLength 常量。</span>
+    SaltLength <a href="/pkg/builtin/#int">int</a>
+
+<span id="PSSOptions.Hash"></span>    <span class="comment">// Hash 是生成消息摘要的哈希函数。如果</span>
+    <span class="comment">// 非零，它会覆盖传给 SignPSS 的哈希函数。</span>
+    <span class="comment">// 使用 PrivateKey.Sign 时必须设置。</span>
+    Hash <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a> <span class="comment">// Go 1.4</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PSSOptions.HashFunc">func (*PSSOptions) <a href="/src/crypto/rsa/fips.go?s=1381:1427#L35">HashFunc</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (opts *<a href="#PSSOptions">PSSOptions</a>) HashFunc() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Hash">Hash</a></pre>
+				<p>HashFunc 返回 opts.Hash，使 <a href="#PSSOptions">PSSOptions</a> 实现 <a href="/pkg/crypto/#SignerOpts">crypto.SignerOpts</a>。
+
+				
+			
+		
+			
+			<h2 id="PrecomputedValues">type <a href="/src/crypto/rsa/rsa.go?s=7261:7887#L200">PrecomputedValues</a>
+				
+				
+			</h2>
+			
+			<pre>type PrecomputedValues struct {
+<span id="PrecomputedValues.Dp"></span>    Dp, Dq *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// D mod (P-1) (or mod Q-1)</span>
+<span id="PrecomputedValues.Qinv"></span>    Qinv   *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// Q^-1 mod P</span>
+
+<span id="PrecomputedValues.CRTValues"></span>    <span class="comment">// CRTValues 用于第三个及后续素数。由于</span>
+    <span class="comment">// 历史原因，PKCS #1 对前两个素数的 CRT 采用</span>
+    <span class="comment">// 不同处理方式；为了保证互操作性，</span>
+    <span class="comment">// 本实现也遵循这一做法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：出于向后兼容，Precompute 仍会填入</span>
+    <span class="comment">// 这些值，但不会使用它们。多素数 RSA 非常少见，</span>
+    <span class="comment">// 本包实现时不使用 CRT 优化，</span>
+    <span class="comment">// 以限制复杂度。</span>
+    CRTValues []<a href="#CRTValue">CRTValue</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/rsa/rsa.go?s=3863:4252#L100">PrivateKey</a>
+				
+				
+			</h2>
+			<p>PrivateKey 表示 RSA 密钥。
+<p>调用 <a href="#PrivateKey.Precompute">PrivateKey.Precompute</a> 后，不得修改其字段，也不应直接将这些字段作为 big.Int 值用于密码学操作。
+
+			<pre>type PrivateKey struct {
+    <a href="#PublicKey">PublicKey</a>            <span class="comment">// 公开部分。</span>
+<span id="PrivateKey.D"></span>    D         *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>   <span class="comment">// 私钥指数</span>
+<span id="PrivateKey.Primes"></span>    Primes    []*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// N 的素因子，至少包含 2 个元素。</span>
+
+<span id="PrivateKey.Precomputed"></span>    <span class="comment">// Precomputed 包含用于加快 RSA 运算的预计算值（如果有）。</span>
+    <span class="comment">// 它必须通过调用 PrivateKey.Precompute 生成，</span>
+    <span class="comment">// 此后不得修改。</span>
+    Precomputed <a href="#PrecomputedValues">PrecomputedValues</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="GenerateKey">func <a href="/src/crypto/rsa/rsa.go?s=11104:11169#L308">GenerateKey</a>
+					
+					
+				</h3>
+				<pre>func GenerateKey(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, bits <a href="/pkg/builtin/#int">int</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GenerateKey 生成给定位数的随机 RSA 私钥。
+<p>如果 bits 小于 1024，<a href="#GenerateKey">GenerateKey</a> 返回错误。更多细节请参阅“<a href="https://pkg.go.dev/crypto/rsa#hdr-Minimum_key_size">最小密钥长度</a>”一节。
+<p>自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+
+				
+
+
+<div id="example_GenerateKey" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/rand&#34;
+	&#34;crypto/rsa&#34;
+	&#34;crypto/x509&#34;
+	&#34;encoding/pem&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Error generating RSA key: %s&#34;, err)
+		return
+	}
+
+	der, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, &#34;Error marshalling RSA private key: %s&#34;, err)
+		return
+	}
+
+	fmt.Printf(&#34;%s&#34;, pem.EncodeToMemory(&amp;pem.Block{
+		Type:  &#34;PRIVATE KEY&#34;,
+		Bytes: der,
+	}))
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_GenerateKey_testKey" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TestKey)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TestKey)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"strings"
+)
+
+func main() {
+	// 这是 RFC 9500 第 2.1 节中不安全、仅供测试使用的密钥。
+	// 可在测试中使用它，以避免缓慢的密钥生成过程。
+	block, _ := pem.Decode([]byte(strings.ReplaceAll(
+		`-----BEGIN RSA TESTING KEY-----
+MIIEowIBAAKCAQEAsPnoGUOnrpiSqt4XynxA+HRP7S+BSObI6qJ7fQAVSPtRkqso
+tWxQYLEYzNEx5ZSHTGypibVsJylvCfuToDTfMul8b/CZjP2Ob0LdpYrNH6l5hvFE
+89FU1nZQF15oVLOpUgA7wGiHuEVawrGfey92UE68mOyUVXGweJIVDdxqdMoPvNNU
+l86BU02vlBiESxOuox+dWmuVV7vfYZ79Toh/LUK43YvJh+rhv4nKuF7iHjVjBd9s
+B6iDjj70HFldzOQ9r8SRI+9NirupPTkF5AKNe6kUhKJ1luB7S27ZkvB3tSTT3P59
+3VVJvnzOjaA1z6Cz+4+eRvcysqhrRgFlwI9TEwIDAQABAoIBAEEYiyDP29vCzx/+
+dS3LqnI5BjUuJhXUnc6AWX/PCgVAO+8A+gZRgvct7PtZb0sM6P9ZcLrweomlGezI
+FrL0/6xQaa8bBr/ve/a8155OgcjFo6fZEw3Dz7ra5fbSiPmu4/b/kvrg+Br1l77J
+aun6uUAs1f5B9wW+vbR7tzbT/mxaUeDiBzKpe15GwcvbJtdIVMa2YErtRjc1/5B2
+BGVXyvlJv0SIlcIEMsHgnAFOp1ZgQ08aDzvilLq8XVMOahAhP1O2A3X8hKdXPyrx
+IVWE9bS9ptTo+eF6eNl+d7htpKGEZHUxinoQpWEBTv+iOoHsVunkEJ3vjLP3lyI/
+fY0NQ1ECgYEA3RBXAjgvIys2gfU3keImF8e/TprLge1I2vbWmV2j6rZCg5r/AS0u
+pii5CvJ5/T5vfJPNgPBy8B/yRDs+6PJO1GmnlhOkG9JAIPkv0RBZvR0PMBtbp6nT
+Y3yo1lwamBVBfY6rc0sLTzosZh2aGoLzrHNMQFMGaauORzBFpY5lU50CgYEAzPHl
+u5DI6Xgep1vr8QvCUuEesCOgJg8Yh1UqVoY/SmQh6MYAv1I9bLGwrb3WW/7kqIoD
+fj0aQV5buVZI2loMomtU9KY5SFIsPV+JuUpy7/+VE01ZQM5FdY8wiYCQiVZYju9X
+Wz5LxMNoz+gT7pwlLCsC4N+R8aoBk404aF1gum8CgYAJ7VTq7Zj4TFV7Soa/T1eE
+k9y8a+kdoYk3BASpCHJ29M5R2KEA7YV9wrBklHTz8VzSTFTbKHEQ5W5csAhoL5Fo
+qoHzFFi3Qx7MHESQb9qHyolHEMNx6QdsHUn7rlEnaTTyrXh3ifQtD6C0yTmFXUIS
+CW9wKApOrnyKJ9nI0HcuZQKBgQCMtoV6e9VGX4AEfpuHvAAnMYQFgeBiYTkBKltQ
+XwozhH63uMMomUmtSG87Sz1TmrXadjAhy8gsG6I0pWaN7QgBuFnzQ/HOkwTm+qKw
+AsrZt4zeXNwsH7QXHEJCFnCmqw9QzEoZTrNtHJHpNboBuVnYcoueZEJrP8OnUG3r
+UjmopwKBgAqB2KYYMUqAOvYcBnEfLDmyZv9BTVNHbR2lKkMYqv5LlvDaBxVfilE0
+2riO4p6BaAdvzXjKeRrGNEKoHNBpOSfYCOM16NjL8hIZB1CaV3WbT5oY+jp7Mzd5
+7d56RZOE+ERK2uz/7JX9VSsM/LbH9pJibd4e8mikDS9ntciqOH/3
+-----END RSA TESTING KEY-----`, "TESTING KEY", "PRIVATE KEY")))
+	testRSA2048, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+
+	fmt.Println("Private key bit size:", testRSA2048.N.BitLen())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="GenerateMultiPrimeKey">func <a href="/src/crypto/rsa/rsa.go?s=14990:15078#L425">GenerateMultiPrimeKey</a>
+					
+					
+				</h3>
+				<pre>func GenerateMultiPrimeKey(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, nprimes <a href="/pkg/builtin/#int">int</a>, bits <a href="/pkg/builtin/#int">int</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>GenerateMultiPrimeKey 使用给定随机源，生成给定位数的多素数 RSA 密钥对。
+<p>《<a href="http://www.cacr.math.uwaterloo.ca/techreports/2006/cacr2006-16.pdf">论多素数 RSA 的安全性</a>》中的表 1 给出了不同位数下建议使用的最大素数数量。
+<p>虽然公钥与两个素数的情形兼容（实际上无法区分），但私钥并不兼容。因此，可能无法以某些格式导出多素数私钥，或随后将其导入其他实现。
+<p>本包未为多素数 RSA 实现 CRT 优化，因此包含两个以上素数的密钥性能更差。
+<p>自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+<p>已弃用：基于上述安全性、兼容性和性能原因，不建议使用此函数生成素数数量不为二的密钥。请改用 <a href="#GenerateKey">GenerateKey</a>。
+
+				
+			
+
+			
+				<h3 id="PrivateKey.Decrypt">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=6045:6168#L162">Decrypt</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Decrypt(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, ciphertext []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#DecrypterOpts">DecrypterOpts</a>) (plaintext []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Decrypt 使用 priv 解密 ciphertext。如果 opts 为 nil 或 *<a href="#PKCS1v15DecryptOptions">PKCS1v15DecryptOptions</a> 类型，则执行 PKCS #1 v1.5 解密。否则，opts 必须为 *<a href="#OAEPOptions">OAEPOptions</a> 类型，并执行 OAEP 解密。
+
+				
+			
+				<h3 id="PrivateKey.Equal">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=4483:4538#L118">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 priv 和 x 是否具有等价的值，忽略 Precomputed 值。
+
+				
+			
+				<h3 id="PrivateKey.Precompute">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=18990:19026#L553">Precompute</a>
+					
+					
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Precompute()</pre>
+				<p>Precompute 执行一些计算，以加快后续私钥操作。它可以安全地用于尚未验证的私钥，并且对于有效密钥，可以加快后续对 <a href="#PrivateKey.Validate">PrivateKey.Validate</a> 的调用。
+<p>Precompute 会写入 Precomputed 字段，因此不得与任何其他方法并发调用。
+<p>Precompute 不返回错误。应用程序应在 Precompute 之后调用 <a href="#PrivateKey.Validate">PrivateKey.Validate</a>，检查密钥是否存在问题，包括会导致 Precompute 失败的问题。
+<p>对已经预计算的密钥调用 Precompute 不产生任何作用。
+
+				
+			
+				<h3 id="PrivateKey.Public">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=4310:4359#L112">Public</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Public() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a></pre>
+				<p>Public 返回 priv 对应的公钥。
+
+				
+			
+				<h3 id="PrivateKey.Sign">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=5557:5656#L151">Sign</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Sign(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, digest []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#SignerOpts">SignerOpts</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Sign 使用 priv 对 digest 签名，并从 rand 读取随机数据。如果 opts 为 *<a href="#PSSOptions">PSSOptions</a>，则使用 PSS 算法；否则使用 PKCS #1 v1.5。digest 必须是使用 opts.HashFunc() 对输入消息计算得到的哈希值。
+<p>此方法实现 <a href="/pkg/crypto/#Signer">crypto.Signer</a>，该接口支持私钥部分保存在硬件模块等位置的密钥。一般用途应直接使用本包的 Sign* 函数。
+
+				
+			
+				<h3 id="PrivateKey.Validate">func (*PrivateKey) <a href="/src/crypto/rsa/rsa.go?s=8337:8377#L229">Validate</a>
+					
+					
+				</h3>
+				<pre>func (priv *<a href="#PrivateKey">PrivateKey</a>) Validate() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Validate 对密钥执行基本的合理性检查。密钥有效时返回 nil，否则返回描述问题的错误。
+<p>对于有效密钥，在 <a href="#PrivateKey.Precompute">PrivateKey.Precompute</a> 之后运行会更快。
+
+				
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/rsa/rsa.go?s=2529:2608#L58">PublicKey</a>
+				
+				
+			</h2>
+			<p>PublicKey 表示 RSA 密钥的公开部分。
+<p>N 和 E 的值不被视为机密信息，可能通过侧信道泄露，也可以从其他公开值中通过数学运算推导出来。
+
+			<pre>type PublicKey struct {
+<span id="PublicKey.N"></span>    N *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a> <span class="comment">// 模数</span>
+<span id="PublicKey.E"></span>    E <a href="/pkg/builtin/#int">int</a>      <span class="comment">// 公钥指数</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PublicKey.Equal">func (*PublicKey) <a href="/src/crypto/rsa/rsa.go?s=3019:3071#L73">Equal</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (pub *<a href="#PublicKey">PublicKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 pub 和 x 是否具有相同的值。
+
+				
+			
+				<h3 id="PublicKey.Size">func (*PublicKey) <a href="/src/crypto/rsa/rsa.go?s=2892:2924#L68">Size</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (pub *<a href="#PublicKey">PublicKey</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回模数的字节大小。针对此公钥或由其产生的原始签名和密文，都具有相同大小。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

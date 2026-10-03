@@ -1,0 +1,225 @@
+包、变量与函数
+学习 Go 程序的基本组成部分。
+
+The Go Authors
+https://golang.org
+
+* 包
+
+每个 Go 程序都由包组成。
+
+程序从 `main` 包开始运行。
+
+这个程序使用了导入路径为 `"fmt"` 和 `"math/rand"` 的包。
+
+按照惯例，包名与导入路径的最后一段相同。例如，`"math/rand"` 包由以 `package`rand` 语句开头的文件组成。
+
+.play basics/packages.go
+
+* 导入
+
+这段代码用括号将多个导入项组合成一条分组导入语句。
+
+也可以编写多条导入语句，例如：
+
+	import "fmt"
+	import "math"
+
+不过，使用分组导入语句是更好的代码风格。
+
+.play basics/imports.go
+
+* 导出的标识符
+
+在 Go 中，以大写字母开头的标识符会被导出。
+例如，`Pizza` 是导出的标识符，`math` 包导出的 `Pi` 也是如此。
+
+`pizza` 和 `pi` 不以大写字母开头，因此不会被导出。
+
+导入一个包后，只能引用它导出的标识符。
+未导出的标识符无法从包外访问。
+
+运行代码，留意错误信息。
+
+将 `math.pi` 改为 `math.Pi`，然后再次运行，就能修复这个错误。
+
+.play basics/exported-names.go
+
+* 函数
+
+函数可以接受零个或多个参数。
+
+在这个例子中，`add` 接受两个 `int` 类型的参数。
+
+注意，类型写在变量名 _后面_ 。
+
+（想了解 Go 为什么采用这样的类型声明方式，请阅读 [[/blog/gos-declaration-syntax][Go 声明语法]] 一文。）
+
+.play basics/functions.go
+
+* 函数（续）
+
+如果函数中连续的两个或多个具名参数类型相同，可以只保留最后一个参数的类型，省略前面的类型。
+
+在这个例子中，我们将
+
+	x int, y int
+
+简写为
+
+	x, y int
+
+.play basics/functions-continued.go
+
+* 多返回值
+
+函数可以返回任意数量的结果。
+
+`swap` 函数返回两个字符串。
+
+.play basics/multiple-results.go
+
+* 具名返回值
+
+Go 的返回值可以命名。具名返回值会被视为在函数开头定义的变量。
+
+这些名称应当用于说明返回值的含义。
+
+不带参数的 `return` 语句会返回具名返回值。这种写法称为“裸返回”。
+
+裸返回只适合用于短函数，例如这里的示例。在较长的函数中，这种写法会降低可读性。
+
+.play basics/named-results.go
+
+* 变量
+
+`var` 语句用于声明一组变量。与函数参数列表一样，类型写在最后。
+
+`var` 语句可以出现在包级作用域或函数内部。这个例子展示了这两种情况。
+
+.play basics/variables.go
+
+* 带初始值的变量
+
+`var` 声明可以包含初始值，每个变量对应一个初始值。
+
+如果指定了初始值，就可以省略类型；变量会采用初始值的类型。
+
+.play basics/variables-with-initializers.go
+
+* 短变量声明
+
+在函数内部，可以用 `:=` 短变量声明代替省略类型的 `var` 声明。
+
+在函数外部，每条声明都以关键字（例如 `var`、`func` 等）开头，因此不能使用 `:=`。
+
+.play basics/short-variable-declarations.go
+
+* 基本类型
+
+Go 的基本类型包括：
+
+	bool
+
+	string
+
+	int  int8  int16  int32  int64
+	uint uint8 uint16 uint32 uint64 uintptr
+
+	byte // alias for uint8
+
+	rune // alias for int32
+	     // represents a Unicode code point
+
+	float32 float64
+
+	complex64 complex128
+
+其中，`byte` 是 `uint8` 的别名；`rune` 是 `int32` 的别名，用于表示 Unicode 码点。
+
+示例展示了几种不同类型的变量，以及如何像导入语句一样，将变量声明组织成块。
+
+`int`、`uint` 和 `uintptr` 类型在 32 位系统上通常占 32 位，在 64 位系统上通常占 64 位。
+需要整数值时，一般应使用 `int`，除非有明确理由使用特定位宽的整数类型或无符号整数类型。
+
+.play basics/basic-types.go
+
+* 零值
+
+声明变量时，如果没有显式指定初始值，就会赋予它对应类型的 _零值_ 。
+
+各类型的零值如下：
+
+- 数值类型为 `0`；
+- 布尔类型为 `false`；
+- 字符串类型为 `""`（空字符串）。
+
+.play basics/zero.go
+
+* 类型转换
+
+表达式 `T(v)` 将值 `v` 转换为类型 `T`。
+
+以下是一些数值类型转换的例子：
+
+	var i int = 42
+	var f float64 = float64(i)
+	var u uint = uint(f)
+
+也可以写得更简洁：
+
+	i := 42
+	f := float64(i)
+	u := uint(f)
+
+与 C 不同，Go 在不同类型之间赋值时需要显式转换。
+试着移除示例中的 `float64` 或 `uint` 转换，看看会发生什么。
+
+.play basics/type-conversions.go
+
+* 类型推断
+
+声明变量时，如果没有显式指定类型（使用 `:=` 或 `var`=` 语法），变量的类型会根据右侧的值推断出来。
+
+如果声明右侧的值已有类型，新变量就采用相同的类型：
+
+	var i int
+	j := i // j is an int
+
+如果右侧是无类型数值常量，新变量则会根据常量的数值形式推断为 `int`、`float64` 或 `complex128`：
+
+	i := 42           // int
+	f := 3.142        // float64
+	g := 0.867 + 0.5i // complex128
+
+试着修改示例代码中 `v` 的初始值，观察它的类型如何变化。
+
+.play basics/type-inference.go
+
+* 常量
+
+常量的声明与变量类似，但使用 `const` 关键字。
+
+常量可以是字符、字符串、布尔值或数值。
+
+不能使用 `:=` 语法声明常量。
+
+.play basics/constants.go
+
+* 数值常量
+
+数值常量是高精度的 _值_ 。
+
+无类型常量会根据上下文采用所需的类型。
+
+试着也输出 `needInt(Big)` 的结果。
+
+（`int` 最多只能存储 64 位整数，在某些平台上位数还会更少。）
+
+.play basics/numeric-constants.go
+
+* 恭喜！
+
+你已经完成了本课！
+
+可以返回 [[/tour/list][课程模块列表]]，选择接下来要学习的内容，也可以继续学习 [[javascript:click('.next-page')][下一课]]。

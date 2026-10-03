@@ -1,0 +1,265 @@
+<!--{
+  "Title": "mime/quotedprintable 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>mime/quotedprintable 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "mime/quotedprintable"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>quotedprintable 包实现 RFC 2045 规定的 quoted-printable 编码。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r io.Reader) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (r *Reader) Read(p []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (w *Writer) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewReader">NewReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewWriter">NewWriter</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/mime/quotedprintable/reader.go">reader.go</a>
+			
+				<a href="/src/mime/quotedprintable/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Reader">type <a href="/src/mime/quotedprintable/reader.go?s=362:485#L7">Reader</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Reader 是 quoted-printable 解码器。<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/mime/quotedprintable/reader.go?s=552:587#L14">NewReader</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader 返回一个从 r 解码的 quoted-printable 读取器。<div id="example_NewReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;mime/quotedprintable&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	for _, s := range []string{
+		`=48=65=6C=6C=6F=2C=20=47=6F=70=68=65=72=73=21`,
+		`invalid escape: &lt;b style=&#34;font-size: 200%&#34;&gt;hello&lt;/b&gt;`,
+		&#34;Hello, Gophers! This symbol will be unescaped: =3D and this will be written in =\r\none line.&#34;,
+	} {
+		b, err := io.ReadAll(quotedprintable.NewReader(strings.NewReader(s)))
+		fmt.Printf(&#34;%s %v\n&#34;, b, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Hello, Gophers! &lt;nil&gt;
+invalid escape: &lt;b style=&#34;font-size: 200%&#34;&gt;hello&lt;/b&gt; &lt;nil&gt;
+Hello, Gophers! This symbol will be unescaped: = and this will be written in one line. &lt;nil&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Reader.Read">func (*Reader) <a href="/src/mime/quotedprintable/reader.go?s=1524:1574#L63">Read</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 从底层读取器读取并解码 quoted-printable 数据。<h2 id="Writer">type <a href="/src/mime/quotedprintable/writer.go?s=296:493#L2">Writer</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Writer 是实现 <a href="/pkg/io/#WriteCloser">io.WriteCloser</a> 的 quoted-printable 写入器。<pre>type Writer struct {
+<span id="Writer.Binary"></span>    <span class="comment">// Binary 模式将写入器的输入视为纯二进制数据，</span>
+    <span class="comment">// 并将行结束字节作为二进制数据处理。</span>
+    Binary <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/mime/quotedprintable/writer.go?s=549:584#L14">NewWriter</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 返回一个向 w 写入的新 <a href="#Writer">Writer</a>。<div id="example_NewWriter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;mime/quotedprintable&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	w := quotedprintable.NewWriter(os.Stdout)
+	w.Write([]byte(&#34;These symbols will be escaped: = \t&#34;))
+	w.Close()
+
+}
+</textarea></div>
+        <div class="output"><pre>These symbols will be escaped: =3D =09
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Writer.Close">func (*Writer) <a href="/src/mime/quotedprintable/writer.go?s=1511:1541#L57">Close</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 <a href="#Writer">Writer</a>，将所有尚未写出的数据刷新到底层 <a href="/pkg/io/#Writer">io.Writer</a>，但不关闭底层 io.Writer。<h3 id="Writer.Write">func (*Writer) <a href="/src/mime/quotedprintable/writer.go?s=830:881#L21">Write</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 使用 quoted-printable 编码对 p 进行编码，并将其写入底层 <a href="/pkg/io/#Writer">io.Writer</a>。它将行长限制为 76 个字符。编码后的字节可能要等到 <a href="#Writer">Writer</a> 关闭时才会刷新。</article>

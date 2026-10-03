@@ -1,0 +1,4395 @@
+<!--{
+  "Title": "bytes 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>bytes 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "bytes"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>bytes 包提供操作字节切片的函数，其功能与 <a href="/pkg/strings/">strings</a> 包类似。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Clone">func Clone(b []byte) []byte</a></dd>
+			
+				<dd><a href="#Compare">func Compare(a, b []byte) int</a></dd>
+			
+				<dd><a href="#Contains">func Contains(b, subslice []byte) bool</a></dd>
+			
+				<dd><a href="#ContainsAny">func ContainsAny(b []byte, chars string) bool</a></dd>
+			
+				<dd><a href="#ContainsFunc">func ContainsFunc(b []byte, f func(rune) bool) bool</a></dd>
+			
+				<dd><a href="#ContainsRune">func ContainsRune(b []byte, r rune) bool</a></dd>
+			
+				<dd><a href="#Count">func Count(s, sep []byte) int</a></dd>
+			
+				<dd><a href="#Cut">func Cut(s, sep []byte) (before, after []byte, found bool)</a></dd>
+			
+				<dd><a href="#CutLast">func CutLast(s, sep []byte) (before, after []byte, found bool)</a></dd>
+			
+				<dd><a href="#CutPrefix">func CutPrefix(s, prefix []byte) (after []byte, found bool)</a></dd>
+			
+				<dd><a href="#CutSuffix">func CutSuffix(s, suffix []byte) (before []byte, found bool)</a></dd>
+			
+				<dd><a href="#Equal">func Equal(a, b []byte) bool</a></dd>
+			
+				<dd><a href="#EqualFold">func EqualFold(s, t []byte) bool</a></dd>
+			
+				<dd><a href="#Fields">func Fields(s []byte) [][]byte</a></dd>
+			
+				<dd><a href="#FieldsFunc">func FieldsFunc(s []byte, f func(rune) bool) [][]byte</a></dd>
+			
+				<dd><a href="#FieldsFuncSeq">func FieldsFuncSeq(s []byte, f func(rune) bool) iter.Seq[[]byte]</a></dd>
+			
+				<dd><a href="#FieldsSeq">func FieldsSeq(s []byte) iter.Seq[[]byte]</a></dd>
+			
+				<dd><a href="#HasPrefix">func HasPrefix(s, prefix []byte) bool</a></dd>
+			
+				<dd><a href="#HasSuffix">func HasSuffix(s, suffix []byte) bool</a></dd>
+			
+				<dd><a href="#Index">func Index(s, sep []byte) int</a></dd>
+			
+				<dd><a href="#IndexAny">func IndexAny(s []byte, chars string) int</a></dd>
+			
+				<dd><a href="#IndexByte">func IndexByte(b []byte, c byte) int</a></dd>
+			
+				<dd><a href="#IndexFunc">func IndexFunc(s []byte, f func(r rune) bool) int</a></dd>
+			
+				<dd><a href="#IndexRune">func IndexRune(s []byte, r rune) int</a></dd>
+			
+				<dd><a href="#Join">func Join(s [][]byte, sep []byte) []byte</a></dd>
+			
+				<dd><a href="#LastIndex">func LastIndex(s, sep []byte) int</a></dd>
+			
+				<dd><a href="#LastIndexAny">func LastIndexAny(s []byte, chars string) int</a></dd>
+			
+				<dd><a href="#LastIndexByte">func LastIndexByte(s []byte, c byte) int</a></dd>
+			
+				<dd><a href="#LastIndexFunc">func LastIndexFunc(s []byte, f func(r rune) bool) int</a></dd>
+			
+				<dd><a href="#Lines">func Lines(s []byte) iter.Seq[[]byte]</a></dd>
+			
+				<dd><a href="#Map">func Map(mapping func(r rune) rune, s []byte) []byte</a></dd>
+			
+				<dd><a href="#Repeat">func Repeat(b []byte, count int) []byte</a></dd>
+			
+				<dd><a href="#Replace">func Replace(s, old, new []byte, n int) []byte</a></dd>
+			
+				<dd><a href="#ReplaceAll">func ReplaceAll(s, old, new []byte) []byte</a></dd>
+			
+				<dd><a href="#Runes">func Runes(s []byte) []rune</a></dd>
+			
+				<dd><a href="#Split">func Split(s, sep []byte) [][]byte</a></dd>
+			
+				<dd><a href="#SplitAfter">func SplitAfter(s, sep []byte) [][]byte</a></dd>
+			
+				<dd><a href="#SplitAfterN">func SplitAfterN(s, sep []byte, n int) [][]byte</a></dd>
+			
+				<dd><a href="#SplitAfterSeq">func SplitAfterSeq(s, sep []byte) iter.Seq[[]byte]</a></dd>
+			
+				<dd><a href="#SplitN">func SplitN(s, sep []byte, n int) [][]byte</a></dd>
+			
+				<dd><a href="#SplitSeq">func SplitSeq(s, sep []byte) iter.Seq[[]byte]</a></dd>
+			
+				<dd><a href="#Title">func Title(s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToLower">func ToLower(s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToLowerSpecial">func ToLowerSpecial(c unicode.SpecialCase, s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToTitle">func ToTitle(s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToTitleSpecial">func ToTitleSpecial(c unicode.SpecialCase, s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToUpper">func ToUpper(s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToUpperSpecial">func ToUpperSpecial(c unicode.SpecialCase, s []byte) []byte</a></dd>
+			
+				<dd><a href="#ToValidUTF8">func ToValidUTF8(s, replacement []byte) []byte</a></dd>
+			
+				<dd><a href="#Trim">func Trim(s []byte, cutset string) []byte</a></dd>
+			
+				<dd><a href="#TrimFunc">func TrimFunc(s []byte, f func(r rune) bool) []byte</a></dd>
+			
+				<dd><a href="#TrimLeft">func TrimLeft(s []byte, cutset string) []byte</a></dd>
+			
+				<dd><a href="#TrimLeftFunc">func TrimLeftFunc(s []byte, f func(r rune) bool) []byte</a></dd>
+			
+				<dd><a href="#TrimPrefix">func TrimPrefix(s, prefix []byte) []byte</a></dd>
+			
+				<dd><a href="#TrimRight">func TrimRight(s []byte, cutset string) []byte</a></dd>
+			
+				<dd><a href="#TrimRightFunc">func TrimRightFunc(s []byte, f func(r rune) bool) []byte</a></dd>
+			
+				<dd><a href="#TrimSpace">func TrimSpace(s []byte) []byte</a></dd>
+			
+				<dd><a href="#TrimSuffix">func TrimSuffix(s, suffix []byte) []byte</a></dd>
+			
+			
+				
+				<dd><a href="#Buffer">type Buffer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewBuffer">func NewBuffer(buf []byte) *Buffer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewBufferString">func NewBufferString(s string) *Buffer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Available">func (b *Buffer) Available() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.AvailableBuffer">func (b *Buffer) AvailableBuffer() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Bytes">func (b *Buffer) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Cap">func (b *Buffer) Cap() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Grow">func (b *Buffer) Grow(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Len">func (b *Buffer) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Next">func (b *Buffer) Next(n int) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Peek">func (b *Buffer) Peek(n int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Read">func (b *Buffer) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.ReadByte">func (b *Buffer) ReadByte() (byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.ReadBytes">func (b *Buffer) ReadBytes(delim byte) (line []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.ReadFrom">func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.ReadRune">func (b *Buffer) ReadRune() (r rune, size int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.ReadString">func (b *Buffer) ReadString(delim byte) (line string, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Reset">func (b *Buffer) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.String">func (b *Buffer) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Truncate">func (b *Buffer) Truncate(n int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.UnreadByte">func (b *Buffer) UnreadByte() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.UnreadRune">func (b *Buffer) UnreadRune() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.Write">func (b *Buffer) Write(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.WriteByte">func (b *Buffer) WriteByte(c byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.WriteRune">func (b *Buffer) WriteRune(r rune) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.WriteString">func (b *Buffer) WriteString(s string) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Buffer.WriteTo">func (b *Buffer) WriteTo(w io.Writer) (n int64, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(b []byte) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Len">func (r *Reader) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (r *Reader) Read(b []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadAt">func (r *Reader) ReadAt(b []byte, off int64) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadByte">func (r *Reader) ReadByte() (byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadRune">func (r *Reader) ReadRune() (ch rune, size int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Reset">func (r *Reader) Reset(b []byte)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Seek">func (r *Reader) Seek(offset int64, whence int) (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Size">func (r *Reader) Size() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.UnreadByte">func (r *Reader) UnreadByte() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.UnreadRune">func (r *Reader) UnreadRune() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.WriteTo">func (r *Reader) WriteTo(w io.Writer) (n int64, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Buffer">Buffer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_AvailableBuffer">Buffer.AvailableBuffer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Bytes">Buffer.Bytes</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Cap">Buffer.Cap</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Grow">Buffer.Grow</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Len">Buffer.Len</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Next">Buffer.Next</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_Read">Buffer.Read</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_ReadByte">Buffer.ReadByte</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Buffer_reader">Buffer (Reader)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Clone">Clone</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Compare">Compare</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Compare_search">Compare (Search)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Contains">Contains</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ContainsAny">ContainsAny</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ContainsFunc">ContainsFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ContainsRune">ContainsRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Count">Count</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Cut">Cut</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CutPrefix">CutPrefix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CutSuffix">CutSuffix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Equal">Equal</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_EqualFold">EqualFold</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Fields">Fields</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FieldsFunc">FieldsFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FieldsFuncSeq">FieldsFuncSeq</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FieldsSeq">FieldsSeq</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_HasPrefix">HasPrefix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_HasSuffix">HasSuffix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Index">Index</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IndexAny">IndexAny</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IndexByte">IndexByte</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IndexFunc">IndexFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IndexRune">IndexRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Join">Join</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LastIndex">LastIndex</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LastIndexAny">LastIndexAny</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LastIndexByte">LastIndexByte</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LastIndexFunc">LastIndexFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Lines">Lines</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Map">Map</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Reader_Len">Reader.Len</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Repeat">Repeat</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Replace">Replace</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReplaceAll">ReplaceAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Runes">Runes</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Split">Split</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SplitAfter">SplitAfter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SplitAfterN">SplitAfterN</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SplitAfterSeq">SplitAfterSeq</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SplitN">SplitN</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SplitSeq">SplitSeq</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Title">Title</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToLower">ToLower</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToLowerSpecial">ToLowerSpecial</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToTitle">ToTitle</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToTitleSpecial">ToTitleSpecial</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToUpper">ToUpper</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToUpperSpecial">ToUpperSpecial</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ToValidUTF8">ToValidUTF8</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Trim">Trim</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimFunc">TrimFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimLeft">TrimLeft</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimLeftFunc">TrimLeftFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimPrefix">TrimPrefix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimRight">TrimRight</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimRightFunc">TrimRightFunc</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimSpace">TrimSpace</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TrimSuffix">TrimSuffix</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/bytes/buffer.go">buffer.go</a>
+			
+				<a href="/src/bytes/bytes.go">bytes.go</a>
+			
+				<a href="/src/bytes/iter.go">iter.go</a>
+			
+				<a href="/src/bytes/reader.go">reader.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>MinRead 是 <a href="#Buffer.Read">Buffer.Read</a> 调用中切片大小的下限，该调用由 <a href="#Buffer.ReadFrom">Buffer.ReadFrom</a> 发起。只要 <a href="#Buffer">Buffer</a> 在容纳 r 的内容所需空间之外还至少有 MinRead 字节的空间，<a href="#Buffer.ReadFrom">Buffer.ReadFrom</a> 就不会扩展底层缓冲区。
+
+				<pre>const <span id="MinRead">MinRead</span> = 512</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>无法分配用于在缓冲区中存储数据的内存时，会将 ErrTooLarge 传给 panic。
+
+				<pre>var <span id="ErrTooLarge">ErrTooLarge</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;bytes.Buffer: too large&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="Clone">func <a href="/src/bytes/bytes.go?s=36138:36165#L1381">Clone</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func Clone(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Clone 返回 b[:len(b)] 的副本。结果可能具有额外的未使用容量。Clone(nil) 返回 nil。
+
+			
+
+
+<div id="example_Clone" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	b := []byte(&#34;abc&#34;)
+	clone := bytes.Clone(b)
+	fmt.Printf(&#34;%s\n&#34;, clone)
+	clone[0] = &#39;d&#39;
+	fmt.Printf(&#34;%s\n&#34;, b)
+	fmt.Printf(&#34;%s\n&#34;, clone)
+}
+</textarea></div>
+        <div class="output"><pre>abc
+abc
+dbc
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Compare">func <a href="/src/bytes/bytes.go?s=878:907#L18">Compare</a>
+				
+				
+			</h2>
+			<pre>func Compare(a, b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Compare 按字典序比较两个字节切片，并返回一个整数。当 a == b 时结果为 0，a &lt; b 时为 -1，a &gt; b 时为 +1。nil 参数等价于空切片。
+
+			
+
+
+<div id="example_Compare" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+)
+
+func main() {
+	// 将 Compare 的结果与零比较，以判断大小关系。
+	var a, b []byte
+	if bytes.Compare(a, b) &lt; 0 {
+		// a 小于 b
+	}
+	if bytes.Compare(a, b) &lt;= 0 {
+		// a 小于或等于 b
+	}
+	if bytes.Compare(a, b) &gt; 0 {
+		// a 大于 b
+	}
+	if bytes.Compare(a, b) &gt;= 0 {
+		// a 大于或等于 b
+	}
+
+	// 判断是否相等时，优先使用 Equal 而不是 Compare。
+	if bytes.Equal(a, b) {
+		// a 等于 b
+	}
+	if !bytes.Equal(a, b) {
+		// a 不等于 b
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Compare_search" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Search)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Search)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"slices"
+)
+
+func main() {
+	// 通过二分查找寻找匹配的字节切片。
+	var needle []byte
+	var haystack [][]byte // 假定已经排序
+	_, found := slices.BinarySearchFunc(haystack, needle, bytes.Compare)
+	if found {
+		// 找到了！
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Contains">func <a href="/src/bytes/bytes.go?s=1916:1954#L67">Contains</a>
+				
+				
+			</h2>
+			<pre>func Contains(b, subslice []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Contains 报告 b 是否包含 subslice。
+
+			
+
+
+<div id="example_Contains" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.Contains([]byte(&#34;seafood&#34;), []byte(&#34;foo&#34;)))
+	fmt.Println(bytes.Contains([]byte(&#34;seafood&#34;), []byte(&#34;bar&#34;)))
+	fmt.Println(bytes.Contains([]byte(&#34;seafood&#34;), []byte(&#34;&#34;)))
+	fmt.Println(bytes.Contains([]byte(&#34;&#34;), []byte(&#34;&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+true
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ContainsAny">func <a href="/src/bytes/bytes.go?s=2084:2129#L72">ContainsAny</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func ContainsAny(b []<a href="/pkg/builtin/#byte">byte</a>, chars <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ContainsAny 报告 b 是否包含 chars 中任意一个以 UTF-8 编码的码点。
+
+			
+
+
+<div id="example_ContainsAny" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.ContainsAny([]byte(&#34;I like seafood.&#34;), &#34;fÄo!&#34;))
+	fmt.Println(bytes.ContainsAny([]byte(&#34;I like seafood.&#34;), &#34;去是伟大的.&#34;))
+	fmt.Println(bytes.ContainsAny([]byte(&#34;I like seafood.&#34;), &#34;&#34;))
+	fmt.Println(bytes.ContainsAny([]byte(&#34;&#34;), &#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>true
+true
+false
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ContainsFunc">func <a href="/src/bytes/bytes.go?s=2474:2525#L83">ContainsFunc</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func ContainsFunc(b []<a href="/pkg/builtin/#byte">byte</a>, f func(<a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ContainsFunc 报告 b 中是否存在满足 f(r) 的 UTF-8 编码码点 r。一旦某次 f 调用返回 true，就停止检查。
+
+			
+
+
+<div id="example_ContainsFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	f := func(r rune) bool {
+		return r &gt;= &#39;a&#39; &amp;&amp; r &lt;= &#39;z&#39;
+	}
+	fmt.Println(bytes.ContainsFunc([]byte(&#34;HELLO&#34;), f))
+	fmt.Println(bytes.ContainsFunc([]byte(&#34;World&#34;), f))
+}
+</textarea></div>
+        <div class="output"><pre>false
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ContainsRune">func <a href="/src/bytes/bytes.go?s=2256:2296#L77">ContainsRune</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func ContainsRune(b []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ContainsRune 报告 UTF-8 编码的字节切片 b 是否包含指定 rune。
+
+			
+
+
+<div id="example_ContainsRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.ContainsRune([]byte(&#34;I like seafood.&#34;), &#39;f&#39;))
+	fmt.Println(bytes.ContainsRune([]byte(&#34;I like seafood.&#34;), &#39;ö&#39;))
+	fmt.Println(bytes.ContainsRune([]byte(&#34;去是伟大的!&#34;), &#39;大&#39;))
+	fmt.Println(bytes.ContainsRune([]byte(&#34;去是伟大的!&#34;), &#39;!&#39;))
+	fmt.Println(bytes.ContainsRune([]byte(&#34;&#34;), &#39;@&#39;))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+true
+true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Count">func <a href="/src/bytes/bytes.go?s=1606:1635#L47">Count</a>
+				
+				
+			</h2>
+			<pre>func Count(s, sep []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Count 统计 sep 在 s 中不重叠出现的次数。如果 sep 是空切片，Count 返回 s 中 UTF-8 编码码点的数量加 1。
+
+			
+
+
+<div id="example_Count" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"fmt"
+)
+
+func main() {
+	fmt.Println(bytes.Count([]byte("cheese"), []byte("e")))
+	fmt.Println(bytes.Count([]byte("five"), []byte(""))) // 每个 rune 之前和之后
+}
+</textarea></div>
+        <div class="output"><pre>3
+5
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Cut">func <a href="/src/bytes/bytes.go?s=35862:35920#L1371">Cut</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<pre>func Cut(s, sep []<a href="/pkg/builtin/#byte">byte</a>) (before, after []<a href="/pkg/builtin/#byte">byte</a>, found <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Cut 在 s 中第一次出现 sep 的位置进行切分，返回 sep 前后的文本。返回值 found 表示 s 中是否出现 sep。如果 s 中没有 sep，cut 返回 s、nil、false。
+<p>Cut 返回的是原始切片 s 的子切片，而非副本。
+
+			
+
+
+<div id="example_Cut" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	show := func(s, sep string) {
+		before, after, found := bytes.Cut([]byte(s), []byte(sep))
+		fmt.Printf(&#34;Cut(%q, %q) = %q, %q, %v\n&#34;, s, sep, before, after, found)
+	}
+	show(&#34;Gopher&#34;, &#34;Go&#34;)
+	show(&#34;Gopher&#34;, &#34;ph&#34;)
+	show(&#34;Gopher&#34;, &#34;er&#34;)
+	show(&#34;Gopher&#34;, &#34;Badger&#34;)
+}
+</textarea></div>
+        <div class="output"><pre>Cut(&#34;Gopher&#34;, &#34;Go&#34;) = &#34;&#34;, &#34;pher&#34;, true
+Cut(&#34;Gopher&#34;, &#34;ph&#34;) = &#34;Go&#34;, &#34;er&#34;, true
+Cut(&#34;Gopher&#34;, &#34;er&#34;) = &#34;Goph&#34;, &#34;&#34;, true
+Cut(&#34;Gopher&#34;, &#34;Badger&#34;) = &#34;Gopher&#34;, &#34;&#34;, false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="CutLast">func <a href="/src/bytes/bytes.go?s=37426:37488#L1420">CutLast</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func CutLast(s, sep []<a href="/pkg/builtin/#byte">byte</a>) (before, after []<a href="/pkg/builtin/#byte">byte</a>, found <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CutLast 在 s 中最后一次出现 sep 的位置进行切分，返回 sep 前后的文本。返回值 found 表示 s 中是否出现 sep。如果 s 中没有 sep，CutLast 返回 s、nil、false。
+<p>CutLast 返回的是原始切片 s 的子切片，而非副本。
+
+			
+		
+			
+			<h2 id="CutPrefix">func <a href="/src/bytes/bytes.go?s=36543:36602#L1394">CutPrefix</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func CutPrefix(s, prefix []<a href="/pkg/builtin/#byte">byte</a>) (after []<a href="/pkg/builtin/#byte">byte</a>, found <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CutPrefix 返回从 s 中去掉开头的指定字节切片 prefix 后的结果，并报告是否找到了此前缀。如果 s 不以 prefix 开头，CutPrefix 返回 s、false。如果 prefix 是空字节切片，CutPrefix 返回 s、true。
+<p>CutPrefix 返回的是原始切片 s 的子切片，而非副本。
+
+			
+
+
+<div id="example_CutPrefix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	show := func(s, prefix string) {
+		after, found := bytes.CutPrefix([]byte(s), []byte(prefix))
+		fmt.Printf(&#34;CutPrefix(%q, %q) = %q, %v\n&#34;, s, prefix, after, found)
+	}
+	show(&#34;Gopher&#34;, &#34;Go&#34;)
+	show(&#34;Gopher&#34;, &#34;ph&#34;)
+}
+</textarea></div>
+        <div class="output"><pre>CutPrefix(&#34;Gopher&#34;, &#34;Go&#34;) = &#34;pher&#34;, true
+CutPrefix(&#34;Gopher&#34;, &#34;ph&#34;) = &#34;Gopher&#34;, false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="CutSuffix">func <a href="/src/bytes/bytes.go?s=36994:37054#L1407">CutSuffix</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func CutSuffix(s, suffix []<a href="/pkg/builtin/#byte">byte</a>) (before []<a href="/pkg/builtin/#byte">byte</a>, found <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>CutSuffix 返回从 s 中去掉末尾的指定字节切片 suffix 后的结果，并报告是否找到了此后缀。如果 s 不以 suffix 结尾，CutSuffix 返回 s、false。如果 suffix 是空字节切片，CutSuffix 返回 s、true。
+<p>CutSuffix 返回的是原始切片 s 的子切片，而非副本。
+
+			
+
+
+<div id="example_CutSuffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	show := func(s, suffix string) {
+		before, found := bytes.CutSuffix([]byte(s), []byte(suffix))
+		fmt.Printf(&#34;CutSuffix(%q, %q) = %q, %v\n&#34;, s, suffix, before, found)
+	}
+	show(&#34;Gopher&#34;, &#34;Go&#34;)
+	show(&#34;Gopher&#34;, &#34;er&#34;)
+}
+</textarea></div>
+        <div class="output"><pre>CutSuffix(&#34;Gopher&#34;, &#34;Go&#34;) = &#34;Gopher&#34;, false
+CutSuffix(&#34;Gopher&#34;, &#34;er&#34;) = &#34;Goph&#34;, true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Equal">func <a href="/src/bytes/bytes.go?s=548:576#L10">Equal</a>
+				
+				
+			</h2>
+			<pre>func Equal(a, b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Equal 报告 a 和 b 是否长度相同且包含相同的字节。nil 参数等价于空切片。
+
+			
+
+
+<div id="example_Equal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.Equal([]byte(&#34;Go&#34;), []byte(&#34;Go&#34;)))
+	fmt.Println(bytes.Equal([]byte(&#34;Go&#34;), []byte(&#34;C&#43;&#43;&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="EqualFold">func <a href="/src/bytes/bytes.go?s=32285:32317#L1203">EqualFold</a>
+				
+				
+			</h2>
+			<pre>func EqualFold(s, t []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>EqualFold 将 s 和 t 解释为 UTF-8 字符串，并报告它们在 Unicode 简单大小写折叠规则下是否相等。这是一种更通用的大小写不敏感比较。
+
+			
+
+
+<div id="example_EqualFold" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.EqualFold([]byte(&#34;Go&#34;), []byte(&#34;go&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Fields">func <a href="/src/bytes/bytes.go?s=11379:11409#L437">Fields</a>
+				
+				
+			</h2>
+			<pre>func Fields(s []<a href="/pkg/builtin/#byte">byte</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Fields 将 s 解释为 UTF-8 编码的码点序列。它在每段由一个或多个连续空白字符组成的序列处切分 s，空白字符由 <a href="/pkg/unicode/#IsSpace">unicode.IsSpace</a> 定义。返回值是由 s 的子切片组成的切片；如果 s 只包含空白字符，则返回空切片。返回切片中的每个元素都非空。与 <a href="#Split">Split</a> 不同，开头和结尾的连续空白字符会被丢弃。
+
+			
+
+
+<div id="example_Fields" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;Fields are: %q&#34;, bytes.Fields([]byte(&#34;  foo bar  baz   &#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>Fields are: [&#34;foo&#34; &#34;bar&#34; &#34;baz&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FieldsFunc">func <a href="/src/bytes/bytes.go?s=12972:13025#L496">FieldsFunc</a>
+				
+				
+			</h2>
+			<pre>func FieldsFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(<a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>FieldsFunc 将 s 解释为 UTF-8 编码的码点序列。它在每段满足 f(c) 的连续码点 c 处切分 s，并返回由 s 的子切片组成的切片。如果 s 中所有码点都满足 f(c)，或者 len(s) == 0，则返回空切片。返回切片中的每个元素都非空。与 <a href="#Split">Split</a> 不同，开头和结尾满足 f(c) 的连续码点会被丢弃。
+<p>FieldsFunc 不保证调用 f(c) 的顺序，并假定对于给定的 c，f 始终返回相同的值。
+
+			
+
+
+<div id="example_FieldsFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c) &amp;&amp; !unicode.IsNumber(c)
+	}
+	fmt.Printf(&#34;Fields are: %q&#34;, bytes.FieldsFunc([]byte(&#34;  foo1;bar2,baz3...&#34;), f))
+}
+</textarea></div>
+        <div class="output"><pre>Fields are: [&#34;foo1&#34; &#34;bar2&#34; &#34;baz3&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FieldsFuncSeq">func <a href="/src/bytes/iter.go?s=3229:3293#L106">FieldsFuncSeq</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func FieldsFuncSeq(s []<a href="/pkg/builtin/#byte">byte</a>, f func(<a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[[]<a href="/pkg/builtin/#byte">byte</a>]</pre>
+			<p>FieldsFuncSeq 返回一个迭代器，遍历在满足 f(c) 的连续 Unicode 码点处切分 s 后得到的子切片。迭代器产生的子切片与 <a href="#FieldsFunc">FieldsFunc</a>(s) 返回的子切片相同，但不会创建用于容纳这些子切片的新切片。
+
+			
+
+
+<div id="example_FieldsFuncSeq" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	text := []byte(&#34;The quick brown fox&#34;)
+	fmt.Println(&#34;Split on whitespace(similar to FieldsSeq):&#34;)
+	for word := range bytes.FieldsFuncSeq(text, unicode.IsSpace) {
+		fmt.Printf(&#34;%q\n&#34;, word)
+	}
+
+	mixedText := []byte(&#34;abc123def456ghi&#34;)
+	fmt.Println(&#34;\nSplit on digits:&#34;)
+	for word := range bytes.FieldsFuncSeq(mixedText, unicode.IsDigit) {
+		fmt.Printf(&#34;%q\n&#34;, word)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Split on whitespace(similar to FieldsSeq):
+&#34;The&#34;
+&#34;quick&#34;
+&#34;brown&#34;
+&#34;fox&#34;
+
+Split on digits:
+&#34;abc&#34;
+&#34;def&#34;
+&#34;ghi&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FieldsSeq">func <a href="/src/bytes/iter.go?s=2433:2474#L73">FieldsSeq</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func FieldsSeq(s []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[[]<a href="/pkg/builtin/#byte">byte</a>]</pre>
+			<p>FieldsSeq 返回一个迭代器，遍历在连续空白字符处切分 s 后得到的子切片，空白字符由 <a href="/pkg/unicode/#IsSpace">unicode.IsSpace</a> 定义。迭代器产生的子切片与 <a href="#Fields">Fields</a>(s) 返回的子切片相同，但不会创建用于容纳这些子切片的新切片。
+
+			
+
+
+<div id="example_FieldsSeq" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	text := []byte(&#34;The quick brown fox&#34;)
+	fmt.Println(&#34;Split byte slice into fields:&#34;)
+	for word := range bytes.FieldsSeq(text) {
+		fmt.Printf(&#34;%q\n&#34;, word)
+	}
+
+	textWithSpaces := []byte(&#34;  lots   of   spaces  &#34;)
+	fmt.Println(&#34;\nSplit byte slice with multiple spaces:&#34;)
+	for word := range bytes.FieldsSeq(textWithSpaces) {
+		fmt.Printf(&#34;%q\n&#34;, word)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Split byte slice into fields:
+&#34;The&#34;
+&#34;quick&#34;
+&#34;brown&#34;
+&#34;fox&#34;
+
+Split byte slice with multiple spaces:
+&#34;lots&#34;
+&#34;of&#34;
+&#34;spaces&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="HasPrefix">func <a href="/src/bytes/bytes.go?s=14794:14831#L574">HasPrefix</a>
+				
+				
+			</h2>
+			<pre>func HasPrefix(s, prefix []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>HasPrefix 报告字节切片 s 是否以 prefix 开头。
+
+			
+
+
+<div id="example_HasPrefix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.HasPrefix([]byte(&#34;Gopher&#34;), []byte(&#34;Go&#34;)))
+	fmt.Println(bytes.HasPrefix([]byte(&#34;Gopher&#34;), []byte(&#34;C&#34;)))
+	fmt.Println(bytes.HasPrefix([]byte(&#34;Gopher&#34;), []byte(&#34;&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="HasSuffix">func <a href="/src/bytes/bytes.go?s=14965:15002#L579">HasSuffix</a>
+				
+				
+			</h2>
+			<pre>func HasSuffix(s, suffix []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>HasSuffix 报告字节切片 s 是否以 suffix 结尾。
+
+			
+
+
+<div id="example_HasSuffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.HasSuffix([]byte(&#34;Amigo&#34;), []byte(&#34;go&#34;)))
+	fmt.Println(bytes.HasSuffix([]byte(&#34;Amigo&#34;), []byte(&#34;O&#34;)))
+	fmt.Println(bytes.HasSuffix([]byte(&#34;Amigo&#34;), []byte(&#34;Ami&#34;)))
+	fmt.Println(bytes.HasSuffix([]byte(&#34;Amigo&#34;), []byte(&#34;&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+false
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Index">func <a href="/src/bytes/bytes.go?s=33790:33819#L1278">Index</a>
+				
+				
+			</h2>
+			<pre>func Index(s, sep []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Index 返回 sep 在 s 中第一次出现的索引；如果 s 中没有 sep，则返回 -1。
+
+			
+
+
+<div id="example_Index" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.Index([]byte(&#34;chicken&#34;), []byte(&#34;ken&#34;)))
+	fmt.Println(bytes.Index([]byte(&#34;chicken&#34;), []byte(&#34;dmr&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>4
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IndexAny">func <a href="/src/bytes/bytes.go?s=5663:5704#L203">IndexAny</a>
+				
+				
+			</h2>
+			<pre>func IndexAny(s []<a href="/pkg/builtin/#byte">byte</a>, chars <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>IndexAny 将 s 解释为 UTF-8 编码的 Unicode 码点序列，返回 chars 中任意 Unicode 码点在 s 中第一次出现的字节索引。如果 chars 为空，或者没有共同码点，则返回 -1。
+
+			
+
+
+<div id="example_IndexAny" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.IndexAny([]byte(&#34;chicken&#34;), &#34;aeiouy&#34;))
+	fmt.Println(bytes.IndexAny([]byte(&#34;crwth&#34;), &#34;aeiouy&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>2
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IndexByte">func <a href="/src/bytes/bytes.go?s=2656:2692#L88">IndexByte</a>
+				
+				
+			</h2>
+			<pre>func IndexByte(b []<a href="/pkg/builtin/#byte">byte</a>, c <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>IndexByte 返回 c 在 b 中第一次出现的索引；如果 b 中没有 c，则返回 -1。
+
+			
+
+
+<div id="example_IndexByte" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.IndexByte([]byte(&#34;chicken&#34;), byte(&#39;k&#39;)))
+	fmt.Println(bytes.IndexByte([]byte(&#34;chicken&#34;), byte(&#39;g&#39;)))
+}
+</textarea></div>
+        <div class="output"><pre>4
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IndexFunc">func <a href="/src/bytes/bytes.go?s=23480:23529#L875">IndexFunc</a>
+				
+				
+			</h2>
+			<pre>func IndexFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>IndexFunc 将 s 解释为 UTF-8 编码的码点序列，返回 s 中第一个满足 f(c) 的 Unicode 码点的字节索引；如果没有这样的码点，则返回 -1。
+
+			
+
+
+<div id="example_IndexFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	f := func(c rune) bool {
+		return unicode.Is(unicode.Han, c)
+	}
+	fmt.Println(bytes.IndexFunc([]byte(&#34;Hello, 世界&#34;), f))
+	fmt.Println(bytes.IndexFunc([]byte(&#34;Hello, world&#34;), f))
+}
+</textarea></div>
+        <div class="output"><pre>7
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IndexRune">func <a href="/src/bytes/bytes.go?s=3595:3631#L121">IndexRune</a>
+				
+				
+			</h2>
+			<pre>func IndexRune(s []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>IndexRune 将 s 解释为 UTF-8 编码的码点序列，返回给定 rune 在 s 中第一次出现的字节索引。如果 s 中没有该 rune，则返回 -1。如果 r 为 <a href="/pkg/unicode/utf8/#RuneError">utf8.RuneError</a>，则返回第一个无效 UTF-8 字节序列的位置。
+
+			
+
+
+<div id="example_IndexRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.IndexRune([]byte(&#34;chicken&#34;), &#39;k&#39;))
+	fmt.Println(bytes.IndexRune([]byte(&#34;chicken&#34;), &#39;d&#39;))
+}
+</textarea></div>
+        <div class="output"><pre>4
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Join">func <a href="/src/bytes/bytes.go?s=14144:14184#L541">Join</a>
+				
+				
+			</h2>
+			<pre>func Join(s [][]<a href="/pkg/builtin/#byte">byte</a>, sep []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Join 将 s 中的元素拼接成一个新的字节切片。结果切片的各元素之间会插入分隔符 sep。
+
+			
+
+
+<div id="example_Join" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	s := [][]byte{[]byte(&#34;foo&#34;), []byte(&#34;bar&#34;), []byte(&#34;baz&#34;)}
+	fmt.Printf(&#34;%s&#34;, bytes.Join(s, []byte(&#34;, &#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>foo, bar, baz
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="LastIndex">func <a href="/src/bytes/bytes.go?s=2829:2862#L93">LastIndex</a>
+				
+				
+			</h2>
+			<pre>func LastIndex(s, sep []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>LastIndex 返回 sep 在 s 中最后一次出现的索引；如果 s 中没有 sep，则返回 -1。
+
+			
+
+
+<div id="example_LastIndex" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.Index([]byte(&#34;go gopher&#34;), []byte(&#34;go&#34;)))
+	fmt.Println(bytes.LastIndex([]byte(&#34;go gopher&#34;), []byte(&#34;go&#34;)))
+	fmt.Println(bytes.LastIndex([]byte(&#34;go gopher&#34;), []byte(&#34;rodent&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>0
+3
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="LastIndexAny">func <a href="/src/bytes/bytes.go?s=7245:7290#L281">LastIndexAny</a>
+				
+				
+			</h2>
+			<pre>func LastIndexAny(s []<a href="/pkg/builtin/#byte">byte</a>, chars <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>LastIndexAny 将 s 解释为 UTF-8 编码的 Unicode 码点序列，返回 chars 中任意 Unicode 码点在 s 中最后一次出现的字节索引。如果 chars 为空，或者没有共同码点，则返回 -1。
+
+			
+
+
+<div id="example_LastIndexAny" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.LastIndexAny([]byte(&#34;go gopher&#34;), &#34;MüQp&#34;))
+	fmt.Println(bytes.LastIndexAny([]byte(&#34;go 地鼠&#34;), &#34;地大&#34;))
+	fmt.Println(bytes.LastIndexAny([]byte(&#34;go gopher&#34;), &#34;z,!.&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>5
+3
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="LastIndexByte">func <a href="/src/bytes/bytes.go?s=3222:3262#L112">LastIndexByte</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func LastIndexByte(s []<a href="/pkg/builtin/#byte">byte</a>, c <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>LastIndexByte 返回 c 在 s 中最后一次出现的索引；如果 s 中没有 c，则返回 -1。
+
+			
+
+
+<div id="example_LastIndexByte" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.LastIndexByte([]byte(&#34;go gopher&#34;), byte(&#39;g&#39;)))
+	fmt.Println(bytes.LastIndexByte([]byte(&#34;go gopher&#34;), byte(&#39;r&#39;)))
+	fmt.Println(bytes.LastIndexByte([]byte(&#34;go gopher&#34;), byte(&#39;z&#39;)))
+}
+</textarea></div>
+        <div class="output"><pre>3
+8
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="LastIndexFunc">func <a href="/src/bytes/bytes.go?s=23742:23795#L882">LastIndexFunc</a>
+				
+				
+			</h2>
+			<pre>func LastIndexFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>LastIndexFunc 将 s 解释为 UTF-8 编码的码点序列，返回 s 中最后一个满足 f(c) 的 Unicode 码点的字节索引；如果没有这样的码点，则返回 -1。
+
+			
+
+
+<div id="example_LastIndexFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	fmt.Println(bytes.LastIndexFunc([]byte(&#34;go gopher!&#34;), unicode.IsLetter))
+	fmt.Println(bytes.LastIndexFunc([]byte(&#34;go gopher!&#34;), unicode.IsPunct))
+	fmt.Println(bytes.LastIndexFunc([]byte(&#34;go gopher!&#34;), unicode.IsNumber))
+}
+</textarea></div>
+        <div class="output"><pre>8
+9
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Lines">func <a href="/src/bytes/iter.go?s=556:593#L8">Lines</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Lines(s []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[[]<a href="/pkg/builtin/#byte">byte</a>]</pre>
+			<p>Lines 返回一个迭代器，遍历字节切片 s 中以换行符结尾的各行。迭代器产生的行包含其结尾的换行符。如果 s 为空，迭代器不会产生任何行。如果 s 不以换行符结尾，产生的最后一行也不会以换行符结尾。返回的迭代器只能使用一次。
+
+			
+
+
+<div id="example_Lines" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	text := []byte(&#34;Hello\nWorld\nGo Programming\n&#34;)
+	for line := range bytes.Lines(text) {
+		fmt.Printf(&#34;%q\n&#34;, line)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;Hello\n&#34;
+&#34;World\n&#34;
+&#34;Go Programming\n&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Map">func <a href="/src/bytes/bytes.go?s=15382:15434#L587">Map</a>
+				
+				
+			</h2>
+			<pre>func Map(mapping func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#rune">rune</a>, s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Map 返回字节切片 s 的副本，其中所有字符都按 mapping 函数进行转换。如果 mapping 返回负值，则从字节切片中删除该字符，不作替换。s 及输出中的字符都被解释为 UTF-8 编码的码点。
+
+			
+
+
+<div id="example_Map" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	rot13 := func(r rune) rune {
+		switch {
+		case r &gt;= &#39;A&#39; &amp;&amp; r &lt;= &#39;Z&#39;:
+			return &#39;A&#39; &#43; (r-&#39;A&#39;&#43;13)%26
+		case r &gt;= &#39;a&#39; &amp;&amp; r &lt;= &#39;z&#39;:
+			return &#39;a&#39; &#43; (r-&#39;a&#39;&#43;13)%26
+		}
+		return r
+	}
+	fmt.Printf(&#34;%s\n&#34;, bytes.Map(rot13, []byte(&#34;&#39;Twas brillig and the slithy gopher...&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>&#39;Gjnf oevyyvt naq gur fyvgul tbcure...
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Repeat">func <a href="/src/bytes/bytes.go?s=16291:16330#L619">Repeat</a>
+				
+				
+			</h2>
+			<pre>func Repeat(b []<a href="/pkg/builtin/#byte">byte</a>, count <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Repeat 返回由 count 份 b 拼接而成的新字节切片。
+<p>如果 count 为负数，或者 (len(b) * count) 的结果溢出，则触发 panic。
+
+			
+
+
+<div id="example_Repeat" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;ba%s&#34;, bytes.Repeat([]byte(&#34;na&#34;), 2))
+}
+</textarea></div>
+        <div class="output"><pre>banana
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Replace">func <a href="/src/bytes/bytes.go?s=31022:31068#L1152">Replace</a>
+				
+				
+			</h2>
+			<pre>func Replace(s, old, new []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Replace 返回切片 s 的副本，将其中前 n 个不重叠出现的 old 替换为 new。如果 old 为空，它会匹配切片的开头以及每个 UTF-8 序列之后的位置，因此对于含 k 个 rune 的切片，最多会执行 k+1 次替换。如果 n &lt; 0，则不限制替换次数。
+
+			
+
+
+<div id="example_Replace" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s\n&#34;, bytes.Replace([]byte(&#34;oink oink oink&#34;), []byte(&#34;k&#34;), []byte(&#34;ky&#34;), 2))
+	fmt.Printf(&#34;%s\n&#34;, bytes.Replace([]byte(&#34;oink oink oink&#34;), []byte(&#34;oink&#34;), []byte(&#34;moo&#34;), -1))
+}
+</textarea></div>
+        <div class="output"><pre>oinky oinky oink
+moo moo moo
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReplaceAll">func <a href="/src/bytes/bytes.go?s=32033:32075#L1196">ReplaceAll</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<pre>func ReplaceAll(s, old, new []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ReplaceAll 返回切片 s 的副本，将其中所有不重叠出现的 old 替换为 new。如果 old 为空，它会匹配切片的开头以及每个 UTF-8 序列之后的位置，因此对于含 k 个 rune 的切片，最多会执行 k+1 次替换。
+
+			
+
+
+<div id="example_ReplaceAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s\n&#34;, bytes.ReplaceAll([]byte(&#34;oink oink oink&#34;), []byte(&#34;oink&#34;), []byte(&#34;moo&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>moo moo moo
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Runes">func <a href="/src/bytes/bytes.go?s=30531:30558#L1134">Runes</a>
+				
+				
+			</h2>
+			<pre>func Runes(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#rune">rune</a></pre>
+			<p>Runes 将 s 解释为 UTF-8 编码的码点序列，返回与 s 等价的 rune（Unicode 码点）切片。
+
+			
+
+
+<div id="example_Runes" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	rs := bytes.Runes([]byte(&#34;go gopher&#34;))
+	for _, r := range rs {
+		fmt.Printf(&#34;%#U\n&#34;, r)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>U+0067 &#39;g&#39;
+U+006F &#39;o&#39;
+U+0020 &#39; &#39;
+U+0067 &#39;g&#39;
+U+006F &#39;o&#39;
+U+0070 &#39;p&#39;
+U+0068 &#39;h&#39;
+U+0065 &#39;e&#39;
+U+0072 &#39;r&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Split">func <a href="/src/bytes/bytes.go?s=10482:10516#L419">Split</a>
+				
+				
+			</h2>
+			<pre>func Split(s, sep []<a href="/pkg/builtin/#byte">byte</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Split 按 sep 将 s 切分为所有子切片，并返回由这些分隔符之间的子切片组成的切片。如果 sep 为空，Split 就在每个 UTF-8 序列之后切分。它等价于计数参数为 -1 的 SplitN。
+<p>若要在分隔符第一次出现的位置切分，请参阅 <a href="#Cut">Cut</a>。
+
+			
+
+
+<div id="example_Split" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%q\n&#34;, bytes.Split([]byte(&#34;a,b,c&#34;), []byte(&#34;,&#34;)))
+	fmt.Printf(&#34;%q\n&#34;, bytes.Split([]byte(&#34;a man a plan a canal panama&#34;), []byte(&#34;a &#34;)))
+	fmt.Printf(&#34;%q\n&#34;, bytes.Split([]byte(&#34; xyz &#34;), []byte(&#34;&#34;)))
+	fmt.Printf(&#34;%q\n&#34;, bytes.Split([]byte(&#34;&#34;), []byte(&#34;Bernardo O&#39;Higgins&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;a&#34; &#34;b&#34; &#34;c&#34;]
+[&#34;&#34; &#34;man &#34; &#34;plan &#34; &#34;canal panama&#34;]
+[&#34; &#34; &#34;x&#34; &#34;y&#34; &#34;z&#34; &#34; &#34;]
+[&#34;&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SplitAfter">func <a href="/src/bytes/bytes.go?s=10785:10824#L425">SplitAfter</a>
+				
+				
+			</h2>
+			<pre>func SplitAfter(s, sep []<a href="/pkg/builtin/#byte">byte</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>SplitAfter 在每个 sep 之后将 s 切分为子切片，并返回这些子切片组成的切片。如果 sep 为空，SplitAfter 就在每个 UTF-8 序列之后切分。它等价于计数参数为 -1 的 SplitAfterN。
+
+			
+
+
+<div id="example_SplitAfter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%q\n&#34;, bytes.SplitAfter([]byte(&#34;a,b,c&#34;), []byte(&#34;,&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;a,&#34; &#34;b,&#34; &#34;c&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SplitAfterN">func <a href="/src/bytes/bytes.go?s=10093:10140#L409">SplitAfterN</a>
+				
+				
+			</h2>
+			<pre>func SplitAfterN(s, sep []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>SplitAfterN 在每个 sep 之后将 s 切分为子切片，并返回这些子切片组成的切片。如果 sep 为空，SplitAfterN 就在每个 UTF-8 序列之后切分。计数参数决定返回的子切片数量：
+<ul>
+<li>n &gt; 0：最多返回 n 个子切片；最后一个子切片包含未切分的剩余部分；
+<li>n == 0：结果为 nil（零个子切片）；
+<li>n &lt; 0：返回所有子切片。
+</ul>
+
+			
+
+
+<div id="example_SplitAfterN" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%q\n&#34;, bytes.SplitAfterN([]byte(&#34;a,b,c&#34;), []byte(&#34;,&#34;), 2))
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;a,&#34; &#34;b,c&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SplitAfterSeq">func <a href="/src/bytes/iter.go?s=2062:2112#L65">SplitAfterSeq</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func SplitAfterSeq(s, sep []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[[]<a href="/pkg/builtin/#byte">byte</a>]</pre>
+			<p>SplitAfterSeq 返回一个迭代器，遍历在每个 sep 之后切分 s 得到的子切片。迭代器产生的子切片与 <a href="#SplitAfter">SplitAfter</a>(s, sep) 返回的子切片相同，但不会创建用于容纳这些子切片的新切片。返回的迭代器只能使用一次。
+
+			
+
+
+<div id="example_SplitAfterSeq" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	s := []byte(&#34;a,b,c,d&#34;)
+	for part := range bytes.SplitAfterSeq(s, []byte(&#34;,&#34;)) {
+		fmt.Printf(&#34;%q\n&#34;, part)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;a,&#34;
+&#34;b,&#34;
+&#34;c,&#34;
+&#34;d&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SplitN">func <a href="/src/bytes/bytes.go?s=9617:9659#L400">SplitN</a>
+				
+				
+			</h2>
+			<pre>func SplitN(s, sep []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) [][]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>SplitN 按 sep 将 s 切分为子切片，并返回由这些分隔符之间的子切片组成的切片。如果 sep 为空，SplitN 就在每个 UTF-8 序列之后切分。计数参数决定返回的子切片数量：
+<ul>
+<li>n &gt; 0：最多返回 n 个子切片；最后一个子切片包含未切分的剩余部分；
+<li>n == 0：结果为 nil（零个子切片）；
+<li>n &lt; 0：返回所有子切片。
+</ul>
+<p>若要在分隔符第一次出现的位置切分，请参阅 <a href="#Cut">Cut</a>。
+
+			
+
+
+<div id="example_SplitN" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%q\n&#34;, bytes.SplitN([]byte(&#34;a,b,c&#34;), []byte(&#34;,&#34;), 2))
+	z := bytes.SplitN([]byte(&#34;a,b,c&#34;), []byte(&#34;,&#34;), 0)
+	fmt.Printf(&#34;%q (nil = %v)\n&#34;, z, z == nil)
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;a&#34; &#34;b,c&#34;]
+[] (nil = true)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SplitSeq">func <a href="/src/bytes/iter.go?s=1699:1744#L57">SplitSeq</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func SplitSeq(s, sep []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[[]<a href="/pkg/builtin/#byte">byte</a>]</pre>
+			<p>SplitSeq 返回一个迭代器，遍历 s 中由 sep 分隔的所有子切片。迭代器产生的子切片与 <a href="#Split">Split</a>(s, sep) 返回的子切片相同，但不会创建用于容纳这些子切片的新切片。返回的迭代器只能使用一次。
+
+			
+
+
+<div id="example_SplitSeq" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	s := []byte(&#34;a,b,c,d&#34;)
+	for part := range bytes.SplitSeq(s, []byte(&#34;,&#34;)) {
+		fmt.Printf(&#34;%q\n&#34;, part)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;a&#34;
+&#34;b&#34;
+&#34;c&#34;
+&#34;d&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Title">func <a href="/src/bytes/bytes.go?s=21641:21668#L808">Title</a>
+				
+				
+			</h2>
+			<pre>func Title(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Title 将 s 视为 UTF-8 编码的字节，返回一个副本，其中位于单词开头的所有 Unicode 字母都映射为其标题形式。
+<p>已弃用：Title 判断单词边界的规则无法正确处理 Unicode 标点符号。请改用 golang.org/x/text/cases。
+
+			
+
+
+<div id="example_Title" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s&#34;, bytes.Title([]byte(&#34;her royal highness&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>Her Royal Highness
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToLower">func <a href="/src/bytes/bytes.go?s=18496:18525#L700">ToLower</a>
+				
+				
+			</h2>
+			<pre>func ToLower(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToLower 返回字节切片 s 的副本，将其中所有 Unicode 字母映射为小写形式。
+
+			
+
+
+<div id="example_ToLower" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s&#34;, bytes.ToLower([]byte(&#34;Gopher&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>gopher
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToLowerSpecial">func <a href="/src/bytes/bytes.go?s=19662:19721#L739">ToLowerSpecial</a>
+				
+				
+			</h2>
+			<pre>func ToLowerSpecial(c <a href="/pkg/unicode/">unicode</a>.<a href="/pkg/unicode/#SpecialCase">SpecialCase</a>, s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToLowerSpecial 将 s 视为 UTF-8 编码的字节，返回一个副本，将其中所有 Unicode 字母映射为小写形式，并优先采用特殊大小写转换规则。
+
+			
+
+
+<div id="example_ToLowerSpecial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	str := []byte(&#34;AHOJ VÝVOJÁRİ GOLANG&#34;)
+	totitle := bytes.ToLowerSpecial(unicode.AzeriCase, str)
+	fmt.Println(&#34;Original : &#34; &#43; string(str))
+	fmt.Println(&#34;ToLower : &#34; &#43; string(totitle))
+}
+</textarea></div>
+        <div class="output"><pre>Original : AHOJ VÝVOJÁRİ GOLANG
+ToLower : ahoj vývojári golang
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToTitle">func <a href="/src/bytes/bytes.go?s=19157:19186#L729">ToTitle</a>
+				
+				
+			</h2>
+			<pre>func ToTitle(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToTitle 将 s 视为 UTF-8 编码的字节，返回一个副本，将其中所有 Unicode 字母映射为标题形式。
+
+			
+
+
+<div id="example_ToTitle" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s\n&#34;, bytes.ToTitle([]byte(&#34;loud noises&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, bytes.ToTitle([]byte(&#34;брат&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>LOUD NOISES
+БРАТ
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToTitleSpecial">func <a href="/src/bytes/bytes.go?s=19927:19986#L745">ToTitleSpecial</a>
+				
+				
+			</h2>
+			<pre>func ToTitleSpecial(c <a href="/pkg/unicode/">unicode</a>.<a href="/pkg/unicode/#SpecialCase">SpecialCase</a>, s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToTitleSpecial 将 s 视为 UTF-8 编码的字节，返回一个副本，将其中所有 Unicode 字母映射为标题形式，并优先采用特殊大小写转换规则。
+
+			
+
+
+<div id="example_ToTitleSpecial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	str := []byte(&#34;ahoj vývojári golang&#34;)
+	totitle := bytes.ToTitleSpecial(unicode.AzeriCase, str)
+	fmt.Println(&#34;Original : &#34; &#43; string(str))
+	fmt.Println(&#34;ToTitle : &#34; &#43; string(totitle))
+}
+</textarea></div>
+        <div class="output"><pre>Original : ahoj vývojári golang
+ToTitle : AHOJ VÝVOJÁRİ GOLANG
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToUpper">func <a href="/src/bytes/bytes.go?s=17826:17855#L669">ToUpper</a>
+				
+				
+			</h2>
+			<pre>func ToUpper(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToUpper 返回字节切片 s 的副本，将其中所有 Unicode 字母映射为大写形式。
+
+			
+
+
+<div id="example_ToUpper" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s&#34;, bytes.ToUpper([]byte(&#34;Gopher&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>GOPHER
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToUpperSpecial">func <a href="/src/bytes/bytes.go?s=19397:19456#L733">ToUpperSpecial</a>
+				
+				
+			</h2>
+			<pre>func ToUpperSpecial(c <a href="/pkg/unicode/">unicode</a>.<a href="/pkg/unicode/#SpecialCase">SpecialCase</a>, s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToUpperSpecial 将 s 视为 UTF-8 编码的字节，返回一个副本，将其中所有 Unicode 字母映射为大写形式，并优先采用特殊大小写转换规则。
+
+			
+
+
+<div id="example_ToUpperSpecial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	str := []byte(&#34;ahoj vývojári golang&#34;)
+	totitle := bytes.ToUpperSpecial(unicode.AzeriCase, str)
+	fmt.Println(&#34;Original : &#34; &#43; string(str))
+	fmt.Println(&#34;ToUpper : &#34; &#43; string(totitle))
+}
+</textarea></div>
+        <div class="output"><pre>Original : ahoj vývojári golang
+ToUpper : AHOJ VÝVOJÁRİ GOLANG
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ToValidUTF8">func <a href="/src/bytes/bytes.go?s=20197:20243#L751">ToValidUTF8</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func ToValidUTF8(s, replacement []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>ToValidUTF8 将 s 视为 UTF-8 编码的字节，返回一个副本，将每段连续的无效 UTF-8 字节替换为 replacement 中的字节；replacement 可以为空。
+
+			
+
+
+<div id="example_ToValidUTF8" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s\n&#34;, bytes.ToValidUTF8([]byte(&#34;abc&#34;), []byte(&#34;\uFFFD&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, bytes.ToValidUTF8([]byte(&#34;a\xffb\xC0\xAFc\xff&#34;), []byte(&#34;&#34;)))
+	fmt.Printf(&#34;%s\n&#34;, bytes.ToValidUTF8([]byte(&#34;\xed\xa0\x80&#34;), []byte(&#34;abc&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>abc
+abc
+abc
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Trim">func <a href="/src/bytes/bytes.go?s=26872:26913#L977">Trim</a>
+				
+				
+			</h2>
+			<pre>func Trim(s []<a href="/pkg/builtin/#byte">byte</a>, cutset <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Trim 返回 s 的子切片，去掉开头和结尾所有属于 cutset 的 UTF-8 编码码点。
+
+			
+
+
+<div id="example_Trim" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;[%q]&#34;, bytes.Trim([]byte(&#34; !!! Achtung! Achtung! !!! &#34;), &#34;! &#34;))
+}
+</textarea></div>
+        <div class="output"><pre>[&#34;Achtung! Achtung&#34;]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimFunc">func <a href="/src/bytes/bytes.go?s=22720:22771#L850">TrimFunc</a>
+				
+				
+			</h2>
+			<pre>func TrimFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimFunc 返回 s 的子切片，去掉开头和结尾所有满足 f(c) 的 UTF-8 编码码点 c。
+
+			
+
+
+<div id="example_TrimFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	fmt.Println(string(bytes.TrimFunc([]byte(&#34;go-gopher!&#34;), unicode.IsLetter)))
+	fmt.Println(string(bytes.TrimFunc([]byte(&#34;\&#34;go-gopher!\&#34;&#34;), unicode.IsLetter)))
+	fmt.Println(string(bytes.TrimFunc([]byte(&#34;go-gopher!&#34;), unicode.IsPunct)))
+	fmt.Println(string(bytes.TrimFunc([]byte(&#34;1234go-gopher!567&#34;), unicode.IsNumber)))
+}
+</textarea></div>
+        <div class="output"><pre>-gopher!
+&#34;go-gopher!&#34;
+go-gopher
+go-gopher!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimLeft">func <a href="/src/bytes/bytes.go?s=27416:27461#L996">TrimLeft</a>
+				
+				
+			</h2>
+			<pre>func TrimLeft(s []<a href="/pkg/builtin/#byte">byte</a>, cutset <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimLeft 返回 s 的子切片，去掉开头所有属于 cutset 的 UTF-8 编码码点。
+
+			
+
+
+<div id="example_TrimLeft" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Print(string(bytes.TrimLeft([]byte(&#34;453gopher8257&#34;), &#34;0123456789&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>gopher8257
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimLeftFunc">func <a href="/src/bytes/bytes.go?s=22128:22183#L827">TrimLeftFunc</a>
+				
+				
+			</h2>
+			<pre>func TrimLeftFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimLeftFunc 将 s 视为 UTF-8 编码的字节，返回 s 的子切片，去掉开头所有满足 f(c) 的 UTF-8 编码码点 c。
+
+			
+
+
+<div id="example_TrimLeftFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	fmt.Println(string(bytes.TrimLeftFunc([]byte(&#34;go-gopher&#34;), unicode.IsLetter)))
+	fmt.Println(string(bytes.TrimLeftFunc([]byte(&#34;go-gopher!&#34;), unicode.IsPunct)))
+	fmt.Println(string(bytes.TrimLeftFunc([]byte(&#34;1234go-gopher!567&#34;), unicode.IsNumber)))
+}
+</textarea></div>
+        <div class="output"><pre>-gopher
+go-gopher!
+go-gopher!567
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimPrefix">func <a href="/src/bytes/bytes.go?s=22950:22990#L856">TrimPrefix</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func TrimPrefix(s, prefix []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimPrefix 返回从 s 中去掉指定前缀字符串 prefix 后的结果。如果 s 不以 prefix 开头，则原样返回 s。
+
+			
+
+
+<div id="example_TrimPrefix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b = []byte(&#34;Goodbye,, world!&#34;)
+	b = bytes.TrimPrefix(b, []byte(&#34;Goodbye,&#34;))
+	b = bytes.TrimPrefix(b, []byte(&#34;See ya,&#34;))
+	fmt.Printf(&#34;Hello%s&#34;, b)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, world!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimRight">func <a href="/src/bytes/bytes.go?s=28549:28595#L1055">TrimRight</a>
+				
+				
+			</h2>
+			<pre>func TrimRight(s []<a href="/pkg/builtin/#byte">byte</a>, cutset <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimRight 返回 s 的子切片，去掉结尾所有属于 cutset 的 UTF-8 编码码点。
+
+			
+
+
+<div id="example_TrimRight" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Print(string(bytes.TrimRight([]byte(&#34;453gopher8257&#34;), &#34;0123456789&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>453gopher
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimRightFunc">func <a href="/src/bytes/bytes.go?s=22381:22437#L837">TrimRightFunc</a>
+				
+				
+			</h2>
+			<pre>func TrimRightFunc(s []<a href="/pkg/builtin/#byte">byte</a>, f func(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimRightFunc 返回 s 的子切片，去掉结尾所有满足 f(c) 的 UTF-8 编码码点 c。
+
+			
+
+
+<div id="example_TrimRightFunc" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;unicode&#34;
+)
+
+func main() {
+	fmt.Println(string(bytes.TrimRightFunc([]byte(&#34;go-gopher&#34;), unicode.IsLetter)))
+	fmt.Println(string(bytes.TrimRightFunc([]byte(&#34;go-gopher!&#34;), unicode.IsPunct)))
+	fmt.Println(string(bytes.TrimRightFunc([]byte(&#34;1234go-gopher!567&#34;), unicode.IsNumber)))
+}
+</textarea></div>
+        <div class="output"><pre>go-
+go-gopher
+1234go-gopher!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimSpace">func <a href="/src/bytes/bytes.go?s=29488:29519#L1101">TrimSpace</a>
+				
+				
+			</h2>
+			<pre>func TrimSpace(s []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimSpace 返回 s 的子切片，去掉开头和结尾所有由 Unicode 定义的空白字符。
+
+			
+
+
+<div id="example_TrimSpace" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Printf(&#34;%s&#34;, bytes.TrimSpace([]byte(&#34; \t\n a lone gopher \n\t\r\n&#34;)))
+}
+</textarea></div>
+        <div class="output"><pre>a lone gopher
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TrimSuffix">func <a href="/src/bytes/bytes.go?s=23188:23228#L865">TrimSuffix</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func TrimSuffix(s, suffix []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimSuffix 返回从 s 中去掉指定后缀字符串 suffix 后的结果。如果 s 不以 suffix 结尾，则原样返回 s。
+
+			
+
+
+<div id="example_TrimSuffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	var b = []byte(&#34;Hello, goodbye, etc!&#34;)
+	b = bytes.TrimSuffix(b, []byte(&#34;goodbye, etc!&#34;))
+	b = bytes.TrimSuffix(b, []byte(&#34;gopher&#34;))
+	b = append(b, bytes.TrimSuffix([]byte(&#34;world!&#34;), []byte(&#34;x!&#34;))...)
+	os.Stdout.Write(b)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, world!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Buffer">type <a href="/src/bytes/buffer.go?s=510:1049#L10">Buffer</a>
+				
+				
+			</h2>
+			<p>Buffer 是大小可变的字节缓冲区，具有 <a href="#Buffer.Read">Buffer.Read</a> 和 <a href="#Buffer.Write">Buffer.Write</a> 方法。Buffer 的零值是可直接使用的空缓冲区。
+
+			<pre>type Buffer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Buffer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+)
+
+func main() {
+	var b bytes.Buffer // Buffer 无需初始化。
+	b.Write([]byte("Hello "))
+	fmt.Fprintf(&amp;b, "world!")
+	b.WriteTo(os.Stdout)
+}
+</textarea></div>
+        <div class="output"><pre>Hello world!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Buffer_reader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Reader)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Reader)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"encoding/base64"
+	"io"
+	"os"
+)
+
+func main() {
+	// Buffer 可以将 string 或 []byte 转换为 io.Reader。
+	buf := bytes.NewBufferString("R29waGVycyBydWxlIQ==")
+	dec := base64.NewDecoder(base64.StdEncoding, buf)
+	io.Copy(os.Stdout, dec)
+}
+</textarea></div>
+        <div class="output"><pre>Gophers rule!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewBuffer">func <a href="/src/bytes/buffer.go?s=16507:16541#L480">NewBuffer</a>
+					
+					
+				</h3>
+				<pre>func NewBuffer(buf []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#Buffer">Buffer</a></pre>
+				<p>NewBuffer 创建并初始化一个新的 <a href="#Buffer">Buffer</a>，以 buf 作为其初始内容。新的 <a href="#Buffer">Buffer</a> 会取得 buf 的所有权，调用方在此调用之后不应再使用 buf。NewBuffer 用于创建一个 <a href="#Buffer">Buffer</a> 来读取现有数据。它也可以用来设置内部缓冲区用于写入的初始大小：此时，buf 应具有所需容量，但长度应为零。
+<p>在多数情况下，new(<a href="#Buffer">Buffer</a>)（或仅声明一个 <a href="#Buffer">Buffer</a> 变量）就足以初始化一个 <a href="#Buffer">Buffer</a>。
+
+				
+			
+				<h3 id="NewBufferString">func <a href="/src/bytes/buffer.go?s=16857:16895#L488">NewBufferString</a>
+					
+					
+				</h3>
+				<pre>func NewBufferString(s <a href="/pkg/builtin/#string">string</a>) *<a href="#Buffer">Buffer</a></pre>
+				<p>NewBufferString 创建并初始化一个新的 <a href="#Buffer">Buffer</a>，以字符串 s 作为其初始内容。它用于创建缓冲区，以读取现有字符串。
+<p>在多数情况下，new(<a href="#Buffer">Buffer</a>)（或仅声明一个 <a href="#Buffer">Buffer</a> 变量）就足以初始化一个 <a href="#Buffer">Buffer</a>。
+
+				
+			
+
+			
+				<h3 id="Buffer.Available">func (*Buffer) <a href="/src/bytes/buffer.go?s=4248:4280#L94">Available</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Available() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Available 返回缓冲区中未使用的字节数。
+
+				
+			
+				<h3 id="Buffer.AvailableBuffer">func (*Buffer) <a href="/src/bytes/buffer.go?s=2790:2831#L56">AvailableBuffer</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) AvailableBuffer() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>AvailableBuffer 返回一个容量为 b.Available() 的空缓冲区。可以先向其中追加数据，再紧接着将它传给 <a href="#Buffer.Write">Buffer.Write</a>。此缓冲区仅在下一次对 b 执行写操作之前有效。
+
+				
+
+
+<div id="example_Buffer_AvailableBuffer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;os&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	for i := 0; i &lt; 4; i&#43;&#43; {
+		b := buf.AvailableBuffer()
+		b = strconv.AppendInt(b, int64(i), 10)
+		b = append(b, &#39; &#39;)
+		buf.Write(b)
+	}
+	os.Stdout.Write(buf.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>0 1 2 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Bytes">func (*Buffer) <a href="/src/bytes/buffer.go?s=2486:2517#L50">Bytes</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes 返回长度为 b.Len() 的切片，其中包含缓冲区的未读部分。此切片只在下一次修改缓冲区之前有效（也就是说，直到下一次调用 <a href="#Buffer.Read">Buffer.Read</a>、<a href="#Buffer.Write">Buffer.Write</a>、<a href="#Buffer.Reset">Buffer.Reset</a> 或 <a href="#Buffer.Truncate">Buffer.Truncate</a> 等方法之前）。至少在下一次修改缓冲区之前，该切片与缓冲区内容共享存储，因此立即修改此切片会影响后续读取的结果。
+
+				
+
+
+<div id="example_Buffer_Bytes" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	buf := bytes.Buffer{}
+	buf.Write([]byte{&#39;h&#39;, &#39;e&#39;, &#39;l&#39;, &#39;l&#39;, &#39;o&#39;, &#39; &#39;, &#39;w&#39;, &#39;o&#39;, &#39;r&#39;, &#39;l&#39;, &#39;d&#39;})
+	os.Stdout.Write(buf.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>hello world
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Cap">func (*Buffer) <a href="/src/bytes/buffer.go?s=4136:4162#L91">Cap</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Cap() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Cap 返回缓冲区底层字节切片的容量，即为缓冲区数据分配的总空间。
+
+				
+
+
+<div id="example_Buffer_Cap" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	buf1 := bytes.NewBuffer(make([]byte, 10))
+	buf2 := bytes.NewBuffer(make([]byte, 0, 10))
+	fmt.Println(buf1.Cap())
+	fmt.Println(buf2.Cap())
+}
+</textarea></div>
+        <div class="output"><pre>10
+10
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Grow">func (*Buffer) <a href="/src/bytes/buffer.go?s=6631:6659#L172">Grow</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Grow(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Grow 在必要时扩展缓冲区容量，保证还能容纳 n 个字节。调用 Grow(n) 后，至少可以向缓冲区再写入 n 个字节，而无需再次分配内存。如果 n 为负数，Grow 会触发 panic。如果无法扩展缓冲区，则以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+
+
+<div id="example_Buffer_Grow" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+	b.Grow(64)
+	bb := b.Bytes()
+	b.Write([]byte(&#34;64 bytes or fewer&#34;))
+	fmt.Printf(&#34;%q&#34;, bb[:b.Len()])
+}
+</textarea></div>
+        <div class="output"><pre>&#34;64 bytes or fewer&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Len">func (*Buffer) <a href="/src/bytes/buffer.go?s=3950:3976#L87">Len</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回缓冲区未读部分的字节数；b.Len() == len(b.Bytes())。
+
+				
+
+
+<div id="example_Buffer_Len" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte(&#34;abcde&#34;))
+	fmt.Printf(&#34;%d&#34;, b.Len())
+}
+</textarea></div>
+        <div class="output"><pre>5
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Next">func (*Buffer) <a href="/src/bytes/buffer.go?s=12234:12269#L348">Next</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Next(n <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Next 返回包含缓冲区中接下来 n 个字节的切片，并推进读取位置，如同这些字节已由 <a href="#Buffer.Read">Buffer.Read</a> 返回。如果缓冲区中不足 n 个字节，Next 返回整个缓冲区的未读部分。此切片仅在下一次调用读取或写入方法之前有效。
+
+				
+
+
+<div id="example_Buffer_Next" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte(&#34;abcde&#34;))
+	fmt.Printf(&#34;%s\n&#34;, b.Next(2))
+	fmt.Printf(&#34;%s\n&#34;, b.Next(2))
+	fmt.Printf(&#34;%s&#34;, b.Next(2))
+}
+</textarea></div>
+        <div class="output"><pre>ab
+cd
+e
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.Peek">func (*Buffer) <a href="/src/bytes/buffer.go?s=3580:3624#L75">Peek</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Peek(n <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Peek 返回接下来的 n 个字节，但不推进缓冲区的读取位置。如果 Peek 返回的字节数少于 n，还会返回 <a href="/pkg/io/#EOF">io.EOF</a>。此切片仅在下一次调用读取或写入方法之前有效。至少在下一次修改缓冲区之前，该切片与缓冲区内容共享存储，因此立即修改此切片会影响后续读取的结果。
+
+				
+			
+				<h3 id="Buffer.Read">func (*Buffer) <a href="/src/bytes/buffer.go?s=11625:11675#L326">Read</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 从缓冲区读取接下来的 len(p) 个字节，或一直读到缓冲区耗尽。返回值 n 是读取的字节数。如果缓冲区没有数据可返回，err 为 <a href="/pkg/io/#EOF">io.EOF</a>（除非 len(p) 为零）；否则 err 为 nil。
+
+				
+
+
+<div id="example_Buffer_Read" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte(&#34;abcde&#34;))
+	rdbuf := make([]byte, 1)
+	n, err := b.Read(rdbuf)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(n)
+	fmt.Println(b.String())
+	fmt.Println(string(rdbuf))
+}
+</textarea></div>
+        <div class="output"><pre>1
+bcde
+a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.ReadByte">func (*Buffer) <a href="/src/bytes/buffer.go?s=12546:12587#L364">ReadByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) ReadByte() (<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadByte 读取并返回缓冲区中的下一个字节。如果没有可读字节，则返回错误 <a href="/pkg/io/#EOF">io.EOF</a>。
+
+				
+
+
+<div id="example_Buffer_ReadByte" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+	b.Grow(64)
+	b.Write([]byte(&#34;abcde&#34;))
+	c, err := b.ReadByte()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(c)
+	fmt.Println(b.String())
+}
+</textarea></div>
+        <div class="output"><pre>97
+bcde
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Buffer.ReadBytes">func (*Buffer) <a href="/src/bytes/buffer.go?s=14877:14940#L438">ReadBytes</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) ReadBytes(delim <a href="/pkg/builtin/#byte">byte</a>) (line []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadBytes 读取输入，直到第一次遇到 delim，返回包含截至该分隔符（含分隔符）为止的数据的切片。如果 ReadBytes 在找到分隔符之前遇到错误，则返回出错之前读到的数据以及该错误本身（通常是 <a href="/pkg/io/#EOF">io.EOF</a>）。当且仅当返回的数据不以 delim 结尾时，ReadBytes 返回的 err != nil。
+
+				
+			
+				<h3 id="Buffer.ReadFrom">func (*Buffer) <a href="/src/bytes/buffer.go?s=8151:8210#L214">ReadFrom</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) ReadFrom(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadFrom 从 r 读取数据，直到 EOF，并将其追加到缓冲区中，按需扩展缓冲区。返回值 n 是读取的字节数。读取期间遇到除 io.EOF 以外的任何错误，也会一并返回。如果缓冲区变得过大，ReadFrom 会以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+			
+				<h3 id="Buffer.ReadRune">func (*Buffer) <a href="/src/bytes/buffer.go?s=13001:13058#L381">ReadRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) ReadRune() (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadRune 读取并返回缓冲区中的下一个 UTF-8 编码的 Unicode 码点。如果没有可读字节，则返回错误 io.EOF。如果遇到错误的 UTF-8 编码，则消耗一个字节，并返回 U+FFFD、1。
+
+				
+			
+				<h3 id="Buffer.ReadString">func (*Buffer) <a href="/src/bytes/buffer.go?s=15846:15910#L466">ReadString</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) ReadString(delim <a href="/pkg/builtin/#byte">byte</a>) (line <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadString 读取输入，直到第一次遇到 delim，返回包含截至该分隔符（含分隔符）为止的数据的字符串。如果 ReadString 在找到分隔符之前遇到错误，则返回出错之前读到的数据以及该错误本身（通常是 <a href="/pkg/io/#EOF">io.EOF</a>）。当且仅当返回的数据不以 delim 结尾时，ReadString 返回的 err != nil。
+
+				
+			
+				<h3 id="Buffer.Reset">func (*Buffer) <a href="/src/bytes/buffer.go?s=4867:4891#L114">Reset</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Reset()</pre>
+				<p>Reset 将缓冲区重置为空，但保留底层存储供后续写入使用。Reset 等价于 <a href="#Buffer.Truncate">Buffer.Truncate</a>(0)。
+
+				
+			
+				<h3 id="Buffer.String">func (*Buffer) <a href="/src/bytes/buffer.go?s=3073:3105#L62">String</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 以字符串形式返回缓冲区未读部分的内容。如果 <a href="#Buffer">Buffer</a> 为 nil 指针，则返回 &quot;&lt;nil&gt;&quot;。
+<p>若要更高效地构建字符串，请参阅 <a href="/pkg/strings/#Builder">strings.Builder</a> 类型。
+
+				
+			
+				<h3 id="Buffer.Truncate">func (*Buffer) <a href="/src/bytes/buffer.go?s=4511:4543#L99">Truncate</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Truncate(n <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Truncate 只保留缓冲区中前 n 个未读字节，丢弃其余内容，但继续使用已分配的同一存储空间。如果 n 为负数或大于缓冲区长度，则触发 panic。
+
+				
+			
+				<h3 id="Buffer.UnreadByte">func (*Buffer) <a href="/src/bytes/buffer.go?s=14331:14366#L421">UnreadByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) UnreadByte() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadByte 撤回最近一次成功且至少读取了一个字节的读操作所返回的最后一个字节。如果自上次读取后发生过写入、上次读取返回了错误，或者上次读取了零个字节，UnreadByte 就会返回错误。
+
+				
+			
+				<h3 id="Buffer.UnreadRune">func (*Buffer) <a href="/src/bytes/buffer.go?s=13686:13721#L404">UnreadRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) UnreadRune() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadRune 撤回 <a href="#Buffer.ReadRune">Buffer.ReadRune</a> 返回的最后一个 rune。如果缓冲区最近一次读写操作不是成功的 <a href="#Buffer.ReadRune">Buffer.ReadRune</a>，UnreadRune 就会返回错误。（在这一点上，它比 <a href="#Buffer.UnreadByte">Buffer.UnreadByte</a> 更严格；后者可以撤回任意读操作返回的最后一个字节。）
+
+				
+			
+				<h3 id="Buffer.Write">func (*Buffer) <a href="/src/bytes/buffer.go?s=6974:7025#L183">Write</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 p 的内容追加到缓冲区中，并按需扩展缓冲区。返回值 n 为 p 的长度；err 始终为 nil。如果缓冲区变得过大，Write 会以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+			
+				<h3 id="Buffer.WriteByte">func (*Buffer) <a href="/src/bytes/buffer.go?s=10562:10602#L293">WriteByte</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) WriteByte(c <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteByte 将字节 c 追加到缓冲区中，并按需扩展缓冲区。返回的错误始终为 nil，保留此返回值是为了与 <a href="/pkg/bufio/#Writer">bufio.Writer</a> 的 WriteByte 一致。如果缓冲区变得过大，WriteByte 会以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+			
+				<h3 id="Buffer.WriteRune">func (*Buffer) <a href="/src/bytes/buffer.go?s=11022:11075#L307">WriteRune</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) WriteRune(r <a href="/pkg/builtin/#rune">rune</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteRune 将 Unicode 码点 r 的 UTF-8 编码追加到缓冲区中，返回写入的字节数和 nil 错误。保留 nil 错误返回值是为了与 <a href="/pkg/bufio/#Writer">bufio.Writer</a> 的 WriteRune 一致。缓冲区按需扩展；如果变得过大，WriteRune 会以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+			
+				<h3 id="Buffer.WriteString">func (*Buffer) <a href="/src/bytes/buffer.go?s=7384:7441#L195">WriteString</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) WriteString(s <a href="/pkg/builtin/#string">string</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString 将 s 的内容追加到缓冲区中，并按需扩展缓冲区。返回值 n 为 s 的长度；err 始终为 nil。如果缓冲区变得过大，WriteString 会以 <a href="#ErrTooLarge">ErrTooLarge</a> 触发 panic。
+
+				
+			
+				<h3 id="Buffer.WriteTo">func (*Buffer) <a href="/src/bytes/buffer.go?s=9816:9874#L266">WriteTo</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Buffer">Buffer</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteTo 向 w 写入数据，直到缓冲区耗尽或发生错误。返回值 n 是写入的字节数；它的值始终可以用 int 表示，但为与 <a href="/pkg/io/#WriterTo">io.WriterTo</a> 接口一致，类型使用 int64。写入期间遇到的任何错误也会一并返回。
+
+				
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/bytes/reader.go?s=525:655#L8">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 通过读取字节切片，实现 <a href="/pkg/io/#Reader">io.Reader</a>、<a href="/pkg/io/#ReaderAt">io.ReaderAt</a>、<a href="/pkg/io/#WriterTo">io.WriterTo</a>、<a href="/pkg/io/#Seeker">io.Seeker</a>、<a href="/pkg/io/#ByteScanner">io.ByteScanner</a> 和 <a href="/pkg/io/#RuneScanner">io.RuneScanner</a> 接口。与 <a href="#Buffer">Buffer</a> 不同，Reader 是只读的，并支持定位。Reader 的零值行为与读取空切片的 Reader 相同。
+
+			<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/bytes/reader.go?s=3915:3947#L149">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(b []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader 返回一个从 b 读取数据的新 <a href="#Reader">Reader</a>。
+
+				
+			
+
+			
+				<h3 id="Reader.Len">func (*Reader) <a href="/src/bytes/reader.go?s=731:757#L16">Len</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回切片未读部分的字节数。
+
+				
+
+
+<div id="example_Reader_Len" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	fmt.Println(bytes.NewReader([]byte(&#34;Hi!&#34;)).Len())
+	fmt.Println(bytes.NewReader([]byte(&#34;こんにちは!&#34;)).Len())
+}
+</textarea></div>
+        <div class="output"><pre>3
+16
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Reader.Read">func (*Reader) <a href="/src/bytes/reader.go?s=1156:1206#L29">Read</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 实现 <a href="/pkg/io/#Reader">io.Reader</a> 接口。
+
+				
+			
+				<h3 id="Reader.ReadAt">func (*Reader) <a href="/src/bytes/reader.go?s=1379:1442#L40">ReadAt</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadAt(b []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadAt 实现 <a href="/pkg/io/#ReaderAt">io.ReaderAt</a> 接口。
+
+				
+			
+				<h3 id="Reader.ReadByte">func (*Reader) <a href="/src/bytes/reader.go?s=1742:1783#L56">ReadByte</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadByte() (<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadByte 实现 <a href="/pkg/io/#ByteReader">io.ByteReader</a> 接口。
+
+				
+			
+				<h3 id="Reader.ReadRune">func (*Reader) <a href="/src/bytes/reader.go?s=2205:2263#L77">ReadRune</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadRune() (ch <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadRune 实现 <a href="/pkg/io/#RuneReader">io.RuneReader</a> 接口。
+
+				
+			
+				<h3 id="Reader.Reset">func (*Reader) <a href="/src/bytes/reader.go?s=3803:3835#L146">Reset</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Reset(b []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+				<p>Reset 将 <a href="#Reader">Reader</a> 重置为从 b 读取数据。
+
+				
+			
+				<h3 id="Reader.Seek">func (*Reader) <a href="/src/bytes/reader.go?s=2935:2997#L106">Seek</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Seek(offset <a href="/pkg/builtin/#int64">int64</a>, whence <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Seek 实现 <a href="/pkg/io/#Seeker">io.Seeker</a> 接口。
+
+				
+			
+				<h3 id="Reader.Size">func (*Reader) <a href="/src/bytes/reader.go?s=1052:1081#L26">Size</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Size 返回底层字节切片的原始长度，即可通过 <a href="#Reader.ReadAt">Reader.ReadAt</a> 读取的字节数。除 <a href="#Reader.Reset">Reader.Reset</a> 外，任何方法调用都不会影响此结果。
+
+				
+			
+				<h3 id="Reader.UnreadByte">func (*Reader) <a href="/src/bytes/reader.go?s=1986:2021#L67">UnreadByte</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) UnreadByte() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadByte 与 <a href="#Reader.ReadByte">Reader.ReadByte</a> 配合实现 <a href="/pkg/io/#ByteScanner">io.ByteScanner</a> 接口。
+
+				
+			
+				<h3 id="Reader.UnreadRune">func (*Reader) <a href="/src/bytes/reader.go?s=2598:2633#L93">UnreadRune</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) UnreadRune() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnreadRune 与 <a href="#Reader.ReadRune">Reader.ReadRune</a> 配合实现 <a href="/pkg/io/#RuneScanner">io.RuneScanner</a> 接口。
+
+				
+			
+				<h3 id="Reader.WriteTo">func (*Reader) <a href="/src/bytes/reader.go?s=3413:3471#L127">WriteTo</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteTo 实现 <a href="/pkg/io/#WriterTo">io.WriterTo</a> 接口。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

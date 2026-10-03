@@ -1,0 +1,746 @@
+<!--{
+  "Title": "net/rpc 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package rpc</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/rpc"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>rpc 包允许通过网络或其他 I/O 连接访问对象的导出方法。
+<p>net/rpc 包已冻结，不再接受新功能。
+<p>服务器注册一个对象后，该对象就以其类型名作为服务名称对外可见。注册后，对象的导出方法可以被远程访问。服务器可以注册多个不同类型的对象（服务），但注册同一类型的多个对象会产生错误。
+<p>只有满足以下条件的方法才可供远程访问；其他方法会被忽略：
+<ul>
+<li>方法所属的类型是导出的。
+<li>方法是导出的。
+<li>方法有两个参数，且两个参数的类型都是导出的类型（或内置类型）。
+<li>方法的第二个参数是指针。
+<li>方法的返回类型为 error。
+</ul>
+<p>实际上，方法的形式必须类似于：
+<pre>func (t *T) MethodName(argType T1, replyType *T2) error
+</pre>
+<p>其中 T1 和 T2 必须能够由 encoding/gob 序列化。即使使用其他编解码器，这些要求仍然适用。（将来可能会为自定义编解码器放宽这些要求。）
+<p>方法的第一个参数表示调用者提供的参数；第二个参数表示要返回给调用者的结果。方法的返回值如果非 nil，会以字符串形式传回，客户端看到的错误如同由 <a href="/pkg/errors/#New">errors.New</a> 创建。如果返回错误，则不会将 reply 参数发送回客户端。
+<p>服务器可以通过调用 <a href="#ServeConn">ServeConn</a> 处理单个连接上的请求。更常见的方式是创建网络监听器并调用 <a href="#Accept">Accept</a>；对于 HTTP 监听器，则调用 <a href="#HandleHTTP">HandleHTTP</a> 和 <a href="/pkg/net/http/#Serve">http.Serve</a>。
+<p>要使用该服务，客户端先建立连接，再对连接调用 <a href="#NewClient">NewClient</a>。便捷函数 <a href="#Dial">Dial</a>（<a href="#DialHTTP">DialHTTP</a>）为原始网络连接（HTTP 连接）完成这两个步骤。得到的 <a href="#Client">Client</a> 对象具有 <a href="#Call">Call</a> 和 Go 两个方法，用于指定要调用的服务和方法、包含参数的指针，以及接收结果的指针。
+<p>Call 方法等待远程调用完成；Go 方法则异步发起调用，并通过 Call 结构的 Done 通道通知调用完成。
+<p>除非显式配置其他编解码器，否则使用 <a href="/pkg/encoding/gob/">encoding/gob</a> 包传输数据。
+<p>以下是一个简单示例。服务器希望导出一个 Arith 类型的对象：
+<pre>package server
+
+import &quot;errors&quot;
+
+type Args struct {
+	A, B int
+}
+
+type Quotient struct {
+	Quo, Rem int
+}
+
+type Arith int
+
+func (t *Arith) Multiply(args *Args, reply *int) error {
+	*reply = args.A * args.B
+	return nil
+}
+
+func (t *Arith) Divide(args *Args, quo *Quotient) error {
+	if args.B == 0 {
+		return errors.New(&quot;divide by zero&quot;)
+	}
+	quo.Quo = args.A / args.B
+	quo.Rem = args.A % args.B
+	return nil
+}
+</pre>
+<p>服务器调用以下代码（用于 HTTP 服务）：
+<pre>arith := new(Arith)
+rpc.Register(arith)
+rpc.HandleHTTP()
+l, err := net.Listen(&quot;tcp&quot;, &quot;:1234&quot;)
+if err != nil {
+	log.Fatal(&quot;listen error:&quot;, err)
+}
+go http.Serve(l, nil)
+</pre>
+<p>此时，客户端可以看到名为“Arith”的服务，以及“Arith.Multiply”和“Arith.Divide”方法。要调用其中一个方法，客户端首先连接服务器：
+<pre>client, err := rpc.DialHTTP(&quot;tcp&quot;, serverAddress + &quot;:1234&quot;)
+if err != nil {
+	log.Fatal(&quot;dialing:&quot;, err)
+}
+</pre>
+<p>然后就可以进行远程调用：
+<pre>// 同步调用
+args := &amp;server.Args{7,8}
+var reply int
+err = client.Call("Arith.Multiply", args, &amp;reply)
+if err != nil {
+	log.Fatal("arith error:", err)
+}
+fmt.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
+</pre>
+<p>或者：
+<pre>// 异步调用
+quotient := new(Quotient)
+divCall := client.Go("Arith.Divide", args, quotient, nil)
+replyCall := &lt;-divCall.Done	// 将等于 divCall
+// 检查错误、打印等。
+</pre>
+<p>服务器实现通常会为客户端提供一个简单且类型安全的包装。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Accept">func Accept(lis net.Listener)</a></dd>
+			
+				<dd><a href="#HandleHTTP">func HandleHTTP()</a></dd>
+			
+				<dd><a href="#Register">func Register(rcvr any) error</a></dd>
+			
+				<dd><a href="#RegisterName">func RegisterName(name string, rcvr any) error</a></dd>
+			
+				<dd><a href="#ServeCodec">func ServeCodec(codec ServerCodec)</a></dd>
+			
+				<dd><a href="#ServeConn">func ServeConn(conn io.ReadWriteCloser)</a></dd>
+			
+				<dd><a href="#ServeRequest">func ServeRequest(codec ServerCodec) error</a></dd>
+			
+			
+				
+				<dd><a href="#Call">type Call</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Client">type Client</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(network, address string) (*Client, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DialHTTP">func DialHTTP(network, address string) (*Client, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DialHTTPPath">func DialHTTPPath(network, address, path string) (*Client, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewClient">func NewClient(conn io.ReadWriteCloser) *Client</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewClientWithCodec">func NewClientWithCodec(codec ClientCodec) *Client</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Call">func (client *Client) Call(serviceMethod string, args any, reply any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Close">func (client *Client) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Go">func (client *Client) Go(serviceMethod string, args any, reply any, done chan *Call) *Call</a></dd>
+				
+			
+				
+				<dd><a href="#ClientCodec">type ClientCodec</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Request">type Request</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Response">type Response</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Server">type Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewServer">func NewServer() *Server</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Accept">func (server *Server) Accept(lis net.Listener)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.HandleHTTP">func (server *Server) HandleHTTP(rpcPath, debugPath string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Register">func (server *Server) Register(rcvr any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.RegisterName">func (server *Server) RegisterName(name string, rcvr any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.ServeCodec">func (server *Server) ServeCodec(codec ServerCodec)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.ServeConn">func (server *Server) ServeConn(conn io.ReadWriteCloser)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.ServeHTTP">func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.ServeRequest">func (server *Server) ServeRequest(codec ServerCodec) error</a></dd>
+				
+			
+				
+				<dd><a href="#ServerCodec">type ServerCodec</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ServerError">type ServerError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerError.Error">func (e ServerError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/rpc/client.go">client.go</a>
+			
+				<a href="/src/net/rpc/debug.go">debug.go</a>
+			
+				<a href="/src/net/rpc/server.go">server.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// HandleHTTP 使用的默认值</span>
+    <span id="DefaultRPCPath">DefaultRPCPath</span>   = &#34;/_goRPC_&#34;
+    <span id="DefaultDebugPath">DefaultDebugPath</span> = &#34;/debug/rpc&#34;
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>DefaultServer 是 <a href="#Server">*Server</a> 的默认实例。
+
+				<pre>var <span id="DefaultServer">DefaultServer</span> = <a href="#NewServer">NewServer</a>()</pre>
+			
+				
+				<pre>var <span id="ErrShutdown">ErrShutdown</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;connection is shut down&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="Accept">func <a href="/src/net/rpc/server.go?s=20763:20792#L681">Accept</a>
+				
+				
+			</h2>
+			<pre>func Accept(lis <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>)</pre>
+			<p>Accept 在监听器上接收连接，并为每个传入连接处理发给 <a href="#DefaultServer">DefaultServer</a> 的请求。Accept 会阻塞；调用者通常通过 go 语句调用它。
+
+			
+		
+			
+			<h2 id="HandleHTTP">func <a href="/src/net/rpc/server.go?s=22035:22052#L714">HandleHTTP</a>
+				
+				
+			</h2>
+			<pre>func HandleHTTP()</pre>
+			<p>HandleHTTP 为发往 <a href="#DefaultServer">DefaultServer</a> 的 RPC 消息在 <a href="#DefaultRPCPath">DefaultRPCPath</a> 上注册 HTTP 处理器，并在 <a href="#DefaultDebugPath">DefaultDebugPath</a> 上注册调试处理器。仍然需要调用 <a href="/pkg/net/http/#Serve">http.Serve</a>()，通常通过 go 语句调用。
+
+			
+		
+			
+			<h2 id="Register">func <a href="/src/net/rpc/server.go?s=18629:18658#L631">Register</a>
+				
+				
+			</h2>
+			<pre>func Register(rcvr <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Register 在 <a href="#DefaultServer">DefaultServer</a> 中发布接收者的方法。
+
+			
+		
+			
+			<h2 id="RegisterName">func <a href="/src/net/rpc/server.go?s=18819:18865#L635">RegisterName</a>
+				
+				
+			</h2>
+			<pre>func RegisterName(name <a href="/pkg/builtin/#string">string</a>, rcvr <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>RegisterName 类似于 <a href="#Register">Register</a>，但使用给定名称作为类型名，而非接收者的具体类型名。
+
+			
+		
+			
+			<h2 id="ServeCodec">func <a href="/src/net/rpc/server.go?s=20285:20319#L668">ServeCodec</a>
+				
+				
+			</h2>
+			<pre>func ServeCodec(codec <a href="#ServerCodec">ServerCodec</a>)</pre>
+			<p>ServeCodec 类似于 <a href="#ServeConn">ServeConn</a>，但使用指定的编解码器解码请求和编码响应。
+
+			
+		
+			
+			<h2 id="ServeConn">func <a href="/src/net/rpc/server.go?s=20102:20141#L662">ServeConn</a>
+				
+				
+			</h2>
+			<pre>func ServeConn(conn <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadWriteCloser">ReadWriteCloser</a>)</pre>
+			<p>ServeConn 在单个连接上运行 <a href="#DefaultServer">DefaultServer</a>。它会阻塞并为该连接提供服务，直到客户端挂断。调用者通常通过 go 语句调用 ServeConn。ServeConn 在连接上使用 gob 传输格式（参见 gob 包）。若要使用其他编解码器，请使用 <a href="#ServeCodec">ServeCodec</a>。关于并发访问的信息，参见 <a href="#NewClient">NewClient</a> 的注释。
+
+			
+		
+			
+			<h2 id="ServeRequest">func <a href="/src/net/rpc/server.go?s=20486:20528#L674">ServeRequest</a>
+				
+				
+			</h2>
+			<pre>func ServeRequest(codec <a href="#ServerCodec">ServerCodec</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>ServeRequest 类似于 <a href="#ServeCodec">ServeCodec</a>，但以同步方式处理单个请求。完成后不会关闭编解码器。
+
+			
+		
+		
+			
+			<h2 id="Call">type <a href="/src/net/rpc/client.go?s=540:900#L19">Call</a>
+				
+				
+			</h2>
+			<p>Call 表示一个进行中的 RPC 调用。
+
+			<pre>type Call struct {
+<span id="Call.ServiceMethod"></span>    ServiceMethod <a href="/pkg/builtin/#string">string</a>     <span class="comment">// 要调用的服务和方法的名称。</span>
+<span id="Call.Args"></span>    Args          <a href="/pkg/builtin/#any">any</a>        <span class="comment">// 函数参数（*struct）。</span>
+<span id="Call.Reply"></span>    Reply         <a href="/pkg/builtin/#any">any</a>        <span class="comment">// 函数的回复（*struct）。</span>
+<span id="Call.Error"></span>    Error         <a href="/pkg/builtin/#error">error</a>      <span class="comment">// 完成后的错误状态。</span>
+<span id="Call.Done"></span>    Done          chan *<a href="#Call">Call</a> <span class="comment">// Go 完成时接收 *Call。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Client">type <a href="/src/net/rpc/client.go?s=1084:1360#L31">Client</a>
+				
+				
+			</h2>
+			<p>Client 表示一个 RPC 客户端。单个 Client 可以关联多个尚未完成的 Call，也可以由多个 goroutine 同时使用。
+
+			<pre>type Client struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dial">func <a href="/src/net/rpc/client.go?s=7490:7541#L263">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(network, address <a href="/pkg/builtin/#string">string</a>) (*<a href="#Client">Client</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial 连接到指定网络地址上的 RPC 服务器。
+
+				
+			
+				<h3 id="DialHTTP">func <a href="/src/net/rpc/client.go?s=6558:6613#L231">DialHTTP</a>
+					
+					
+				</h3>
+				<pre>func DialHTTP(network, address <a href="/pkg/builtin/#string">string</a>) (*<a href="#Client">Client</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DialHTTP 连接到指定网络地址上的 HTTP RPC 服务器，该服务器在默认 HTTP RPC 路径上提供服务。
+
+				
+			
+				<h3 id="DialHTTPPath">func <a href="/src/net/rpc/client.go?s=6767:6832#L237">DialHTTPPath</a>
+					
+					
+				</h3>
+				<pre>func DialHTTPPath(network, address, path <a href="/pkg/builtin/#string">string</a>) (*<a href="#Client">Client</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DialHTTPPath 连接到指定网络地址和路径上的 HTTP RPC 服务器。
+
+				
+			
+				<h3 id="NewClient">func <a href="/src/net/rpc/client.go?s=5370:5417#L183">NewClient</a>
+					
+					
+				</h3>
+				<pre>func NewClient(conn <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadWriteCloser">ReadWriteCloser</a>) *<a href="#Client">Client</a></pre>
+				<p>NewClient 返回一个新的 <a href="#Client">Client</a>，用于处理针对连接另一端服务集合的请求。它为连接的写入端添加缓冲，使头部和负载作为一个整体发送。
+<p>连接的读取端和写入端分别独立串行化，因此读写之间不需要互锁。不过，每一端都可能被并发访问，因此 conn 的实现应防护并发读取或并发写入。
+
+				
+			
+				<h3 id="NewClientWithCodec">func <a href="/src/net/rpc/client.go?s=5693:5743#L191">NewClientWithCodec</a>
+					
+					
+				</h3>
+				<pre>func NewClientWithCodec(codec <a href="#ClientCodec">ClientCodec</a>) *<a href="#Client">Client</a></pre>
+				<p>NewClientWithCodec 类似于 <a href="#NewClient">NewClient</a>，但使用指定编解码器编码请求和解码响应。
+
+				
+			
+
+			
+				<h3 id="Client.Call">func (*Client) <a href="/src/net/rpc/client.go?s=9012:9087#L310">Call</a>
+					
+					
+				</h3>
+				<pre>func (client *<a href="#Client">Client</a>) Call(serviceMethod <a href="/pkg/builtin/#string">string</a>, args <a href="/pkg/builtin/#any">any</a>, reply <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Call 调用指定名称的函数，等待它完成，并返回其错误状态。
+
+				
+			
+				<h3 id="Client.Close">func (*Client) <a href="/src/net/rpc/client.go?s=7781:7816#L273">Close</a>
+					
+					
+				</h3>
+				<pre>func (client *<a href="#Client">Client</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 调用底层编解码器的 Close 方法。如果连接已在关闭过程中，则返回 <a href="#ErrShutdown">ErrShutdown</a>。
+
+				
+			
+				<h3 id="Client.Go">func (*Client) <a href="/src/net/rpc/client.go?s=8303:8393#L288">Go</a>
+					
+					
+				</h3>
+				<pre>func (client *<a href="#Client">Client</a>) Go(serviceMethod <a href="/pkg/builtin/#string">string</a>, args <a href="/pkg/builtin/#any">any</a>, reply <a href="/pkg/builtin/#any">any</a>, done chan *<a href="#Call">Call</a>) *<a href="#Call">Call</a></pre>
+				<p>Go 异步调用函数，并返回表示此次调用的 <a href="#Call">Call</a> 结构。调用完成时，done 通道会发送同一个 Call 对象作为通知。如果 done 为 nil，Go 会分配一个新通道。如果 done 非 nil，则它必须带缓冲，否则 Go 会故意触发崩溃。
+
+				
+			
+		
+			
+			<h2 id="ClientCodec">type <a href="/src/net/rpc/client.go?s=1948:2095#L53">ClientCodec</a>
+				
+				
+			</h2>
+			<p>ClientCodec 为 RPC 会话的客户端实现 RPC 请求写入和 RPC 响应读取。客户端调用 <a href="#ClientCodec.WriteRequest">ClientCodec.WriteRequest</a> 将请求写入连接，并成对调用 <a href="#ClientCodec.ReadResponseHeader">ClientCodec.ReadResponseHeader</a> 和 <a href="#ClientCodec.ReadResponseBody">ClientCodec.ReadResponseBody</a> 读取响应。连接使用完毕后，客户端调用 <a href="#ClientCodec.Close">ClientCodec.Close</a>。ReadResponseBody 可以接收 nil 参数，以强制读取响应体并将其丢弃。关于并发访问的信息，参见 <a href="#NewClient">NewClient</a> 的注释。
+
+			<pre>type ClientCodec interface {
+    WriteRequest(*<a href="#Request">Request</a>, <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+    ReadResponseHeader(*<a href="#Response">Response</a>) <a href="/pkg/builtin/#error">error</a>
+    ReadResponseBody(<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+
+    Close() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Request">type <a href="/src/net/rpc/server.go?s=4949:5135#L162">Request</a>
+				
+				
+			</h2>
+			<p>Request 是在每次 RPC 调用之前写入的头部。它供内部使用，但在此提供文档以辅助调试，例如分析网络流量。
+
+			<pre>type Request struct {
+<span id="Request.ServiceMethod"></span>    ServiceMethod <a href="/pkg/builtin/#string">string</a> <span class="comment">// 格式："Service.Method"</span>
+<span id="Request.Seq"></span>    Seq           <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// 由客户端选择的序列号</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Response">type <a href="/src/net/rpc/server.go?s=5306:5535#L171">Response</a>
+				
+				
+			</h2>
+			<p>Response 是在每次 RPC 返回之前写入的头部。它供内部使用，但在此提供文档以辅助调试，例如分析网络流量。
+
+			<pre>type Response struct {
+<span id="Response.ServiceMethod"></span>    ServiceMethod <a href="/pkg/builtin/#string">string</a> <span class="comment">// 与 Request 中的值相同</span>
+<span id="Response.Seq"></span>    Seq           <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// 与请求中的值相同</span>
+<span id="Response.Error"></span>    Error         <a href="/pkg/builtin/#string">string</a> <span class="comment">// 错误（如果有）。</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Server">type <a href="/src/net/rpc/server.go?s=5573:5771#L179">Server</a>
+				
+				
+			</h2>
+			<p>Server 表示一个 RPC 服务器。
+
+			<pre>type Server struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewServer">func <a href="/src/net/rpc/server.go?s=5810:5834#L188">NewServer</a>
+					
+					
+				</h3>
+				<pre>func NewServer() *<a href="#Server">Server</a></pre>
+				<p>NewServer 返回一个新的 <a href="#Server">Server</a>。
+
+				
+			
+
+			
+				<h3 id="Server.Accept">func (*Server) <a href="/src/net/rpc/server.go?s=18362:18408#L619">Accept</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) Accept(lis <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>)</pre>
+				<p>Accept 在监听器上接收连接，并为每个传入连接处理请求。Accept 会阻塞，直到监听器返回非 nil 错误。调用者通常通过 go 语句调用 Accept。
+
+				
+			
+				<h3 id="Server.HandleHTTP">func (*Server) <a href="/src/net/rpc/server.go?s=21671:21730#L706">HandleHTTP</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) HandleHTTP(rpcPath, debugPath <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>HandleHTTP 在 rpcPath 上注册 RPC 消息的 HTTP 处理器，并在 debugPath 上注册调试处理器。仍然需要调用 <a href="/pkg/net/http/#Serve">http.Serve</a>()，通常通过 go 语句调用。
+
+				
+			
+				<h3 id="Server.Register">func (*Server) <a href="/src/net/rpc/server.go?s=6835:6881#L216">Register</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) Register(rcvr <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Register 在服务器中发布接收者值满足以下条件的方法集合：
+<ul>
+<li>导出类型的导出方法
+<li>两个参数，且均为导出类型
+<li>第二个参数是指针
+<li>一个返回值，类型为 error
+</ul>
+<p>如果接收者不是导出类型，或没有符合条件的方法，则返回错误，并使用 log 包记录该错误。客户端通过“Type.Method”形式的字符串访问每个方法，其中 Type 是接收者的具体类型。
+
+				
+			
+				<h3 id="Server.RegisterName">func (*Server) <a href="/src/net/rpc/server.go?s=7047:7110#L222">RegisterName</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) RegisterName(name <a href="/pkg/builtin/#string">string</a>, rcvr <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>RegisterName 类似于 <a href="#Register">Register</a>，但使用给定名称作为类型名，而非接收者的具体类型名。
+
+				
+			
+				<h3 id="Server.ServeCodec">func (*Server) <a href="/src/net/rpc/server.go?s=13836:13887#L450">ServeCodec</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) ServeCodec(codec <a href="#ServerCodec">ServerCodec</a>)</pre>
+				<p>ServeCodec 类似于 <a href="#ServeConn">ServeConn</a>，但使用指定的编解码器解码请求和编码响应。
+
+				
+			
+				<h3 id="Server.ServeConn">func (*Server) <a href="/src/net/rpc/server.go?s=13491:13547#L437">ServeConn</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) ServeConn(conn <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadWriteCloser">ReadWriteCloser</a>)</pre>
+				<p>ServeConn 在单个连接上运行服务器。它会阻塞并为该连接提供服务，直到客户端挂断。调用者通常通过 go 语句调用 ServeConn。ServeConn 在连接上使用 gob 传输格式（参见 gob 包）。若要使用其他编解码器，请使用 <a href="#ServeCodec">ServeCodec</a>。关于并发访问的信息，参见 <a href="#NewClient">NewClient</a> 的注释。
+
+				
+			
+				<h3 id="Server.ServeHTTP">func (*Server) <a href="/src/net/rpc/server.go?s=20997:21070#L687">ServeHTTP</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) ServeHTTP(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+				<p>ServeHTTP 实现了响应 RPC 请求的 <a href="/pkg/net/http/#Handler">http.Handler</a>。
+
+				
+			
+				<h3 id="Server.ServeRequest">func (*Server) <a href="/src/net/rpc/server.go?s=14710:14769#L480">ServeRequest</a>
+					
+					
+				</h3>
+				<pre>func (server *<a href="#Server">Server</a>) ServeRequest(codec <a href="#ServerCodec">ServerCodec</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>ServeRequest 类似于 <a href="#ServeCodec">ServeCodec</a>，但以同步方式处理单个请求。完成后不会关闭编解码器。
+
+				
+			
+		
+			
+			<h2 id="ServerCodec">type <a href="/src/net/rpc/server.go?s=19504:19713#L647">ServerCodec</a>
+				
+				
+			</h2>
+			<p>ServerCodec 为 RPC 会话的服务端实现 RPC 请求读取和 RPC 响应写入。服务器成对调用 <a href="#ServerCodec.ReadRequestHeader">ServerCodec.ReadRequestHeader</a> 和 <a href="#ServerCodec.ReadRequestBody">ServerCodec.ReadRequestBody</a> 从连接读取请求，并调用 <a href="#ServerCodec.WriteResponse">ServerCodec.WriteResponse</a> 写回响应。连接使用完毕后，服务器调用 <a href="#ServerCodec.Close">ServerCodec.Close</a>。ReadRequestBody 可以接收 nil 参数，以强制读取请求体并将其丢弃。关于并发访问的信息，参见 <a href="#NewClient">NewClient</a> 的注释。
+
+			<pre>type ServerCodec interface {
+    ReadRequestHeader(*<a href="#Request">Request</a>) <a href="/pkg/builtin/#error">error</a>
+    ReadRequestBody(<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+    WriteResponse(*<a href="#Response">Response</a>, <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// Close 可以调用多次，且必须具有幂等性。</span>
+    Close() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ServerError">type <a href="/src/net/rpc/client.go?s=365:388#L10">ServerError</a>
+				
+				
+			</h2>
+			<p>ServerError 表示从 RPC 连接远端返回的错误。
+
+			<pre>type ServerError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ServerError.Error">func (ServerError) <a href="/src/net/rpc/client.go?s=390:425#L12">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#ServerError">ServerError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="jsonrpc/">jsonrpc</a>
+					</td>
+				
+					<td class="pkg-synopsis">jsonrpc 包为 rpc 包实现了 JSON-RPC 1.0 的 ClientCodec 和 ServerCodec。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

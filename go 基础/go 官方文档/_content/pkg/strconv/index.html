@@ -1,0 +1,1991 @@
+<!--{
+  "Title": "strconv 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>strconv 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "strconv"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>strconv 包实现基本数据类型与其字符串表示之间的转换。
+<h3 id="hdr-Numeric_Conversions">数值转换</h3>
+<p>最常用的数值转换是 <a href="#Atoi">Atoi</a>（字符串转 int）和 <a href="#Itoa">Itoa</a>（int 转字符串）。
+<pre>i, err := strconv.Atoi(&quot;-42&quot;)
+s := strconv.Itoa(-42)
+</pre>
+<p>它们使用十进制和 Go 的 int 类型。
+<p><a href="#ParseBool">ParseBool</a>、<a href="#ParseFloat">ParseFloat</a>、<a href="#ParseInt">ParseInt</a> 和 <a href="#ParseUint">ParseUint</a> 将字符串转换为相应的值：
+<pre>b, err := strconv.ParseBool(&quot;true&quot;)
+f, err := strconv.ParseFloat(&quot;3.1415&quot;, 64)
+i, err := strconv.ParseInt(&quot;-42&quot;, 10, 64)
+u, err := strconv.ParseUint(&quot;42&quot;, 10, 64)
+</pre>
+<p>解析函数返回最宽的类型（float64、int64 和 uint64）。不过，如果位宽参数指定了较窄的类型，结果就可以无损转换为该类型：
+<pre>s := &quot;2147483647&quot; // 最大的 int32
+i64, err := strconv.ParseInt(s, 10, 32)
+...
+i := int32(i64)
+</pre>
+<p><a href="#FormatBool">FormatBool</a>、<a href="#FormatFloat">FormatFloat</a>、<a href="#FormatInt">FormatInt</a> 和 <a href="#FormatUint">FormatUint</a> 将值转换为字符串：
+<pre>s := strconv.FormatBool(true)
+s := strconv.FormatFloat(3.1415, &apos;E&apos;, -1, 64)
+s := strconv.FormatInt(-42, 16)
+s := strconv.FormatUint(42, 16)
+</pre>
+<p><a href="#AppendBool">AppendBool</a>、<a href="#AppendFloat">AppendFloat</a>、<a href="#AppendInt">AppendInt</a> 和 <a href="#AppendUint">AppendUint</a> 的作用类似，但会将格式化结果追加到目标切片中。
+<h3 id="hdr-String_Conversions">字符串转换</h3>
+<p><a href="#Quote">Quote</a> 和 <a href="#QuoteToASCII">QuoteToASCII</a> 将字符串转换为带引号的 Go 字符串字面量。后者会用 \u 转义非 ASCII 的 Unicode 字符，确保结果是 ASCII 字符串：
+<pre>q := strconv.Quote(&quot;Hello, 世界&quot;)
+q := strconv.QuoteToASCII(&quot;Hello, 世界&quot;)
+</pre>
+<p><a href="#QuoteRune">QuoteRune</a> 和 <a href="#QuoteRuneToASCII">QuoteRuneToASCII</a> 的作用类似，但接收 rune，并返回带引号的 Go rune 字面量。
+<p><a href="#Unquote">Unquote</a> 和 <a href="#UnquoteChar">UnquoteChar</a> 解析 Go 字符串字面量和 rune 字面量中的引号及转义。
+</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AppendBool">func AppendBool(dst []byte, b bool) []byte</a></dd>
+			
+				<dd><a href="#AppendFloat">func AppendFloat(dst []byte, f float64, fmt byte, prec, bitSize int) []byte</a></dd>
+			
+				<dd><a href="#AppendInt">func AppendInt(dst []byte, i int64, base int) []byte</a></dd>
+			
+				<dd><a href="#AppendQuote">func AppendQuote(dst []byte, s string) []byte</a></dd>
+			
+				<dd><a href="#AppendQuoteRune">func AppendQuoteRune(dst []byte, r rune) []byte</a></dd>
+			
+				<dd><a href="#AppendQuoteRuneToASCII">func AppendQuoteRuneToASCII(dst []byte, r rune) []byte</a></dd>
+			
+				<dd><a href="#AppendQuoteRuneToGraphic">func AppendQuoteRuneToGraphic(dst []byte, r rune) []byte</a></dd>
+			
+				<dd><a href="#AppendQuoteToASCII">func AppendQuoteToASCII(dst []byte, s string) []byte</a></dd>
+			
+				<dd><a href="#AppendQuoteToGraphic">func AppendQuoteToGraphic(dst []byte, s string) []byte</a></dd>
+			
+				<dd><a href="#AppendUint">func AppendUint(dst []byte, i uint64, base int) []byte</a></dd>
+			
+				<dd><a href="#Atoi">func Atoi(s string) (int, error)</a></dd>
+			
+				<dd><a href="#CanBackquote">func CanBackquote(s string) bool</a></dd>
+			
+				<dd><a href="#FormatBool">func FormatBool(b bool) string</a></dd>
+			
+				<dd><a href="#FormatComplex">func FormatComplex(c complex128, fmt byte, prec, bitSize int) string</a></dd>
+			
+				<dd><a href="#FormatFloat">func FormatFloat(f float64, fmt byte, prec, bitSize int) string</a></dd>
+			
+				<dd><a href="#FormatInt">func FormatInt(i int64, base int) string</a></dd>
+			
+				<dd><a href="#FormatUint">func FormatUint(i uint64, base int) string</a></dd>
+			
+				<dd><a href="#IsGraphic">func IsGraphic(r rune) bool</a></dd>
+			
+				<dd><a href="#IsPrint">func IsPrint(r rune) bool</a></dd>
+			
+				<dd><a href="#Itoa">func Itoa(i int) string</a></dd>
+			
+				<dd><a href="#ParseBool">func ParseBool(str string) (bool, error)</a></dd>
+			
+				<dd><a href="#ParseComplex">func ParseComplex(s string, bitSize int) (complex128, error)</a></dd>
+			
+				<dd><a href="#ParseFloat">func ParseFloat(s string, bitSize int) (float64, error)</a></dd>
+			
+				<dd><a href="#ParseInt">func ParseInt(s string, base int, bitSize int) (i int64, err error)</a></dd>
+			
+				<dd><a href="#ParseUint">func ParseUint(s string, base int, bitSize int) (uint64, error)</a></dd>
+			
+				<dd><a href="#Quote">func Quote(s string) string</a></dd>
+			
+				<dd><a href="#QuoteRune">func QuoteRune(r rune) string</a></dd>
+			
+				<dd><a href="#QuoteRuneToASCII">func QuoteRuneToASCII(r rune) string</a></dd>
+			
+				<dd><a href="#QuoteRuneToGraphic">func QuoteRuneToGraphic(r rune) string</a></dd>
+			
+				<dd><a href="#QuoteToASCII">func QuoteToASCII(s string) string</a></dd>
+			
+				<dd><a href="#QuoteToGraphic">func QuoteToGraphic(s string) string</a></dd>
+			
+				<dd><a href="#QuotedPrefix">func QuotedPrefix(s string) (string, error)</a></dd>
+			
+				<dd><a href="#Unquote">func Unquote(s string) (string, error)</a></dd>
+			
+				<dd><a href="#UnquoteChar">func UnquoteChar(s string, quote byte) (value rune, multibyte bool, tail string, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#NumError">type NumError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#NumError.Error">func (e *NumError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NumError.Unwrap">func (e *NumError) Unwrap() error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_AppendBool">AppendBool</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendFloat">AppendFloat</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendInt">AppendInt</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendQuote">AppendQuote</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendQuoteRune">AppendQuoteRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendQuoteRuneToASCII">AppendQuoteRuneToASCII</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendQuoteToASCII">AppendQuoteToASCII</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_AppendUint">AppendUint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Atoi">Atoi</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CanBackquote">CanBackquote</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FormatBool">FormatBool</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FormatFloat">FormatFloat</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FormatInt">FormatInt</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FormatUint">FormatUint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IsGraphic">IsGraphic</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IsPrint">IsPrint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Itoa">Itoa</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NumError">NumError</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseBool">ParseBool</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseFloat">ParseFloat</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseInt">ParseInt</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseUint">ParseUint</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Quote">Quote</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteRune">QuoteRune</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteRuneToASCII">QuoteRuneToASCII</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteRuneToGraphic">QuoteRuneToGraphic</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteToASCII">QuoteToASCII</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuoteToGraphic">QuoteToGraphic</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QuotedPrefix">QuotedPrefix</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unquote">Unquote</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UnquoteChar">UnquoteChar</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/strconv/bytealg.go">bytealg.go</a>
+			
+				<a href="/src/strconv/doc.go">doc.go</a>
+			
+				<a href="/src/strconv/isprint.go">isprint.go</a>
+			
+				<a href="/src/strconv/number.go">number.go</a>
+			
+				<a href="/src/strconv/quote.go">quote.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>IntSize 是 int 或 uint 值的位数。
+<pre>const <span id="IntSize">IntSize</span> = <a href="/pkg/internal/strconv/">strconv</a>.<a href="/pkg/internal/strconv/#IntSize">IntSize</a></pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrRange 表示值超出目标类型的取值范围。
+<pre>var <span id="ErrRange">ErrRange</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;value out of range&#34;)</pre>
+			
+				<p>ErrSyntax 表示值不符合目标类型所需的语法。
+<pre>var <span id="ErrSyntax">ErrSyntax</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;invalid syntax&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="AppendBool">func <a href="/src/strconv/number.go?s=918:960#L24">AppendBool</a>
+				
+				
+			</h2>
+			<pre>func AppendBool(dst []<a href="/pkg/builtin/#byte">byte</a>, b <a href="/pkg/builtin/#bool">bool</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendBool 根据 b 的值，将 &quot;true&quot; 或 &quot;false&quot; 追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendBool" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b := []byte(&#34;bool:&#34;)
+	b = strconv.AppendBool(b, true)
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>bool:true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendFloat">func <a href="/src/strconv/number.go?s=7997:8072#L185">AppendFloat</a>
+				
+				
+			</h2>
+			<pre>func AppendFloat(dst []<a href="/pkg/builtin/#byte">byte</a>, f <a href="/pkg/builtin/#float64">float64</a>, fmt <a href="/pkg/builtin/#byte">byte</a>, prec, bitSize <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendFloat 将 <a href="#FormatFloat">FormatFloat</a> 生成的浮点数 f 的字符串表示追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendFloat" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b32 := []byte(&#34;float32:&#34;)
+	b32 = strconv.AppendFloat(b32, 3.1415926535, &#39;E&#39;, -1, 32)
+	fmt.Println(string(b32))
+
+	b64 := []byte(&#34;float64:&#34;)
+	b64 = strconv.AppendFloat(b64, 3.1415926535, &#39;E&#39;, -1, 64)
+	fmt.Println(string(b64))
+
+}
+</textarea></div>
+        <div class="output"><pre>float32:3.1415927E+00
+float64:3.1415926535E+00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendInt">func <a href="/src/strconv/number.go?s=8876:8928#L210">AppendInt</a>
+				
+				
+			</h2>
+			<pre>func AppendInt(dst []<a href="/pkg/builtin/#byte">byte</a>, i <a href="/pkg/builtin/#int64">int64</a>, base <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendInt 将 <a href="#FormatInt">FormatInt</a> 生成的整数 i 的字符串表示追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendInt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b10 := []byte(&#34;int (base 10):&#34;)
+	b10 = strconv.AppendInt(b10, -42, 10)
+	fmt.Println(string(b10))
+
+	b16 := []byte(&#34;int (base 16):&#34;)
+	b16 = strconv.AppendInt(b16, -42, 16)
+	fmt.Println(string(b16))
+
+}
+</textarea></div>
+        <div class="output"><pre>int (base 10):-42
+int (base 16):-2a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendQuote">func <a href="/src/strconv/quote.go?s=3466:3511#L117">AppendQuote</a>
+				
+				
+			</h2>
+			<pre>func AppendQuote(dst []<a href="/pkg/builtin/#byte">byte</a>, s <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuote 将 <a href="#Quote">Quote</a> 生成的、表示 s 的双引号 Go 字符串字面量追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendQuote" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b := []byte(&#34;quote:&#34;)
+	b = strconv.AppendQuote(b, `&#34;Fran &amp; Freddie&#39;s Diner&#34;`)
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>quote:&#34;\&#34;Fran &amp; Freddie&#39;s Diner\&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendQuoteRune">func <a href="/src/strconv/quote.go?s=5327:5374#L159">AppendQuoteRune</a>
+				
+				
+			</h2>
+			<pre>func AppendQuoteRune(dst []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuoteRune 将 <a href="#QuoteRune">QuoteRune</a> 生成的、表示该 rune 的单引号 Go 字符字面量追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendQuoteRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b := []byte(&#34;rune:&#34;)
+	b = strconv.AppendQuoteRune(b, &#39;☺&#39;)
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>rune:&#39;☺&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendQuoteRuneToASCII">func <a href="/src/strconv/quote.go?s=6049:6103#L175">AppendQuoteRuneToASCII</a>
+				
+				
+			</h2>
+			<pre>func AppendQuoteRuneToASCII(dst []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuoteRuneToASCII 将 <a href="#QuoteRuneToASCII">QuoteRuneToASCII</a> 生成的、表示该 rune 的单引号 Go 字符字面量追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendQuoteRuneToASCII" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b := []byte(&#34;rune (ascii):&#34;)
+	b = strconv.AppendQuoteRuneToASCII(b, &#39;☺&#39;)
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>rune (ascii):&#39;\u263a&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendQuoteRuneToGraphic">func <a href="/src/strconv/quote.go?s=6787:6843#L191">AppendQuoteRuneToGraphic</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func AppendQuoteRuneToGraphic(dst []<a href="/pkg/builtin/#byte">byte</a>, r <a href="/pkg/builtin/#rune">rune</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuoteRuneToGraphic 将 <a href="#QuoteRuneToGraphic">QuoteRuneToGraphic</a> 生成的、表示该 rune 的单引号 Go 字符字面量追加到 dst，并返回扩展后的缓冲区。
+<h2 id="AppendQuoteToASCII">func <a href="/src/strconv/quote.go?s=4030:4082#L130">AppendQuoteToASCII</a>
+				
+				
+			</h2>
+			<pre>func AppendQuoteToASCII(dst []<a href="/pkg/builtin/#byte">byte</a>, s <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuoteToASCII 将 <a href="#QuoteToASCII">QuoteToASCII</a> 生成的、表示 s 的双引号 Go 字符串字面量追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendQuoteToASCII" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b := []byte(&#34;quote (ascii):&#34;)
+	b = strconv.AppendQuoteToASCII(b, `&#34;Fran &amp; Freddie&#39;s Diner&#34;`)
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>quote (ascii):&#34;\&#34;Fran &amp; Freddie&#39;s Diner\&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="AppendQuoteToGraphic">func <a href="/src/strconv/quote.go?s=4636:4690#L144">AppendQuoteToGraphic</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func AppendQuoteToGraphic(dst []<a href="/pkg/builtin/#byte">byte</a>, s <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendQuoteToGraphic 将 <a href="#QuoteToGraphic">QuoteToGraphic</a> 生成的、表示 s 的双引号 Go 字符串字面量追加到 dst，并返回扩展后的缓冲区。
+<h2 id="AppendUint">func <a href="/src/strconv/number.go?s=9112:9166#L216">AppendUint</a>
+				
+				
+			</h2>
+			<pre>func AppendUint(dst []<a href="/pkg/builtin/#byte">byte</a>, i <a href="/pkg/builtin/#uint64">uint64</a>, base <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendUint 将 <a href="#FormatUint">FormatUint</a> 生成的无符号整数 i 的字符串表示追加到 dst，并返回扩展后的缓冲区。
+<div id="example_AppendUint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	b10 := []byte(&#34;uint (base 10):&#34;)
+	b10 = strconv.AppendUint(b10, 42, 10)
+	fmt.Println(string(b10))
+
+	b16 := []byte(&#34;uint (base 16):&#34;)
+	b16 = strconv.AppendUint(b16, 42, 16)
+	fmt.Println(string(b16))
+
+}
+</textarea></div>
+        <div class="output"><pre>uint (base 10):42
+uint (base 16):2a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Atoi">func <a href="/src/strconv/number.go?s=5737:5769#L136">Atoi</a>
+				
+				
+			</h2>
+			<pre>func Atoi(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Atoi 等价于调用 ParseInt(s, 10, 0)，再将结果转换为 int 类型。
+<div id="example_Atoi" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := &#34;10&#34;
+	if s, err := strconv.Atoi(v); err == nil {
+		fmt.Printf(&#34;%T, %v&#34;, s, s)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>int, 10
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="CanBackquote">func <a href="/src/strconv/quote.go?s=7063:7095#L198">CanBackquote</a>
+				
+				
+			</h2>
+			<pre>func CanBackquote(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>CanBackquote 报告字符串 s 是否能原样表示为单行反引号字符串，并且除制表符外不包含其他控制字符。
+<div id="example_CanBackquote" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	fmt.Println(strconv.CanBackquote(&#34;Fran &amp; Freddie&#39;s Diner ☺&#34;))
+	fmt.Println(strconv.CanBackquote(&#34;`can&#39;t backquote this`&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FormatBool">func <a href="/src/strconv/number.go?s=739:769#L18">FormatBool</a>
+				
+				
+			</h2>
+			<pre>func FormatBool(b <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatBool 根据 b 的值返回 &quot;true&quot; 或 &quot;false&quot;。
+<div id="example_FormatBool" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := true
+	s := strconv.FormatBool(v)
+	fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+
+}
+</textarea></div>
+        <div class="output"><pre>string, true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FormatComplex">func <a href="/src/strconv/number.go?s=6312:6380#L151">FormatComplex</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func FormatComplex(c <a href="/pkg/builtin/#complex128">complex128</a>, fmt <a href="/pkg/builtin/#byte">byte</a>, prec, bitSize <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatComplex 将复数 c 转换为 (a+bi) 形式的字符串，其中 a 和 b 分别为实部与虚部，按格式 fmt 和精度 prec 进行格式化。
+<p>fmt 和 prec 的含义与 <a href="#FormatFloat">FormatFloat</a> 相同。舍入时假定原值来自 bitSize 位复数：complex64 必须使用 64，complex128 必须使用 128。
+<h2 id="FormatFloat">func <a href="/src/strconv/number.go?s=7732:7795#L179">FormatFloat</a>
+				
+				
+			</h2>
+			<pre>func FormatFloat(f <a href="/pkg/builtin/#float64">float64</a>, fmt <a href="/pkg/builtin/#byte">byte</a>, prec, bitSize <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatFloat 按格式 fmt 和精度 prec，将浮点数 f 转换为字符串。舍入时假定原值来自 bitSize 位浮点数：float32 使用 32，float64 使用 64。
+<p>fmt 可以取以下格式之一：
+<ul>
+<li>&apos;b&apos;：-ddddp±ddd，使用二进制指数。
+<li>&apos;e&apos;：-d.dddde±dd，使用十进制指数。
+<li>&apos;E&apos;：-d.ddddE±dd，使用十进制指数。
+<li>&apos;f&apos;：-ddd.dddd，不使用指数。
+<li>&apos;g&apos;：指数较大时使用 &apos;e&apos;，否则使用 &apos;f&apos;。
+<li>&apos;G&apos;：指数较大时使用 &apos;E&apos;，否则使用 &apos;f&apos;。
+<li>&apos;x&apos;：-0xd.ddddp±ddd，使用十六进制小数和二进制指数。
+<li>&apos;X&apos;：-0Xd.ddddP±ddd，使用十六进制小数和二进制指数。
+</ul>
+<p>精度 prec 控制 &apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;g&apos;、&apos;G&apos;、&apos;x&apos; 和 &apos;X&apos; 格式输出的数字位数，不包括指数部分。对于 &apos;e&apos;、&apos;E&apos;、&apos;f&apos;、&apos;x&apos; 和 &apos;X&apos;，它表示小数点后的位数；对于 &apos;g&apos; 和 &apos;G&apos;，它表示有效数字的最大位数，末尾的零会被去掉。特殊精度 -1 会使用能够确保 ParseFloat 精确恢复 f 所需的最少数字位数。指数写为十进制整数；除 &apos;b&apos; 外，所有格式的指数至少有两位数字。
+<div id="example_FormatFloat" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := 3.1415926535
+
+	s32 := strconv.FormatFloat(v, &#39;E&#39;, -1, 32)
+	fmt.Printf(&#34;%T, %v\n&#34;, s32, s32)
+
+	s64 := strconv.FormatFloat(v, &#39;E&#39;, -1, 64)
+	fmt.Printf(&#34;%T, %v\n&#34;, s64, s64)
+
+	// fmt.Println 使用这些参数打印浮点数
+	fmt64 := strconv.FormatFloat(v, &#39;g&#39;, -1, 64)
+	fmt.Printf(&#34;%T, %v\n&#34;, fmt64, fmt64)
+
+}
+</textarea></div>
+        <div class="output"><pre>string, 3.1415927E+00
+string, 3.1415926535E+00
+string, 3.1415926535
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FormatInt">func <a href="/src/strconv/number.go?s=8563:8603#L199">FormatInt</a>
+				
+				
+			</h2>
+			<pre>func FormatInt(i <a href="/pkg/builtin/#int64">int64</a>, base <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatInt 返回 i 在给定进制下的字符串表示，其中 2 &lt;= base &lt;= 36。大于等于 10 的数位值使用小写字母 &apos;a&apos; 到 &apos;z&apos; 表示。
+<div id="example_FormatInt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := int64(-42)
+
+	s10 := strconv.FormatInt(v, 10)
+	fmt.Printf(&#34;%T, %v\n&#34;, s10, s10)
+
+	s16 := strconv.FormatInt(v, 16)
+	fmt.Printf(&#34;%T, %v\n&#34;, s16, s16)
+
+}
+</textarea></div>
+        <div class="output"><pre>string, -42
+string, -2a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="FormatUint">func <a href="/src/strconv/number.go?s=8307:8349#L192">FormatUint</a>
+				
+				
+			</h2>
+			<pre>func FormatUint(i <a href="/pkg/builtin/#uint64">uint64</a>, base <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatUint 返回 i 在给定进制下的字符串表示，其中 2 &lt;= base &lt;= 36。大于等于 10 的数位值使用小写字母 &apos;a&apos; 到 &apos;z&apos; 表示。
+<div id="example_FormatUint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := uint64(42)
+
+	s10 := strconv.FormatUint(v, 10)
+	fmt.Printf(&#34;%T, %v\n&#34;, s10, s10)
+
+	s16 := strconv.FormatUint(v, 16)
+	fmt.Printf(&#34;%T, %v\n&#34;, s16, s16)
+
+}
+</textarea></div>
+        <div class="output"><pre>string, 42
+string, 2a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IsGraphic">func <a href="/src/strconv/quote.go?s=16470:16497#L554">IsGraphic</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func IsGraphic(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsGraphic 报告 rune 是否是 Unicode 定义的图形字符。这些字符包括字母、组合标记、数字、标点、符号和空格，分别属于 L、M、N、P、S 和 Zs 类别。
+<div id="example_IsGraphic" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	shamrock := strconv.IsGraphic(&#39;☘&#39;)
+	fmt.Println(shamrock)
+
+	a := strconv.IsGraphic(&#39;a&#39;)
+	fmt.Println(a)
+
+	bel := strconv.IsGraphic(&#39;\007&#39;)
+	fmt.Println(bel)
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IsPrint">func <a href="/src/strconv/quote.go?s=15055:15080#L508">IsPrint</a>
+				
+				
+			</h2>
+			<pre>func IsPrint(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsPrint 报告 rune 是否是 Go 定义的可打印字符，其定义与 <a href="/pkg/unicode/#IsPrint">unicode.IsPrint</a> 相同：字母、数字、标点、符号和 ASCII 空格。
+<div id="example_IsPrint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	c := strconv.IsPrint(&#39;\u263a&#39;)
+	fmt.Println(c)
+
+	bel := strconv.IsPrint(&#39;\007&#39;)
+	fmt.Println(bel)
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Itoa">func <a href="/src/strconv/number.go?s=8696:8719#L204">Itoa</a>
+				
+				
+			</h2>
+			<pre>func Itoa(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Itoa 等价于 <a href="#FormatInt">FormatInt</a>(int64(i), 10)。
+<div id="example_Itoa" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	i := 10
+	s := strconv.Itoa(i)
+	fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+
+}
+</textarea></div>
+        <div class="output"><pre>string, 10
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ParseBool">func <a href="/src/strconv/number.go?s=506:546#L9">ParseBool</a>
+				
+				
+			</h2>
+			<pre>func ParseBool(str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseBool 返回字符串所表示的布尔值。它接受 1、t、T、TRUE、true、True、0、f、F、FALSE、false、False，其他值都会返回错误。
+<div id="example_ParseBool" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := &#34;true&#34;
+	if s, err := strconv.ParseBool(v); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>bool, true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ParseComplex">func <a href="/src/strconv/number.go?s=2201:2261#L48">ParseComplex</a>
+				
+				<span title="自 Go 1.15 起提供">1.15</span>
+			</h2>
+			<pre>func ParseComplex(s <a href="/pkg/builtin/#string">string</a>, bitSize <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#complex128">complex128</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseComplex 将字符串 s 转换为复数，精度由 bitSize 指定：complex64 使用 64，complex128 使用 128。当 bitSize=64 时，结果类型仍为 complex128，但可转换为 complex64 而不改变其值。
+<p>s 表示的数必须采用 N、Ni 或 N±Ni 的形式，其中 N 是 <a href="#ParseFloat">ParseFloat</a> 能识别的浮点数，i 表示虚数单位。如果第二个 N 不带符号，两个分量之间必须有 + 号，对应 ± 所在位置。如果第二个 N 是 NaN，则只允许使用 + 号。整个表达式可以用圆括号包围，但不能包含任何空格。结果复数由 ParseFloat 转换得到的两个分量组成。
+<p>ParseComplex 返回的错误的具体类型为 <a href="#NumError">*NumError</a>，其中 err.Num = s。
+<p>如果 s 不符合语法，ParseComplex 返回 err.Err = ErrSyntax。
+<p>如果 s 的语法正确，但任一分量超出其指定位宽所能表示的最大浮点数，且超出的距离大于 1/2 ULP，ParseComplex 返回 err.Err = ErrRange，并将相应分量设为 ±Inf。
+<h2 id="ParseFloat">func <a href="/src/strconv/number.go?s=3755:3810#L83">ParseFloat</a>
+				
+				
+			</h2>
+			<pre>func ParseFloat(s <a href="/pkg/builtin/#string">string</a>, bitSize <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#float64">float64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseFloat 将字符串 s 转换为浮点数，精度由 bitSize 指定：float32 使用 32，float64 使用 64。当 bitSize=32 时，结果类型仍为 float64，但可转换为 float32 而不改变其值。
+<p>ParseFloat 接受符合 Go <a href="/ref/spec#Floating-point_literals">浮点数字面量</a>语法的十进制和十六进制浮点数。如果 s 的格式正确，且接近一个有效浮点数，ParseFloat 按 IEEE754 无偏舍入规则，返回最接近的浮点数。（解析十六进制浮点值时，只有十六进制表示的位数超过尾数所能容纳的位数，才会发生舍入。）
+<p>ParseFloat 返回的错误的具体类型为 *NumError，其中 err.Num = s。
+<p>如果 s 不符合语法，ParseFloat 返回 err.Err = ErrSyntax。
+<p>如果 s 的语法正确，但超出指定位宽所能表示的最大浮点数，且超出的距离大于 1/2 ULP，ParseFloat 返回 f = ±Inf、err.Err = ErrRange。
+<p>ParseFloat 将字符串 &quot;NaN&quot; 以及可带符号的 &quot;Inf&quot; 和 &quot;Infinity&quot; 识别为对应的特殊浮点值。匹配时忽略大小写。
+<div id="example_ParseFloat" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := &#34;3.1415926535&#34;
+	if s, err := strconv.ParseFloat(v, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(v, 64); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;NaN&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	// ParseFloat 不区分大小写
+	if s, err := strconv.ParseFloat(&#34;nan&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;inf&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;&#43;Inf&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;-Inf&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;-0&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseFloat(&#34;&#43;0&#34;, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>float64, 3.1415927410125732
+float64, 3.1415926535
+float64, NaN
+float64, NaN
+float64, +Inf
+float64, +Inf
+float64, -Inf
+float64, -0
+float64, 0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ParseInt">func <a href="/src/strconv/number.go?s=5460:5527#L127">ParseInt</a>
+				
+				
+			</h2>
+			<pre>func ParseInt(s <a href="/pkg/builtin/#string">string</a>, base <a href="/pkg/builtin/#int">int</a>, bitSize <a href="/pkg/builtin/#int">int</a>) (i <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseInt 按给定进制（0，或 2 到 36）和位数（0 到 64）解析字符串 s，返回相应的值 i。
+<p>字符串可以以正负号开头，即 &quot;+&quot; 或 &quot;-&quot;。
+<p>如果 base 为 0，实际进制由可选正负号之后的前缀确定：&quot;0b&quot; 表示二进制，&quot;0&quot; 或 &quot;0o&quot; 表示八进制，&quot;0x&quot; 表示十六进制，其他情况为十进制。此外，只有 base 为 0 时，才允许按 Go <a href="/ref/spec#Integer_literals">整数字面量</a>语法使用下划线。
+<p>bitSize 指定结果必须能够放入的整数类型。位数 0、8、16、32 和 64 分别对应 int、int8、int16、int32 和 int64。如果 bitSize 小于 0 或大于 64，返回错误。
+<p>ParseInt 返回的错误的具体类型为 <a href="#NumError">*NumError</a>，其中 err.Num = s。如果 s 为空或包含无效数位，err.Err = <a href="#ErrSyntax">ErrSyntax</a>，返回值为 0；如果 s 对应的数值无法由给定位数的有符号整数表示，err.Err = <a href="#ErrRange">ErrRange</a>，返回值为该 bitSize 下具有相应正负号、绝对值最大的整数。
+<div id="example_ParseInt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v32 := &#34;-354634382&#34;
+	if s, err := strconv.ParseInt(v32, 10, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseInt(v32, 16, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+
+	v64 := &#34;-3546343826724305832&#34;
+	if s, err := strconv.ParseInt(v64, 10, 64); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseInt(v64, 16, 64); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>int64, -354634382
+int64, -3546343826724305832
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ParseUint">func <a href="/src/strconv/number.go?s=4043:4106#L94">ParseUint</a>
+				
+				
+			</h2>
+			<pre>func ParseUint(s <a href="/pkg/builtin/#string">string</a>, base <a href="/pkg/builtin/#int">int</a>, bitSize <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseUint 与 <a href="#ParseInt">ParseInt</a> 类似，但用于无符号数。
+<p>不允许带正负号前缀。
+<div id="example_ParseUint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v := &#34;42&#34;
+	if s, err := strconv.ParseUint(v, 10, 32); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+	if s, err := strconv.ParseUint(v, 10, 64); err == nil {
+		fmt.Printf(&#34;%T, %v\n&#34;, s, s)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>uint64, 42
+uint64, 42
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Quote">func <a href="/src/strconv/quote.go?s=3252:3279#L111">Quote</a>
+				
+				
+			</h2>
+			<pre>func Quote(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Quote 返回表示 s 的双引号 Go 字符串字面量。对控制字符，以及 <a href="#IsPrint">IsPrint</a> 定义的不可打印字符，返回字符串会使用 Go 转义序列（\t、\n、\xFF、\u0100）。
+<div id="example_Quote" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	// 这个字符串字面量包含一个制表符。
+	s := strconv.Quote(`&#34;Fran &amp; Freddie&#39;s Diner	☺&#34;`)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;\&#34;Fran &amp; Freddie&#39;s Diner\t☺\&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteRune">func <a href="/src/strconv/quote.go?s=5088:5117#L153">QuoteRune</a>
+				
+				
+			</h2>
+			<pre>func QuoteRune(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteRune 返回表示该 rune 的单引号 Go 字符字面量。对控制字符，以及 <a href="#IsPrint">IsPrint</a> 定义的不可打印字符，返回字符串会使用 Go 转义序列（\t、\n、\xFF、\u0100）。如果 r 不是有效的 Unicode 码点，就将其视为 Unicode 替换字符 U+FFFD。
+<div id="example_QuoteRune" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s := strconv.QuoteRune(&#39;☺&#39;)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#39;☺&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteRuneToASCII">func <a href="/src/strconv/quote.go?s=5790:5826#L169">QuoteRuneToASCII</a>
+				
+				
+			</h2>
+			<pre>func QuoteRuneToASCII(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteRuneToASCII 返回表示该 rune 的单引号 Go 字符字面量。对非 ASCII 字符，以及 <a href="#IsPrint">IsPrint</a> 定义的不可打印字符，返回字符串会使用 Go 转义序列（\t、\n、\xFF、\u0100）。如果 r 不是有效的 Unicode 码点，就将其视为 Unicode 替换字符 U+FFFD。
+<div id="example_QuoteRuneToASCII" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s := strconv.QuoteRuneToASCII(&#39;☺&#39;)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#39;\u263a&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteRuneToGraphic">func <a href="/src/strconv/quote.go?s=6522:6560#L185">QuoteRuneToGraphic</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func QuoteRuneToGraphic(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteRuneToGraphic 返回表示该 rune 的单引号 Go 字符字面量。如果该 rune 不是 <a href="#IsGraphic">IsGraphic</a> 定义的 Unicode 图形字符，返回字符串会使用 Go 转义序列（\t、\n、\xFF、\u0100）。如果 r 不是有效的 Unicode 码点，就将其视为 Unicode 替换字符 U+FFFD。
+<div id="example_QuoteRuneToGraphic" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s := strconv.QuoteRuneToGraphic(&#39;☺&#39;)
+	fmt.Println(s)
+
+	s = strconv.QuoteRuneToGraphic(&#39;\u263a&#39;)
+	fmt.Println(s)
+
+	s = strconv.QuoteRuneToGraphic(&#39;\u000a&#39;)
+	fmt.Println(s)
+
+	s = strconv.QuoteRuneToGraphic(&#39;	&#39;) // 制表符
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#39;☺&#39;
+&#39;☺&#39;
+&#39;\n&#39;
+&#39;\t&#39;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteToASCII">func <a href="/src/strconv/quote.go?s=3796:3830#L124">QuoteToASCII</a>
+				
+				
+			</h2>
+			<pre>func QuoteToASCII(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteToASCII 返回表示 s 的双引号 Go 字符串字面量。对非 ASCII 字符，以及 <a href="#IsPrint">IsPrint</a> 定义的不可打印字符，返回字符串会使用 Go 转义序列（\t、\n、\xFF、\u0100）。
+<div id="example_QuoteToASCII" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	// 这个字符串字面量包含一个制表符。
+	s := strconv.QuoteToASCII(`&#34;Fran &amp; Freddie&#39;s Diner	☺&#34;`)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;\&#34;Fran &amp; Freddie&#39;s Diner\t\u263a\&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuoteToGraphic">func <a href="/src/strconv/quote.go?s=4396:4432#L138">QuoteToGraphic</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func QuoteToGraphic(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QuoteToGraphic 返回表示 s 的双引号 Go 字符串字面量。它保留 <a href="#IsGraphic">IsGraphic</a> 定义的 Unicode 图形字符，对非图形字符使用 Go 转义序列（\t、\n、\xFF、\u0100）。
+<div id="example_QuoteToGraphic" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s := strconv.QuoteToGraphic(&#34;☺&#34;)
+	fmt.Println(s)
+
+	// 这个字符串字面量包含一个制表符。
+	s = strconv.QuoteToGraphic(&#34;This is a \u263a	\u000a&#34;)
+	fmt.Println(s)
+
+	s = strconv.QuoteToGraphic(`&#34; This is a ☺ \n &#34;`)
+	fmt.Println(s)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;☺&#34;
+&#34;This is a ☺\t\n&#34;
+&#34;\&#34; This is a ☺ \\n \&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QuotedPrefix">func <a href="/src/strconv/quote.go?s=10512:10555#L358">QuotedPrefix</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<pre>func QuotedPrefix(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>QuotedPrefix 返回 s 开头的带引号字符串，其解析规则与 <a href="#Unquote">Unquote</a> 相同。如果 s 不是以有效的带引号字符串开头，QuotedPrefix 返回错误。
+<div id="example_QuotedPrefix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s, err := strconv.QuotedPrefix(&#34;not a quoted string&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.QuotedPrefix(&#34;\&#34;double-quoted string\&#34; with trailing text&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.QuotedPrefix(&#34;`or backquoted` with more trailing text&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.QuotedPrefix(&#34;&#39;\u263a&#39; is also okay&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;&#34;, invalid syntax
+&#34;\&#34;double-quoted string\&#34;&#34;, &lt;nil&gt;
+&#34;`or backquoted`&#34;, &lt;nil&gt;
+&#34;&#39;☺&#39;&#34;, &lt;nil&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Unquote">func <a href="/src/strconv/quote.go?s=10944:10982#L369">Unquote</a>
+				
+				
+			</h2>
+			<pre>func Unquote(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Unquote 将 s 解析为单引号、双引号或反引号包围的 Go 字面量，返回引号内表示的字符串值。（如果使用单引号，s 实际上是 Go 字符字面量，Unquote 返回对应的单字符字符串。对于空字符字面量，Unquote 返回空字符串。）
+<div id="example_Unquote" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	s, err := strconv.Unquote(&#34;You can&#39;t unquote a string without quotes&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.Unquote(&#34;\&#34;The string must be either double-quoted\&#34;&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.Unquote(&#34;`or backquoted.`&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.Unquote(&#34;&#39;\u263a&#39;&#34;) // 单引号内只允许包含单个字符
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+	s, err = strconv.Unquote(&#34;&#39;\u2639\u2639&#39;&#34;)
+	fmt.Printf(&#34;%q, %v\n&#34;, s, err)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;&#34;, invalid syntax
+&#34;The string must be either double-quoted&#34;, &lt;nil&gt;
+&#34;or backquoted.&#34;, &lt;nil&gt;
+&#34;☺&#34;, &lt;nil&gt;
+&#34;&#34;, invalid syntax
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="UnquoteChar">func <a href="/src/strconv/quote.go?s=8616:8707#L245">UnquoteChar</a>
+				
+				
+			</h2>
+			<pre>func UnquoteChar(s <a href="/pkg/builtin/#string">string</a>, quote <a href="/pkg/builtin/#byte">byte</a>) (value <a href="/pkg/builtin/#rune">rune</a>, multibyte <a href="/pkg/builtin/#bool">bool</a>, tail <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>UnquoteChar 解码字符串 s 所表示的带转义字符串或字符字面量中的第一个字符或字节。它返回四个值：
+<ol>
+<li>value：解码后的 Unicode 码点或字节值。
+<li>multibyte：布尔值，表示解码后的字符是否需要多字节 UTF-8 表示。
+<li>tail：该字符之后剩余的字符串。
+<li>错误值：如果字符语法有效，则为 nil。
+</ol>
+<p>第二个参数 quote 指定要解析的字面量类型，从而决定允许转义哪种引号。如果为单引号，则允许序列 \&apos;，但不允许未转义的 &apos;；如果为双引号，则允许 \&quot;，但不允许未转义的 &quot;；如果为零，则不允许这两种转义，但允许两种引号都以未转义形式出现。
+<div id="example_UnquoteChar" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	v, mb, t, err := strconv.UnquoteChar(`\&#34;Fran &amp; Freddie&#39;s Diner\&#34;`, &#39;&#34;&#39;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(&#34;value:&#34;, string(v))
+	fmt.Println(&#34;multibyte:&#34;, mb)
+	fmt.Println(&#34;tail:&#34;, t)
+
+}
+</textarea></div>
+        <div class="output"><pre>value: &#34;
+multibyte: false
+tail: Fran &amp; Freddie&#39;s Diner\&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="NumError">type <a href="/src/strconv/number.go?s=9927:10155#L242">NumError</a>
+				
+				
+			</h2>
+			<p>NumError 记录一次失败的转换。
+<pre>type NumError struct {
+<span id="NumError.Func"></span>    Func <a href="/pkg/builtin/#string">string</a> <span class="comment">// 失败的函数（ParseBool、ParseInt、ParseUint、ParseFloat、ParseComplex）</span>
+<span id="NumError.Num"></span>    Num  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 输入值</span>
+<span id="NumError.Err"></span>    Err  <a href="/pkg/builtin/#error">error</a>  <span class="comment">// 转换失败的原因（例如 ErrRange、ErrSyntax 等）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_NumError" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	str := &#34;Not a number&#34;
+	if _, err := strconv.ParseFloat(str, 64); err != nil {
+		e := err.(*strconv.NumError)
+		fmt.Println(&#34;Func:&#34;, e.Func)
+		fmt.Println(&#34;Num:&#34;, e.Num)
+		fmt.Println(&#34;Err:&#34;, e.Err)
+		fmt.Println(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Func: ParseFloat
+Num: Not a number
+Err: invalid syntax
+strconv.ParseFloat: parsing &#34;Not a number&#34;: invalid syntax
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="NumError.Error">func (*NumError) <a href="/src/strconv/number.go?s=10157:10190#L248">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#NumError">NumError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="NumError.Unwrap">func (*NumError) <a href="/src/strconv/number.go?s=10282:10315#L252">Unwrap</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (e *<a href="#NumError">NumError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

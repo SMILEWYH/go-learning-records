@@ -1,0 +1,1111 @@
+<!--{
+  "Title": "io/fs 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>fs 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "io/fs"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>fs 包定义文件系统的基本接口。文件系统既可以由宿主操作系统提供，也可以由其他包提供。
+<h3 id="hdr-Path_Names">路径名</h3>
+<p>无论宿主操作系统是什么，本包中的接口都使用同一套路径名语法。
+<p>路径名是以 UTF-8 编码、不带根路径、由斜杠分隔的路径分量序列，例如“x/y/z”。路径名中不能包含“.”、“..”或空字符串这样的分量，唯一的例外是可以用名称 &quot;.&quot; 表示根目录。路径不能以斜杠开头或结尾：“/x”和“x/”都是无效路径。
+<h3 id="hdr-Testing">测试</h3>
+<p>测试文件系统实现所需的支持，请参阅 <a href="/pkg/testing/fstest/">testing/fstest</a> 包。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#FormatDirEntry">func FormatDirEntry(dir DirEntry) string</a></dd>
+			
+				<dd><a href="#FormatFileInfo">func FormatFileInfo(info FileInfo) string</a></dd>
+			
+				<dd><a href="#Glob">func Glob(fsys FS, pattern string) (matches []string, err error)</a></dd>
+			
+				<dd><a href="#ReadFile">func ReadFile(fsys FS, name string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#ReadLink">func ReadLink(fsys FS, name string) (string, error)</a></dd>
+			
+				<dd><a href="#ValidPath">func ValidPath(name string) bool</a></dd>
+			
+				<dd><a href="#WalkDir">func WalkDir(fsys FS, root string, fn WalkDirFunc) error</a></dd>
+			
+			
+				
+				<dd><a href="#DirEntry">type DirEntry</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileInfoToDirEntry">func FileInfoToDirEntry(info FileInfo) DirEntry</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReadDir">func ReadDir(fsys FS, name string) ([]DirEntry, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FS">type FS</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sub">func Sub(fsys FS, dir string) (FS, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FileInfo">type FileInfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lstat">func Lstat(fsys FS, name string) (FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stat">func Stat(fsys FS, name string) (FileInfo, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FileMode">type FileMode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FileMode.IsDir">func (m FileMode) IsDir() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileMode.IsRegular">func (m FileMode) IsRegular() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileMode.Perm">func (m FileMode) Perm() FileMode</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileMode.String">func (m FileMode) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileMode.Type">func (m FileMode) Type() FileMode</a></dd>
+				
+			
+				
+				<dd><a href="#GlobFS">type GlobFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PathError">type PathError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PathError.Error">func (e *PathError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PathError.Timeout">func (e *PathError) Timeout() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PathError.Unwrap">func (e *PathError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#ReadDirFS">type ReadDirFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadDirFile">type ReadDirFile</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadFileFS">type ReadFileFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadLinkFS">type ReadLinkFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StatFS">type StatFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SubFS">type SubFS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WalkDirFunc">type WalkDirFunc</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Glob">Glob</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadFile">ReadFile</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ValidPath">ValidPath</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WalkDir">WalkDir</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/io/fs/format.go">format.go</a>
+			
+				<a href="/src/io/fs/fs.go">fs.go</a>
+			
+				<a href="/src/io/fs/glob.go">glob.go</a>
+			
+				<a href="/src/io/fs/readdir.go">readdir.go</a>
+			
+				<a href="/src/io/fs/readfile.go">readfile.go</a>
+			
+				<a href="/src/io/fs/readlink.go">readlink.go</a>
+			
+				<a href="/src/io/fs/stat.go">stat.go</a>
+			
+				<a href="/src/io/fs/sub.go">sub.go</a>
+			
+				<a href="/src/io/fs/walk.go">walk.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>通用文件系统错误。可以使用 <a href="/pkg/errors/#Is">errors.Is</a> 将文件系统返回的错误与这些错误进行比较。
+
+				<pre>var (
+    <span id="ErrInvalid">ErrInvalid</span>    = errInvalid()    <span class="comment">// "invalid argument"（无效参数）</span>
+    <span id="ErrPermission">ErrPermission</span> = errPermission() <span class="comment">// "permission denied"（权限不足）</span>
+    <span id="ErrExist">ErrExist</span>      = errExist()      <span class="comment">// "file already exists"（文件已存在）</span>
+    <span id="ErrNotExist">ErrNotExist</span>   = errNotExist()   <span class="comment">// "file does not exist"（文件不存在）</span>
+)</pre>
+			
+				<p>尝试操作已经关闭的文件时会返回 ErrClosed，包括多次调用 Close 的情况。
+
+				<pre>var <span id="ErrClosed">ErrClosed</span> = errClosed()</pre>
+			
+				<p>SkipAll 用作 <a href="#WalkDirFunc">WalkDirFunc</a> 的返回值，表示跳过所有剩余的文件和目录。任何函数都不会将它作为错误返回。
+
+				<pre>var <span id="SkipAll">SkipAll</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;skip everything and stop the walk&#34;)</pre>
+			
+				<p>SkipDir 用作 <a href="#WalkDirFunc">WalkDirFunc</a> 的返回值，表示跳过本次调用指定的目录。任何函数都不会将它作为错误返回。
+
+				<pre>var <span id="SkipDir">SkipDir</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;skip this directory&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="FormatDirEntry">func <a href="/src/io/fs/format.go?s=1413:1453#L50">FormatDirEntry</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func FormatDirEntry(dir <a href="#DirEntry">DirEntry</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatDirEntry 返回 dir 的格式化表示，便于阅读。<a href="#DirEntry">DirEntry</a> 的实现可以在 String 方法中调用它。名为 subdir 的目录和名为 hello.go 的文件分别输出如下：
+<pre>d subdir/
+- hello.go
+</pre>
+
+			
+		
+			
+			<h2 id="FormatFileInfo">func <a href="/src/io/fs/format.go?s=492:533#L7">FormatFileInfo</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func FormatFileInfo(info <a href="#FileInfo">FileInfo</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatFileInfo 返回 info 的格式化表示，便于阅读。<a href="#FileInfo">FileInfo</a> 的实现可以在 String 方法中调用它。对于名为 &quot;hello.go&quot;、大小为 100 字节、模式为 0o644、创建于 1970 年 1 月 1 日中午的文件，输出如下：
+<pre>-rw-r--r-- 100 1970-01-01 12:00:00 hello.go
+</pre>
+
+			
+		
+			
+			<h2 id="Glob">func <a href="/src/io/fs/glob.go?s=1008:1072#L23">Glob</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func Glob(fsys <a href="#FS">FS</a>, pattern <a href="/pkg/builtin/#string">string</a>) (matches []<a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Glob 返回所有匹配 pattern 的文件名；如果没有匹配的文件，则返回 nil。模式语法与 <a href="/pkg/path/#Match">path.Match</a> 相同。模式可以描述具有层级结构的名称，例如 usr/*/bin/ed。
+<p>Glob 会忽略文件系统错误，例如读取目录时发生的 I/O 错误。它唯一可能返回的错误是 <a href="/pkg/path/#ErrBadPattern">path.ErrBadPattern</a>，表示模式格式不正确。
+<p>如果 fsys 实现了 <a href="#GlobFS">GlobFS</a>，Glob 就调用 fsys.Glob。否则，Glob 使用 <a href="#ReadDir">ReadDir</a> 遍历目录树，查找与模式匹配的文件。
+
+			
+
+
+<div id="example_Glob" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;log&#34;
+	&#34;testing/fstest&#34;
+)
+
+func main() {
+	fsys := fstest.MapFS{
+		&#34;file.txt&#34;:        {},
+		&#34;file.go&#34;:         {},
+		&#34;dir/file.txt&#34;:    {},
+		&#34;dir/file.go&#34;:     {},
+		&#34;dir/subdir/x.go&#34;: {},
+	}
+
+	patterns := []string{
+		&#34;*.txt&#34;,
+		&#34;*.go&#34;,
+		&#34;dir/*.go&#34;,
+		&#34;dir/*/x.go&#34;,
+	}
+
+	for _, pattern := range patterns {
+		matches, err := fs.Glob(fsys, pattern)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(&#34;%q matches: %v\n&#34;, pattern, matches)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;*.txt&#34; matches: [file.txt]
+&#34;*.go&#34; matches: [file.go]
+&#34;dir/*.go&#34; matches: [dir/file.go]
+&#34;dir/*/x.go&#34; matches: [dir/subdir/x.go]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadFile">func <a href="/src/io/fs/readfile.go?s=1178:1229#L22">ReadFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func ReadFile(fsys <a href="#FS">FS</a>, name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadFile 从文件系统 fsys 中读取指定文件，并返回文件内容。调用成功时返回的错误为 nil，而不是 <a href="/pkg/io/#EOF">io.EOF</a>。（由于 ReadFile 会读取整个文件，最后一次 Read 预期会遇到 EOF，因此不会将它作为错误报告。）
+<p>如果 fsys 实现了 <a href="#ReadFileFS">ReadFileFS</a>，ReadFile 就调用 fsys.ReadFile。否则，ReadFile 调用 fsys.Open，并使用返回的 <a href="#File">File</a> 的 Read 和 Close 方法。
+
+			
+
+
+<div id="example_ReadFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;log&#34;
+	&#34;testing/fstest&#34;
+)
+
+func main() {
+	fsys := fstest.MapFS{
+		&#34;hello.txt&#34;: {
+			Data: []byte(&#34;Hello, World!\n&#34;),
+		},
+	}
+
+	data, err := fs.ReadFile(fsys, &#34;hello.txt&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(string(data))
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello, World!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadLink">func <a href="/src/io/fs/readlink.go?s=911:962#L16">ReadLink</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func ReadLink(fsys <a href="#FS">FS</a>, name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadLink 返回指定符号链接指向的目标。
+<p>如果 fsys 没有实现 <a href="#ReadLinkFS">ReadLinkFS</a>，ReadLink 就返回错误。
+
+			
+		
+			
+			<h2 id="ValidPath">func <a href="/src/io/fs/fs.go?s=2326:2358#L54">ValidPath</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func ValidPath(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ValidPath 报告给定路径名是否可以有效地用于 Open 调用。
+<p>注意，所有系统（包括 Windows）上的路径都使用斜杠分隔。包含反斜杠、冒号等其他字符的路径也被视为有效路径，但 <a href="#FS">FS</a> 实现绝不能将这些字符解释为路径分量分隔符。更多细节请参阅<a href="https://pkg.go.dev/io/fs#hdr-Path_Names">路径名</a>一节。
+
+			
+
+
+<div id="example_ValidPath" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+)
+
+func main() {
+	paths := []string{
+		&#34;.&#34;,
+		&#34;x&#34;,
+		&#34;x/y/z&#34;,
+		&#34;&#34;,
+		&#34;..&#34;,
+		&#34;/x&#34;,
+		&#34;x/&#34;,
+		&#34;x//y&#34;,
+		&#34;x/./y&#34;,
+		&#34;x/../y&#34;,
+	}
+
+	for _, path := range paths {
+		fmt.Printf(&#34;ValidPath(%q) = %t\n&#34;, path, fs.ValidPath(path))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>ValidPath(&#34;.&#34;) = true
+ValidPath(&#34;x&#34;) = true
+ValidPath(&#34;x/y/z&#34;) = true
+ValidPath(&#34;&#34;) = false
+ValidPath(&#34;..&#34;) = false
+ValidPath(&#34;/x&#34;) = false
+ValidPath(&#34;x/&#34;) = false
+ValidPath(&#34;x//y&#34;) = false
+ValidPath(&#34;x/./y&#34;) = false
+ValidPath(&#34;x/../y&#34;) = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WalkDir">func <a href="/src/io/fs/walk.go?s=4526:4582#L107">WalkDir</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func WalkDir(fsys <a href="#FS">FS</a>, root <a href="/pkg/builtin/#string">string</a>, fn <a href="#WalkDirFunc">WalkDirFunc</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>WalkDir 遍历以 root 为根的文件树，对树中的每个文件或目录（包括 root 本身）调用 fn。
+<p>访问文件和目录时产生的所有错误都由 fn 处理；详情请参阅 <a href="#WalkDirFunc">fs.WalkDirFunc</a> 的文档。
+<p>文件按字典序遍历，这使输出顺序确定，但要求 WalkDir 在继续遍历某个目录之前，先将该目录的全部条目读入内存。
+<p>WalkDir 不会跟随目录中遇到的符号链接；但如果 root 本身是符号链接，则会遍历它指向的目标。
+
+			
+
+
+<div id="example_WalkDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/fs&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	root := &#34;/usr/local/go/bin&#34;
+	fileSystem := os.DirFS(root)
+
+	fs.WalkDir(fileSystem, &#34;.&#34;, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(path)
+		return nil
+	})
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="DirEntry">type <a href="/src/io/fs/fs.go?s=3217:4230#L93">DirEntry</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>DirEntry 是从目录中读取的一个条目（通过 <a href="#ReadDir">ReadDir</a> 函数或 <a href="#ReadDirFile">ReadDirFile</a> 的 ReadDir 方法读取）。
+
+			<pre>type DirEntry interface {
+    <span class="comment">// Name 返回此条目所描述文件（或子目录）的名称。</span>
+    <span class="comment">// 该名称仅为路径的最后一个分量（基本名称），而不是完整路径。</span>
+    <span class="comment">// 例如，Name 返回 "hello.go"，而不是 "home/gopher/hello.go"。</span>
+    Name() <a href="/pkg/builtin/#string">string</a>
+
+    <span class="comment">// IsDir 报告此条目是否描述一个目录。</span>
+    IsDir() <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// Type 返回此条目的类型位。</span>
+    <span class="comment">// 类型位是通常的 FileMode 位的子集，即 FileMode.Type 方法返回的那些位。</span>
+    Type() <a href="#FileMode">FileMode</a>
+
+    <span class="comment">// Info 返回此条目描述的文件或子目录的 FileInfo。</span>
+    <span class="comment">// 返回的 FileInfo 可能来自最初读取目录时，</span>
+    <span class="comment">// 也可能来自调用 Info 时。如果在读取目录之后文件已被删除或重命名，</span>
+    <span class="comment">// Info 可能返回满足 errors.Is(err, ErrNotExist) 的错误。</span>
+    <span class="comment">// 如果此条目表示符号链接，Info 报告链接本身的信息，</span>
+    <span class="comment">// 而不是链接目标的信息。</span>
+    Info() (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FileInfoToDirEntry">func <a href="/src/io/fs/readdir.go?s=1850:1897#L69">FileInfoToDirEntry</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func FileInfoToDirEntry(info <a href="#FileInfo">FileInfo</a>) <a href="#DirEntry">DirEntry</a></pre>
+				<p>FileInfoToDirEntry 返回一个从 info 获取信息的 <a href="#DirEntry">DirEntry</a>。如果 info 为 nil，FileInfoToDirEntry 返回 nil。
+
+				
+			
+				<h3 id="ReadDir">func <a href="/src/io/fs/readdir.go?s=785:839#L19">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func ReadDir(fsys <a href="#FS">FS</a>, name <a href="/pkg/builtin/#string">string</a>) ([]<a href="#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadDir 读取指定目录，并返回按文件名排序的目录条目列表。
+<p>如果 fsys 实现了 <a href="#ReadDirFS">ReadDirFS</a>，ReadDir 就调用 fsys.ReadDir。否则，ReadDir 调用 fsys.Open，并使用返回的 <a href="#ReadDirFile">ReadDirFile</a> 的 ReadDir 和 Close 方法。
+
+				
+			
+
+			
+		
+			
+			<h2 id="FS">type <a href="/src/io/fs/fs.go?s=1365:1859#L30">FS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>FS 提供对具有层级结构的文件系统的访问。
+<p>FS 接口规定文件系统必须提供的最小实现。文件系统还可以实现其他接口，例如 <a href="#ReadFileFS">ReadFileFS</a>，以提供额外功能或优化实现。
+<p>可以使用 <a href="/pkg/testing/fstest/#TestFS">testing/fstest.TestFS</a> 测试 FS 实现的正确性。
+
+			<pre>type FS interface {
+    <span class="comment">// Open 打开指定文件。</span>
+    <span class="comment">// 必须调用 [File.Close] 以释放所有相关资源。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Open 返回的错误应为 *PathError 类型，</span>
+    <span class="comment">// 其中 Op 字段设为 "open"，Path 字段设为 name，</span>
+    <span class="comment">// Err 字段描述具体问题。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于不满足 ValidPath(name) 的名称，Open 应拒绝</span>
+    <span class="comment">// 打开，并返回 *PathError，将 Err 设为</span>
+    <span class="comment">// ErrInvalid 或 ErrNotExist。</span>
+    Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Sub">func <a href="/src/io/fs/sub.go?s=1374:1415#L27">Sub</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func Sub(fsys <a href="#FS">FS</a>, dir <a href="/pkg/builtin/#string">string</a>) (<a href="#FS">FS</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Sub 返回一个 <a href="#FS">FS</a>，对应于 fsys 中以 dir 为根的子树。
+<p>如果 dir 为 &quot;.&quot;，Sub 原样返回 fsys。否则，如果 fsys 实现了 <a href="#SubFS">SubFS</a>，Sub 返回 fsys.Sub(dir)。否则，Sub 返回一个新的 <a href="#FS">FS</a> 实现 sub，它的 sub.Open(name) 实际上通过 fsys.Open(path.Join(dir, name)) 实现。该实现还会对 ReadDir、ReadFile、ReadLink、Lstat 和 Glob 调用进行相应转换。Sub 不检查目录当前是否存在。
+<p>注意，Sub(os.DirFS(&quot;/&quot;), &quot;prefix&quot;) 等价于 os.DirFS(&quot;/prefix&quot;)，两者都不能保证操作系统访问不会超出 &quot;/prefix&quot;，因为 <a href="/pkg/os/#DirFS">os.DirFS</a> 的实现不会检查 &quot;/prefix&quot; 中是否存在指向其他目录的符号链接。也就是说，<a href="/pkg/os/#DirFS">os.DirFS</a> 通常不能替代 chroot 一类的安全机制，Sub 也不会改变这一点。要将访问限制在特定目录树内，请使用 <a href="/pkg/os/#Root">os.Root</a>。
+
+				
+			
+
+			
+		
+			
+			<h2 id="File">type <a href="/src/io/fs/fs.go?s=3005:3096#L85">File</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>File 提供对单个文件的访问。File 接口规定文件必须提供的最小实现。目录文件还应实现 <a href="#ReadDirFile">ReadDirFile</a>。文件可以实现 <a href="/pkg/io/#ReaderAt">io.ReaderAt</a> 或 <a href="/pkg/io/#Seeker">io.Seeker</a> 来进行优化。
+
+			<pre>type File interface {
+    Stat() (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)
+    Read([]<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)
+    Close() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FileInfo">type <a href="/src/io/fs/fs.go?s=6321:6682#L161">FileInfo</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>FileInfo 描述一个文件，由 <a href="#Stat">Stat</a> 返回。
+
+			<pre>type FileInfo interface {
+    Name() <a href="/pkg/builtin/#string">string</a>       <span class="comment">// 文件的基本名称</span>
+    Size() <a href="/pkg/builtin/#int64">int64</a>        <span class="comment">// 普通文件的字节长度；其他文件取决于系统</span>
+    Mode() <a href="#FileMode">FileMode</a>     <span class="comment">// 文件模式位</span>
+    ModTime() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// 修改时间</span>
+    IsDir() <a href="/pkg/builtin/#bool">bool</a>        <span class="comment">// Mode().IsDir() 的简写</span>
+    Sys() <a href="/pkg/builtin/#any">any</a>           <span class="comment">// 底层数据源（可以返回 nil）</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Lstat">func <a href="/src/io/fs/readlink.go?s=1380:1430#L29">Lstat</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func Lstat(fsys <a href="#FS">FS</a>, name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lstat 返回描述指定文件的 <a href="#FileInfo">FileInfo</a>。如果该文件是符号链接，返回的 <a href="#FileInfo">FileInfo</a> 描述的是符号链接本身。Lstat 不会尝试跟随该链接。
+<p>如果 fsys 没有实现 <a href="#ReadLinkFS">ReadLinkFS</a>，Lstat 的行为就与 <a href="#Stat">Stat</a> 相同。
+
+				
+			
+				<h3 id="Stat">func <a href="/src/io/fs/stat.go?s=580:629#L10">Stat</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func Stat(fsys <a href="#FS">FS</a>, name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Stat 返回描述文件系统中指定文件的 <a href="#FileInfo">FileInfo</a>。
+<p>如果 fsys 实现了 <a href="#StatFS">StatFS</a>，Stat 就调用 fsys.Stat。否则，Stat 会打开该 <a href="#File">File</a>，以获取其状态信息。
+
+				
+			
+
+			
+		
+			
+			<h2 id="FileMode">type <a href="/src/io/fs/fs.go?s=6975:6995#L175">FileMode</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>FileMode 表示文件的模式位和权限位。这些位在所有系统上都有相同的定义，因此文件信息可以在不同系统之间移植。并非所有位都适用于所有系统。唯一必须支持的位是表示目录的 <a href="#ModeDir">ModeDir</a>。
+
+			<pre>type FileMode <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				<p>已定义的文件模式位位于 <a href="#FileMode">FileMode</a> 的高位。最低的九位是标准 Unix rwxrwxrwx 权限位。这些位的值应视为公共 API 的一部分，可能用于通信协议或磁盘存储表示：可以添加新的位，但不能更改已有位的值。
+
+				<pre>const (
+    <span class="comment">// 单个字母是 String 方法</span>
+    <span class="comment">// 格式化时使用的缩写。</span>
+    <span id="ModeDir">ModeDir</span>        <a href="#FileMode">FileMode</a> = 1 &lt;&lt; (32 - 1 - <a href="/pkg/builtin/#iota">iota</a>) <span class="comment">// d：目录</span>
+    <span id="ModeAppend">ModeAppend</span>                                     <span class="comment">// a：仅允许追加</span>
+    <span id="ModeExclusive">ModeExclusive</span>                                  <span class="comment">// l：独占使用</span>
+    <span id="ModeTemporary">ModeTemporary</span>                                  <span class="comment">// T：临时文件，仅适用于 Plan 9</span>
+    <span id="ModeSymlink">ModeSymlink</span>                                    <span class="comment">// L：符号链接</span>
+    <span id="ModeDevice">ModeDevice</span>                                     <span class="comment">// D：设备文件</span>
+    <span id="ModeNamedPipe">ModeNamedPipe</span>                                  <span class="comment">// p：命名管道（FIFO）</span>
+    <span id="ModeSocket">ModeSocket</span>                                     <span class="comment">// S：Unix 域套接字</span>
+    <span id="ModeSetuid">ModeSetuid</span>                                     <span class="comment">// u：setuid 位</span>
+    <span id="ModeSetgid">ModeSetgid</span>                                     <span class="comment">// g：setgid 位</span>
+    <span id="ModeCharDevice">ModeCharDevice</span>                                 <span class="comment">// c：设置了 ModeDevice 时表示 Unix 字符设备</span>
+    <span id="ModeSticky">ModeSticky</span>                                     <span class="comment">// t：粘滞位</span>
+    <span id="ModeIrregular">ModeIrregular</span>                                  <span class="comment">// ?：非普通文件，对该文件没有其他已知信息</span>
+
+    <span class="comment">// 类型位掩码。普通文件不设置其中任何一位。</span>
+    <span id="ModeType">ModeType</span> = <a href="#ModeDir">ModeDir</a> | <a href="#ModeSymlink">ModeSymlink</a> | <a href="#ModeNamedPipe">ModeNamedPipe</a> | <a href="#ModeSocket">ModeSocket</a> | <a href="#ModeDevice">ModeDevice</a> | <a href="#ModeCharDevice">ModeCharDevice</a> | <a href="#ModeIrregular">ModeIrregular</a>
+
+    <span id="ModePerm">ModePerm</span> <a href="#FileMode">FileMode</a> = 0777 <span class="comment">// Unix 权限位</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FileMode.IsDir">func (FileMode) <a href="/src/io/fs/fs.go?s=9151:9181#L233">IsDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (m <a href="#FileMode">FileMode</a>) IsDir() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsDir 报告 m 是否描述一个目录，也就是检查 m 中是否设置了 <a href="#ModeDir">ModeDir</a> 位。
+
+				
+			
+				<h3 id="FileMode.IsRegular">func (FileMode) <a href="/src/io/fs/fs.go?s=9320:9354#L239">IsRegular</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (m <a href="#FileMode">FileMode</a>) IsRegular() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsRegular 报告 m 是否描述一个普通文件，也就是检查是否没有设置任何模式类型位。
+
+				
+			
+				<h3 id="FileMode.Perm">func (FileMode) <a href="/src/io/fs/fs.go?s=9448:9481#L244">Perm</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (m <a href="#FileMode">FileMode</a>) Perm() <a href="#FileMode">FileMode</a></pre>
+				<p>Perm 返回 m 中的 Unix 权限位（m &amp; <a href="#ModePerm">ModePerm</a>）。
+
+				
+			
+				<h3 id="FileMode.String">func (FileMode) <a href="/src/io/fs/fs.go?s=8636:8669#L205">String</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (m <a href="#FileMode">FileMode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="FileMode.Type">func (FileMode) <a href="/src/io/fs/fs.go?s=9557:9590#L249">Type</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (m <a href="#FileMode">FileMode</a>) Type() <a href="#FileMode">FileMode</a></pre>
+				<p>Type 返回 m 中的类型位（m &amp; <a href="#ModeType">ModeType</a>）。
+
+				
+			
+		
+			
+			<h2 id="GlobFS">type <a href="/src/io/fs/glob.go?s=241:437#L2">GlobFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>GlobFS 是具有 Glob 方法的文件系统。
+
+			<pre>type GlobFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// Glob 返回所有匹配 pattern 的文件名，</span>
+    <span class="comment">// 为包级 Glob 函数</span>
+    <span class="comment">// 提供实现。</span>
+    Glob(pattern <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PathError">type <a href="/src/io/fs/fs.go?s=9695:9758#L254">PathError</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>PathError 记录一个错误，以及导致该错误的操作和文件路径。
+
+			<pre>type PathError struct {
+<span id="PathError.Op"></span>    Op   <a href="/pkg/builtin/#string">string</a>
+<span id="PathError.Path"></span>    Path <a href="/pkg/builtin/#string">string</a>
+<span id="PathError.Err"></span>    Err  <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PathError.Error">func (*PathError) <a href="/src/io/fs/fs.go?s=9760:9794#L260">Error</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (e *<a href="#PathError">PathError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="PathError.Timeout">func (*PathError) <a href="/src/io/fs/fs.go?s=9963:9997#L265">Timeout</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (e *<a href="#PathError">PathError</a>) Timeout() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Timeout 报告此错误是否表示超时。
+
+				
+			
+				<h3 id="PathError.Unwrap">func (*PathError) <a href="/src/io/fs/fs.go?s=9850:9884#L262">Unwrap</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (e *<a href="#PathError">PathError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ReadDirFS">type <a href="/src/io/fs/readdir.go?s=342:519#L5">ReadDirFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>ReadDirFS 是提供 <a href="#ReadDir">ReadDir</a> 优化实现的文件系统所实现的接口。
+
+			<pre>type ReadDirFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// ReadDir 读取指定目录，</span>
+    <span class="comment">// 返回按文件名排序的目录条目列表。</span>
+    ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadDirFile">type <a href="/src/io/fs/fs.go?s=4507:5441#L119">ReadDirFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>ReadDirFile 是可以通过 ReadDir 方法读取条目的目录文件。每个目录文件都应实现此接口。（任何文件都可以实现此接口，但对于非目录文件，ReadDir 应返回错误。）
+
+			<pre>type ReadDirFile interface {
+    <a href="#File">File</a>
+
+    <span class="comment">// ReadDir 读取目录内容，并按目录中的顺序返回</span>
+    <span class="comment">// 最多包含 n 个 DirEntry 值的切片。</span>
+    <span class="comment">// 对同一文件继续调用，会得到后续的 DirEntry 值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 n &gt; 0，ReadDir 最多返回 n 个 DirEntry 结构。</span>
+    <span class="comment">// 此时，如果 ReadDir 返回空切片，就会同时返回</span>
+    <span class="comment">// 一个非 nil 错误来说明原因。</span>
+    <span class="comment">// 到达目录末尾时，错误为 io.EOF。</span>
+    <span class="comment">// （ReadDir 必须返回 io.EOF 本身，不能返回包装了 io.EOF 的错误。）</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 n &lt;= 0，ReadDir 会在一个切片中返回目录中所有剩余的 DirEntry 值。</span>
+    <span class="comment">// 此时，如果 ReadDir 成功（一直读到</span>
+    <span class="comment">// 目录末尾），则返回该切片和 nil 错误。</span>
+    <span class="comment">// 如果在到达目录末尾之前遇到错误，</span>
+    <span class="comment">// ReadDir 返回截至该处读到的 DirEntry 列表和非 nil 错误。</span>
+    ReadDir(n <a href="/pkg/builtin/#int">int</a>) ([]<a href="#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadFileFS">type <a href="/src/io/fs/readfile.go?s=305:750#L1">ReadFileFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>ReadFileFS 是提供 <a href="#ReadFile">ReadFile</a> 优化实现的文件系统所实现的接口。
+
+			<pre>type ReadFileFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// ReadFile 读取指定文件，并返回其内容。</span>
+    <span class="comment">// 调用成功时返回 nil 错误，而不是 io.EOF。</span>
+    <span class="comment">// （由于 ReadFile 读取整个文件，最后一次 Read 预期会遇到</span>
+    <span class="comment">// EOF，因此不会将其作为错误报告。）</span>
+    <span class="comment">//</span>
+    <span class="comment">// 允许调用方修改返回的字节切片。</span>
+    <span class="comment">// 此方法应返回底层数据的副本。</span>
+    ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadLinkFS">type <a href="/src/io/fs/readlink.go?s=273:766#L1">ReadLinkFS</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>ReadLinkFS 是支持读取符号链接的文件系统所实现的接口。
+
+			<pre>type ReadLinkFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// ReadLink 返回指定符号链接的目标。</span>
+    <span class="comment">// 如果发生错误，应为 [*PathError] 类型。</span>
+    ReadLink(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Lstat 返回描述指定文件的 [FileInfo]。</span>
+    <span class="comment">// 如果文件是符号链接，返回的 [FileInfo] 描述该符号链接本身。</span>
+    <span class="comment">// Lstat 不会尝试跟随链接。</span>
+    <span class="comment">// 如果发生错误，应为 [*PathError] 类型。</span>
+    Lstat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StatFS">type <a href="/src/io/fs/stat.go?s=221:396#L1">StatFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>StatFS 是具有 Stat 方法的文件系统。
+
+			<pre>type StatFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// Stat 返回描述文件的 FileInfo。</span>
+    <span class="comment">// 如果发生错误，应为 *PathError 类型。</span>
+    Stat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SubFS">type <a href="/src/io/fs/sub.go?s=249:373#L3">SubFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>SubFS 是具有 Sub 方法的文件系统。
+
+			<pre>type SubFS interface {
+    <a href="#FS">FS</a>
+
+    <span class="comment">// Sub 返回与以 dir 为根的子树对应的 FS。</span>
+    Sub(dir <a href="/pkg/builtin/#string">string</a>) (<a href="#FS">FS</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="WalkDirFunc">type <a href="/src/io/fs/walk.go?s=3156:3219#L59">WalkDirFunc</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>WalkDirFunc 是 <a href="#WalkDir">WalkDir</a> 访问每个文件或目录时所调用函数的类型。
+<p>path 参数以传给 <a href="#WalkDir">WalkDir</a> 的参数为前缀。也就是说，如果调用 WalkDir 时 root 参数为 &quot;dir&quot;，并在该目录中发现名为 &quot;a&quot; 的文件，那么调用遍历函数时传入的参数就是 &quot;dir/a&quot;。
+<p>d 参数是指定路径对应的 <a href="#DirEntry">DirEntry</a>。
+<p>函数返回的错误结果决定 <a href="#WalkDir">WalkDir</a> 如何继续。如果函数返回特殊值 <a href="#SkipDir">SkipDir</a>，WalkDir 就跳过当前目录（如果 d.IsDir() 为 true，则是 path；否则是 path 的父目录）。如果函数返回特殊值 <a href="#SkipAll">SkipAll</a>，WalkDir 就跳过所有剩余文件和目录。除此之外，如果函数返回非 nil 错误，WalkDir 就会完全停止，并返回该错误。
+<p>err 参数报告与 path 有关的错误，表示 <a href="#WalkDir">WalkDir</a> 不会进入该目录。函数可以决定如何处理此错误；如上所述，返回该错误会使 WalkDir 停止遍历整棵树。
+<p><a href="#WalkDir">WalkDir</a> 在两种情况下会以非 nil 的 err 参数调用该函数。
+<p>第一种情况是最初对根目录的 <a href="#Stat">Stat</a> 调用失败，此时 WalkDir 调用函数，path 设为 root，d 设为 nil，err 设为 <a href="#Stat">fs.Stat</a> 返回的错误。
+<p>第二种情况是目录的 ReadDir 方法（参见 <a href="#ReadDirFile">ReadDirFile</a>）失败，此时 WalkDir 调用函数，path 设为该目录的路径，d 设为描述该目录的 <a href="#DirEntry">DirEntry</a>，err 设为 ReadDir 返回的错误。在第二种情况下，会针对该目录的路径调用函数两次：第一次调用发生在尝试读取目录之前，err 为 nil，让函数有机会返回 <a href="#SkipDir">SkipDir</a> 或 <a href="#SkipAll">SkipAll</a>，从而完全避免执行 ReadDir。第二次调用发生在 ReadDir 失败后，用来报告 ReadDir 的错误。（如果 ReadDir 成功，则不会发生第二次调用。）
+<p>WalkDirFunc 与 <a href="/pkg/path/filepath/#WalkFunc">path/filepath.WalkFunc</a> 的区别如下：
+<ul>
+<li>第二个参数的类型为 <a href="#DirEntry">DirEntry</a>，而不是 <a href="#FileInfo">FileInfo</a>。
+<li>在读取目录之前就会调用函数，因此可以分别通过 <a href="#SkipDir">SkipDir</a> 或 <a href="#SkipAll">SkipAll</a> 完全跳过目录读取，或跳过所有剩余文件和目录。
+<li>如果读取目录失败，会针对该目录第二次调用函数，以报告错误。
+</ul>
+
+			<pre>type WalkDirFunc func(path <a href="/pkg/builtin/#string">string</a>, d <a href="#DirEntry">DirEntry</a>, err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

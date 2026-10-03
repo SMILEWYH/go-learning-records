@@ -1,0 +1,113 @@
+<!--
+	Copyright 2018 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+<!--
+	Note: Static (i.e., not template-generated) href and id
+	attributes start with "pkg-" to make it impossible for
+	them to conflict with generated attributes (some of which
+	correspond to Go identifiers).
+-->
+{{define "layout"}}
+
+<article class="Pkg Article">
+
+<h1>Go 包参考</h1>
+<p><a href="/doc/reference-zh#stdlib">查看标准库中文文档与阅读指引</a>。中文参考采用 Go 1.27.1、linux/amd64 快照；下方目录来自本机工具链，内部实现包、其他平台和特殊构建视图保留原文，目录中会注明。</p>
+
+{{$pkg := .pkg}}
+{{$synopses := yaml (file "/pkg-synopses.json")}}
+
+{{with $pkg.Dirs}}
+	{{/* DirList entries are numbers and strings - no need for FSet */}}
+	{{if $pkg.PDoc}}
+		<h2 id="pkg-subdirectories">子目录</h2>
+	{{end}}
+		<div id="manual-nav">
+			<dl>
+				<dt><a href="#stdlib">标准库</a></dt>
+				<dt><a href="#other">其他包</a></dt>
+				<dd><a href="#subrepo">子仓库</a></dd>
+				<dd><a href="#community">社区</a></dd>
+			</dl>
+		</div>
+
+		<div id="stdlib" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开标准库目录">标准库 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起标准库目录">标准库 ▾</h2>
+				<img alt="" class="gopher" src="/doc/gopher/pkg.png"/>
+				<div class="pkg-dir">
+					<table>
+						<tr>
+							<th class="pkg-name">名称</th>
+							<th class="pkg-synopsis">简介</th>
+						</tr>
+
+						{{range .}}
+							<tr>
+							{{if $pkg.DirFlat}}
+								{{if .HasPkg}}
+										<td class="pkg-name">
+											<a href="{{.Path}}/{{$pkg.ModeQuery}}">{{.Path}}</a>
+										</td>
+								{{end}}
+							{{else}}
+									<td class="pkg-name" style="padding-left: {{mul (sub .Depth 1) 20}}px;">
+										<a href="{{.Path}}/{{$pkg.ModeQuery}}">{{.Name}}</a>
+									</td>
+							{{end}}
+							<td class="pkg-synopsis">
+								{{with index $synopses .Path}}{{.}}{{else}}{{.Synopsis}}{{end}}
+							</td>
+							</tr>
+						{{end}}
+					</table>
+				</div> <!-- .pkg-dir -->
+			</div> <!-- .expanded -->
+		</div> <!-- #stdlib .toggleVisible -->
+
+	<h2 id="other">其他包</h2>
+	<h3 id="subrepo">子仓库</h3>
+	<p>
+	这些包属于 Go 项目，但位于 Go 主源码树之外。
+	它们遵循的<a href="/doc/go1compat">兼容性要求</a>比 Go 核心更宽松。
+	可使用“<a href="/cmd/go/#hdr-Add_dependencies_to_current_module_and_install_them">go get</a>”获取它们。
+	</p>
+	<ul>
+		<li><a href="https://pkg.go.dev/golang.org/x/benchmarks">benchmarks</a> — 用于衡量 Go 开发过程中性能变化的基准测试。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/blog">blog</a> — <a href="https://blog.golang.org">blog.golang.org</a> 的实现。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/build">build</a> — <a href="https://build.golang.org">build.golang.org</a> 的实现。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/crypto">crypto</a> — 补充的密码学包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/debug">debug</a> — 实验性的 Go 调试器。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/image">image</a> — 补充的图像处理包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/mobile">mobile</a> — Go 在移动平台上的实验性支持。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/net">net</a> — 补充的网络包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/perf">perf</a> — 用于性能测量、存储和分析的包与工具。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/pkgsite">pkgsite</a> — pkg.go.dev 网站的源码。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/review">review</a> — 用于参与 Gerrit 代码审查的工具。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/sync">sync</a> — 补充的并发原语。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/sys">sys</a> — 用于执行系统调用的包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/text">text</a> — 用于文本处理的包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/time">time</a> — 补充的时间处理包。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/tools">tools</a> — godoc、goimports、gorename 等工具。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/tour">tour</a> — <a href="https://tour.golang.org">tour.golang.org</a> 的实现。</li>
+		<li><a href="https://pkg.go.dev/golang.org/x/exp">exp</a> — 实验性及已弃用的包（请谨慎使用，可能在不另行通知的情况下变更）。</li>
+	</ul>
+
+	<h3 id="community">社区</h3>
+	<p>
+	以下服务可帮助你查找社区提供的开源包。
+	</p>
+	<ul>
+		<li><a href="https://pkg.go.dev">Pkg.go.dev</a> - Go 包发现网站。</li>
+		<li><a href="/wiki/Projects">Go Wiki 上的项目</a> - 精选的 Go 项目列表。</li>
+	</ul>
+{{end}}
+
+</article>
+
+{{end}}

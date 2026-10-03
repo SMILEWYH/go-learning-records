@@ -1,0 +1,354 @@
+<!--{
+  "Title": "crypto/rand package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package rand</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/rand"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package rand implements a cryptographically secure
+random number generator.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Int">func Int(rand io.Reader, max *big.Int) (n *big.Int, err error)</a></dd>
+			
+				<dd><a href="#Prime">func Prime(r io.Reader, bits int) (*big.Int, error)</a></dd>
+			
+				<dd><a href="#Read">func Read(b []byte) (n int, err error)</a></dd>
+			
+				<dd><a href="#Text">func Text() string</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Int">Int</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Prime">Prime</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Read">Read</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Text">Text</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/rand/rand.go">rand.go</a>
+			
+				<a href="/src/crypto/rand/text.go">text.go</a>
+			
+				<a href="/src/crypto/rand/util.go">util.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>Reader is a global, shared instance of a cryptographically
+secure random number generator. It is safe for concurrent use.
+<ul>
+<li>On Linux, FreeBSD, Dragonfly, and Solaris, Reader uses getrandom(2).
+<li>On legacy Linux (&lt; 3.17), Reader opens /dev/urandom on first use.
+<li>On macOS, iOS, and OpenBSD Reader, uses arc4random_buf(3).
+<li>On NetBSD, Reader uses the kern.arandom sysctl.
+<li>On Windows, Reader uses the ProcessPrng API.
+<li>On js/wasm, Reader uses the Web Crypto API.
+<li>On wasip1/wasm, Reader uses random_get.
+</ul>
+<p>In FIPS 140-3 mode, the output passes through an SP 800-90A Rev. 1
+Deterministric Random Bit Generator (DRBG).
+
+				<pre>var <span id="Reader">Reader</span> <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a> = <a href="/pkg/crypto/internal/rand/">rand</a>.<a href="/pkg/crypto/internal/rand/#Reader">Reader</a></pre>
+			
+		
+		
+			
+			<h2 id="Int">func <a href="/src/crypto/rand/util.go?s=1998:2060#L61">Int</a>
+				
+				
+			</h2>
+			<pre>func Int(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, max *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) (n *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Int returns a uniform random value in [0, max). It panics if max &lt;= 0, and
+returns an error if rand.Read returns one.
+
+			
+
+
+<div id="example_Int" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleInt prints a single cryptographically secure pseudorandom number between 0 and 99 inclusive.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/rand&#34;
+	&#34;fmt&#34;
+	&#34;math/big&#34;
+)
+
+func main() {
+	// Int cannot return an error when using rand.Reader.
+	a, _ := rand.Int(rand.Reader, big.NewInt(100))
+	fmt.Println(a.Int64())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Prime">func <a href="/src/crypto/rand/util.go?s=682:733#L11">Prime</a>
+				
+				
+			</h2>
+			<pre>func Prime(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, bits <a href="/pkg/builtin/#int">int</a>) (*<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Prime returns a number of the given bit length that is prime with high probability.
+Prime will return error for any error returned by rand.Read or if bits &lt; 2.
+<p>Since Go 1.26, a secure source of random bytes is always used, and the Reader is
+ignored unless GODEBUG=cryptocustomrand=1 is set. This setting will be removed
+in a future Go release. Instead, use <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>.
+
+			
+
+
+<div id="example_Prime" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExamplePrime prints a cryptographically secure pseudorandom 64 bit prime number.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/rand&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// Prime cannot return an error when using rand.Reader and bits &gt;= 2.
+	a, _ := rand.Prime(rand.Reader, 64)
+	fmt.Println(a.Int64())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Read">func <a href="/src/crypto/rand/rand.go?s=1653:1691#L37">Read</a>
+				
+				
+			</h2>
+			<pre>func Read(b []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Read fills b with cryptographically secure random bytes. It never returns an
+error, and always fills b entirely.
+<p>Read calls <a href="/pkg/io/#ReadFull">io.ReadFull</a> on <a href="#Reader">Reader</a> and crashes the program irrecoverably if
+an error is returned. The default Reader uses operating system APIs that are
+documented to never return an error on all but legacy Linux systems.
+
+			
+
+
+<div id="example_Read" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleRead prints a cryptographically secure pseudorandom 32 byte key.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/rand&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// Note that no error handling is necessary, as Read always succeeds.
+	key := make([]byte, 32)
+	rand.Read(key)
+	// The key can contain any byte value, print the key in hex.
+	fmt.Printf(&#34;% x\n&#34;, key)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Text">func <a href="/src/crypto/rand/text.go?s=652:670#L4">Text</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Text() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Text returns a cryptographically random string using the standard RFC 4648 base32 alphabet
+for use when a secret string, token, password, or other text is needed.
+The result contains at least 128 bits of randomness, enough to prevent brute force
+guessing attacks and to make the likelihood of collisions vanishingly small.
+A future version may return longer texts as needed to maintain those properties.
+
+			
+
+
+<div id="example_Text" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleText prints a random key encoded in base32.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;crypto/rand&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	key := rand.Text()
+	// The key is base32 and safe to display.
+	fmt.Println(key)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

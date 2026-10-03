@@ -1,0 +1,427 @@
+<!--{
+  "Title": "debug/gosym 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>debug/gosym 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "debug/gosym"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>gosym 包用于访问 gc 编译器生成的 Go 二进制文件中嵌入的 Go 符号表和行号表。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#DecodingError">type DecodingError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DecodingError.Error">func (e *DecodingError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LineTable">type LineTable</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewLineTable">func NewLineTable(data []byte, text uint64) *LineTable</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LineTable.LineToPC">func (t *LineTable) LineToPC(line int, maxpc uint64) uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineTable.PCToLine">func (t *LineTable) PCToLine(pc uint64) int</a></dd>
+				
+			
+				
+				<dd><a href="#Obj">type Obj</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Sym">type Sym</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Sym.BaseName">func (s *Sym) BaseName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sym.PackageName">func (s *Sym) PackageName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sym.ReceiverName">func (s *Sym) ReceiverName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sym.Static">func (s *Sym) Static() bool</a></dd>
+				
+			
+				
+				<dd><a href="#Table">type Table</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTable">func NewTable(symtab []byte, pcln *LineTable) (*Table, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.LineToPC">func (t *Table) LineToPC(file string, line int) (pc uint64, fn *Func, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.LookupFunc">func (t *Table) LookupFunc(name string) *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.LookupSym">func (t *Table) LookupSym(name string) *Sym</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.PCToFunc">func (t *Table) PCToFunc(pc uint64) *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.PCToLine">func (t *Table) PCToLine(pc uint64) (file string, line int, fn *Func)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Table.SymByAddr">func (t *Table) SymByAddr(addr uint64) *Sym</a></dd>
+				
+			
+				
+				<dd><a href="#UnknownFileError">type UnknownFileError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownFileError.Error">func (e UnknownFileError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnknownLineError">type UnknownLineError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnknownLineError.Error">func (e *UnknownLineError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/debug/gosym/pclntab.go">pclntab.go</a>
+			
+				<a href="/src/debug/gosym/symtab.go">symtab.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="DecodingError">type <a href="/src/debug/gosym/symtab.go?s=17434:17493#L748">DecodingError</a>
+				
+				
+			</h2>
+			<p>DecodingError 表示解码符号表时发生的错误。<pre>type DecodingError struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DecodingError.Error">func (*DecodingError) <a href="/src/debug/gosym/symtab.go?s=17495:17533#L754">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#DecodingError">DecodingError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Func">type <a href="/src/debug/gosym/symtab.go?s=3283:3504#L117">Func</a>
+				
+				
+			</h2>
+			<p>Func 汇集单个函数的信息。<pre>type Func struct {
+<span id="Func.Entry"></span>    Entry <a href="/pkg/builtin/#uint64">uint64</a>
+    *<a href="#Sym">Sym</a>
+<span id="Func.End"></span>    End       <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Func.Params"></span>    Params    []*<a href="#Sym">Sym</a> <span class="comment">// 对于 Go 1.3 及更高版本的二进制文件，为 nil</span>
+<span id="Func.Locals"></span>    Locals    []*<a href="#Sym">Sym</a> <span class="comment">// 对于 Go 1.3 及更高版本的二进制文件，为 nil</span>
+<span id="Func.FrameSize"></span>    FrameSize <a href="/pkg/builtin/#int">int</a>
+<span id="Func.LineTable"></span>    LineTable *<a href="#LineTable">LineTable</a>
+<span id="Func.Obj"></span>    Obj       *<a href="#Obj">Obj</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LineTable">type <a href="/src/debug/gosym/pclntab.go?s=1158:2064#L34">LineTable</a>
+				
+				
+			</h2>
+			<p>LineTable 是将程序计数器映射到行号的数据结构。<p>在 Go 1.1 及更早版本中，每个函数（由 <a href="#Func">Func</a> 表示）都有自己的 LineTable，行号则对应整个程序跨所有文件的源代码行的统一编号。随后还需要单独将这种绝对行号转换为文件名及文件内行号。<p>Go 1.2 更改了数据格式，整个程序只有一个由所有 Func 共享的 LineTable，不再使用绝对行号，而只使用特定文件内的行号。<p>通常，LineTable 的方法应视为本包内部实现细节；调用方应改用 <a href="#Table">Table</a> 上的方法。<pre>type LineTable struct {
+<span id="LineTable.Data"></span>    Data []<a href="/pkg/builtin/#byte">byte</a>
+<span id="LineTable.PC"></span>    PC   <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="LineTable.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewLineTable">func <a href="/src/debug/gosym/pclntab.go?s=4396:4450#L147">NewLineTable</a>
+					
+					
+				</h3>
+				<pre>func NewLineTable(data []<a href="/pkg/builtin/#byte">byte</a>, text <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#LineTable">LineTable</a></pre>
+				<p>NewLineTable 返回与编码数据对应的新程序计数器／行号表。text 必须是对应代码段的起始地址，其精确值保存在“runtime.text”符号中。如果二进制文件构建时启用了 cgo，该值可能不同于代码段的起始地址。<h3 id="LineTable.LineToPC">func (*LineTable) <a href="/src/debug/gosym/pclntab.go?s=3813:3872#L127">LineToPC</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#LineTable">LineTable</a>) LineToPC(line <a href="/pkg/builtin/#int">int</a>, maxpc <a href="/pkg/builtin/#uint64">uint64</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>LineToPC 返回给定行号对应的程序计数器，只考虑 maxpc 之前的程序计数器。<p>已弃用：请改用 Table 的 LineToPC 方法。<h3 id="LineTable.PCToLine">func (*LineTable) <a href="/src/debug/gosym/pclntab.go?s=3499:3542#L115">PCToLine</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#LineTable">LineTable</a>) PCToLine(pc <a href="/pkg/builtin/#uint64">uint64</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>PCToLine 返回给定程序计数器对应的行号。<p>已弃用：请改用 Table 的 PCToLine 方法。<h2 id="Obj">type <a href="/src/debug/gosym/symtab.go?s=3934:4249#L139">Obj</a>
+				
+				
+			</h2>
+			<p>Obj 表示符号表中的一组函数。<p>将二进制文件划分为多个 Obj 的具体方式，是符号表格式的内部细节。<p>早期 Go 版本中，每个源文件对应一个独立的 Obj。<p>在 Go 1 和 Go 1.1 中，每个包的全部 Go 源文件产生一个 Obj，每个 C 源文件分别产生一个 Obj。<p>在 Go 1.2 中，整个程序只有一个 Obj。<pre>type Obj struct {
+<span id="Obj.Funcs"></span>    <span class="comment">// Funcs 是 Obj 中的函数列表。</span>
+    Funcs []<a href="#Func">Func</a>
+
+    <span class="comment">// 在 Go 1.1 及更早版本中，Paths 是一组符号，</span>
+    <span class="comment">// 对应生成该 Obj 的各个源文件名。</span>
+    <span class="comment">// 在 Go 1.2 中，Paths 为 nil。</span>
+    <span class="comment">// 使用 Table.Files 的键获取源文件列表。</span>
+<span id="Obj.Paths"></span>    Paths []<a href="#Sym">Sym</a> <span class="comment">// 元信息</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Sym">type <a href="/src/debug/gosym/symtab.go?s=448:621#L13">Sym</a>
+				
+				
+			</h2>
+			<p>Sym 表示一个符号表条目。<pre>type Sym struct {
+<span id="Sym.Value"></span>    Value  <a href="/pkg/builtin/#uint64">uint64</a>
+<span id="Sym.Type"></span>    Type   <a href="/pkg/builtin/#byte">byte</a>
+<span id="Sym.Name"></span>    Name   <a href="/pkg/builtin/#string">string</a>
+<span id="Sym.GoType"></span>    GoType <a href="/pkg/builtin/#uint64">uint64</a>
+    <span class="comment">// 如果此符号是函数符号，则为其对应的 Func</span>
+<span id="Sym.Func"></span>    Func *<a href="#Func">Func</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Sym.BaseName">func (*Sym) <a href="/src/debug/gosym/symtab.go?s=3072:3103#L108">BaseName</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Sym">Sym</a>) BaseName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>BaseName 返回去掉包名或接收者名称后的符号名。<h3 id="Sym.PackageName">func (*Sym) <a href="/src/debug/gosym/symtab.go?s=1506:1540#L59">PackageName</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Sym">Sym</a>) PackageName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>PackageName 返回符号名中的包名部分；如果没有，则返回空字符串。<h3 id="Sym.ReceiverName">func (*Sym) <a href="/src/debug/gosym/symtab.go?s=2446:2481#L89">ReceiverName</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Sym">Sym</a>) ReceiverName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>ReceiverName 返回此符号的接收者类型名；如果没有，则返回空字符串。只有 s.Name 完整包含包名时，才能识别接收者名称。<h3 id="Sym.Static">func (*Sym) <a href="/src/debug/gosym/symtab.go?s=703:730#L25">Static</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Sym">Sym</a>) Static() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Static 报告此符号是否为静态符号，即在所在文件之外不可见。<h2 id="Table">type <a href="/src/debug/gosym/symtab.go?s=4448:4724#L157">Table</a>
+				
+				
+			</h2>
+			<p>Table 表示 Go 符号表。它存储从程序解码得到的全部符号，并提供在符号、名称和地址之间转换的方法。<pre>type Table struct {
+<span id="Table.Syms"></span>    Syms  []<a href="#Sym">Sym</a> <span class="comment">// 对于 Go 1.3 及更高版本的二进制文件，为 nil</span>
+<span id="Table.Funcs"></span>    Funcs []<a href="#Func">Func</a>
+<span id="Table.Files"></span>    Files map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Obj">Obj</a> <span class="comment">// Go 1.2 及更高版本中，所有文件都映射到同一个 Obj</span>
+<span id="Table.Objs"></span>    Objs  []<a href="#Obj">Obj</a>           <span class="comment">// Go 1.2 及更高版本中，切片中只有一个 Obj</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTable">func <a href="/src/debug/gosym/symtab.go?s=8282:8343#L323">NewTable</a>
+					
+					
+				</h3>
+				<pre>func NewTable(symtab []<a href="/pkg/builtin/#byte">byte</a>, pcln *<a href="#LineTable">LineTable</a>) (*<a href="#Table">Table</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewTable 解码 Go 符号表（ELF 中的“.gosymtab”节），返回其内存表示。从 Go 1.3 开始，Go 符号表不再包含符号数据，调用方应为 symtab 参数传入 nil。<h3 id="Table.LineToPC">func (*Table) <a href="/src/debug/gosym/symtab.go?s=13459:13539#L559">LineToPC</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) LineToPC(file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>) (pc <a href="/pkg/builtin/#uint64">uint64</a>, fn *<a href="#Func">Func</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LineToPC 查找指定文件中给定行对应的第一个程序计数器。查找此行失败时，返回 <a href="#UnknownFileError">UnknownFileError</a> 或 <a href="#UnknownLineError">UnknownLineError</a>。<h3 id="Table.LookupFunc">func (*Table) <a href="/src/debug/gosym/symtab.go?s=14520:14565#L605">LookupFunc</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) LookupFunc(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Func">Func</a></pre>
+				<p>LookupFunc 返回给定名称的代码（text）、数据（data）或 BSS 符号；如果找不到，则返回 nil。<h3 id="Table.LookupSym">func (*Table) <a href="/src/debug/gosym/symtab.go?s=14158:14201#L589">LookupSym</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) LookupSym(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Sym">Sym</a></pre>
+				<p>LookupSym 返回给定名称的代码（text）、数据（data）或 BSS 符号；如果找不到，则返回 nil。<h3 id="Table.PCToFunc">func (*Table) <a href="/src/debug/gosym/symtab.go?s=12561:12602#L524">PCToFunc</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) PCToFunc(pc <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Func">Func</a></pre>
+				<p>PCToFunc 返回包含程序计数器 pc 的函数；如果不存在，则返回 nil。<h3 id="Table.PCToLine">func (*Table) <a href="/src/debug/gosym/symtab.go?s=12968:13037#L543">PCToLine</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) PCToLine(pc <a href="/pkg/builtin/#uint64">uint64</a>) (file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>, fn *<a href="#Func">Func</a>)</pre>
+				<p>PCToLine 查找程序计数器对应的行号信息。如果没有相关信息，则返回 fn == nil。<h3 id="Table.SymByAddr">func (*Table) <a href="/src/debug/gosym/symtab.go?s=14755:14798#L616">SymByAddr</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Table">Table</a>) SymByAddr(addr <a href="/pkg/builtin/#uint64">uint64</a>) *<a href="#Sym">Sym</a></pre>
+				<p>SymByAddr 返回从给定地址开始的代码（text）、数据（data）或 BSS 符号。<h2 id="UnknownFileError">type <a href="/src/debug/gosym/symtab.go?s=16890:16918#L730">UnknownFileError</a>
+				
+				
+			</h2>
+			<p>UnknownFileError 表示未能在符号表中找到指定文件。<pre>type UnknownFileError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownFileError.Error">func (UnknownFileError) <a href="/src/debug/gosym/symtab.go?s=16920:16960#L732">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#UnknownFileError">UnknownFileError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnknownLineError">type <a href="/src/debug/gosym/symtab.go?s=17189:17244#L737">UnknownLineError</a>
+				
+				
+			</h2>
+			<p>UnknownLineError 表示无法将某行映射到程序计数器，原因可能是行号超出文件范围，也可能是该行没有代码。<pre>type UnknownLineError struct {
+<span id="UnknownLineError.File"></span>    File <a href="/pkg/builtin/#string">string</a>
+<span id="UnknownLineError.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnknownLineError.Error">func (*UnknownLineError) <a href="/src/debug/gosym/symtab.go?s=17246:17287#L742">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnknownLineError">UnknownLineError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

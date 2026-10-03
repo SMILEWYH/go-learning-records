@@ -1,0 +1,575 @@
+<!--{
+  "Title": "archive/tar 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>archive/tar 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "archive/tar"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>tar 包实现对 tar 归档的访问。<p>磁带归档（tar）是一种用于存储一系列文件的文件格式，可以按流式方式读取和写入。本包旨在覆盖该格式的大多数变体，包括 GNU 和 BSD tar 工具生成的格式。<div id="example__minimal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Minimal)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Minimal)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;archive/tar&#34;
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	// 创建一些文件并添加到归档。
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&amp;buf)
+	var files = []struct {
+		Name, Body string
+	}{
+		{&#34;readme.txt&#34;, &#34;This archive contains some text files.&#34;},
+		{&#34;gopher.txt&#34;, &#34;Gopher names:\nGeorge\nGeoffrey\nGonzo&#34;},
+		{&#34;todo.txt&#34;, &#34;Get animal handling license.&#34;},
+	}
+	for _, file := range files {
+		hdr := &amp;tar.Header{
+			Name: file.Name,
+			Mode: 0600,
+			Size: int64(len(file.Body)),
+		}
+		if err := tw.WriteHeader(hdr); err != nil {
+			log.Fatal(err)
+		}
+		if _, err := tw.Write([]byte(file.Body)); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if err := tw.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	// 打开并遍历归档中的文件。
+	tr := tar.NewReader(&amp;buf)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break // 归档结束
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(&#34;Contents of %s:\n&#34;, hdr.Name)
+		if _, err := io.Copy(os.Stdout, tr); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println()
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Contents of readme.txt:
+This archive contains some text files.
+Contents of gopher.txt:
+Gopher names:
+George
+Geoffrey
+Gonzo
+Contents of todo.txt:
+Get animal handling license.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+			
+				
+				<dd><a href="#FileInfoNames">type FileInfoNames</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Format">type Format</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Format.String">func (f Format) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Header">type Header</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FileInfoHeader">func FileInfoHeader(fi fs.FileInfo, link string) (*Header, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Header.FileInfo">func (h *Header) FileInfo() fs.FileInfo</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r io.Reader) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Next">func (tr *Reader) Next() (*Header, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (tr *Reader) Read(b []byte) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.AddFS">func (tw *Writer) AddFS(fsys fs.FS) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (tw *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (tw *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (tw *Writer) Write(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.WriteHeader">func (tw *Writer) WriteHeader(hdr *Header) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__minimal">包 (Minimal)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/archive/tar/common.go">common.go</a>
+			
+				<a href="/src/archive/tar/format.go">format.go</a>
+			
+				<a href="/src/archive/tar/reader.go">reader.go</a>
+			
+				<a href="/src/archive/tar/stat_actime1.go">stat_actime1.go</a>
+			
+				<a href="/src/archive/tar/stat_unix.go">stat_unix.go</a>
+			
+				<a href="/src/archive/tar/strconv.go">strconv.go</a>
+			
+				<a href="/src/archive/tar/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>用于 Header.Typeflag 的类型标志。<pre>const (
+    <span class="comment">// 类型 '0' 表示普通文件。</span>
+    <span id="TypeReg">TypeReg</span> = &#39;0&#39;
+
+    <span class="comment">// 已弃用：请改用 TypeReg。</span>
+    <span id="TypeRegA">TypeRegA</span> = &#39;\x00&#39;
+
+    <span class="comment">// 类型 '1' 到 '6' 是仅包含头部的标志，不能带有数据体。</span>
+    <span id="TypeLink">TypeLink</span>    = &#39;1&#39; <span class="comment">// 硬链接</span>
+    <span id="TypeSymlink">TypeSymlink</span> = &#39;2&#39; <span class="comment">// 符号链接</span>
+    <span id="TypeChar">TypeChar</span>    = &#39;3&#39; <span class="comment">// 字符设备节点</span>
+    <span id="TypeBlock">TypeBlock</span>   = &#39;4&#39; <span class="comment">// 块设备节点</span>
+    <span id="TypeDir">TypeDir</span>     = &#39;5&#39; <span class="comment">// 目录</span>
+    <span id="TypeFifo">TypeFifo</span>    = &#39;6&#39; <span class="comment">// FIFO 节点</span>
+
+    <span class="comment">// 类型 '7' 为保留值。</span>
+    <span id="TypeCont">TypeCont</span> = &#39;7&#39;
+
+    <span class="comment">// PAX 格式使用类型 'x' 存储仅与下一个文件</span>
+    <span class="comment">// 相关的键值记录。</span>
+    <span class="comment">// 本包会透明地处理这些类型。</span>
+    <span id="TypeXHeader">TypeXHeader</span> = &#39;x&#39;
+
+    <span class="comment">// PAX 格式使用类型 'g' 存储与所有后续文件</span>
+    <span class="comment">// 相关的键值记录。</span>
+    <span class="comment">// 本包仅支持解析和构造此类头部，</span>
+    <span class="comment">// 目前不支持跨文件保持全局状态。</span>
+    <span id="TypeXGlobalHeader">TypeXGlobalHeader</span> = &#39;g&#39;
+
+    <span class="comment">// 类型 'S' 表示 GNU 格式的稀疏文件。</span>
+    <span id="TypeGNUSparse">TypeGNUSparse</span> = &#39;S&#39;
+
+    <span class="comment">// GNU 格式使用类型 'L' 和 'K' 表示元文件，</span>
+    <span class="comment">// 用于存储下一个文件的路径或链接名称。</span>
+    <span class="comment">// 本包会透明地处理这些类型。</span>
+    <span id="TypeGNULongName">TypeGNULongName</span> = &#39;L&#39;
+    <span id="TypeGNULongLink">TypeGNULongLink</span> = &#39;K&#39;
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span id="ErrHeader">ErrHeader</span>          = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;archive/tar: invalid tar header&#34;)
+    <span id="ErrWriteTooLong">ErrWriteTooLong</span>    = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;archive/tar: write too long&#34;)
+    <span id="ErrFieldTooLong">ErrFieldTooLong</span>    = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;archive/tar: header field too long&#34;)
+    <span id="ErrWriteAfterClose">ErrWriteAfterClose</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;archive/tar: write after close&#34;)
+    <span id="ErrInsecurePath">ErrInsecurePath</span>    = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;archive/tar: insecure file path&#34;)
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="FileInfoNames">type <a href="/src/archive/tar/common.go?s=24679:24845#L722">FileInfoNames</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<p>FileInfoNames 扩展了 <a href="/pkg/io/fs/#FileInfo">fs.FileInfo</a>。向 <a href="#FileInfoHeader">FileInfoHeader</a> 传入实现此接口的实例，允许调用方直接指定 Uname 和 Gname，从而避免依赖系统的名称查询。<pre>type FileInfoNames interface {
+    <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>
+    <span class="comment">// Uname 应提供用户名。</span>
+    Uname() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// Gname 应提供组名。</span>
+    Gname() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Format">type <a href="/src/archive/tar/format.go?s=2012:2027#L36">Format</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>Format 表示 tar 归档格式。<p>最初的 tar 格式在 Unix V7 中引入。此后，出现了多种相互竞争的格式，试图将 V7 格式标准化或对其扩展，以克服其局限。最常见的是 USTAR、PAX 和 GNU 格式，它们各有优势和限制。<p>下表汇总了各格式的能力：<pre>                  |  USTAR |       PAX |       GNU
+------------------+--------+-----------+----------
+Name              |   256B |      不限 |      不限
+Linkname          |   100B |      不限 |      不限
+Size              | uint33 |      不限 |    uint89
+Mode              | uint21 |    uint21 |    uint57
+Uid/Gid           | uint21 |      不限 |    uint57
+Uname/Gname       |    32B |      不限 |       32B
+ModTime           | uint33 |      不限 |     int89
+AccessTime        | 不适用 |      不限 |     int89
+ChangeTime        | 不适用 |      不限 |     int89
+Devmajor/Devminor | uint21 |    uint21 |    uint57
+------------------+--------+-----------+----------
+字符串编码        |  ASCII |     UTF-8 |    二进制
+亚秒级时间        |     否 |        是 |        否
+稀疏文件          |     否 |        是 |        是
+</pre>
+<p>表格上半部分展示 <a href="#Header">Header</a> 字段，其中每种格式列出了各字符串字段允许的最大字节数，以及存储各数值字段所用的整数类型（时间戳存储为自 Unix 纪元以来的秒数）。<p>表格下半部分展示每种格式的专有特性，例如支持的字符串编码、是否支持亚秒级时间戳，以及是否支持稀疏文件。<p>Writer 目前不支持稀疏文件。<pre>type Format <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>用于标识各种 tar 格式的常量。<pre>const (
+
+    <span class="comment">// FormatUnknown 表示格式未知。</span>
+    <span id="FormatUnknown">FormatUnknown</span> <a href="#Format">Format</a>
+
+    <span class="comment">// FormatUSTAR 表示 POSIX.1-1988 定义的 USTAR 头部格式。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 虽然此格式与大多数 tar 读取器兼容，</span>
+    <span class="comment">// 但它具有若干限制，因此不适用于某些用途。</span>
+    <span class="comment">// 尤其是，它不支持稀疏文件、大于 8GiB 的文件、</span>
+    <span class="comment">// 超过 256 个字符的文件名以及非 ASCII 文件名。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 参考：</span>
+    <span class="comment">//	http://pubs.opengroup.org/onlinepubs/9699919799/utilities/pax.html#tag_20_92_13_06</span>
+    <span id="FormatUSTAR">FormatUSTAR</span>
+
+    <span class="comment">// FormatPAX 表示 POSIX.1-2001 定义的 PAX 头部格式。</span>
+    <span class="comment">//</span>
+    <span class="comment">// PAX 通过在原始头部之前写入一个 Typeflag 为 TypeXHeader 的</span>
+    <span class="comment">// 特殊文件来扩展 USTAR。此文件包含一组键值记录，</span>
+    <span class="comment">// 用于克服 USTAR 的不足，此外还提供了</span>
+    <span class="comment">// 亚秒级分辨率时间戳的能力。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 一些较新的格式会定义自己的键，并为相应值赋予特定语义，</span>
+    <span class="comment">// 从而向 PAX 添加自己的扩展。</span>
+    <span class="comment">// 例如，PAX 对稀疏文件的支持使用了</span>
+    <span class="comment">// GNU 手册定义的键（如 "GNU.sparse.map"）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 参考：</span>
+    <span class="comment">//	http://pubs.opengroup.org/onlinepubs/009695399/utilities/pax.html</span>
+    <span id="FormatPAX">FormatPAX</span>
+
+    <span class="comment">// FormatGNU 表示 GNU 头部格式。</span>
+    <span class="comment">//</span>
+    <span class="comment">// GNU 头部格式早于 USTAR 和 PAX 标准，</span>
+    <span class="comment">// 且与二者不兼容。GNU 格式支持</span>
+    <span class="comment">// 任意大小的文件、任意编码及长度的文件名、</span>
+    <span class="comment">// 稀疏文件及其他特性。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 除非目标应用只能解析 GNU 格式的归档，</span>
+    <span class="comment">// 否则建议选择 PAX 而不是 GNU。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 参考：</span>
+    <span class="comment">//	https://www.gnu.org/software/tar/manual/html_node/Standard.html</span>
+    <span id="FormatGNU">FormatGNU</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Format.String">func (Format) <a href="/src/archive/tar/format.go?s=4650:4681#L107">String</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f <a href="#Format">Format</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Header">type <a href="/src/archive/tar/common.go?s=4944:7471#L138">Header</a>
+				
+				
+			</h2>
+			<p>Header 表示 tar 归档中的单个头部。某些字段可能未填充。<p>为了向前兼容，如果使用者从 Reader.Next 获取 Header、对其进行某些修改后再传给 Writer.WriteHeader，应创建新的 Header，并仅复制希望保留的字段。<pre>type Header struct {
+<span id="Header.Typeflag"></span>    <span class="comment">// Typeflag 是头部条目的类型。</span>
+    <span class="comment">// 零值会根据 Name 是否以斜杠结尾，</span>
+    <span class="comment">// 自动提升为 TypeReg 或 TypeDir。</span>
+    Typeflag <a href="/pkg/builtin/#byte">byte</a>
+
+<span id="Header.Name"></span>    Name     <a href="/pkg/builtin/#string">string</a> <span class="comment">// 文件条目的名称</span>
+<span id="Header.Linkname"></span>    Linkname <a href="/pkg/builtin/#string">string</a> <span class="comment">// 链接的目标名称（对 TypeLink 或 TypeSymlink 有效）</span>
+
+<span id="Header.Size"></span>    Size  <a href="/pkg/builtin/#int64">int64</a>  <span class="comment">// 逻辑文件大小，以字节为单位</span>
+<span id="Header.Mode"></span>    Mode  <a href="/pkg/builtin/#int64">int64</a>  <span class="comment">// 权限位和模式位</span>
+<span id="Header.Uid"></span>    Uid   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 所有者的用户 ID</span>
+<span id="Header.Gid"></span>    Gid   <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 所有者的组 ID</span>
+<span id="Header.Uname"></span>    Uname <a href="/pkg/builtin/#string">string</a> <span class="comment">// 所有者的用户名</span>
+<span id="Header.Gname"></span>    Gname <a href="/pkg/builtin/#string">string</a> <span class="comment">// 所有者的组名</span>
+
+    <span class="comment">// 如果未指定 Format，则 Writer.WriteHeader 会将 ModTime</span>
+    <span class="comment">// 舍入到最近的整秒，并忽略 AccessTime 和 ChangeTime 字段。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 要使用 AccessTime 或 ChangeTime，请将 Format 指定为 PAX 或 GNU。</span>
+    <span class="comment">// 要使用亚秒级分辨率，请将 Format 指定为 PAX。</span>
+<span id="Header.ModTime"></span>    ModTime    <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// 修改时间</span>
+<span id="Header.AccessTime"></span>    AccessTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// 访问时间（需要 PAX 或 GNU 支持）</span>
+<span id="Header.ChangeTime"></span>    ChangeTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// 状态变更时间（需要 PAX 或 GNU 支持）</span>
+
+<span id="Header.Devmajor"></span>    Devmajor <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 主设备号（对 TypeChar 或 TypeBlock 有效）</span>
+<span id="Header.Devminor"></span>    Devminor <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 次设备号（对 TypeChar 或 TypeBlock 有效）</span>
+
+<span id="Header.Xattrs"></span>    <span class="comment">// Xattrs 将扩展属性作为 PAX 记录存储在</span>
+    <span class="comment">// "SCHILY.xattr." 命名空间下。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 以下两者在语义上等价：</span>
+    <span class="comment">//  h.Xattrs[key] = value</span>
+    <span class="comment">//  h.PAXRecords[&#34;SCHILY.xattr.&#34;+key] = value</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用 Writer.WriteHeader 时，Xattrs 的内容</span>
+    <span class="comment">// 优先于 PAXRecords 中的内容。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 PAXRecords。</span>
+    Xattrs map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.3</span>
+
+<span id="Header.PAXRecords"></span>    <span class="comment">// PAXRecords 是 PAX 扩展头部记录的映射。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 用户定义的记录应使用以下形式的键：</span>
+    <span class="comment">//	VENDOR.keyword</span>
+    <span class="comment">// 其中 VENDOR 是全大写的命名空间，keyword</span>
+    <span class="comment">// 不得包含 '=' 字符（例如 "GOLANG.pkg.version"）。</span>
+    <span class="comment">// 键和值都应为非空的 UTF-8 字符串。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用 Writer.WriteHeader 时，从 Header 中</span>
+    <span class="comment">// 其他字段推导出的 PAX 记录优先于 PAXRecords。</span>
+    PAXRecords map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.10</span>
+
+<span id="Header.Format"></span>    <span class="comment">// Format 指定 tar 头部的格式。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Reader.Next 会尽力推测格式并设置此字段。</span>
+    <span class="comment">// 由于 Reader 对某些不符合规范的文件采取宽松读取，</span>
+    <span class="comment">// 此字段可能为 FormatUnknown。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果调用 Writer.WriteHeader 时未指定格式，</span>
+    <span class="comment">// 则按 USTAR、PAX、GNU 的顺序使用第一个</span>
+    <span class="comment">// 能够编码此 Header 的格式（参见 Format）。</span>
+    Format <a href="#Format">Format</a> <span class="comment">// Go 1.10</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FileInfoHeader">func <a href="/src/archive/tar/common.go?s=22551:22616#L638">FileInfoHeader</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func FileInfoHeader(fi <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, link <a href="/pkg/builtin/#string">string</a>) (*<a href="#Header">Header</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>FileInfoHeader 根据 fi 创建一个仅填充部分字段的 <a href="#Header">Header</a>。如果 fi 描述符号链接，FileInfoHeader 将 link 记录为链接目标。如果 fi 描述目录，则会在名称后附加斜杠。<p>由于 fs.FileInfo 的 Name 方法只返回其描述文件的基本名称，因此可能需要修改 Header.Name，以提供文件的完整路径名。<p>如果 fi 实现了 <a href="#FileInfoNames">FileInfoNames</a>，则 Header.Gname 和 Header.Uname 由该接口的方法提供。<h3 id="Header.FileInfo">func (*Header) <a href="/src/archive/tar/common.go?s=19491:19530#L530">FileInfo</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (h *<a href="#Header">Header</a>) FileInfo() <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a></pre>
+				<p>FileInfo 为该 Header 返回一个 fs.FileInfo。<h2 id="Reader">type <a href="/src/archive/tar/reader.go?s=474:849#L9">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 提供对 tar 归档内容的顺序访问。Reader.Next 前进到归档中的下一个文件（包括第一个文件），随后可以将 Reader 作为 io.Reader 使用，以访问该文件的数据。<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/archive/tar/reader.go?s=992:1027#L29">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader 创建一个从 r 读取的新 <a href="#Reader">Reader</a>。<h3 id="Reader.Next">func (*Reader) <a href="/src/archive/tar/reader.go?s=1794:1835#L45">Next</a>
+					
+					
+				</h3>
+				<pre>func (tr *<a href="#Reader">Reader</a>) Next() (*<a href="#Header">Header</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Next 前进到 tar 归档中的下一个条目。Header.Size 决定可以为下一个文件读取多少字节。当前文件中剩余的所有数据都会自动丢弃。到达归档末尾时，Next 返回错误 io.EOF。<p>如果 Next 遇到非本地文件名（按 <a href="/pkg/path/filepath/#IsLocal">filepath.IsLocal</a> 的定义），且 GODEBUG 环境变量包含 `tarinsecurepath=0`，则 Next 会在返回头部的同时返回 <a href="#ErrInsecurePath">ErrInsecurePath</a> 错误。只验证文件名，不验证链接目标。未来的 Go 版本可能默认启用此行为。希望接受非本地名称的程序可以忽略 <a href="#ErrInsecurePath">ErrInsecurePath</a> 错误并使用返回的头部。<h3 id="Reader.Read">func (*Reader) <a href="/src/archive/tar/reader.go?s=21090:21135#L650">Read</a>
+					
+					
+				</h3>
+				<pre>func (tr *<a href="#Reader">Reader</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 从 tar 归档中的当前文件读取。到达该文件末尾时，它返回 (0, io.EOF)，直到调用 [Next] 前进到下一个文件。<p>如果当前文件是稀疏文件，则标记为空洞的区域会读出为 NUL 字节。<p>对 <a href="#TypeLink">TypeLink</a>、<a href="#TypeSymlink">TypeSymlink</a>、<a href="#TypeChar">TypeChar</a>、<a href="#TypeBlock">TypeBlock</a>、<a href="#TypeDir">TypeDir</a> 和 <a href="#TypeFifo">TypeFifo</a> 等特殊类型调用 Read，无论 <a href="#Header.Size">Header.Size</a> 声明的大小是多少，均返回 (0, <a href="/pkg/io/#EOF">io.EOF</a>)。<h2 id="Writer">type <a href="/src/archive/tar/writer.go?s=466:910#L12">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 提供对 tar 归档的顺序写入。<a href="#Writer.WriteHeader">Writer.WriteHeader</a> 使用提供的 <a href="#Header">Header</a> 开始一个新文件，随后可以将 Writer 作为 io.Writer 使用，以提供该文件的数据。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/archive/tar/writer.go?s=960:995#L26">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 创建一个向 w 写入的新 Writer。<h3 id="Writer.AddFS">func (*Writer) <a href="/src/archive/tar/writer.go?s=12233:12274#L396">AddFS</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (tw *<a href="#Writer">Writer</a>) AddFS(fsys <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>AddFS 将 fs.FS 中的文件添加到归档。它从文件系统根目录开始遍历目录树，在保留目录结构的同时将每个文件添加到 tar 归档。<h3 id="Writer.Close">func (*Writer) <a href="/src/archive/tar/writer.go?s=15336:15367#L505">Close</a>
+					
+					
+				</h3>
+				<pre>func (tw *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 刷新填充数据并写入尾部，从而关闭 tar 归档。如果当前文件（由先前的 <a href="#Writer.WriteHeader">Writer.WriteHeader</a> 调用开始）尚未写完，则返回错误。<h3 id="Writer.Flush">func (*Writer) <a href="/src/archive/tar/writer.go?s=1405:1436#L42">Flush</a>
+					
+					
+				</h3>
+				<pre>func (tw *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush 完成当前文件的块填充写入。调用 Flush 之前必须已完整写入当前文件。<p>通常无须调用此方法，因为下一次调用 <a href="#Writer.WriteHeader">Writer.WriteHeader</a> 或 <a href="#Writer.Close">Writer.Close</a> 会隐式刷新文件的填充数据。<h3 id="Writer.Write">func (*Writer) <a href="/src/archive/tar/writer.go?s=14217:14263#L470">Write</a>
+					
+					
+				</h3>
+				<pre>func (tw *<a href="#Writer">Writer</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 向 tar 归档中的当前文件写入。如果在 <a href="#Writer.WriteHeader">Writer.WriteHeader</a> 之后写入的字节数超过 Header.Size，Write 返回 <a href="#ErrWriteTooLong">ErrWriteTooLong</a> 错误。<p>对 <a href="#TypeLink">TypeLink</a>、<a href="#TypeSymlink">TypeSymlink</a>、<a href="#TypeChar">TypeChar</a>、<a href="#TypeBlock">TypeBlock</a>、<a href="#TypeDir">TypeDir</a> 和 <a href="#TypeFifo">TypeFifo</a> 等特殊类型调用 Write，无论 <a href="#Header.Size">Header.Size</a> 声明的大小是多少，均返回 (0, <a href="#ErrWriteTooLong">ErrWriteTooLong</a>)。<h3 id="Writer.WriteHeader">func (*Writer) <a href="/src/archive/tar/writer.go?s=2000:2048#L60">WriteHeader</a>
+					
+					
+				</h3>
+				<pre>func (tw *<a href="#Writer">Writer</a>) WriteHeader(hdr *<a href="#Header">Header</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteHeader 写入 hdr，并准备接收文件内容。Header.Size 决定可以为下一个文件写入多少字节。如果当前文件尚未写完，则返回错误。此方法会在写入头部之前隐式刷新所需的所有填充数据。</article>

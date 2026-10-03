@@ -1,0 +1,271 @@
+<!--{
+  "Title": "embed 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>embed 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "embed"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>embed 包提供对嵌入到运行中的 Go 程序内的文件的访问。
+<p>导入“embed”的 Go 源文件可以使用 //go:embed 指令，在编译时读取包目录或其子目录中的文件内容，并用这些内容初始化 string、[]byte 或 <a href="#FS">FS</a> 类型的变量。
+<p>例如，以下三种方式都可以嵌入名为 hello.txt 的文件，并在运行时打印其内容。
+<p>将一个文件嵌入字符串：
+<pre>import _ &quot;embed&quot;
+
+//go:embed hello.txt
+var s string
+print(s)
+</pre>
+<p>将一个文件嵌入字节切片：
+<pre>import _ &quot;embed&quot;
+
+//go:embed hello.txt
+var b []byte
+print(string(b))
+</pre>
+<p>将一个或多个文件嵌入文件系统：
+<pre>import &quot;embed&quot;
+
+//go:embed hello.txt
+var f embed.FS
+data, _ := f.ReadFile(&quot;hello.txt&quot;)
+print(string(data))
+</pre>
+<h3 id="hdr-Directives">指令</h3>
+<p>变量声明上方的 //go:embed 指令，使用一个或多个 path.Match 模式指定要嵌入的文件。
+<p>该指令必须紧接在仅声明一个变量的代码行之前。指令与声明之间只允许出现空行和“//”行注释。
+<p>变量类型必须是字符串类型、字节类型的切片，或 <a href="#FS">FS</a>（或 <a href="#FS">FS</a> 的别名）。
+<p>例如：
+<pre>package server
+
+import "embed"
+
+// content 保存静态 Web 服务器的内容。
+//go:embed image/* template/*
+//go:embed html/index.html
+var content embed.FS
+</pre>
+<p>Go 构建系统会识别这些指令，并将文件系统中匹配的文件填入所声明的变量（上例中的 content）。
+<p>为简洁起见，//go:embed 指令接受多个以空格分隔的模式；模式较多时也可以重复使用指令，避免单行过长。模式以包含源文件的包目录为基准解析。即使在 Windows 上，路径分隔符也使用正斜杠。模式不能包含“.”、“..”或空的路径分量，也不能以斜杠开头或结尾。要匹配当前目录中的所有内容，应使用“*”而不是“.”。为支持名称中包含空格的文件，模式可以写成 Go 的双引号或反引号字符串字面量。
+<p>如果模式指定一个目录，则递归嵌入以该目录为根的子树中的所有文件，但排除名称以“.”或“_”开头的文件。因此，上例中的变量几乎等价于：
+<pre>// content 是静态 Web 服务器的内容。
+//go:embed image template html/index.html
+var content embed.FS
+</pre>
+<p>区别在于，“image/*”会嵌入“image/.tempfile”，而“image”不会。两者都不会嵌入“image/dir/.tempfile”。
+<p>如果模式以“all:”为前缀，目录遍历规则就会改变，包含名称以“.”或“_”开头的文件。例如，“all:image”既会嵌入“image/.tempfile”，也会嵌入“image/dir/.tempfile”。
+<p>//go:embed 指令既可用于导出变量，也可用于未导出变量，取决于包是否希望将数据提供给其他包。它只能用于包作用域内的变量，不能用于局部变量。
+<p>模式不得匹配包所属模块之外的文件，例如“.git/*”、符号链接、“vendor/”，或任何包含 go.mod 的目录（这些目录属于独立模块）。模式不得匹配名称中包含特殊标点字符 &quot; * &lt; &gt; ? ` &apos; | / \ 和 : 的文件。空目录匹配会被忽略；忽略之后，//go:embed 行中的每个模式都必须匹配至少一个文件或非空目录。
+<p>如果任何模式无效或匹配到无效内容，构建都会失败。
+<h3 id="hdr-Strings_and_Bytes">字符串与字节切片</h3>
+<p>对于 string 或 []byte 类型的变量，//go:embed 行只能包含一个模式，且该模式只能匹配一个文件。该文件的内容用于初始化 string 或 []byte。
+<p>使用 //go:embed 指令必须导入“embed”，即使变量类型为 string 或 []byte 也是如此。在不引用 <a href="#FS">embed.FS</a> 的源文件中，应使用空白导入（import _ "embed"）。
+<h3 id="hdr-File_Systems">文件系统</h3>
+<p>嵌入单个文件时，通常最好使用 string 或 []byte 类型的变量。<a href="#FS">FS</a> 类型可以嵌入整个文件树，例如上例中存放 Web 服务器静态内容的目录。
+<p>FS 实现 <a href="/pkg/io/fs/">io/fs</a> 包的 <a href="#FS">FS</a> 接口，因此可以用于任何支持文件系统的包，包括 <a href="/pkg/net/http/">net/http</a>、<a href="/pkg/text/template/">text/template</a> 和 <a href="/pkg/html/template/">html/template</a>。
+<p>例如，给定上例中的 content 变量，可以这样写：
+<pre>http.Handle(&quot;/static/&quot;, http.StripPrefix(&quot;/static/&quot;, http.FileServer(http.FS(content))))
+
+template.ParseFS(content, &quot;*.tmpl&quot;)
+</pre>
+<h3 id="hdr-Tools">工具</h3>
+<p>为支持分析 Go 包的工具，//go:embed 行中的模式可以从“go list”输出中取得。参见“go help list”输出中的 EmbedPatterns、TestEmbedPatterns 和 XTestEmbedPatterns 字段。
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;embed&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+)
+
+//go:embed internal/embedtest/testdata/*.txt
+var content embed.FS
+
+func main() {
+	mux := http.NewServeMux()
+	mux.Handle(&#34;/&#34;, http.FileServer(http.FS(content)))
+	err := http.ListenAndServe(&#34;:8080&#34;, mux)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#FS">type FS</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.Open">func (f FS) Open(name string) (fs.File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.ReadDir">func (f FS) ReadDir(name string) ([]fs.DirEntry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.ReadFile">func (f FS) ReadFile(name string) ([]byte, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/embed/embed.go">embed.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="FS">type <a href="/src/embed/embed.go?s=6119:7145#L141">FS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>FS 是一组只读文件，通常通过 //go:embed 指令初始化。如果声明时没有 //go:embed 指令，FS 就是一个空文件系统。
+<p>FS 是只读值，因此多个 goroutine 同时使用它是安全的，FS 类型的值之间相互赋值也是安全的。
+<p>FS 实现 fs.FS，因此可以用于任何支持文件系统接口的包，包括 net/http、text/template 和 html/template。
+<p>有关初始化 FS 的更多细节，参见包文档。
+
+			<pre>type FS struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FS.Open">func (FS) <a href="/src/embed/embed.go?s=10301:10347#L283">Open</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 打开指定文件供读取，并以 <a href="/pkg/io/fs/#File">fs.File</a> 形式返回。
+<p>如果文件不是目录，返回的文件还实现 <a href="/pkg/io/#Seeker">io.Seeker</a> 和 <a href="/pkg/io/#ReaderAt">io.ReaderAt</a>。
+
+				
+			
+				<h3 id="FS.ReadDir">func (FS) <a href="/src/embed/embed.go?s=10631:10686#L295">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadDir 读取并返回指定目录的全部条目。
+
+				
+			
+				<h3 id="FS.ReadFile">func (FS) <a href="/src/embed/embed.go?s=11062:11111#L312">ReadFile</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadFile 读取并返回指定文件的内容。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

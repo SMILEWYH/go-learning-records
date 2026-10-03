@@ -1,0 +1,656 @@
+<!--{
+  "Title": "mime package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package mime</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "mime"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package mime implements parts of the MIME spec.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AddExtensionType">func AddExtensionType(ext, typ string) error</a></dd>
+			
+				<dd><a href="#ExtensionsByType">func ExtensionsByType(typ string) ([]string, error)</a></dd>
+			
+				<dd><a href="#FormatMediaType">func FormatMediaType(t string, param map[string]string) string</a></dd>
+			
+				<dd><a href="#ParseMediaType">func ParseMediaType(v string) (mediatype string, params map[string]string, err error)</a></dd>
+			
+				<dd><a href="#TypeByExtension">func TypeByExtension(ext string) string</a></dd>
+			
+			
+				
+				<dd><a href="#WordDecoder">type WordDecoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#WordDecoder.Decode">func (d *WordDecoder) Decode(word string) (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WordDecoder.DecodeHeader">func (d *WordDecoder) DecodeHeader(header string) (string, error)</a></dd>
+				
+			
+				
+				<dd><a href="#WordEncoder">type WordEncoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#WordEncoder.Encode">func (e WordEncoder) Encode(charset, s string) string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_FormatMediaType">FormatMediaType</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseMediaType">ParseMediaType</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WordDecoder_Decode">WordDecoder.Decode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WordDecoder_DecodeHeader">WordDecoder.DecodeHeader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WordEncoder_Encode">WordEncoder.Encode</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/mime/encodedword.go">encodedword.go</a>
+			
+				<a href="/src/mime/grammar.go">grammar.go</a>
+			
+				<a href="/src/mime/mediatype.go">mediatype.go</a>
+			
+				<a href="/src/mime/type.go">type.go</a>
+			
+				<a href="/src/mime/type_unix.go">type_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// BEncoding represents Base64 encoding scheme as defined by RFC 2045.</span>
+    <span id="BEncoding">BEncoding</span> = <a href="#WordEncoder">WordEncoder</a>(&#39;b&#39;)
+    <span class="comment">// QEncoding represents the Q-encoding scheme as defined by RFC 2047.</span>
+    <span id="QEncoding">QEncoding</span> = <a href="#WordEncoder">WordEncoder</a>(&#39;q&#39;)
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrInvalidMediaParameter is returned by <a href="#ParseMediaType">ParseMediaType</a> if
+the media type value was found but there was an error parsing
+the optional parameters
+
+				<pre>var <span id="ErrInvalidMediaParameter">ErrInvalidMediaParameter</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;mime: invalid media parameter&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="AddExtensionType">func <a href="/src/mime/type.go?s=7168:7212#L224">AddExtensionType</a>
+				
+				
+			</h2>
+			<pre>func AddExtensionType(ext, typ <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>AddExtensionType sets the MIME type associated with
+the extension ext to typ. The extension should begin with
+a leading dot, as in &quot;.html&quot;.
+
+			
+		
+			
+			<h2 id="ExtensionsByType">func <a href="/src/mime/type.go?s=6714:6765#L205">ExtensionsByType</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ExtensionsByType(typ <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ExtensionsByType returns the extensions known to be associated with the MIME
+type typ. The returned extensions will each begin with a leading dot, as in
+&quot;.html&quot;. When typ has no associated extensions, ExtensionsByType returns an
+nil slice.
+<p>The built-in table is small but on unix it is augmented by the local
+system&apos;s MIME-info database or mime.types file(s) if available under one or
+more of these names:
+<pre>/usr/local/share/mime/globs2
+/usr/share/mime/globs2
+/etc/mime.types
+/etc/apache2/mime.types
+/etc/apache/mime.types
+/etc/httpd/conf/mime.types
+</pre>
+<p>On Windows, extensions are extracted from the registry.
+
+			
+		
+			
+			<h2 id="FormatMediaType">func <a href="/src/mime/mediatype.go?s=535:597#L11">FormatMediaType</a>
+				
+				
+			</h2>
+			<pre>func FormatMediaType(t <a href="/pkg/builtin/#string">string</a>, param map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FormatMediaType serializes mediatype t and the parameters
+param as a media type conforming to RFC 2045 and RFC 2616.
+The type and parameter names are written in lower-case.
+When any of the arguments result in a standard violation then
+FormatMediaType returns the empty string.
+
+			
+
+
+<div id="example_FormatMediaType" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;mime&#34;
+)
+
+func main() {
+	mediatype := &#34;text/html&#34;
+	params := map[string]string{
+		&#34;charset&#34;: &#34;utf-8&#34;,
+	}
+
+	result := mime.FormatMediaType(mediatype, params)
+
+	fmt.Println(&#34;result:&#34;, result)
+}
+</textarea></div>
+        <div class="output"><pre>result: text/html; charset=utf-8
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ParseMediaType">func <a href="/src/mime/mediatype.go?s=3793:3878#L132">ParseMediaType</a>
+				
+				
+			</h2>
+			<pre>func ParseMediaType(v <a href="/pkg/builtin/#string">string</a>) (mediatype <a href="/pkg/builtin/#string">string</a>, params map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseMediaType parses a media type value and any optional
+parameters, per RFC 1521.  Media types are the values in
+Content-Type and Content-Disposition headers (RFC 2183).
+On success, ParseMediaType returns the media type converted
+to lowercase and trimmed of white space and a non-nil map.
+If there is an error parsing the optional parameter,
+the media type will be returned along with the error
+<a href="#ErrInvalidMediaParameter">ErrInvalidMediaParameter</a>.
+The returned map, params, maps from the lowercase
+attribute to the attribute value with its case preserved.
+
+			
+
+
+<div id="example_ParseMediaType" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;mime&#34;
+)
+
+func main() {
+	mediatype, params, err := mime.ParseMediaType(&#34;text/html; charset=utf-8&#34;)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(&#34;type:&#34;, mediatype)
+	fmt.Println(&#34;charset:&#34;, params[&#34;charset&#34;])
+}
+</textarea></div>
+        <div class="output"><pre>type: text/html
+charset: utf-8
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TypeByExtension">func <a href="/src/mime/type.go?s=5307:5346#L155">TypeByExtension</a>
+				
+				
+			</h2>
+			<pre>func TypeByExtension(ext <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>TypeByExtension returns the MIME type associated with the file extension ext.
+The extension ext should begin with a leading dot, as in &quot;.html&quot;.
+When ext has no associated type, TypeByExtension returns &quot;&quot;.
+<p>Extensions are looked up first case-sensitively, then case-insensitively.
+<p>The built-in table is small but on unix it is augmented by the local
+system&apos;s MIME-info database or mime.types file(s) if available under one or
+more of these names:
+<pre>/usr/local/share/mime/globs2
+/usr/share/mime/globs2
+/etc/mime.types
+/etc/apache2/mime.types
+/etc/apache/mime.types
+/etc/httpd/conf/mime.types
+</pre>
+<p>On Windows, MIME types are extracted from the registry.
+<p>Text types have the charset parameter set to &quot;utf-8&quot; by default.
+
+			
+		
+		
+			
+			<h2 id="WordDecoder">type <a href="/src/mime/encodedword.go?s=4854:5266#L177">WordDecoder</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>A WordDecoder decodes MIME headers containing RFC 2047 encoded-words.
+
+			<pre>type WordDecoder struct {
+<span id="WordDecoder.CharsetReader"></span>    <span class="comment">// CharsetReader, if non-nil, defines a function to generate</span>
+    <span class="comment">// charset-conversion readers, converting from the provided</span>
+    <span class="comment">// charset into UTF-8.</span>
+    <span class="comment">// Charsets are always lower-case. utf-8, iso-8859-1 and us-ascii charsets</span>
+    <span class="comment">// are handled by default.</span>
+    <span class="comment">// One of the CharsetReader&#39;s result values must be non-nil.</span>
+    CharsetReader func(charset <a href="/pkg/builtin/#string">string</a>, input <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, <a href="/pkg/builtin/#error">error</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="WordDecoder.Decode">func (*WordDecoder) <a href="/src/mime/encodedword.go?s=5312:5369#L188">Decode</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (d *<a href="#WordDecoder">WordDecoder</a>) Decode(word <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Decode decodes an RFC 2047 encoded-word.
+
+				
+
+
+<div id="example_WordDecoder_Decode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;mime&#34;
+)
+
+func main() {
+	dec := new(mime.WordDecoder)
+	header, err := dec.Decode(&#34;=?utf-8?q?=C2=A1Hola,_se=C3=B1or!?=&#34;)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(header)
+
+	dec.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
+		switch charset {
+		case &#34;x-case&#34;:
+			// Fake character set for example.
+			// Real use would integrate with packages such
+			// as code.google.com/p/go-charset
+			content, err := io.ReadAll(input)
+			if err != nil {
+				return nil, err
+			}
+			return bytes.NewReader(bytes.ToUpper(content)), nil
+		default:
+			return nil, fmt.Errorf(&#34;unhandled charset %q&#34;, charset)
+		}
+	}
+	header, err = dec.Decode(&#34;=?x-case?q?hello!?=&#34;)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(header)
+}
+</textarea></div>
+        <div class="output"><pre>¡Hola, señor!
+HELLO!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="WordDecoder.DecodeHeader">func (*WordDecoder) <a href="/src/mime/encodedword.go?s=6306:6371#L220">DecodeHeader</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (d *<a href="#WordDecoder">WordDecoder</a>) DecodeHeader(header <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>DecodeHeader decodes all encoded-words of the given string. It returns an
+error if and only if <a href="#WordDecoder.CharsetReader">WordDecoder.CharsetReader</a> of d returns an error.
+
+				
+
+
+<div id="example_WordDecoder_DecodeHeader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;mime&#34;
+)
+
+func main() {
+	dec := new(mime.WordDecoder)
+	header, err := dec.DecodeHeader(&#34;=?utf-8?q?=C3=89ric?= &lt;eric@example.org&gt;, =?utf-8?q?Ana=C3=AFs?= &lt;anais@example.org&gt;&#34;)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(header)
+
+	header, err = dec.DecodeHeader(&#34;=?utf-8?q?=C2=A1Hola,?= =?utf-8?q?_se=C3=B1or!?=&#34;)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(header)
+
+	dec.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
+		switch charset {
+		case &#34;x-case&#34;:
+			// Fake character set for example.
+			// Real use would integrate with packages such
+			// as code.google.com/p/go-charset
+			content, err := io.ReadAll(input)
+			if err != nil {
+				return nil, err
+			}
+			return bytes.NewReader(bytes.ToUpper(content)), nil
+		default:
+			return nil, fmt.Errorf(&#34;unhandled charset %q&#34;, charset)
+		}
+	}
+	header, err = dec.DecodeHeader(&#34;=?x-case?q?hello_?= =?x-case?q?world!?=&#34;)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(header)
+}
+</textarea></div>
+        <div class="output"><pre>Éric &lt;eric@example.org&gt;, Anaïs &lt;anais@example.org&gt;
+¡Hola, señor!
+HELLO WORLD!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="WordEncoder">type <a href="/src/mime/encodedword.go?s=329:350#L9">WordEncoder</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>A WordEncoder is an RFC 2047 encoded-word encoder.
+
+			<pre>type WordEncoder <a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="WordEncoder.Encode">func (WordEncoder) <a href="/src/mime/encodedword.go?s=839:892#L25">Encode</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (e <a href="#WordEncoder">WordEncoder</a>) Encode(charset, s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Encode returns the encoded-word form of s. If s is ASCII without special
+characters, it is returned unchanged. The provided charset is the IANA
+charset name of s. It is case insensitive.
+
+				
+
+
+<div id="example_WordEncoder_Encode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;mime&#34;
+)
+
+func main() {
+	fmt.Println(mime.QEncoding.Encode(&#34;utf-8&#34;, &#34;¡Hola, señor!&#34;))
+	fmt.Println(mime.QEncoding.Encode(&#34;utf-8&#34;, &#34;Hello!&#34;))
+	fmt.Println(mime.BEncoding.Encode(&#34;UTF-8&#34;, &#34;¡Hola, señor!&#34;))
+	fmt.Println(mime.QEncoding.Encode(&#34;ISO-8859-1&#34;, &#34;Caf\xE9&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>=?utf-8?q?=C2=A1Hola,_se=C3=B1or!?=
+Hello!
+=?UTF-8?b?wqFIb2xhLCBzZcOxb3Ih?=
+=?ISO-8859-1?q?Caf=E9?=
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="multipart/">multipart</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package multipart implements MIME multipart parsing, as defined in RFC 2046.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="quotedprintable/">quotedprintable</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package quotedprintable implements quoted-printable encoding as specified by RFC 2045.
+					</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

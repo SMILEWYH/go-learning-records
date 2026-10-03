@@ -1,0 +1,976 @@
+<!--{
+  "Title": "net/http/httputil 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package httputil</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/httputil"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>httputil 包提供 HTTP 实用函数，补充 net/http 包中更常用的功能。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#DumpRequest">func DumpRequest(req *http.Request, body bool) ([]byte, error)</a></dd>
+			
+				<dd><a href="#DumpRequestOut">func DumpRequestOut(req *http.Request, body bool) ([]byte, error)</a></dd>
+			
+				<dd><a href="#DumpResponse">func DumpResponse(resp *http.Response, body bool) ([]byte, error)</a></dd>
+			
+				<dd><a href="#NewChunkedReader">func NewChunkedReader(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#NewChunkedWriter">func NewChunkedWriter(w io.Writer) io.WriteCloser</a></dd>
+			
+			
+				
+				<dd><a href="#BufferPool">type BufferPool</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ClientConn">type ClientConn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewClientConn">func NewClientConn(c net.Conn, r *bufio.Reader) *ClientConn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewProxyClientConn">func NewProxyClientConn(c net.Conn, r *bufio.Reader) *ClientConn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Close">func (cc *ClientConn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Do">func (cc *ClientConn) Do(req *http.Request) (*http.Response, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Hijack">func (cc *ClientConn) Hijack() (c net.Conn, r *bufio.Reader)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Pending">func (cc *ClientConn) Pending() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Read">func (cc *ClientConn) Read(req *http.Request) (resp *http.Response, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ClientConn.Write">func (cc *ClientConn) Write(req *http.Request) error</a></dd>
+				
+			
+				
+				<dd><a href="#ProxyRequest">type ProxyRequest</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ProxyRequest.SetURL">func (r *ProxyRequest) SetURL(target *url.URL)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProxyRequest.SetXForwarded">func (r *ProxyRequest) SetXForwarded()</a></dd>
+				
+			
+				
+				<dd><a href="#ReverseProxy">type ReverseProxy</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSingleHostReverseProxy">func NewSingleHostReverseProxy(target *url.URL) *ReverseProxy</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ReverseProxy.ServeHTTP">func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request)</a></dd>
+				
+			
+				
+				<dd><a href="#ServerConn">type ServerConn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewServerConn">func NewServerConn(c net.Conn, r *bufio.Reader) *ServerConn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerConn.Close">func (sc *ServerConn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerConn.Hijack">func (sc *ServerConn) Hijack() (net.Conn, *bufio.Reader)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerConn.Pending">func (sc *ServerConn) Pending() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerConn.Read">func (sc *ServerConn) Read() (*http.Request, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ServerConn.Write">func (sc *ServerConn) Write(req *http.Request, resp *http.Response) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_DumpRequest">DumpRequest</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DumpRequestOut">DumpRequestOut</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_DumpResponse">DumpResponse</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReverseProxy">ReverseProxy</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/httputil/dump.go">dump.go</a>
+			
+				<a href="/src/net/http/httputil/httputil.go">httputil.go</a>
+			
+				<a href="/src/net/http/httputil/persist.go">persist.go</a>
+			
+				<a href="/src/net/http/httputil/reverseproxy.go">reverseproxy.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span class="comment">// 已弃用：不再使用。</span>
+    <span id="ErrPersistEOF">ErrPersistEOF</span> = &amp;<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ProtocolError">ProtocolError</a>{<a href="/pkg/net/http/#ProtocolError.ErrorString">ErrorString</a>: &#34;persistent connection closed&#34;}
+
+    <span class="comment">// 已弃用：不再使用。</span>
+    <span id="ErrClosed">ErrClosed</span> = &amp;<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ProtocolError">ProtocolError</a>{<a href="/pkg/net/http/#ProtocolError.ErrorString">ErrorString</a>: &#34;connection closed by user&#34;}
+
+    <span class="comment">// 已弃用：不再使用。</span>
+    <span id="ErrPipeline">ErrPipeline</span> = &amp;<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ProtocolError">ProtocolError</a>{<a href="/pkg/net/http/#ProtocolError.ErrorString">ErrorString</a>: &#34;pipeline error&#34;}
+)</pre>
+			
+				<p>读取格式错误、行过长的分块数据时，会返回 ErrLineTooLong。
+
+				<pre>var <span id="ErrLineTooLong">ErrLineTooLong</span> = <a href="/pkg/net/http/internal/">internal</a>.<a href="/pkg/net/http/internal/#ErrLineTooLong">ErrLineTooLong</a></pre>
+			
+		
+		
+			
+			<h2 id="DumpRequest">func <a href="/src/net/http/httputil/dump.go?s=6347:6409#L207">DumpRequest</a>
+				
+				
+			</h2>
+			<pre>func DumpRequest(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, body <a href="/pkg/builtin/#bool">bool</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DumpRequest 返回给定请求的 HTTP/1.x 传输表示。它仅应由服务器用于调试客户端请求。返回的表示只是近似值；原始请求解析为 <a href="/pkg/net/http/#Request">http.Request</a> 时会丢失一些细节。尤其是，头部字段名的顺序和大小写会丢失。多值头部中值的顺序会完整保留。HTTP/2 请求会转储为 HTTP/1.x 形式，而非其原始二进制表示。
+<p>如果 body 为 true，DumpRequest 还会返回请求体。为此，它会读取完 req.Body，再用一个产生相同字节的新 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> 替换它。如果 DumpRequest 返回错误，req 的状态未定义。
+<p>转储中包含 req 的哪些字段，详见 <a href="/pkg/net/http/#Request.Write">http.Request.Write</a> 文档。
+
+			
+
+
+<div id="example_DumpRequest" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+	&#34;net/http/httputil&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, &#34;%q&#34;, dump)
+	}))
+	defer ts.Close()
+
+	const body = &#34;Go is a general-purpose language designed with systems programming in mind.&#34;
+	req, err := http.NewRequest(&#34;POST&#34;, ts.URL, strings.NewReader(body))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Host = &#34;www.example.org&#34;
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, b)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;POST / HTTP/1.1\r\nHost: www.example.org\r\nAccept-Encoding: gzip\r\nContent-Length: 75\r\nUser-Agent: Go-http-client/1.1\r\n\r\nGo is a general-purpose language designed with systems programming in mind.&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DumpRequestOut">func <a href="/src/net/http/httputil/dump.go?s=2114:2179#L67">DumpRequestOut</a>
+				
+				
+			</h2>
+			<pre>func DumpRequestOut(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, body <a href="/pkg/builtin/#bool">bool</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DumpRequestOut 类似于 <a href="#DumpRequest">DumpRequest</a>，但用于客户端发出的请求。它包含标准 <a href="/pkg/net/http/#Transport">http.Transport</a> 添加的所有头部，例如 User-Agent。
+
+			
+
+
+<div id="example_DumpRequestOut" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httputil&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	const body = &#34;Go is a general-purpose language designed with systems programming in mind.&#34;
+	req, err := http.NewRequest(&#34;PUT&#34;, &#34;http://www.example.org&#34;, strings.NewReader(body))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dump, err := httputil.DumpRequestOut(req, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%q&#34;, dump)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;PUT / HTTP/1.1\r\nHost: www.example.org\r\nUser-Agent: Go-http-client/1.1\r\nContent-Length: 75\r\nAccept-Encoding: gzip\r\n\r\nGo is a general-purpose language designed with systems programming in mind.&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DumpResponse">func <a href="/src/net/http/httputil/dump.go?s=8810:8875#L294">DumpResponse</a>
+				
+				
+			</h2>
+			<pre>func DumpResponse(resp *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a>, body <a href="/pkg/builtin/#bool">bool</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DumpResponse 类似于 DumpRequest，但转储的是响应。
+
+			
+
+
+<div id="example_DumpResponse" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+	&#34;net/http/httputil&#34;
+)
+
+func main() {
+	const body = &#34;Go is a general-purpose language designed with systems programming in mind.&#34;
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(&#34;Date&#34;, &#34;Wed, 19 Jul 1972 19:00:00 GMT&#34;)
+		fmt.Fprintln(w, body)
+	}))
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	dump, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%q&#34;, dump)
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;HTTP/1.1 200 OK\r\nContent-Length: 76\r\nContent-Type: text/plain; charset=utf-8\r\nDate: Wed, 19 Jul 1972 19:00:00 GMT\r\n\r\nGo is a general-purpose language designed with systems programming in mind.\n&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="NewChunkedReader">func <a href="/src/net/http/httputil/httputil.go?s=690:734#L10">NewChunkedReader</a>
+				
+				
+			</h2>
+			<pre>func NewChunkedReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>NewChunkedReader 返回一个新的 chunkedReader，将从 r 读取的数据从 HTTP“chunked”格式解码后返回。读到最后一个长度为 0 的分块时，chunkedReader 返回 <a href="/pkg/io/#EOF">io.EOF</a>。
+<p>普通应用不需要 NewChunkedReader。http 包在读取响应体时会自动解码分块传输。
+
+			
+		
+			
+			<h2 id="NewChunkedWriter">func <a href="/src/net/http/httputil/httputil.go?s=1433:1482#L25">NewChunkedWriter</a>
+				
+				
+			</h2>
+			<pre>func NewChunkedWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+			<p>NewChunkedWriter 返回一个新的 chunkedWriter，将写入的数据转换为 HTTP“chunked”格式后再写入 w。关闭返回的 chunkedWriter 会发送标记流结束的最后一个长度为 0 的分块，但不会发送尾部字段之后的最终 CRLF；尾部字段和最终 CRLF 必须单独写入。
+<p>普通应用不需要 NewChunkedWriter。如果处理器没有设置 Content-Length 头部，http 包会自动添加分块编码。在处理器中使用 NewChunkedWriter 会导致重复分块编码，或在具有 Content-Length 的情况下使用分块编码，这两种情况都是错误的。
+
+			
+		
+		
+			
+			<h2 id="BufferPool">type <a href="/src/net/http/httputil/reverseproxy.go?s=9741:9797#L260">BufferPool</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<p>BufferPool 是用于获取和归还临时字节切片的接口，这些切片供 <a href="/pkg/io/#CopyBuffer">io.CopyBuffer</a> 使用。
+
+			<pre>type BufferPool interface {
+    Get() []<a href="/pkg/builtin/#byte">byte</a>
+    Put([]<a href="/pkg/builtin/#byte">byte</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ClientConn">type <a href="/src/net/http/httputil/persist.go?s=6035:6403#L220">ClientConn</a>
+				
+				
+			</h2>
+			<p>ClientConn 是 Go 早期 HTTP 实现的遗留产物。它底层、陈旧，Go 当前的 HTTP 协议栈已不再使用它。本应在 Go 1 之前删除它。
+<p>已弃用：请改用 <a href="/pkg/net/http/">net/http</a> 包中的 Client 或 Transport。
+
+			<pre>type ClientConn struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewClientConn">func <a href="/src/net/http/httputil/persist.go?s=6655:6714#L238">NewClientConn</a>
+					
+					
+				</h3>
+				<pre>func NewClientConn(c <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, r *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>) *<a href="#ClientConn">ClientConn</a></pre>
+				<p>NewClientConn 是 Go 早期 HTTP 实现的遗留产物。它底层、陈旧，Go 当前的 HTTP 协议栈已不再使用它。本应在 Go 1 之前删除它。
+<p>已弃用：请改用 <a href="/pkg/net/http/">net/http</a> 包中的 Client 或 Transport。
+
+				
+			
+				<h3 id="NewProxyClientConn">func <a href="/src/net/http/httputil/persist.go?s=7149:7213#L255">NewProxyClientConn</a>
+					
+					
+				</h3>
+				<pre>func NewProxyClientConn(c <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, r *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>) *<a href="#ClientConn">ClientConn</a></pre>
+				<p>NewProxyClientConn 是 Go 早期 HTTP 实现的遗留产物。它底层、陈旧，Go 当前的 HTTP 协议栈已不再使用它。本应在 Go 1 之前删除它。
+<p>已弃用：请改用 <a href="/pkg/net/http/">net/http</a> 包中的 Client 或 Transport。
+
+				
+			
+
+			
+				<h3 id="ClientConn.Close">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=7870:7905#L276">Close</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 调用 <a href="#ClientConn.Hijack">ClientConn.Hijack</a>，然后关闭底层连接。
+
+				
+			
+				<h3 id="ClientConn.Do">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=11216:11283#L415">Do</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Do(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>) (*<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Do 是一个便捷方法，用于写入请求并读取响应。
+
+				
+			
+				<h3 id="ClientConn.Hijack">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=7633:7693#L265">Hijack</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Hijack() (c <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, r *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>)</pre>
+				<p>Hijack 脱离 <a href="#ClientConn">ClientConn</a> 的管理，并返回底层连接以及读取端可能仍有剩余数据的 bufio。在用户或 Read 表示 keep-alive 逻辑结束之前，也可以调用 Hijack。在 <a href="#ClientConn.Read">ClientConn.Read</a> 或 ClientConn.Write 正在执行时，用户不应调用 Hijack。
+
+				
+			
+				<h3 id="ClientConn.Pending">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=9474:9509#L343">Pending</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Pending() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Pending 返回已在连接上发送但尚未收到响应的请求数。
+
+				
+			
+				<h3 id="ClientConn.Read">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=9869:9947#L353">Read</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Read(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>) (resp *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 从连接读取下一个响应。它可能同时返回有效响应和 <a href="#ErrPersistEOF">ErrPersistEOF</a>，这表示远端要求将此次请求作为最后一个处理的请求。Read 可以与 <a href="#ClientConn.Write">ClientConn.Write</a> 并发调用，但不能与另一次 Read 并发调用。
+
+				
+			
+				<h3 id="ClientConn.Write">func (*ClientConn) <a href="/src/net/http/httputil/persist.go?s=8374:8426#L289">Write</a>
+					
+					
+				</h3>
+				<pre>func (cc *<a href="#ClientConn">ClientConn</a>) Write(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Write 写入请求。如果连接在 HTTP keep-alive 语义上已关闭，则返回 <a href="#ErrPersistEOF">ErrPersistEOF</a> 错误。如果 req.Close 为 true，持久连接会在此请求后逻辑关闭，并通知对端服务器。ErrUnexpectedEOF 表示远端关闭了底层 TCP 连接，通常视为正常关闭。
+
+				
+			
+		
+			
+			<h2 id="ProxyRequest">type <a href="/src/net/http/httputil/reverseproxy.go?s=522:878#L21">ProxyRequest</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>ProxyRequest 包含一个将由 <a href="#ReverseProxy">ReverseProxy</a> 重写的请求。
+
+			<pre>type ProxyRequest struct {
+<span id="ProxyRequest.In"></span>    <span class="comment">// In 是代理接收到的请求。</span>
+    <span class="comment">// Rewrite 函数不得修改 In。</span>
+    In *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>
+
+<span id="ProxyRequest.Out"></span>    <span class="comment">// Out 是代理将要发送的请求。</span>
+    <span class="comment">// Rewrite 函数可以修改或替换此请求。</span>
+    <span class="comment">// 调用 Rewrite 之前，</span>
+    <span class="comment">// 会从此请求中移除逐跳头部。</span>
+    Out *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ProxyRequest.SetURL">func (*ProxyRequest) <a href="/src/net/http/httputil/reverseproxy.go?s=1465:1511#L47">SetURL</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (r *<a href="#ProxyRequest">ProxyRequest</a>) SetURL(target *<a href="/pkg/net/url/">url</a>.<a href="/pkg/net/url/#URL">URL</a>)</pre>
+				<p>SetURL 将发出的请求路由到 target 指定的协议、主机和基础路径。如果 target 的路径为“/base”，传入请求的路径为“/dir”，则目标请求的路径为“/base/dir”。若要在路由请求时不拼接传入路径，请直接设置 r.Out.URL。
+<p>SetURL 重写发出请求的 Host 头部，使其与目标主机一致。若要保留传入请求的 Host 头部（即 <a href="#NewSingleHostReverseProxy">NewSingleHostReverseProxy</a> 的默认行为）：
+<pre>rewriteFunc := func(r *httputil.ProxyRequest) {
+	r.SetURL(url)
+	r.Out.Host = r.In.Host
+}
+</pre>
+
+				
+			
+				<h3 id="ProxyRequest.SetXForwarded">func (*ProxyRequest) <a href="/src/net/http/httputil/reverseproxy.go?s=2489:2527#L71">SetXForwarded</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (r *<a href="#ProxyRequest">ProxyRequest</a>) SetXForwarded()</pre>
+				<p>SetXForwarded 设置发出请求的 X-Forwarded-For、X-Forwarded-Host 和 X-Forwarded-Proto 头部。
+<ul>
+<li>X-Forwarded-For 头部设为客户端 IP 地址。
+<li>X-Forwarded-Host 头部设为客户端请求的主机名。
+<li>X-Forwarded-Proto 头部根据传入请求是否使用启用 TLS 的连接，设为“http”或“https”。
+</ul>
+<p>如果发出请求中已有 X-Forwarded-For 头部，SetXForwarded 会向其追加客户端 IP 地址。若要追加到传入请求的 X-Forwarded-For 头部（即使用 Director 函数时 <a href="#ReverseProxy">ReverseProxy</a> 的默认行为），请在调用 SetXForwarded 之前，从传入请求复制该头部：
+<pre>rewriteFunc := func(r *httputil.ProxyRequest) {
+	r.Out.Header[&quot;X-Forwarded-For&quot;] = r.In.Header[&quot;X-Forwarded-For&quot;]
+	r.SetXForwarded()
+}
+</pre>
+
+				
+			
+		
+			
+			<h2 id="ReverseProxy">type <a href="/src/net/http/httputil/reverseproxy.go?s=3693:9628#L103">ReverseProxy</a>
+				
+				
+			</h2>
+			<p>ReverseProxy 是一个 HTTP 处理器，接收传入请求并将其发送到另一台服务器，再将响应代理回客户端。
+<p>如果底层传输实现支持 ClientTrace.Got1xxResponse，则 1xx 响应会被转发给客户端。
+<p>逐跳头部（见 RFC 9110 第 7.6.1 节）会从客户端请求和后端响应中移除，包括 Connection、Proxy-Connection、Keep-Alive、Proxy-Authenticate、Proxy-Authorization、TE、Trailer、Transfer-Encoding 和 Upgrade。可以使用 Rewrite 函数向请求添加逐跳头部，也可以使用 ModifyResponse 函数从响应移除它们。
+
+			<pre>type ReverseProxy struct {
+<span id="ReverseProxy.Rewrite"></span>    <span class="comment">// Rewrite 必须是一个修改请求的函数，</span>
+    <span class="comment">// 将其转换为通过 Transport 发送的</span>
+    <span class="comment">// 新请求。得到的响应会原样复制</span>
+    <span class="comment">// 回最初的客户端。</span>
+    <span class="comment">// Rewrite 返回后，不得访问所提供的 ProxyRequest</span>
+    <span class="comment">// 或其内容。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用 Rewrite 之前，Forwarded、X-Forwarded、</span>
+    <span class="comment">// X-Forwarded-Host 和 X-Forwarded-Proto 头部会从</span>
+    <span class="comment">// 发出的请求中移除。另见</span>
+    <span class="comment">// ProxyRequest.SetXForwarded 方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用 Rewrite 之前，无法解析的查询参数会</span>
+    <span class="comment">// 从发出的请求中移除。</span>
+    <span class="comment">// Rewrite 函数可以将传入 URL 的 RawQuery</span>
+    <span class="comment">// 复制到发出的 URL，以保留原始</span>
+    <span class="comment">// 参数字符串。注意，如果代理对查询参数</span>
+    <span class="comment">// 的解释与下游服务器不同，</span>
+    <span class="comment">// 这可能导致安全问题。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Rewrite 和 Director 最多只能设置一个。</span>
+    Rewrite func(*<a href="#ProxyRequest">ProxyRequest</a>) <span class="comment">// Go 1.20</span>
+
+    <span class="comment">// 用于执行代理请求的传输实现。</span>
+    <span class="comment">// 如果为 nil，则使用 http.DefaultTransport。</span>
+<span id="ReverseProxy.Transport"></span>    Transport <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#RoundTripper">RoundTripper</a>
+
+<span id="ReverseProxy.FlushInterval"></span>    <span class="comment">// FlushInterval 指定复制响应体时，</span>
+    <span class="comment">// 向客户端刷新数据的</span>
+    <span class="comment">// 时间间隔。</span>
+    <span class="comment">// 如果为零，则不进行定期刷新。</span>
+    <span class="comment">// 负值表示每次向客户端写入后</span>
+    <span class="comment">// 立即刷新。</span>
+    <span class="comment">// 当 ReverseProxy 识别出响应为流式响应，</span>
+    <span class="comment">// 或其 ContentLength 为 -1 时，</span>
+    <span class="comment">// 会忽略 FlushInterval；对于这些响应，</span>
+    <span class="comment">// 每次写入后都会立即向客户端刷新。</span>
+    FlushInterval <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a>
+
+<span id="ReverseProxy.ErrorLog"></span>    <span class="comment">// ErrorLog 指定一个可选的日志记录器，用于记录</span>
+    <span class="comment">// 尝试代理请求时发生的错误。</span>
+    <span class="comment">// 如果为 nil，则使用 log 包的标准日志记录器。</span>
+    ErrorLog *<a href="/pkg/log/">log</a>.<a href="/pkg/log/#Logger">Logger</a> <span class="comment">// Go 1.4</span>
+
+<span id="ReverseProxy.BufferPool"></span>    <span class="comment">// BufferPool 可选，用于指定缓冲池，</span>
+    <span class="comment">// 在复制 HTTP 响应体时，从中获取</span>
+    <span class="comment">// io.CopyBuffer 所使用的字节切片。</span>
+    BufferPool <a href="#BufferPool">BufferPool</a> <span class="comment">// Go 1.6</span>
+
+<span id="ReverseProxy.ModifyResponse"></span>    <span class="comment">// ModifyResponse 是可选函数，用于修改</span>
+    <span class="comment">// 后端返回的 Response。只要后端返回响应，</span>
+    <span class="comment">// 无论 HTTP 状态码为何，都会调用它。</span>
+    <span class="comment">// 如果无法连接后端，则调用可选的 ErrorHandler，</span>
+    <span class="comment">// 而不会调用 ModifyResponse。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 调用 ModifyResponse 前，会从响应中移除</span>
+    <span class="comment">// 逐跳头部。ModifyResponse 可能还需要移除</span>
+    <span class="comment">// 其他头部（如 Alt-Svc），以适应实际部署方式。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 ModifyResponse 返回错误，会将该错误值</span>
+    <span class="comment">// 传给 ErrorHandler。如果 ErrorHandler 为 nil，</span>
+    <span class="comment">// 则使用其默认实现。</span>
+    ModifyResponse func(*<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a>) <a href="/pkg/builtin/#error">error</a> <span class="comment">// Go 1.8</span>
+
+<span id="ReverseProxy.ErrorHandler"></span>    <span class="comment">// ErrorHandler 是可选函数，用于处理连接后端时</span>
+    <span class="comment">// 发生的错误，或 ModifyResponse 返回的错误。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果为 nil，默认行为是记录给定错误，并返回</span>
+    <span class="comment">// 状态码为 502 Bad Gateway 的响应。</span>
+    ErrorHandler func(<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, <a href="/pkg/builtin/#error">error</a>) <span class="comment">// Go 1.11</span>
+
+<span id="ReverseProxy.Director"></span>    <span class="comment">// Director 已弃用。请改用 Rewrite。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 此函数不安全：</span>
+    <span class="comment">//</span>
+    <span class="comment">//   - Director 返回后会从请求中移除逐跳头部，</span>
+    <span class="comment">//     这可能移除 Director 添加的头部。</span>
+    <span class="comment">//     客户端可以在 Connection 头部中列出某些头部，</span>
+    <span class="comment">//     将它们指定为逐跳头部，因此恶意客户端可以</span>
+    <span class="comment">//     移除 Director 可能添加的任何头部。</span>
+    <span class="comment">//</span>
+    <span class="comment">//   - 默认会保留传入请求中的 X-Forwarded-For、</span>
+    <span class="comment">//     X-Forwarded-Host 和 X-Forwarded-Proto 头部；</span>
+    <span class="comment">//     如果 Director 函数没有谨慎地移除这些头部，</span>
+    <span class="comment">//     就可能允许 IP 欺骗。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Rewrite 解决了这些问题。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 下面演示如何将 Director 函数转换为 Rewrite：</span>
+    <span class="comment">//</span>
+    <span class="comment">//	// 使用 Director 函数的 ReverseProxy。</span>
+    <span class="comment">//	proxy := &amp;httputil.ReverseProxy{</span>
+    <span class="comment">//		Director: func(req *http.Request) {</span>
+    <span class="comment">//			req.URL.Scheme = "https"</span>
+    <span class="comment">//			req.URL.Host = proxyHost</span>
+    <span class="comment">//</span>
+    <span class="comment">//			// 恶意客户端可以移除此头部。</span>
+    <span class="comment">//			req.Header.Set("Some-Header", "some-header-value")</span>
+    <span class="comment">//</span>
+    <span class="comment">//			// 客户端发送的 X-Forwarded-* 头部会保留，</span>
+    <span class="comment">//			// 因为 Director 没有移除它们。</span>
+    <span class="comment">//		},</span>
+    <span class="comment">//	}</span>
+    <span class="comment">//</span>
+    <span class="comment">//	// 使用 Rewrite 函数的 ReverseProxy。</span>
+    <span class="comment">//	proxy := &amp;httputil.ReverseProxy{</span>
+    <span class="comment">//		Rewrite: func(preq *httputil.ProxyRequest) {</span>
+    <span class="comment">//			// 另见 ProxyRequest.SetURL。</span>
+    <span class="comment">//			preq.Out.URL.Scheme = "https"</span>
+    <span class="comment">//			preq.Out.URL.Host = proxyHost</span>
+    <span class="comment">//</span>
+    <span class="comment">//			// 恶意客户端无法影响此头部。</span>
+    <span class="comment">//			preq.Out.Header.Set("Some-Header", "some-header-value")</span>
+    <span class="comment">//</span>
+    <span class="comment">//			// 客户端发送的 X-Forwarded- 头部已</span>
+    <span class="comment">//			// 从 preq.Out 中移除。</span>
+    <span class="comment">//			// 可以调用 ProxyRequest.SetXForwarded 添加新的头部。</span>
+    <span class="comment">//			preq.SetXForwarded()</span>
+    <span class="comment">//		},</span>
+    <span class="comment">//	}</span>
+    <span class="comment">//</span>
+    <span class="comment">// Director 是一个修改请求的函数，</span>
+    <span class="comment">// 将其转换为通过 Transport 发送的</span>
+    <span class="comment">// 新请求。得到的响应会原样复制</span>
+    <span class="comment">// 回最初的客户端。</span>
+    <span class="comment">// Director 返回后，不得访问所提供的 Request。</span>
+    <span class="comment">//</span>
+    <span class="comment">//</span>
+    <span class="comment">// 默认情况下，X-Forwarded-For 头部设为</span>
+    <span class="comment">// 客户端 IP 地址。如果已存在 X-Forwarded-For</span>
+    <span class="comment">// 头部，则将客户端 IP 追加到</span>
+    <span class="comment">// 现有值后面。有一种特殊情况：如果该头部</span>
+    <span class="comment">// 存在于 Request.Header 映射中，但值为 nil</span>
+    <span class="comment">// （例如由 Director 函数设置），则不会修改</span>
+    <span class="comment">// X-Forwarded-For 头部。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 为防止 IP 欺骗，务必删除来自客户端</span>
+    <span class="comment">// 或不可信代理的任何已有</span>
+    <span class="comment">// X-Forwarded-For 头部。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Director 返回后会从请求中移除</span>
+    <span class="comment">// 逐跳头部，这可能移除 Director</span>
+    <span class="comment">// 添加的头部。请改用 Rewrite 函数，</span>
+    <span class="comment">// 以确保对请求的修改得到保留。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 Director 返回后 Request.Form 已设置，</span>
+    <span class="comment">// 则会从发出请求中移除无法解析的查询参数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Rewrite 和 Director 最多只能设置一个。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：请改用 Rewrite。</span>
+    Director func(*<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_ReverseProxy" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+	&#34;net/http/httputil&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	backendServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, &#34;this call was relayed by the reverse proxy&#34;)
+	}))
+	defer backendServer.Close()
+
+	rpURL, err := url.Parse(backendServer.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	frontendProxy := httptest.NewServer(&amp;httputil.ReverseProxy{
+		Rewrite: func(r *httputil.ProxyRequest) {
+			r.SetXForwarded()
+			r.SetURL(rpURL)
+		},
+	})
+	defer frontendProxy.Close()
+
+	resp, err := http.Get(frontendProxy.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, b)
+
+}
+</textarea></div>
+        <div class="output"><pre>this call was relayed by the reverse proxy
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewSingleHostReverseProxy">func <a href="/src/net/http/httputil/reverseproxy.go?s=11643:11704#L322">NewSingleHostReverseProxy</a>
+					
+					
+				</h3>
+				<pre>func NewSingleHostReverseProxy(target *<a href="/pkg/net/url/">url</a>.<a href="/pkg/net/url/#URL">URL</a>) *<a href="#ReverseProxy">ReverseProxy</a></pre>
+				<p>NewSingleHostReverseProxy 返回一个新的 <a href="#ReverseProxy">ReverseProxy</a>，将 URL 路由到 target 指定的协议、主机和基础路径。如果 target 的路径为“/base”，传入请求的路径为“/dir”，则目标请求的路径为 /base/dir。
+<p>NewSingleHostReverseProxy 不会重写 Host 头部。
+<p>出于向后兼容的原因，NewSingleHostReverseProxy 返回的 ReverseProxy 使用已弃用的 Director 函数。该代理会保留客户端发送的 X-Forwarded-* 头部。
+<p>若要在 NewSingleHostReverseProxy 提供的行为之外进一步定制 ReverseProxy，请直接使用带 Rewrite 函数的 ReverseProxy。可以使用 ProxyRequest 的 SetURL 方法路由发出的请求。（注意，与 NewSingleHostReverseProxy 不同，SetURL 默认会重写发出请求的 Host 头部。）
+<pre>proxy := &amp;ReverseProxy{
+	Rewrite: func(r *ProxyRequest) {
+		r.SetURL(target)
+		r.Out.Host = r.In.Host // 如果需要
+	},
+}
+</pre>
+
+				
+			
+
+			
+				<h3 id="ReverseProxy.ServeHTTP">func (*ReverseProxy) <a href="/src/net/http/httputil/reverseproxy.go?s=13763:13838#L392">ServeHTTP</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ReverseProxy">ReverseProxy</a>) ServeHTTP(rw <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="ServerConn">type <a href="/src/net/http/httputil/persist.go?s=1012:1329#L27">ServerConn</a>
+				
+				
+			</h2>
+			<p>ServerConn 是 Go 早期 HTTP 实现的遗留产物。它底层、陈旧，Go 当前的 HTTP 协议栈已不再使用它。本应在 Go 1 之前删除它。
+<p>已弃用：请改用 <a href="/pkg/net/http/">net/http</a> 包中的 Server。
+
+			<pre>type ServerConn struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewServerConn">func <a href="/src/net/http/httputil/persist.go?s=1568:1627#L44">NewServerConn</a>
+					
+					
+				</h3>
+				<pre>func NewServerConn(c <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, r *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>) *<a href="#ServerConn">ServerConn</a></pre>
+				<p>NewServerConn 是 Go 早期 HTTP 实现的遗留产物。它底层、陈旧，Go 当前的 HTTP 协议栈已不再使用它。本应在 Go 1 之前删除它。
+<p>已弃用：请改用 <a href="/pkg/net/http/">net/http</a> 包中的 Server。
+
+				
+			
+
+			
+				<h3 id="ServerConn.Close">func (*ServerConn) <a href="/src/net/http/httputil/persist.go?s=2310:2345#L66">Close</a>
+					
+					
+				</h3>
+				<pre>func (sc *<a href="#ServerConn">ServerConn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 调用 <a href="#ServerConn.Hijack">ServerConn.Hijack</a>，然后关闭底层连接。
+
+				
+			
+				<h3 id="ServerConn.Hijack">func (*ServerConn) <a href="/src/net/http/httputil/persist.go?s=2070:2126#L55">Hijack</a>
+					
+					
+				</h3>
+				<pre>func (sc *<a href="#ServerConn">ServerConn</a>) Hijack() (<a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>)</pre>
+				<p>Hijack 脱离 <a href="#ServerConn">ServerConn</a> 的管理，并返回底层连接以及读取端可能仍有剩余数据的 bufio。在 Read 表示 keep-alive 逻辑结束之前，也可以调用 Hijack。在 <a href="#ServerConn.Read">ServerConn.Read</a> 或 <a href="#ServerConn.Write">ServerConn.Write</a> 正在执行时，用户不应调用 Hijack。
+
+				
+			
+				<h3 id="ServerConn.Pending">func (*ServerConn) <a href="/src/net/http/httputil/persist.go?s=4434:4469#L156">Pending</a>
+					
+					
+				</h3>
+				<pre>func (sc *<a href="#ServerConn">ServerConn</a>) Pending() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Pending 返回已在连接上收到但尚未回复的请求数。
+
+				
+			
+				<h3 id="ServerConn.Read">func (*ServerConn) <a href="/src/net/http/httputil/persist.go?s=2682:2733#L78">Read</a>
+					
+					
+				</h3>
+				<pre>func (sc *<a href="#ServerConn">ServerConn</a>) Read() (*<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 返回连接上的下一个请求。如果正常确认不再有后续请求（例如 HTTP/1.0 连接上的第一个请求之后，或 HTTP/1.1 连接出现 Connection:close 之后），则返回 <a href="#ErrPersistEOF">ErrPersistEOF</a>。
+
+				
+			
+				<h3 id="ServerConn.Write">func (*ServerConn) <a href="/src/net/http/httputil/persist.go?s=4794:4867#L165">Write</a>
+					
+					
+				</h3>
+				<pre>func (sc *<a href="#ServerConn">ServerConn</a>) Write(req *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>, resp *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Write 写入 resp 作为 req 的响应。若要正常关闭连接，请将 Response.Close 字段设为 true。无论 <a href="#ServerConn.Read">ServerConn.Read</a> 端返回什么错误，在 Write 自身返回错误之前，都应认为它仍可正常工作。
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

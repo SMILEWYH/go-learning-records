@@ -1,0 +1,786 @@
+<!--{
+  "Title": "net/http/httptest package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package httptest</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/httptest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">Overview</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">Index</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">Examples</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="Click to show Overview section">Overview ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="Click to hide Overview section">Overview ▾</h2>
+				<p>Package httptest provides utilities for HTTP testing.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Index section">Index ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Index section">Index ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">Constants</a></dd>
+			
+			
+			
+				<dd><a href="#NewRequest">func NewRequest(method, target string, body io.Reader) *http.Request</a></dd>
+			
+				<dd><a href="#NewRequestWithContext">func NewRequestWithContext(ctx context.Context, method, target string, body io.Reader) *http.Request</a></dd>
+			
+			
+				
+				<dd><a href="#ResponseRecorder">type ResponseRecorder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRecorder">func NewRecorder() *ResponseRecorder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Flush">func (rw *ResponseRecorder) Flush()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Header">func (rw *ResponseRecorder) Header() http.Header</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Result">func (rw *ResponseRecorder) Result() *http.Response</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Write">func (rw *ResponseRecorder) Write(buf []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.WriteHeader">func (rw *ResponseRecorder) WriteHeader(code int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.WriteString">func (rw *ResponseRecorder) WriteString(str string) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Server">type Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewServer">func NewServer(handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTLSServer">func NewTLSServer(handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTestServer">func NewTestServer(t testing.TB, handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewUnstartedServer">func NewUnstartedServer(handler http.Handler) *Server</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Certificate">func (s *Server) Certificate() *x509.Certificate</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Client">func (s *Server) Client() *http.Client</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Close">func (s *Server) Close()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.CloseClientConnections">func (s *Server) CloseClientConnections()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Start">func (s *Server) Start()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.StartTLS">func (s *Server) StartTLS()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">(Expand All)</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewTLSServer">NewTLSServer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ResponseRecorder">ResponseRecorder</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Server">Server</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Server_hTTP2">Server (HTTP2)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>Package files</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/httptest/httptest.go">httptest.go</a>
+			
+				<a href="/src/net/http/httptest/recorder.go">recorder.go</a>
+			
+				<a href="/src/net/http/httptest/server.go">server.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">Constants</h2>
+			
+				<p>DefaultRemoteAddr is the default remote address to return in RemoteAddr if
+an explicit DefaultRemoteAddr isn&apos;t set on <a href="#ResponseRecorder">ResponseRecorder</a>.
+
+				<pre>const <span id="DefaultRemoteAddr">DefaultRemoteAddr</span> = &#34;1.2.3.4&#34;</pre>
+			
+		
+		
+		
+			
+			<h2 id="NewRequest">func <a href="/src/net/http/httptest/httptest.go?s=387:455#L9">NewRequest</a>
+				
+				<span title="Added in Go 1.7">1.7</span>
+			</h2>
+			<pre>func NewRequest(method, target <a href="/pkg/builtin/#string">string</a>, body <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a></pre>
+			<p>NewRequest wraps NewRequestWithContext using context.Background.
+
+			
+		
+			
+			<h2 id="NewRequestWithContext">func <a href="/src/net/http/httptest/httptest.go?s=1417:1517#L36">NewRequestWithContext</a>
+				
+				<span title="Added in Go 1.23">1.23</span>
+			</h2>
+			<pre>func NewRequestWithContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, method, target <a href="/pkg/builtin/#string">string</a>, body <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a></pre>
+			<p>NewRequestWithContext returns a new incoming server Request, suitable
+for passing to an <a href="/pkg/net/http/#Handler">http.Handler</a> for testing.
+<p>The target is the RFC 7230 &quot;request-target&quot;: it may be either a
+path or an absolute URL. If target is an absolute URL, the host name
+from the URL is used. Otherwise, &quot;example.com&quot; is used.
+<p>The TLS field is set to a non-nil dummy value if target has scheme
+&quot;https&quot;.
+<p>The Request.Proto is always HTTP/1.1.
+<p>An empty method means &quot;GET&quot;.
+<p>The provided body may be nil. If the body is of type <a href="/pkg/bytes/#Reader">bytes.Reader</a>,
+<a href="/pkg/strings/#Reader">strings.Reader</a>, <a href="/pkg/bytes/#Buffer">bytes.Buffer</a>, or the value <a href="/pkg/net/http/#NoBody">http.NoBody</a>,
+the Request.ContentLength is set.
+<p>NewRequest panics on error for ease of use in testing, where a
+panic is acceptable.
+<p>To generate a client HTTP request instead of a server request, see
+the NewRequest function in the net/http package.
+
+			
+		
+		
+			
+			<h2 id="ResponseRecorder">type <a href="/src/net/http/httptest/recorder.go?s=425:1390#L11">ResponseRecorder</a>
+				
+				
+			</h2>
+			<p>ResponseRecorder is an implementation of <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a> that
+records its mutations for later inspection in tests.
+
+			<pre>type ResponseRecorder struct {
+<span id="ResponseRecorder.Code"></span>    <span class="comment">// Code is the HTTP response code set by WriteHeader.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Note that if a Handler never calls WriteHeader or Write,</span>
+    <span class="comment">// this might end up being 0, rather than the implicit</span>
+    <span class="comment">// http.StatusOK. To get the implicit value, use the Result</span>
+    <span class="comment">// method.</span>
+    Code <a href="/pkg/builtin/#int">int</a>
+
+<span id="ResponseRecorder.HeaderMap"></span>    <span class="comment">// HeaderMap contains the headers explicitly set by the Handler.</span>
+    <span class="comment">// It is an internal detail.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Deprecated: HeaderMap exists for historical compatibility</span>
+    <span class="comment">// and should not be used. To access the headers returned by a handler,</span>
+    <span class="comment">// use the Response.Header map as returned by the Result method.</span>
+    HeaderMap <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Header">Header</a>
+
+<span id="ResponseRecorder.Body"></span>    <span class="comment">// Body is the buffer to which the Handler&#39;s Write calls are sent.</span>
+    <span class="comment">// If nil, the Writes are silently discarded.</span>
+    Body *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>
+
+<span id="ResponseRecorder.Flushed"></span>    <span class="comment">// Flushed is whether the Handler called Flush.</span>
+    Flushed <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_ResponseRecorder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, &#34;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;&#34;)
+	}
+
+	req := httptest.NewRequest(&#34;GET&#34;, &#34;http://example.com/foo&#34;, nil)
+	w := httptest.NewRecorder()
+	handler(w, req)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Println(resp.StatusCode)
+	fmt.Println(resp.Header.Get(&#34;Content-Type&#34;))
+	fmt.Println(string(body))
+
+}
+</textarea></div>
+        <div class="output"><pre>200
+text/html; charset=utf-8
+&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewRecorder">func <a href="/src/net/http/httptest/recorder.go?s=1450:1486#L41">NewRecorder</a>
+					
+					
+				</h3>
+				<pre>func NewRecorder() *<a href="#ResponseRecorder">ResponseRecorder</a></pre>
+				<p>NewRecorder returns an initialized <a href="#ResponseRecorder">ResponseRecorder</a>.
+
+				
+			
+
+			
+				<h3 id="ResponseRecorder.Flush">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=5153:5188#L171">Flush</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Flush()</pre>
+				<p>Flush implements <a href="/pkg/net/http/#Flusher">http.Flusher</a>. To test whether Flush was
+called, see rw.Flushed.
+
+				
+			
+				<h3 id="ResponseRecorder.Header">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=2050:2098#L57">Header</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Header() <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Header">Header</a></pre>
+				<p>Header implements <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a>. It returns the response
+headers to mutate within a handler. To test the headers that were
+written after a handler completes, use the <a href="#ResponseRecorder.Result">ResponseRecorder.Result</a> method and see
+the returned Response value&apos;s Header.
+
+				
+			
+				<h3 id="ResponseRecorder.Result">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=5901:5952#L193">Result</a>
+					
+					<span title="Added in Go 1.7">1.7</span>
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Result() *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a></pre>
+				<p>Result returns the response generated by the handler.
+<p>The returned Response will have at least its StatusCode,
+Header, Body, and optionally Trailer populated.
+More fields may be populated in the future, so callers should
+not DeepEqual the result in tests.
+<p>The Response.Header is a snapshot of the headers at the time of the
+first write call, or at the time of this call, if the handler never
+did a write.
+<p>The Response.Body is guaranteed to be non-nil and Body.Read call is
+guaranteed to not return any error other than <a href="/pkg/io/#EOF">io.EOF</a>.
+<p>Result must only be called after the handler has finished running.
+
+				
+			
+				<h3 id="ResponseRecorder.Write">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=2964:3022#L97">Write</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Write(buf []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write implements http.ResponseWriter. The data in buf is written to
+rw.Body, if not nil.
+
+				
+			
+				<h3 id="ResponseRecorder.WriteHeader">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=4806:4855#L155">WriteHeader</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) WriteHeader(code <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>WriteHeader implements <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a>.
+
+				
+			
+				<h3 id="ResponseRecorder.WriteString">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=3356:3420#L111">WriteString</a>
+					
+					<span title="Added in Go 1.6">1.6</span>
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) WriteString(str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString implements <a href="/pkg/io/#StringWriter">io.StringWriter</a>. The data in str is written
+to rw.Body, if not nil.
+
+				
+			
+		
+			
+			<h2 id="Server">type <a href="/src/net/http/httptest/server.go?s=3748:5674#L102">Server</a>
+				
+				
+			</h2>
+			<p>A Server is an HTTP server for use in end-to-end HTTP tests.
+<p>Most tests should create a server with <a href="#NewTestServer">NewTestServer</a>.
+The <a href="#Server.Client">Server.Client</a> method returns a client which sends requests to the test server.
+<pre>// Create a test server and send a request to it.
+server := httptest.NewTestServer(t, handler)
+resp, err := server.Client().Get(&quot;http://www.example.com/&quot;)
+</pre>
+<h3 id="hdr-Configuration">Configuration</h3>
+<p>Tests may change a Server&apos;s configuration prior to using it.
+The configuration must not be changed after the first call to
+<a href="#Server.Client">Server.Client</a>, <a href="#Server.Start">Server.Start</a>, or <a href="#Server.StartTLS">Server.StartTLS</a>.
+<pre>// Configure a test server before using.
+server := httptest.NewTestServer(t, handler)
+server.Config.MaxHeaderBytes = 1024
+resp, err := server.Client().Get(&quot;http://www.example.com/&quot;)
+</pre>
+<h3 id="hdr-Tests">Tests</h3>
+<p>Servers created with <a href="#NewTestServer">NewTestServer</a> will:
+<ul>
+<li>Fail the test if the server handler panics with
+any value other than <a href="/pkg/net/http/#ErrAbortHandler">http.ErrAbortHandler</a>.
+<li>Register a Cleanup function to shut down the server at the end of the test.
+</ul>
+<p>Servers created in any other way must be manually shut down with <a href="#Server.Close">Server.Close</a>.
+<h3 id="hdr-In_Memory_Network">In-Memory Network</h3>
+<p>A Server may use an in-memory network implementation or
+listen on a local network loopback interface.
+Most tests should use the in-memory network,
+which avoids port exhaustion and other transient networking issues
+and is suitable for use with the <a href="/pkg/testing/synctest/">testing/synctest</a> package.
+<p>To use the in-memory network, create a server with <a href="#NewTestServer">NewTestServer</a>.
+Do not call <a href="#Server.Start">Server.Start</a> or <a href="#Server.StartTLS">Server.StartTLS</a>.
+<p>When using the in-memory network, the <a href="/pkg/net/http/#Client">http.Client</a> returned by <a href="#Server.Client">Server.Client</a>
+is configured to send all requests to the server.
+The client will direct HTTP and HTTPS requests,
+regardless of destination address or hostname, to the server.
+Requests do not need to use <a href="#Server.URL">Server.URL</a> as the base URL.
+<pre>server := httptest.NewTestServer(t, handler)
+client := server.Client()
+
+// All of these requests are sent to the test server.
+// https:// requests use TLS over the in-memory network.
+_, _ = client.Get(&quot;http://www.example.com/&quot;)
+_, _ = client.Get(&quot;https://go.dev/&quot;)
+_, _ = client.Get(&quot;http://10.0.0.1/&quot;)
+</pre>
+<p>The <a href="#Server.Listener">Server.Listener</a> field is not set when using the in-memory network.
+<h3 id="hdr-Loopback_Network">Loopback Network</h3>
+<p>To listen on a loopback interface, call <a href="#Server.Start">Server.Start</a> or <a href="#Server.StartTLS">Server.StartTLS</a>.
+The server will listen on a system-chosen port.
+<p>Loopback servers serve one of HTTP (when started with <a href="#Server.Start">Server.Start</a>)
+or HTTPS (when started with <a href="#Server.StartTLS">Server.StartTLS</a>).
+<p>When using the loopback network, the <a href="/pkg/net/http/#Client">http.Client</a> returned by <a href="#Server.Client">Server.Client</a>
+is configured to send requests with a hostname of &quot;example.com&quot; or a subdomain
+of &quot;.example.com&quot; to the server.
+<p>Requests may also be sent to the server&apos;s loopback address.
+The <a href="#Server.URL">Server.URL</a> field is set to a base URL containing the server&apos;s address.
+<pre>server := httptest.NewTestServer(t, handler)
+server.Start()
+client := server.Client()
+
+// This request is sent to the test server.
+_, _ = server.Client().Get(server.URL + &quot;/&quot;)
+
+// This request (using http.DefaultClient) is also sent to the test server,
+// since server.URL contains the server&apos;s local IP address.
+_, _ = http.Get(server.URL + &quot;/&quot;)
+</pre>
+
+			<pre>type Server struct {
+<span id="Server.URL"></span>    <span class="comment">// URL is the base URL of the server, of the form http://address:port</span>
+    <span class="comment">// with no trailing slash.</span>
+    <span class="comment">//</span>
+    <span class="comment">// It is set by the first call to Client, Start, or StartTLS.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For servers listening on loopback, the address is the loopback IP address</span>
+    <span class="comment">// of the server.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For servers using the in-memory network, this address is &#34;example.com&#34;.</span>
+    <span class="comment">// Requests sent to servers using the in-memory network may use any address.</span>
+    <span class="comment">// It is not necessary to use this base URL.</span>
+    URL <a href="/pkg/builtin/#string">string</a>
+
+<span id="Server.Listener"></span>    <span class="comment">// Listener is the network listener for servers listening on loopback.</span>
+    <span class="comment">// It is not set for servers using the in-memory network.</span>
+    Listener <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>
+
+<span id="Server.EnableHTTP2"></span>    <span class="comment">// EnableHTTP2 controls whether HTTP/2 is enabled on the server.</span>
+    <span class="comment">// It must be set before calling Client, Start, or StartTLS.</span>
+    EnableHTTP2 <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.14</span>
+
+<span id="Server.TLS"></span>    <span class="comment">// TLS is the optional TLS configuration, populated with a new config</span>
+    <span class="comment">// after TLS is started. If set on an unstarted server before StartTLS</span>
+    <span class="comment">// is called, existing fields are copied into the new config.</span>
+    TLS *<a href="/pkg/crypto/tls/">tls</a>.<a href="/pkg/crypto/tls/#Config">Config</a>
+
+<span id="Server.Config"></span>    <span class="comment">// Config may be changed before calling Client, Start, or StartTLS.</span>
+    Config *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Server">Server</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Server" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, &#34;Hello, client&#34;)
+	}))
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, greeting)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, client
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Server_hTTP2" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example (HTTP2)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example (HTTP2)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;Hello, %s&#34;, r.Proto)
+	}))
+	ts.EnableHTTP2 = true
+	ts.StartTLS()
+	defer ts.Close()
+
+	res, err := ts.Client().Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s&#34;, greeting)
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello, HTTP/2.0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewServer">func <a href="/src/net/http/httptest/server.go?s=8543:8587#L256">NewServer</a>
+					
+					
+				</h3>
+				<pre>func NewServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewServer starts and returns a new <a href="#Server">Server</a> listening on a
+local network loopback interface.
+This is equivalent to calling <a href="#NewUnstartedServer">NewUnstartedServer</a> followed by <a href="#Server.Start">Server.Start</a>.
+<p>The caller should call <a href="#Server.Close">Server.Close</a> when finished, to shut it down.
+<p>Most users should use <a href="#NewTestServer">NewTestServer</a> instead.
+See the <a href="#Server">Server</a> documentation for details.
+
+				
+			
+				<h3 id="NewTLSServer">func <a href="/src/net/http/httptest/server.go?s=14027:14074#L448">NewTLSServer</a>
+					
+					
+				</h3>
+				<pre>func NewTLSServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewTLSServer starts and returns a new <a href="#Server">Server</a> using TLS and listening on a
+local network loopback interface.
+This is equivalent to calling <a href="#NewUnstartedServer">NewUnstartedServer</a> followed by <a href="#Server.StartTLS">Server.StartTLS</a>.
+<p>The caller should call <a href="#Server.Close">Server.Close</a> when finished, to shut it down.
+<p>Most users should use <a href="#NewTestServer">NewTestServer</a> instead.
+See the <a href="#Server">Server</a> documentation for details.
+
+				
+
+
+<div id="example_NewTLSServer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, &#34;Hello, client&#34;)
+	}))
+	defer ts.Close()
+
+	client := ts.Client()
+	res, err := client.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, greeting)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, client
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewTestServer">func <a href="/src/net/http/httptest/server.go?s=5979:6041#L167">NewTestServer</a>
+					
+					<span title="Added in Go 1.27">1.27</span>
+				</h3>
+				<pre>func NewTestServer(t <a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#TB">TB</a>, handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewTestServer returns a new <a href="#Server">Server</a> for a test.
+The server will use an in-memory network implementation by default.
+<p>If the handler is nil, the server will serve 500 responses to all requests.
+It will not use <a href="/pkg/net/http/#DefaultServeMux">http.DefaultServeMux</a>.
+<p>See the <a href="#Server">Server</a> documentation for more details.
+
+				
+			
+				<h3 id="NewUnstartedServer">func <a href="/src/net/http/httptest/server.go?s=9066:9119#L272">NewUnstartedServer</a>
+					
+					
+				</h3>
+				<pre>func NewUnstartedServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewUnstartedServer returns a new <a href="#Server">Server</a> listening on a
+local network loopback interface. It does not start the server.
+<p>After changing the server&apos;s configuration, the caller should
+call <a href="#Server.Start">Server.Start</a> or <a href="#Server.StartTLS">Server.StartTLS</a>.
+<p>The caller should call <a href="#Server.Close">Server.Close</a> when finished, to shut it down.
+<p>Most users should use <a href="#NewTestServer">NewTestServer</a> instead.
+See the <a href="#Server">Server</a> documentation for details.
+
+				
+			
+
+			
+				<h3 id="Server.Certificate">func (*Server) <a href="/src/net/http/httptest/server.go?s=17387:17435#L558">Certificate</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Certificate() *<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a></pre>
+				<p>Certificate returns the certificate used by the server, or nil if
+the server doesn&apos;t use TLS.
+
+				
+			
+				<h3 id="Server.Client">func (*Server) <a href="/src/net/http/httptest/server.go?s=17663:17701#L565">Client</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Client() *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Client">Client</a></pre>
+				<p>Client returns an HTTP client configured for making requests to the server.
+It is configured to trust the server&apos;s TLS test certificate and will
+close its idle connections on <a href="#Server.Close">Server.Close</a>.
+
+				
+			
+				<h3 id="Server.Close">func (*Server) <a href="/src/net/http/httptest/server.go?s=14311:14335#L460">Close</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Close()</pre>
+				<p>Close shuts down the server and blocks until all outstanding
+requests on this server have completed.
+
+				
+			
+				<h3 id="Server.CloseClientConnections">func (*Server) <a href="/src/net/http/httptest/server.go?s=16673:16714#L529">CloseClientConnections</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) CloseClientConnections()</pre>
+				<p>CloseClientConnections closes any open HTTP connections to the test Server.
+
+				
+			
+				<h3 id="Server.Start">func (*Server) <a href="/src/net/http/httptest/server.go?s=10053:10077#L309">Start</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Start()</pre>
+				<p>Start starts a server on a local loopback network interface.
+<p>The server should have been created by <a href="#NewTestServer">NewTestServer</a> or <a href="#NewUnstartedServer">NewUnstartedServer</a>.
+
+				
+			
+				<h3 id="Server.StartTLS">func (*Server) <a href="/src/net/http/httptest/server.go?s=11877:11904#L374">StartTLS</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) StartTLS()</pre>
+				<p>Start starts TLS on a server on a local loopback network interface.
+<p>The server should have been created by <a href="#NewTestServer">NewTestServer</a> or <a href="#NewUnstartedServer">NewUnstartedServer</a>.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

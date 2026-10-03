@@ -1,0 +1,395 @@
+<!--{
+  "Title": "encoding 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package encoding</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>encoding 包定义了其他包共用的接口，这些包在数据与字节级表示或文本表示之间进行转换。检查这些接口的包包括 encoding/gob、encoding/json 和 encoding/xml。因此，只需实现一次接口，就可以让某个类型适用于多种编码。实现了这些接口的标准类型包括 time.Time 和 net.IP。这些接口成对出现，分别用于生成和读取编码后的数据。
+<p>为现有类型添加编码或解码方法可能构成破坏性变更，因为这些方法可能用于序列化，并与使用不同版本库编写的程序通信。Go 项目维护的包遵循这样的政策：只有在不存在合理的现有序列化方式时，才允许添加序列化函数。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#BinaryAppender">type BinaryAppender</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BinaryMarshaler">type BinaryMarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BinaryUnmarshaler">type BinaryUnmarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TextAppender">type TextAppender</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TextMarshaler">type TextMarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TextUnmarshaler">type TextUnmarshaler</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/encoding.go">encoding.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="BinaryAppender">type <a href="/src/encoding/encoding.go?s=1929:2238#L32">BinaryAppender</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>BinaryAppender 接口由能够追加自身二进制表示的对象实现。如果某个类型同时实现了 <a href="#BinaryAppender">BinaryAppender</a> 和 <a href="#BinaryMarshaler">BinaryMarshaler</a>，则 v.MarshalBinary() 在语义上必须与 v.AppendBinary(nil) 完全相同。
+
+			<pre>type BinaryAppender interface {
+    <span class="comment">// AppendBinary 将自身的二进制表示追加到 b 的末尾</span>
+    <span class="comment">// （必要时分配更大的切片），并返回更新后的切片。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 实现不得保留 b，也不得修改 b[:len(b)] 中的任何字节。</span>
+    AppendBinary(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="BinaryMarshaler">type <a href="/src/encoding/encoding.go?s=1219:1295#L14">BinaryMarshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>BinaryMarshaler 接口由能够将自身序列化为二进制形式的对象实现。
+<p>MarshalBinary 将接收者编码为二进制形式并返回结果。
+
+			<pre>type BinaryMarshaler interface {
+    MarshalBinary() (data []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="BinaryUnmarshaler">type <a href="/src/encoding/encoding.go?s=1589:1661#L24">BinaryUnmarshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>BinaryUnmarshaler 接口由能够从自身的二进制表示进行反序列化的对象实现。
+<p>UnmarshalBinary 必须能够解码 MarshalBinary 生成的形式。如果需要在返回后保留数据，UnmarshalBinary 必须复制这些数据。
+
+			<pre>type BinaryUnmarshaler interface {
+    UnmarshalBinary(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TextAppender">type <a href="/src/encoding/encoding.go?s=3120:3424#L62">TextAppender</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>TextAppender 接口由能够追加自身文本表示的对象实现。如果某个类型同时实现了 <a href="#TextAppender">TextAppender</a> 和 <a href="#TextMarshaler">TextMarshaler</a>，则 v.MarshalText() 在语义上必须与 v.AppendText(nil) 完全相同。
+
+			<pre>type TextAppender interface {
+    <span class="comment">// AppendText 将自身的文本表示追加到 b 的末尾</span>
+    <span class="comment">// （必要时分配更大的切片），并返回更新后的切片。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 实现不得保留 b，也不得修改 b[:len(b)] 中的任何字节。</span>
+    AppendText(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TextMarshaler">type <a href="/src/encoding/encoding.go?s=2434:2506#L44">TextMarshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>TextMarshaler 接口由能够将自身序列化为文本形式的对象实现。
+<p>MarshalText 将接收者编码为 UTF-8 文本并返回结果。
+
+			<pre>type TextMarshaler interface {
+    MarshalText() (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TextUnmarshaler">type <a href="/src/encoding/encoding.go?s=2793:2861#L54">TextUnmarshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>TextUnmarshaler 接口由能够从自身的文本表示进行反序列化的对象实现。
+<p>UnmarshalText 必须能够解码 MarshalText 生成的形式。如果需要在返回后保留文本，UnmarshalText 必须复制这些文本。
+
+			<pre>type TextUnmarshaler interface {
+    UnmarshalText(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="ascii85/">ascii85</a>
+					</td>
+				
+					<td class="pkg-synopsis">ascii85 包实现了 ascii85 数据编码，btoa 工具以及 Adobe 的 PostScript 和 PDF 文档格式都使用了这种编码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="asn1/">asn1</a>
+					</td>
+				
+					<td class="pkg-synopsis">asn1 包实现了对 DER 编码的 ASN.1 数据结构的解析，其定义见 ITU-T Rec X.690。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="base32/">base32</a>
+					</td>
+				
+					<td class="pkg-synopsis">base32 包实现了 RFC 4648 规定的 base32 编码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="base64/">base64</a>
+					</td>
+				
+					<td class="pkg-synopsis">base64 包实现了 RFC 4648 规定的 base64 编码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="binary/">binary</a>
+					</td>
+				
+					<td class="pkg-synopsis">binary 包实现了数值与字节序列之间的简单转换，以及变长整数（varint）的编码和解码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="csv/">csv</a>
+					</td>
+				
+					<td class="pkg-synopsis">csv 包用于读写逗号分隔值（CSV）文件。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="gob/">gob</a>
+					</td>
+				
+					<td class="pkg-synopsis">gob 包管理 gob 数据流，即在 Encoder（发送方）与 Decoder（接收方）之间交换的二进制值。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="hex/">hex</a>
+					</td>
+				
+					<td class="pkg-synopsis">hex 包实现了十六进制编码和解码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="json/">json</a>
+					</td>
+				
+					<td class="pkg-synopsis">json 包实现 RFC 7159 定义的 JSON 编码与解码。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 20px;">
+						<a href="json/jsontext/">jsontext</a>
+					</td>
+				
+					<td class="pkg-synopsis">jsontext 包按 RFC 4627、RFC 7159、RFC 7493、RFC 8259 和 RFC 8785 的规定实现 JSON 的语法处理。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 20px;">
+						<a href="json/v2/">v2</a>
+					</td>
+				
+					<td class="pkg-synopsis">json 包实现了 RFC 8259 规定的 JSON 语义处理。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="pem/">pem</a>
+					</td>
+				
+					<td class="pkg-synopsis">pem 包实现了 PEM 数据编码，它起源于 Privacy Enhanced Mail。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="xml/">xml</a>
+					</td>
+				
+					<td class="pkg-synopsis">xml 包实现了一个支持 XML 命名空间的简单 XML 1.0 解析器。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

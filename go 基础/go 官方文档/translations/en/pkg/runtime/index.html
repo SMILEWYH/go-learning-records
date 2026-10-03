@@ -1,0 +1,2770 @@
+<!--{
+  "Title": "runtime package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package runtime</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package runtime contains operations that interact with Go&apos;s runtime system,
+such as functions to control goroutines. It also includes the low-level type information
+used by the reflect package; see <a href="/pkg/reflect/">reflect</a>&apos;s documentation for the programmable
+interface to the run-time type system.
+<h3 id="hdr-Environment_Variables">Environment Variables</h3>
+<p>The following environment variables ($name or %name%, depending on the host
+operating system) control the run-time behavior of Go programs. The meanings
+and use may change from release to release.
+<p>The GOGC variable sets the initial garbage collection target percentage.
+A collection is triggered when the ratio of freshly allocated data to live data
+remaining after the previous collection reaches this percentage. The default
+is GOGC=100. Setting GOGC=off disables the garbage collector entirely.
+<a href="/pkg/runtime/debug/#SetGCPercent">runtime/debug.SetGCPercent</a> allows changing this percentage at run time.
+<p>The GOMEMLIMIT variable sets a soft memory limit for the runtime. This memory limit
+includes the Go heap and all other memory managed by the runtime, and excludes
+external memory sources such as mappings of the binary itself, memory managed in
+other languages, and memory held by the operating system on behalf of the Go
+program. GOMEMLIMIT is a numeric value in bytes with an optional unit suffix.
+The supported suffixes include B, KiB, MiB, GiB, and TiB. These suffixes
+represent quantities of bytes as defined by the IEC 80000-13 standard. That is,
+they are based on powers of two: KiB means 2^10 bytes, MiB means 2^20 bytes,
+and so on. The default setting is <a href="/pkg/internal/runtime/math/#MaxInt64">math.MaxInt64</a>, which effectively disables the
+memory limit. <a href="/pkg/runtime/debug/#SetMemoryLimit">runtime/debug.SetMemoryLimit</a> allows changing this limit at run
+time.
+<p>The GODEBUG variable controls debugging variables within the runtime.
+It is a comma-separated list of name=val pairs setting these named variables:
+<pre>clobberfree: setting clobberfree=1 causes the garbage collector to
+clobber the memory content of an object with bad content when it frees
+the object.
+
+cpu.*: cpu.all=off disables the use of all optional instruction set extensions.
+cpu.extension=off disables use of instructions from the specified instruction set extension.
+extension is the lower case name for the instruction set extension such as sse41 or avx
+as listed in internal/cpu package. As an example cpu.avx=off disables runtime detection
+and thereby use of AVX instructions.
+
+cgocheck: setting cgocheck=0 disables all checks for packages
+using cgo to incorrectly pass Go pointers to non-Go code.
+Setting cgocheck=1 (the default) enables relatively cheap
+checks that may miss some errors. A more complete, but slow,
+cgocheck mode can be enabled using GOEXPERIMENT (which
+requires a rebuild), see https://pkg.go.dev/internal/goexperiment for details.
+
+checkfinalizers: setting checkfinalizers=1 causes the garbage collector to run
+multiple partial non-parallel stop-the-world collections to identify common issues with
+finalizers and cleanups, like those listed at
+https://go.dev/doc/gc-guide#Finalizers_cleanups_and_weak_pointers. If a potential issue
+is found, the program will terminate with a description of all potential issues, the
+associated values, and a list of those values&apos; finalizers and cleanups, including where
+they were created. It also adds tracking for tiny blocks to help diagnose issues with
+those as well. The analysis performed during the partial collection is conservative.
+Notably, it flags any path back to the original object from the cleanup function,
+cleanup arguments, or finalizer function as a potential issue, even if that path might
+be severed sometime later during execution (though this is not a recommended pattern).
+This mode also produces one line of output to stderr every GC cycle with information
+about the finalizer and cleanup queue lengths. Lines produced by this mode start with
+&quot;checkfinalizers:&quot;.
+
+decoratemappings: controls whether the Go runtime annotates OS
+anonymous memory mappings with context about their purpose. These
+annotations appear in /proc/self/maps and /proc/self/smaps as
+&quot;[anon: Go: ...]&quot;. This setting is only used on Linux. For Go 1.25, it
+defaults to `decoratemappings=1`, enabling annotations. Using
+`decoratemappings=0` reverts to the pre-Go 1.25 behavior.
+
+disablethp: setting disablethp=1 on Linux disables transparent huge pages for the heap.
+It has no effect on other platforms. disablethp is meant for compatibility with versions
+of Go before 1.21, which stopped working around a Linux kernel default that can result
+in significant memory overuse. See https://go.dev/issue/64332. This setting will be
+removed in a future release, so operators should tweak their Linux configuration to suit
+their needs before then. See https://go.dev/doc/gc-guide#Linux_transparent_huge_pages.
+
+dontfreezetheworld: by default, the start of a fatal panic or throw
+&quot;freezes the world&quot;, preempting all threads to stop all running
+goroutines, which makes it possible to traceback all goroutines, and
+keeps their state close to the point of panic. Setting
+dontfreezetheworld=1 disables this preemption, allowing goroutines to
+continue executing during panic processing. Note that goroutines that
+naturally enter the scheduler will still stop. This can be useful when
+debugging the runtime scheduler, as freezetheworld perturbs scheduler
+state and thus may hide problems.
+
+efence: setting efence=1 causes the allocator to run in a mode
+where each object is allocated on a unique page and addresses are
+never recycled.
+
+gccheckmark: setting gccheckmark=1 enables verification of the
+garbage collector&apos;s concurrent mark phase by performing a
+second mark pass while the world is stopped.  If the second
+pass finds a reachable object that was not found by concurrent
+mark, the garbage collector will panic.
+
+gcpacertrace: setting gcpacertrace=1 causes the garbage collector to
+print information about the internal state of the concurrent pacer.
+
+gcshrinkstackoff: setting gcshrinkstackoff=1 disables moving goroutines
+onto smaller stacks. In this mode, a goroutine&apos;s stack can only grow.
+
+gcstoptheworld: setting gcstoptheworld=1 disables concurrent garbage collection,
+making every garbage collection a stop-the-world event. Setting gcstoptheworld=2
+also disables concurrent sweeping after the garbage collection finishes.
+
+gctrace: setting gctrace=1 causes the garbage collector to emit a single line to standard
+error at each collection, summarizing the amount of memory collected and the
+length of the pause. The format of this line is subject to change. Included in
+the explanation below is also the relevant runtime/metrics metric for each field.
+Currently, it is:
+	gc # @#s #%: #+#+# ms clock, #+#/#/#+# ms cpu, #-&gt;#-&gt;# MB, # MB goal, # MB stacks, #MB globals, # P
+where the fields are as follows:
+	gc #         the GC number, incremented at each GC
+	@#s          time in seconds since program start
+	#%           percentage of time spent in GC since program start
+	#+...+#      wall-clock/CPU times for the phases of the GC
+	#-&gt;#-&gt;# MB   heap size at GC start, at GC end, and live heap, or /gc/scan/heap:bytes
+	# MB goal    goal heap size, or /gc/heap/goal:bytes
+	# MB stacks  estimated scannable stack size, or /gc/scan/stack:bytes
+	# MB globals scannable global size, or /gc/scan/globals:bytes
+	# P          number of processors used, or /sched/gomaxprocs:threads
+The phases are stop-the-world (STW) sweep termination, concurrent
+mark and scan, and STW mark termination. The CPU times
+for mark/scan are broken down in to assist time (GC performed in
+line with allocation), background GC time, and idle GC time.
+If the line ends with &quot;(forced)&quot;, this GC was forced by a
+runtime.GC() call.
+
+harddecommit: setting harddecommit=1 causes memory that is returned to the OS to
+also have protections removed on it. This is the only mode of operation on Windows,
+but is helpful in debugging scavenger-related issues on other platforms. Currently,
+only supported on Linux.
+
+inittrace: setting inittrace=1 causes the runtime to emit a single line to standard
+error for each package with init work, summarizing the execution time and memory
+allocation. No information is printed for inits executed as part of plugin loading
+and for packages without both user defined and compiler generated init work.
+The format of this line is subject to change. Currently, it is:
+	init # @#ms, # ms clock, # bytes, # allocs
+where the fields are as follows:
+	init #      the package name
+	@# ms       time in milliseconds when the init started since program start
+	# clock     wall-clock time for package initialization work
+	# bytes     memory allocated on the heap
+	# allocs    number of heap allocations
+
+madvdontneed: setting madvdontneed=0 will use MADV_FREE
+instead of MADV_DONTNEED on Linux when returning memory to the
+kernel. This is more efficient, but means RSS numbers will
+drop only when the OS is under memory pressure. On the BSDs and
+Illumos/Solaris, setting madvdontneed=1 will use MADV_DONTNEED instead
+of MADV_FREE. This is less efficient, but causes RSS numbers to drop
+more quickly.
+
+memprofilerate: setting memprofilerate=X will update the value of runtime.MemProfileRate.
+When set to 0 memory profiling is disabled.  Refer to the description of
+MemProfileRate for the default value.
+
+profstackdepth: profstackdepth=128 (the default) will set the maximum stack
+depth used by all pprof profilers except for the CPU profiler to 128 frames.
+Stack traces that exceed this limit will be truncated to the limit starting
+from the leaf frame. Setting profstackdepth to any value above 1024 will
+silently default to 1024. Future versions of Go may remove this limitation
+and extend profstackdepth to apply to the CPU profiler and execution tracer.
+
+panicnil: setting panicnil=1 disables the runtime error when calling panic with nil
+interface value or an untyped nil.
+
+invalidptr: invalidptr=1 (the default) causes the garbage collector and stack
+copier to crash the program if an invalid pointer value (for example, 1)
+is found in a pointer-typed location. Setting invalidptr=0 disables this check.
+This should only be used as a temporary workaround to diagnose buggy code.
+The real fix is to not store integers in pointer-typed locations.
+
+sbrk: setting sbrk=1 replaces the memory allocator and garbage collector
+with a trivial allocator that obtains memory from the operating system and
+never reclaims any memory.
+
+scavtrace: setting scavtrace=1 causes the runtime to emit a single line to standard
+error, roughly once per GC cycle, summarizing the amount of work done by the
+scavenger as well as the total amount of memory returned to the operating system
+and an estimate of physical memory utilization. The format of this line is subject
+to change, but currently it is:
+	scav # KiB work (bg), # KiB work (eager), # KiB total, #% util
+where the fields are as follows:
+	# KiB work (bg)    the amount of memory returned to the OS in the background since
+	                   the last line
+	# KiB work (eager) the amount of memory returned to the OS eagerly since the last line
+	# KiB now          the amount of address space currently returned to the OS
+	#% util            the fraction of all unscavenged heap memory which is in-use
+If the line ends with &quot;(forced)&quot;, then scavenging was forced by a
+debug.FreeOSMemory() call.
+
+scheddetail: setting schedtrace=X and scheddetail=1 causes the scheduler to emit
+detailed multiline info every X milliseconds, describing state of the scheduler,
+processors, threads and goroutines.
+
+schedtrace: setting schedtrace=X causes the scheduler to emit a single line to standard
+error every X milliseconds, summarizing the scheduler state.
+
+tracebackancestors: setting tracebackancestors=N extends tracebacks with the stacks at
+which goroutines were created, where N limits the number of ancestor goroutines to
+report. This also extends the information returned by runtime.Stack.
+Setting N to 0 will report no ancestry information.
+
+tracefpunwindoff: setting tracefpunwindoff=1 forces the execution tracer
+and block and mutex profilers to use the runtime&apos;s default stack
+unwinder instead of frame pointer unwinding. This increases their
+overhead, but could be helpful as a workaround or for debugging
+unexpected regressions caused by frame pointer unwinding.
+
+traceadvanceperiod: the approximate period in nanoseconds between trace generations. Only
+applies if a program is built with GOEXPERIMENT=exectracer2. Used primarily for testing
+and debugging the execution tracer.
+
+tracecheckstackownership: setting tracecheckstackownership=1 enables a debug check in the
+execution tracer to double-check stack ownership before taking a stack trace.
+
+asyncpreemptoff: asyncpreemptoff=1 disables signal-based
+asynchronous goroutine preemption. This makes some loops
+non-preemptible for long periods, which may delay GC and
+goroutine scheduling. This is useful for debugging GC issues
+because it also disables the conservative stack scanning used
+for asynchronously preempted goroutines.
+</pre>
+<p>The <a href="/pkg/net/">net</a> and <a href="/pkg/net/http/">net/http</a> packages also refer to debugging variables in GODEBUG.
+See the documentation for those packages for details.
+<p>The GOMAXPROCS variable limits the number of operating system threads that
+can execute user-level Go code simultaneously. There is no limit to the number of threads
+that can be blocked in system calls on behalf of Go code; those do not count against
+the GOMAXPROCS limit. This package&apos;s <a href="#GOMAXPROCS">GOMAXPROCS</a> function queries and changes
+the limit.
+<p>The GORACE variable configures the race detector, for programs built using -race.
+See the <a href="/doc/articles/race_detector">Race Detector article</a> for details.
+<p>The GOTRACEBACK variable controls the amount of output generated when a Go
+program fails due to an unrecovered panic or an unexpected runtime condition.
+By default, a failure prints a stack trace for the current goroutine,
+eliding functions internal to the run-time system, and then exits with exit code 2.
+The failure prints stack traces for all goroutines if there is no current goroutine
+or the failure is internal to the run-time.
+GOTRACEBACK=none omits the goroutine stack traces entirely.
+GOTRACEBACK=single (the default) behaves as described above.
+GOTRACEBACK=all adds stack traces for all user-created goroutines.
+GOTRACEBACK=system is like “all” but adds stack frames for run-time functions
+and shows goroutines created internally by the run-time.
+GOTRACEBACK=crash is like “system” but crashes in an operating system-specific
+manner instead of exiting. For example, on Unix systems, the crash raises
+SIGABRT to trigger a core dump.
+GOTRACEBACK=wer is like “crash” but doesn&apos;t disable Windows Error Reporting (WER).
+For historical reasons, the GOTRACEBACK settings 0, 1, and 2 are synonyms for
+none, all, and system, respectively.
+The <a href="/pkg/runtime/debug/#SetTraceback">runtime/debug.SetTraceback</a> function allows increasing the
+amount of output at run time, but it cannot reduce the amount below that
+specified by the environment variable.
+<p>The GOARCH, GOOS, GOPATH, and GOROOT environment variables complete
+the set of Go environment variables. They influence the building of Go programs
+(see <a href="/cmd/go/">cmd/go</a> and <a href="/pkg/go/build/">go/build</a>).
+GOARCH, GOOS, and GOROOT are recorded at compile time and made available by
+constants or functions in this package, but they do not influence the execution
+of the run-time system.
+<h3 id="hdr-Security">Security</h3>
+<p>On Unix platforms, Go&apos;s runtime system behaves slightly differently when a
+binary is setuid/setgid or executed with setuid/setgid-like properties, in order
+to prevent dangerous behaviors. On Linux this is determined by checking for the
+AT_SECURE flag in the auxiliary vector, on the BSDs and Solaris/Illumos it is
+determined by checking the issetugid syscall, and on AIX it is determined by
+checking if the uid/gid match the effective uid/gid.
+<p>When the runtime determines the binary is setuid/setgid-like, it does two main
+things:
+<ul>
+<li>The value of the GOTRACEBACK environment variable is set to &apos;none&apos;.
+<li>When a signal is received that terminates the program, or the program
+encounters an unrecoverable panic that would otherwise override the value
+of GOTRACEBACK, the goroutine stack, registers, and other memory related
+information are omitted.
+</ul>
+<p>Additinally on Unix platforms the Go runtime automatically checks whether
+the standard input/output file descriptors (0, 1, 2) are open. If any of them are
+closed, they are opened pointing at /dev/null.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#BlockProfile">func BlockProfile(p []BlockProfileRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#Breakpoint">func Breakpoint()</a></dd>
+			
+				<dd><a href="#CPUProfile">func CPUProfile() []byte</a></dd>
+			
+				<dd><a href="#Caller">func Caller(skip int) (pc uintptr, file string, line int, ok bool)</a></dd>
+			
+				<dd><a href="#Callers">func Callers(skip int, pc []uintptr) int</a></dd>
+			
+				<dd><a href="#GC">func GC()</a></dd>
+			
+				<dd><a href="#GOMAXPROCS">func GOMAXPROCS(n int) int</a></dd>
+			
+				<dd><a href="#GOROOT">func GOROOT() string</a></dd>
+			
+				<dd><a href="#Goexit">func Goexit()</a></dd>
+			
+				<dd><a href="#GoroutineProfile">func GoroutineProfile(p []StackRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#Gosched">func Gosched()</a></dd>
+			
+				<dd><a href="#KeepAlive">func KeepAlive(x any)</a></dd>
+			
+				<dd><a href="#LockOSThread">func LockOSThread()</a></dd>
+			
+				<dd><a href="#MemProfile">func MemProfile(p []MemProfileRecord, inuseZero bool) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#MutexProfile">func MutexProfile(p []BlockProfileRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#NumCPU">func NumCPU() int</a></dd>
+			
+				<dd><a href="#NumCgoCall">func NumCgoCall() int64</a></dd>
+			
+				<dd><a href="#NumGoroutine">func NumGoroutine() int</a></dd>
+			
+				<dd><a href="#ReadMemStats">func ReadMemStats(m *MemStats)</a></dd>
+			
+				<dd><a href="#ReadTrace">func ReadTrace() (buf []byte)</a></dd>
+			
+				<dd><a href="#SetBlockProfileRate">func SetBlockProfileRate(rate int)</a></dd>
+			
+				<dd><a href="#SetCPUProfileRate">func SetCPUProfileRate(hz int)</a></dd>
+			
+				<dd><a href="#SetCgoTraceback">func SetCgoTraceback(version int, traceback, context, symbolizer unsafe.Pointer)</a></dd>
+			
+				<dd><a href="#SetDefaultGOMAXPROCS">func SetDefaultGOMAXPROCS()</a></dd>
+			
+				<dd><a href="#SetFinalizer">func SetFinalizer(obj any, finalizer any)</a></dd>
+			
+				<dd><a href="#SetMutexProfileFraction">func SetMutexProfileFraction(rate int) int</a></dd>
+			
+				<dd><a href="#Stack">func Stack(buf []byte, all bool) int</a></dd>
+			
+				<dd><a href="#StartTrace">func StartTrace() error</a></dd>
+			
+				<dd><a href="#StopTrace">func StopTrace()</a></dd>
+			
+				<dd><a href="#ThreadCreateProfile">func ThreadCreateProfile(p []StackRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#UnlockOSThread">func UnlockOSThread()</a></dd>
+			
+				<dd><a href="#Version">func Version() string</a></dd>
+			
+			
+				
+				<dd><a href="#BlockProfileRecord">type BlockProfileRecord</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Cleanup">type Cleanup</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AddCleanup">func AddCleanup[T, S any](ptr *T, cleanup func(S), arg S) Cleanup</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cleanup.Stop">func (c Cleanup) Stop()</a></dd>
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Frame">type Frame</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Frames">type Frames</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CallersFrames">func CallersFrames(callers []uintptr) *Frames</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Frames.Next">func (ci *Frames) Next() (frame Frame, more bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncForPC">func FuncForPC(pc uintptr) *Func</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Entry">func (f *Func) Entry() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.FileLine">func (f *Func) FileLine(pc uintptr) (file string, line int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Name">func (f *Func) Name() string</a></dd>
+				
+			
+				
+				<dd><a href="#MemProfileRecord">type MemProfileRecord</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.InUseBytes">func (r *MemProfileRecord) InUseBytes() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.InUseObjects">func (r *MemProfileRecord) InUseObjects() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.Stack">func (r *MemProfileRecord) Stack() []uintptr</a></dd>
+				
+			
+				
+				<dd><a href="#MemStats">type MemStats</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PanicNilError">type PanicNilError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PanicNilError.Error">func (*PanicNilError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PanicNilError.RuntimeError">func (*PanicNilError) RuntimeError()</a></dd>
+				
+			
+				
+				<dd><a href="#Pinner">type Pinner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pinner.Pin">func (p *Pinner) Pin(pointer any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pinner.Unpin">func (p *Pinner) Unpin()</a></dd>
+				
+			
+				
+				<dd><a href="#StackRecord">type StackRecord</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StackRecord.Stack">func (r *StackRecord) Stack() []uintptr</a></dd>
+				
+			
+				
+				<dd><a href="#TypeAssertionError">type TypeAssertionError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertionError.Error">func (e *TypeAssertionError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertionError.RuntimeError">func (*TypeAssertionError) RuntimeError()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_AddCleanup">AddCleanup</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Frames">Frames</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/alg.go">alg.go</a>
+			
+				<a href="/src/runtime/arena.go">arena.go</a>
+			
+				<a href="/src/runtime/asan0.go">asan0.go</a>
+			
+				<a href="/src/runtime/atomic_pointer.go">atomic_pointer.go</a>
+			
+				<a href="/src/runtime/badlinkname.go">badlinkname.go</a>
+			
+				<a href="/src/runtime/badlinkname_linux.go">badlinkname_linux.go</a>
+			
+				<a href="/src/runtime/cgo.go">cgo.go</a>
+			
+				<a href="/src/runtime/cgo_mmap.go">cgo_mmap.go</a>
+			
+				<a href="/src/runtime/cgo_sigaction.go">cgo_sigaction.go</a>
+			
+				<a href="/src/runtime/cgocall.go">cgocall.go</a>
+			
+				<a href="/src/runtime/cgocallback.go">cgocallback.go</a>
+			
+				<a href="/src/runtime/cgocheck.go">cgocheck.go</a>
+			
+				<a href="/src/runtime/cgroup_linux.go">cgroup_linux.go</a>
+			
+				<a href="/src/runtime/chan.go">chan.go</a>
+			
+				<a href="/src/runtime/checkptr.go">checkptr.go</a>
+			
+				<a href="/src/runtime/compiler.go">compiler.go</a>
+			
+				<a href="/src/runtime/complex.go">complex.go</a>
+			
+				<a href="/src/runtime/coro.go">coro.go</a>
+			
+				<a href="/src/runtime/covercounter.go">covercounter.go</a>
+			
+				<a href="/src/runtime/covermeta.go">covermeta.go</a>
+			
+				<a href="/src/runtime/cpuflags.go">cpuflags.go</a>
+			
+				<a href="/src/runtime/cpuflags_amd64.go">cpuflags_amd64.go</a>
+			
+				<a href="/src/runtime/cpuprof.go">cpuprof.go</a>
+			
+				<a href="/src/runtime/cputicks.go">cputicks.go</a>
+			
+				<a href="/src/runtime/create_file_unix.go">create_file_unix.go</a>
+			
+				<a href="/src/runtime/debug.go">debug.go</a>
+			
+				<a href="/src/runtime/debugcall.go">debugcall.go</a>
+			
+				<a href="/src/runtime/debuglog.go">debuglog.go</a>
+			
+				<a href="/src/runtime/debuglog_off.go">debuglog_off.go</a>
+			
+				<a href="/src/runtime/defs_linux_amd64.go">defs_linux_amd64.go</a>
+			
+				<a href="/src/runtime/dit.go">dit.go</a>
+			
+				<a href="/src/runtime/env_posix.go">env_posix.go</a>
+			
+				<a href="/src/runtime/error.go">error.go</a>
+			
+				<a href="/src/runtime/extern.go">extern.go</a>
+			
+				<a href="/src/runtime/fastlog2.go">fastlog2.go</a>
+			
+				<a href="/src/runtime/fastlog2table.go">fastlog2table.go</a>
+			
+				<a href="/src/runtime/fds_unix.go">fds_unix.go</a>
+			
+				<a href="/src/runtime/fipsbypass.go">fipsbypass.go</a>
+			
+				<a href="/src/runtime/float.go">float.go</a>
+			
+				<a href="/src/runtime/heapdump.go">heapdump.go</a>
+			
+				<a href="/src/runtime/hexdump.go">hexdump.go</a>
+			
+				<a href="/src/runtime/histogram.go">histogram.go</a>
+			
+				<a href="/src/runtime/iface.go">iface.go</a>
+			
+				<a href="/src/runtime/lfstack.go">lfstack.go</a>
+			
+				<a href="/src/runtime/libinit.go">libinit.go</a>
+			
+				<a href="/src/runtime/linkname.go">linkname.go</a>
+			
+				<a href="/src/runtime/linkname_shim.go">linkname_shim.go</a>
+			
+				<a href="/src/runtime/linkname_unix.go">linkname_unix.go</a>
+			
+				<a href="/src/runtime/list.go">list.go</a>
+			
+				<a href="/src/runtime/list_manual.go">list_manual.go</a>
+			
+				<a href="/src/runtime/lock_futex.go">lock_futex.go</a>
+			
+				<a href="/src/runtime/lock_spinbit.go">lock_spinbit.go</a>
+			
+				<a href="/src/runtime/lockrank.go">lockrank.go</a>
+			
+				<a href="/src/runtime/lockrank_off.go">lockrank_off.go</a>
+			
+				<a href="/src/runtime/malloc.go">malloc.go</a>
+			
+				<a href="/src/runtime/malloc_generated.go">malloc_generated.go</a>
+			
+				<a href="/src/runtime/malloc_stubs.go">malloc_stubs.go</a>
+			
+				<a href="/src/runtime/malloc_tables_generated.go">malloc_tables_generated.go</a>
+			
+				<a href="/src/runtime/map.go">map.go</a>
+			
+				<a href="/src/runtime/map_fast32.go">map_fast32.go</a>
+			
+				<a href="/src/runtime/map_fast64.go">map_fast64.go</a>
+			
+				<a href="/src/runtime/map_faststr.go">map_faststr.go</a>
+			
+				<a href="/src/runtime/mbarrier.go">mbarrier.go</a>
+			
+				<a href="/src/runtime/mbitmap.go">mbitmap.go</a>
+			
+				<a href="/src/runtime/mcache.go">mcache.go</a>
+			
+				<a href="/src/runtime/mcentral.go">mcentral.go</a>
+			
+				<a href="/src/runtime/mcheckmark.go">mcheckmark.go</a>
+			
+				<a href="/src/runtime/mcleanup.go">mcleanup.go</a>
+			
+				<a href="/src/runtime/mem.go">mem.go</a>
+			
+				<a href="/src/runtime/mem_linux.go">mem_linux.go</a>
+			
+				<a href="/src/runtime/mem_nonsbrk.go">mem_nonsbrk.go</a>
+			
+				<a href="/src/runtime/metrics.go">metrics.go</a>
+			
+				<a href="/src/runtime/mfinal.go">mfinal.go</a>
+			
+				<a href="/src/runtime/mfixalloc.go">mfixalloc.go</a>
+			
+				<a href="/src/runtime/mgc.go">mgc.go</a>
+			
+				<a href="/src/runtime/mgclimit.go">mgclimit.go</a>
+			
+				<a href="/src/runtime/mgcmark.go">mgcmark.go</a>
+			
+				<a href="/src/runtime/mgcmark_greenteagc.go">mgcmark_greenteagc.go</a>
+			
+				<a href="/src/runtime/mgcpacer.go">mgcpacer.go</a>
+			
+				<a href="/src/runtime/mgcscavenge.go">mgcscavenge.go</a>
+			
+				<a href="/src/runtime/mgcstack.go">mgcstack.go</a>
+			
+				<a href="/src/runtime/mgcsweep.go">mgcsweep.go</a>
+			
+				<a href="/src/runtime/mgcwork.go">mgcwork.go</a>
+			
+				<a href="/src/runtime/mheap.go">mheap.go</a>
+			
+				<a href="/src/runtime/minmax.go">minmax.go</a>
+			
+				<a href="/src/runtime/mpagealloc.go">mpagealloc.go</a>
+			
+				<a href="/src/runtime/mpagealloc_64bit.go">mpagealloc_64bit.go</a>
+			
+				<a href="/src/runtime/mpagecache.go">mpagecache.go</a>
+			
+				<a href="/src/runtime/mpallocbits.go">mpallocbits.go</a>
+			
+				<a href="/src/runtime/mprof.go">mprof.go</a>
+			
+				<a href="/src/runtime/mranges.go">mranges.go</a>
+			
+				<a href="/src/runtime/msan0.go">msan0.go</a>
+			
+				<a href="/src/runtime/msize.go">msize.go</a>
+			
+				<a href="/src/runtime/mspanset.go">mspanset.go</a>
+			
+				<a href="/src/runtime/mstats.go">mstats.go</a>
+			
+				<a href="/src/runtime/mwbbuf.go">mwbbuf.go</a>
+			
+				<a href="/src/runtime/nbpipe_pipe2.go">nbpipe_pipe2.go</a>
+			
+				<a href="/src/runtime/netpoll.go">netpoll.go</a>
+			
+				<a href="/src/runtime/netpoll_epoll.go">netpoll_epoll.go</a>
+			
+				<a href="/src/runtime/nonwindows_stub.go">nonwindows_stub.go</a>
+			
+				<a href="/src/runtime/note_other.go">note_other.go</a>
+			
+				<a href="/src/runtime/os_linux.go">os_linux.go</a>
+			
+				<a href="/src/runtime/os_linux64.go">os_linux64.go</a>
+			
+				<a href="/src/runtime/os_linux_generic.go">os_linux_generic.go</a>
+			
+				<a href="/src/runtime/os_linux_noauxv.go">os_linux_noauxv.go</a>
+			
+				<a href="/src/runtime/os_nonopenbsd.go">os_nonopenbsd.go</a>
+			
+				<a href="/src/runtime/os_unix.go">os_unix.go</a>
+			
+				<a href="/src/runtime/panic.go">panic.go</a>
+			
+				<a href="/src/runtime/pinner.go">pinner.go</a>
+			
+				<a href="/src/runtime/plugin.go">plugin.go</a>
+			
+				<a href="/src/runtime/preempt.go">preempt.go</a>
+			
+				<a href="/src/runtime/preempt_amd64.go">preempt_amd64.go</a>
+			
+				<a href="/src/runtime/preempt_nonwindows.go">preempt_nonwindows.go</a>
+			
+				<a href="/src/runtime/preempt_xreg.go">preempt_xreg.go</a>
+			
+				<a href="/src/runtime/print.go">print.go</a>
+			
+				<a href="/src/runtime/proc.go">proc.go</a>
+			
+				<a href="/src/runtime/profbuf.go">profbuf.go</a>
+			
+				<a href="/src/runtime/proflabel.go">proflabel.go</a>
+			
+				<a href="/src/runtime/race0.go">race0.go</a>
+			
+				<a href="/src/runtime/rand.go">rand.go</a>
+			
+				<a href="/src/runtime/rdebug.go">rdebug.go</a>
+			
+				<a href="/src/runtime/retry.go">retry.go</a>
+			
+				<a href="/src/runtime/runtime.go">runtime.go</a>
+			
+				<a href="/src/runtime/runtime1.go">runtime1.go</a>
+			
+				<a href="/src/runtime/runtime2.go">runtime2.go</a>
+			
+				<a href="/src/runtime/runtime_boring.go">runtime_boring.go</a>
+			
+				<a href="/src/runtime/runtime_clearenv.go">runtime_clearenv.go</a>
+			
+				<a href="/src/runtime/rwmutex.go">rwmutex.go</a>
+			
+				<a href="/src/runtime/secret.go">secret.go</a>
+			
+				<a href="/src/runtime/secret_asm.go">secret_asm.go</a>
+			
+				<a href="/src/runtime/security_linux.go">security_linux.go</a>
+			
+				<a href="/src/runtime/security_unix.go">security_unix.go</a>
+			
+				<a href="/src/runtime/select.go">select.go</a>
+			
+				<a href="/src/runtime/sema.go">sema.go</a>
+			
+				<a href="/src/runtime/set_vma_name_linux.go">set_vma_name_linux.go</a>
+			
+				<a href="/src/runtime/signal_amd64.go">signal_amd64.go</a>
+			
+				<a href="/src/runtime/signal_linux_amd64.go">signal_linux_amd64.go</a>
+			
+				<a href="/src/runtime/signal_unix.go">signal_unix.go</a>
+			
+				<a href="/src/runtime/sigqueue.go">sigqueue.go</a>
+			
+				<a href="/src/runtime/sigqueue_note.go">sigqueue_note.go</a>
+			
+				<a href="/src/runtime/sigtab_linux_generic.go">sigtab_linux_generic.go</a>
+			
+				<a href="/src/runtime/slice.go">slice.go</a>
+			
+				<a href="/src/runtime/softfloat64.go">softfloat64.go</a>
+			
+				<a href="/src/runtime/stack.go">stack.go</a>
+			
+				<a href="/src/runtime/stkframe.go">stkframe.go</a>
+			
+				<a href="/src/runtime/string.go">string.go</a>
+			
+				<a href="/src/runtime/stubs.go">stubs.go</a>
+			
+				<a href="/src/runtime/stubs2.go">stubs2.go</a>
+			
+				<a href="/src/runtime/stubs3.go">stubs3.go</a>
+			
+				<a href="/src/runtime/stubs_amd64.go">stubs_amd64.go</a>
+			
+				<a href="/src/runtime/stubs_linux.go">stubs_linux.go</a>
+			
+				<a href="/src/runtime/stubs_nonwasm.go">stubs_nonwasm.go</a>
+			
+				<a href="/src/runtime/symtab.go">symtab.go</a>
+			
+				<a href="/src/runtime/symtabinl.go">symtabinl.go</a>
+			
+				<a href="/src/runtime/synctest.go">synctest.go</a>
+			
+				<a href="/src/runtime/sys_nonppc64x.go">sys_nonppc64x.go</a>
+			
+				<a href="/src/runtime/sys_x86.go">sys_x86.go</a>
+			
+				<a href="/src/runtime/tagptr.go">tagptr.go</a>
+			
+				<a href="/src/runtime/tagptr_64bit.go">tagptr_64bit.go</a>
+			
+				<a href="/src/runtime/test_amd64.go">test_amd64.go</a>
+			
+				<a href="/src/runtime/time.go">time.go</a>
+			
+				<a href="/src/runtime/time_nofake.go">time_nofake.go</a>
+			
+				<a href="/src/runtime/timeasm.go">timeasm.go</a>
+			
+				<a href="/src/runtime/tls_stub.go">tls_stub.go</a>
+			
+				<a href="/src/runtime/trace.go">trace.go</a>
+			
+				<a href="/src/runtime/traceallocfree.go">traceallocfree.go</a>
+			
+				<a href="/src/runtime/traceback.go">traceback.go</a>
+			
+				<a href="/src/runtime/tracebuf.go">tracebuf.go</a>
+			
+				<a href="/src/runtime/tracecpu.go">tracecpu.go</a>
+			
+				<a href="/src/runtime/traceevent.go">traceevent.go</a>
+			
+				<a href="/src/runtime/tracemap.go">tracemap.go</a>
+			
+				<a href="/src/runtime/traceregion.go">traceregion.go</a>
+			
+				<a href="/src/runtime/traceruntime.go">traceruntime.go</a>
+			
+				<a href="/src/runtime/tracestack.go">tracestack.go</a>
+			
+				<a href="/src/runtime/tracestatus.go">tracestatus.go</a>
+			
+				<a href="/src/runtime/tracestring.go">tracestring.go</a>
+			
+				<a href="/src/runtime/tracetime.go">tracetime.go</a>
+			
+				<a href="/src/runtime/tracetype.go">tracetype.go</a>
+			
+				<a href="/src/runtime/type.go">type.go</a>
+			
+				<a href="/src/runtime/unsafe.go">unsafe.go</a>
+			
+				<a href="/src/runtime/utf8.go">utf8.go</a>
+			
+				<a href="/src/runtime/valgrind0.go">valgrind0.go</a>
+			
+				<a href="/src/runtime/vdso_elf64.go">vdso_elf64.go</a>
+			
+				<a href="/src/runtime/vdso_linux.go">vdso_linux.go</a>
+			
+				<a href="/src/runtime/vdso_linux_amd64.go">vdso_linux_amd64.go</a>
+			
+				<a href="/src/runtime/vgetrandom_linux.go">vgetrandom_linux.go</a>
+			
+				<a href="/src/runtime/write_err.go">write_err.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Compiler is the name of the compiler toolchain that built the
+running binary. Known toolchains are:
+<pre>gc      Also known as cmd/compile.
+gccgo   The gccgo front end, part of the GCC compiler suite.
+</pre>
+
+				<pre>const <span id="Compiler">Compiler</span> = &#34;gc&#34;</pre>
+			
+				<p>GOARCH is the running program&apos;s architecture target:
+one of 386, amd64, arm, s390x, and so on.
+
+				<pre>const <span id="GOARCH">GOARCH</span> <a href="/pkg/builtin/#string">string</a> = <a href="/pkg/internal/goarch/">goarch</a>.<a href="/pkg/internal/goarch/#GOARCH">GOARCH</a></pre>
+			
+				<p>GOOS is the running program&apos;s operating system target:
+one of darwin, freebsd, linux, and so on.
+To view possible combinations of GOOS and GOARCH, run &quot;go tool dist list&quot;.
+
+				<pre>const <span id="GOOS">GOOS</span> <a href="/pkg/builtin/#string">string</a> = <a href="/pkg/internal/goos/">goos</a>.<a href="/pkg/internal/goos/#GOOS">GOOS</a></pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>MemProfileRate controls the fraction of memory allocations
+that are recorded and reported in the memory profile.
+The profiler aims to sample an average of
+one allocation per MemProfileRate bytes allocated.
+<p>To include every allocated block in the profile, set MemProfileRate to 1.
+To turn off profiling entirely, set MemProfileRate to 0.
+<p>The tools that process the memory profiles assume that the
+profile rate is constant across the lifetime of the program
+and equal to the current value. Programs that change the
+memory profiling rate should do so just once, as early as
+possible in the execution of the program (for example,
+at the beginning of main).
+
+				<pre>var <span id="MemProfileRate">MemProfileRate</span> <a href="/pkg/builtin/#int">int</a> = 512 * 1024</pre>
+			
+		
+		
+			
+			<h2 id="BlockProfile">func <a href="/src/runtime/mprof.go?s=34881:34939#L1043">BlockProfile</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func BlockProfile(p []<a href="#BlockProfileRecord">BlockProfileRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>BlockProfile returns n, the number of records in the current blocking profile.
+If len(p) &gt;= n, BlockProfile copies the profile into p and returns n, true.
+If len(p) &lt; n, BlockProfile does not change p and returns n, false.
+<p>Most clients should use the <a href="/pkg/runtime/pprof/">runtime/pprof</a> package or
+the <a href="/pkg/testing/">testing</a> package&apos;s -test.blockprofile flag instead
+of calling BlockProfile directly.
+
+			
+		
+			
+			<h2 id="Breakpoint">func <a href="/src/runtime/proc.go?s=172030:172047#L5630">Breakpoint</a>
+				
+				
+			</h2>
+			<pre>func Breakpoint()</pre>
+			<p>Breakpoint executes a breakpoint trap.
+
+			
+		
+			
+			<h2 id="CPUProfile">func <a href="/src/runtime/cpuprof.go?s=6852:6876#L198">CPUProfile</a>
+				
+				
+			</h2>
+			<pre>func CPUProfile() []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>CPUProfile panics.
+It formerly provided raw access to chunks of
+a pprof-format profile generated by the runtime.
+The details of generating that format have changed,
+so this functionality has been removed.
+<p>Deprecated: Use the <a href="/pkg/runtime/pprof/">runtime/pprof</a> package,
+or the handlers in the <a href="/pkg/net/http/pprof/">net/http/pprof</a> package,
+or the <a href="/pkg/testing/">testing</a> package&apos;s -test.cpuprofile flag instead.
+
+			
+		
+			
+			<h2 id="Caller">func <a href="/src/runtime/extern.go?s=17359:17425#L301">Caller</a>
+				
+				
+			</h2>
+			<pre>func Caller(skip <a href="/pkg/builtin/#int">int</a>) (pc <a href="/pkg/builtin/#uintptr">uintptr</a>, file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Caller reports file and line number information about function invocations on
+the calling goroutine&apos;s stack. The argument skip is the number of stack frames
+to ascend, with 0 identifying the caller of Caller. (For historical reasons the
+meaning of skip differs between Caller and <a href="#Callers">Callers</a>.) The return values report
+the program counter, the file name (using forward slashes as path separator, even
+on Windows), and the line number within the file of the corresponding call.
+The boolean ok is false if it was not possible to recover the information.
+
+			
+		
+			
+			<h2 id="Callers">func <a href="/src/runtime/extern.go?s=18398:18438#L324">Callers</a>
+				
+				
+			</h2>
+			<pre>func Callers(skip <a href="/pkg/builtin/#int">int</a>, pc []<a href="/pkg/builtin/#uintptr">uintptr</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Callers fills the slice pc with the return program counters of function invocations
+on the calling goroutine&apos;s stack. The argument skip is the number of stack frames
+to skip before recording in pc, with 0 identifying the frame for Callers itself and
+1 identifying the caller of Callers.
+It returns the number of entries written to pc.
+<p>To translate these PCs into symbolic information such as function
+names and line numbers, use <a href="#CallersFrames">CallersFrames</a>. CallersFrames accounts
+for inlined functions and adjusts the return program counters into
+call program counters. Iterating over the returned slice of PCs
+directly is discouraged, as is using <a href="#FuncForPC">FuncForPC</a> on any of the
+returned PCs, since these cannot account for inlining or return
+program counter adjustment.
+
+			
+		
+			
+			<h2 id="GC">func <a href="/src/runtime/mgc.go?s=20585:20594#L512">GC</a>
+				
+				
+			</h2>
+			<pre>func GC()</pre>
+			<p>GC runs a garbage collection and blocks the caller until the
+garbage collection is complete. It may also block the entire
+program.
+
+			
+		
+			
+			<h2 id="GOMAXPROCS">func <a href="/src/runtime/debug.go?s=2855:2881#L60">GOMAXPROCS</a>
+				
+				
+			</h2>
+			<pre>func GOMAXPROCS(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>GOMAXPROCS sets the maximum number of CPUs that can be executing
+simultaneously and returns the previous setting. If n &lt; 1, it does not change
+the current setting.
+<h3 id="hdr-Default">Default</h3>
+<p>If the GOMAXPROCS environment variable is set to a positive whole number,
+GOMAXPROCS defaults to that value.
+<p>Otherwise, the Go runtime selects an appropriate default value from a combination of
+<ul>
+<li>the number of logical CPUs on the machine,
+<li>the process’s CPU affinity mask,
+<li>and, on Linux, the process’s average CPU throughput limit based on cgroup CPU
+quota, if any.
+</ul>
+<p>If GODEBUG=containermaxprocs=0 is set and GOMAXPROCS is not set by the
+environment variable, then GOMAXPROCS instead defaults to the value of
+<a href="#NumCPU">runtime.NumCPU</a>. Note that GODEBUG=containermaxprocs=0 is <a href="/doc/godebug#default">default</a> for
+language version 1.24 and below.
+<h3 id="hdr-Updates">Updates</h3>
+<p>The Go runtime periodically updates the default value based on changes to
+the total logical CPU count, the CPU affinity mask, or cgroup quota. Setting
+a custom value with the GOMAXPROCS environment variable or by calling
+GOMAXPROCS disables automatic updates. The default value and automatic
+updates can be restored by calling <a href="#SetDefaultGOMAXPROCS">SetDefaultGOMAXPROCS</a>.
+<p>If GODEBUG=updatemaxprocs=0 is set, the Go runtime does not perform
+automatic GOMAXPROCS updating. Note that GODEBUG=updatemaxprocs=0 is
+<a href="/doc/godebug#default">default</a> for language version 1.24 and below.
+<h3 id="hdr-Compatibility">Compatibility</h3>
+<p>Note that the default GOMAXPROCS behavior may change as the scheduler
+improves, especially the implementation detail below.
+<h3 id="hdr-Implementation_details">Implementation details</h3>
+<p>When computing default GOMAXPROCS via cgroups, the Go runtime computes the
+&quot;average CPU throughput limit&quot; as the cgroup CPU quota / period. In cgroup
+v2, these values come from the cpu.max file. In cgroup v1, they come from
+cpu.cfs_quota_us and cpu.cfs_period_us, respectively. In container runtimes
+that allow configuring CPU limits, this value usually corresponds to the
+&quot;CPU limit&quot; option, not &quot;CPU request&quot;.
+<p>The Go runtime typically selects the default GOMAXPROCS as the minimum of
+the logical CPU count, the CPU affinity mask count, or the cgroup CPU
+throughput limit. However, it will never set GOMAXPROCS less than 2 unless
+the logical CPU count or CPU affinity mask count are below 2.
+<p>If the cgroup CPU throughput limit is not a whole number, the Go runtime
+rounds up to the next whole number.
+<p>GOMAXPROCS updates are performed up to once per second, or less if the
+application is idle.
+
+			
+		
+			
+			<h2 id="GOROOT">func <a href="/src/runtime/extern.go?s=19089:19109#L344">GOROOT</a>
+				
+				
+			</h2>
+			<pre>func GOROOT() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>GOROOT returns the root of the Go tree. It uses the
+GOROOT environment variable, if set at process start,
+or else the root used during the Go build.
+<p>Deprecated: The root used during the Go build will not be
+meaningful if the binary is copied to another machine.
+Use the system path to locate the “go” binary, and use
+“go env GOROOT” to find its GOROOT.
+
+			
+		
+			
+			<h2 id="Goexit">func <a href="/src/runtime/panic.go?s=21794:21807#L672">Goexit</a>
+				
+				
+			</h2>
+			<pre>func Goexit()</pre>
+			<p>Goexit terminates the goroutine that calls it. No other goroutine is affected.
+Goexit runs all deferred calls before terminating the goroutine. Because Goexit
+is not a panic, any recover calls in those deferred functions will return nil.
+<p>Calling Goexit from the main goroutine terminates that goroutine
+without func main returning. Since func main has not returned,
+the program continues execution of other goroutines.
+If all other goroutines exit, the program crashes.
+<p>It crashes if called from a thread not created by the Go runtime.
+
+			
+		
+			
+			<h2 id="GoroutineProfile">func <a href="/src/runtime/mprof.go?s=54999:55054#L1637">GoroutineProfile</a>
+				
+				
+			</h2>
+			<pre>func GoroutineProfile(p []<a href="#StackRecord">StackRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>GoroutineProfile returns n, the number of records in the active goroutine stack profile.
+If len(p) &gt;= n, GoroutineProfile copies the profile into p and returns n, true.
+If len(p) &lt; n, GoroutineProfile does not change p and returns n, false.
+<p>Most clients should use the <a href="/pkg/runtime/pprof/">runtime/pprof</a> package instead
+of calling GoroutineProfile directly.
+
+			
+		
+			
+			<h2 id="Gosched">func <a href="/src/runtime/proc.go?s=13459:13473#L391">Gosched</a>
+				
+				
+			</h2>
+			<pre>func Gosched()</pre>
+			<p>Gosched yields the processor, allowing other goroutines to run. It does not
+suspend the current goroutine, so execution resumes automatically.
+
+			
+		
+			
+			<h2 id="KeepAlive">func <a href="/src/runtime/mfinal.go?s=19942:19963#L565">KeepAlive</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func KeepAlive(x <a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>KeepAlive marks its argument as currently reachable.
+This ensures that the object is not freed, and its finalizer is not run,
+before the point in the program where KeepAlive is called.
+<p>A very simplified example showing where KeepAlive is required:
+<pre>type File struct { d int }
+d, err := syscall.Open(&quot;/file/path&quot;, syscall.O_RDONLY, 0)
+// ... do something if err != nil ...
+p := &amp;File{d}
+runtime.SetFinalizer(p, func(p *File) { syscall.Close(p.d) })
+var buf [10]byte
+n, err := syscall.Read(p.d, buf[:])
+// Ensure p is not finalized until Read returns.
+runtime.KeepAlive(p)
+// No more uses of p after this point.
+</pre>
+<p>Without the KeepAlive call, the finalizer could run at the start of
+<a href="/pkg/syscall/#Read">syscall.Read</a>, closing the file descriptor before syscall.Read makes
+the actual system call.
+<p>Note: KeepAlive should only be used to prevent finalizers from
+running prematurely. In particular, when used with <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a>,
+the rules for valid uses of unsafe.Pointer still apply.
+
+			
+		
+			
+			<h2 id="LockOSThread">func <a href="/src/runtime/proc.go?s=173142:173161#L5664">LockOSThread</a>
+				
+				
+			</h2>
+			<pre>func LockOSThread()</pre>
+			<p>LockOSThread wires the calling goroutine to its current operating system thread.
+The calling goroutine will always execute in that thread,
+and no other goroutine will execute in it,
+until the calling goroutine has made as many calls to
+<a href="#UnlockOSThread">UnlockOSThread</a> as to LockOSThread.
+If the calling goroutine exits without unlocking the thread,
+the thread will be terminated.
+<p>All init functions are run on the startup thread. Calling LockOSThread
+from an init function will cause the main function to be invoked on
+that thread.
+<p>A goroutine should call LockOSThread before calling OS services or
+non-Go library functions that depend on per-thread state.
+
+			
+		
+			
+			<h2 id="MemProfile">func <a href="/src/runtime/mprof.go?s=30672:30742#L916">MemProfile</a>
+				
+				
+			</h2>
+			<pre>func MemProfile(p []<a href="#MemProfileRecord">MemProfileRecord</a>, inuseZero <a href="/pkg/builtin/#bool">bool</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>MemProfile returns a profile of memory allocated and freed per allocation
+site.
+<p>MemProfile returns n, the number of records in the current memory profile.
+If len(p) &gt;= n, MemProfile copies the profile into p and returns n, true.
+If len(p) &lt; n, MemProfile does not change p and returns n, false.
+<p>If inuseZero is true, the profile includes allocation records
+where r.AllocBytes &gt; 0 but r.AllocBytes == r.FreeBytes.
+These are sites where memory was allocated, but it has all
+been released back to the runtime.
+<p>The returned profile may be up to two garbage collection cycles old.
+This is to avoid skewing the profile toward allocations; because
+allocations happen in real time but frees are delayed until the garbage
+collector performs sweeping, the profile only accounts for allocations
+that have had a chance to be freed by the garbage collector.
+<p>Most clients should use the runtime/pprof package or
+the testing package&apos;s -test.memprofile flag instead
+of calling MemProfile directly.
+
+			
+		
+			
+			<h2 id="MutexProfile">func <a href="/src/runtime/mprof.go?s=37957:38015#L1142">MutexProfile</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func MutexProfile(p []<a href="#BlockProfileRecord">BlockProfileRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>MutexProfile returns n, the number of records in the current mutex profile.
+If len(p) &gt;= n, MutexProfile copies the profile into p and returns n, true.
+Otherwise, MutexProfile does not change p, and returns n, false.
+<p>Most clients should use the <a href="/pkg/runtime/pprof/">runtime/pprof</a> package
+instead of calling MutexProfile directly.
+
+			
+		
+			
+			<h2 id="NumCPU">func <a href="/src/runtime/debug.go?s=5264:5281#L144">NumCPU</a>
+				
+				
+			</h2>
+			<pre>func NumCPU() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NumCPU returns the number of logical CPUs usable by the current process.
+<p>The set of available CPUs is checked by querying the operating system
+at process startup. Changes to operating system CPU allocation after
+process startup are not reflected.
+
+			
+		
+			
+			<h2 id="NumCgoCall">func <a href="/src/runtime/debug.go?s=5389:5412#L149">NumCgoCall</a>
+				
+				
+			</h2>
+			<pre>func NumCgoCall() <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>NumCgoCall returns the number of cgo calls made by the current process.
+
+			
+		
+			
+			<h2 id="NumGoroutine">func <a href="/src/runtime/debug.go?s=5929:5952#L169">NumGoroutine</a>
+				
+				
+			</h2>
+			<pre>func NumGoroutine() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NumGoroutine returns the number of goroutines that currently exist.
+
+			
+		
+			
+			<h2 id="ReadMemStats">func <a href="/src/runtime/mstats.go?s=12189:12219#L346">ReadMemStats</a>
+				
+				
+			</h2>
+			<pre>func ReadMemStats(m *<a href="#MemStats">MemStats</a>)</pre>
+			<p>ReadMemStats populates m with memory allocator statistics.
+<p>The returned memory allocator statistics are up to date as of the
+call to ReadMemStats. This is in contrast with a heap profile,
+which is a snapshot as of the most recently completed garbage
+collection cycle.
+
+			
+		
+			
+			<h2 id="ReadTrace">func <a href="/src/runtime/trace.go?s=37239:37268#L876">ReadTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ReadTrace() (buf []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>ReadTrace returns the next chunk of binary tracing data, blocking until data
+is available. If tracing is turned off and all the data accumulated while it
+was on has been returned, ReadTrace returns nil. The caller must copy the
+returned data before calling ReadTrace again.
+ReadTrace must be called from one goroutine at a time.
+
+			
+		
+			
+			<h2 id="SetBlockProfileRate">func <a href="/src/runtime/mprof.go?s=15162:15196#L473">SetBlockProfileRate</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func SetBlockProfileRate(rate <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>SetBlockProfileRate controls the fraction of goroutine blocking events
+that are reported in the blocking profile. The profiler aims to sample
+an average of one blocking event per rate nanoseconds spent blocked.
+<p>To include every blocking event in the profile, pass rate = 1.
+To turn off profiling entirely, pass rate &lt;= 0.
+
+			
+		
+			
+			<h2 id="SetCPUProfileRate">func <a href="/src/runtime/cpuprof.go?s=2572:2602#L58">SetCPUProfileRate</a>
+				
+				
+			</h2>
+			<pre>func SetCPUProfileRate(hz <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>SetCPUProfileRate sets the CPU profiling rate to hz samples per second.
+If hz &lt;= 0, SetCPUProfileRate turns off profiling.
+If the profiler is on, the rate cannot be changed without first turning it off.
+<p>Most clients should use the <a href="/pkg/runtime/pprof/">runtime/pprof</a> package or
+the <a href="/pkg/testing/">testing</a> package&apos;s -test.cpuprofile flag instead of calling
+SetCPUProfileRate directly.
+
+			
+		
+			
+			<h2 id="SetCgoTraceback">func <a href="/src/runtime/traceback.go?s=57843:57923#L1673">SetCgoTraceback</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func SetCgoTraceback(version <a href="/pkg/builtin/#int">int</a>, traceback, context, symbolizer <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+			<p>SetCgoTraceback records three C functions to use to gather
+traceback information from C code and to convert that traceback
+information into symbolic information. These are used when printing
+stack traces for a program that uses cgo.
+<p>The traceback and context functions may be called from a signal
+handler, and must therefore use only async-signal safe functions.
+The symbolizer function may be called while the program is
+crashing, and so must be cautious about using memory.  None of the
+functions may call back into Go.
+<p>The context function will be called with a single argument, a
+pointer to a struct:
+<pre>struct {
+	Context uintptr
+}
+</pre>
+<p>In C syntax, this struct will be
+<pre>struct {
+	uintptr_t Context;
+};
+</pre>
+<p>If the Context field is 0, the context function is being called to
+record the current traceback context. It should record in the
+Context field whatever information is needed about the current
+point of execution to later produce a stack trace, probably the
+stack pointer and PC. In this case the context function will be
+called from C code.
+<p>If the Context field is not 0, then it is a value returned by a
+previous call to the context function. This case is called when the
+context is no longer needed; that is, when the Go code is returning
+to its C code caller. This permits the context function to release
+any associated resources.
+<p>While it would be correct for the context function to record a
+complete a stack trace whenever it is called, and simply copy that
+out in the traceback function, in a typical program the context
+function will be called many times without ever recording a
+traceback for that context. Recording a complete stack trace in a
+call to the context function is likely to be inefficient.
+<p>The traceback function will be called with a single argument, a
+pointer to a struct:
+<pre>struct {
+	Context    uintptr
+	SigContext uintptr
+	Buf        *uintptr
+	Max        uintptr
+}
+</pre>
+<p>In C syntax, this struct will be
+<pre>struct {
+	uintptr_t  Context;
+	uintptr_t  SigContext;
+	uintptr_t* Buf;
+	uintptr_t  Max;
+};
+</pre>
+<p>The Context field will be zero to gather a traceback from the
+current program execution point. In this case, the traceback
+function will be called from C code.
+<p>Otherwise Context will be a value previously returned by a call to
+the context function. The traceback function should gather a stack
+trace from that saved point in the program execution. The traceback
+function may be called from an execution thread other than the one
+that recorded the context, but only when the context is known to be
+valid and unchanging. The traceback function may also be called
+deeper in the call stack on the same thread that recorded the
+context. The traceback function may be called multiple times with
+the same Context value; it will usually be appropriate to cache the
+result, if possible, the first time this is called for a specific
+context value.
+<p>If the traceback function is called from a signal handler on a Unix
+system, SigContext will be the signal context argument passed to
+the signal handler (a C ucontext_t* cast to uintptr_t). This may be
+used to start tracing at the point where the signal occurred. If
+the traceback function is not called from a signal handler,
+SigContext will be zero.
+<p>Buf is where the traceback information should be stored. It should
+be PC values, such that Buf[0] is the PC of the caller, Buf[1] is
+the PC of that function&apos;s caller, and so on.  Max is the maximum
+number of entries to store.  The function should store a zero to
+indicate the top of the stack, or that the caller is on a different
+stack, presumably a Go stack.
+<p>Unlike runtime.Callers, the PC values returned should, when passed
+to the symbolizer function, return the file/line of the call
+instruction.  No additional subtraction is required or appropriate.
+<p>On all platforms, the traceback function is invoked when a call from
+Go to C to Go requests a stack trace. On linux/amd64, linux/ppc64le,
+linux/arm64, and freebsd/amd64, the traceback function is also invoked
+when a signal is received by a thread that is executing a cgo call.
+The traceback function should not make assumptions about when it is
+called, as future versions of Go may make additional calls.
+<p>The symbolizer function will be called with a single argument, a
+pointer to a struct:
+<pre>struct {
+	PC      uintptr // program counter to fetch information for
+	File    *byte   // file name (NUL terminated)
+	Lineno  uintptr // line number
+	Func    *byte   // function name (NUL terminated)
+	Entry   uintptr // function entry point
+	More    uintptr // set non-zero if more info for this PC
+	Data    uintptr // unused by runtime, available for function
+}
+</pre>
+<p>In C syntax, this struct will be
+<pre>struct {
+	uintptr_t PC;
+	char*     File;
+	uintptr_t Lineno;
+	char*     Func;
+	uintptr_t Entry;
+	uintptr_t More;
+	uintptr_t Data;
+};
+</pre>
+<p>The PC field will be a value returned by a call to the traceback
+function.
+<p>The first time the function is called for a particular traceback,
+all the fields except PC will be 0. The function should fill in the
+other fields if possible, setting them to 0/nil if the information
+is not available. The Data field may be used to store any useful
+information across calls. The More field should be set to non-zero
+if there is more information for this PC, zero otherwise. If More
+is set non-zero, the function will be called again with the same
+PC, and may return different information (this is intended for use
+with inlined functions). If More is zero, the function will be
+called with the next PC value in the traceback. When the traceback
+is complete, the function will be called once more with PC set to
+zero; this may be used to free any information. Each call will
+leave the fields of the struct set to the same values they had upon
+return, except for the PC field when the More field is zero. The
+function must not keep a copy of the struct pointer between calls.
+<p>When calling SetCgoTraceback, the version argument is the version
+number of the structs that the functions expect to receive.
+Currently this must be zero.
+<p>The symbolizer function may be nil, in which case the results of
+the traceback function will be displayed as numbers. If the
+traceback function is nil, the symbolizer function will never be
+called. The context function may be nil, in which case the
+traceback function will only be called with the context field set
+to zero.  If the context function is nil, then calls from Go to C
+to Go will not show a traceback for the C portion of the call stack.
+<p>SetCgoTraceback should be called only once, ideally from an init function.
+
+			
+		
+			
+			<h2 id="SetDefaultGOMAXPROCS">func <a href="/src/runtime/debug.go?s=4232:4259#L107">SetDefaultGOMAXPROCS</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func SetDefaultGOMAXPROCS()</pre>
+			<p>SetDefaultGOMAXPROCS updates the GOMAXPROCS setting to the runtime
+default, as described by <a href="#GOMAXPROCS">GOMAXPROCS</a>, ignoring the GOMAXPROCS
+environment variable.
+<p>SetDefaultGOMAXPROCS can be used to enable the default automatic updating
+GOMAXPROCS behavior if it has been disabled by the GOMAXPROCS
+environment variable or a prior call to <a href="#GOMAXPROCS">GOMAXPROCS</a>, or to force an immediate
+update if the caller is aware of a change to the total logical CPU count, CPU
+affinity mask or cgroup quota.
+
+			
+		
+			
+			<h2 id="SetFinalizer">func <a href="/src/runtime/mfinal.go?s=15286:15327#L422">SetFinalizer</a>
+				
+				
+			</h2>
+			<pre>func SetFinalizer(obj <a href="/pkg/builtin/#any">any</a>, finalizer <a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>SetFinalizer sets the finalizer associated with obj to the provided
+finalizer function. When the garbage collector finds an unreachable block
+with an associated finalizer, it clears the association and runs
+finalizer(obj) in a separate goroutine. This makes obj reachable again,
+but now without an associated finalizer. Assuming that SetFinalizer
+is not called again, the next time the garbage collector sees
+that obj is unreachable, it will free obj.
+<p>SetFinalizer(obj, nil) clears any finalizer associated with obj.
+<p>New Go code should consider using <a href="#AddCleanup">AddCleanup</a> instead, which is much
+less error-prone than SetFinalizer.
+<p>The argument obj must be a pointer to an object allocated by calling
+new, by taking the address of a composite literal, or by taking the
+address of a local variable.
+The argument finalizer must be a function that takes a single argument
+to which obj&apos;s type can be assigned, and can have arbitrary ignored return
+values. If either of these is not true, SetFinalizer may abort the
+program.
+<p>Finalizers are run in dependency order: if A points at B, both have
+finalizers, and they are otherwise unreachable, only the finalizer
+for A runs; once A is freed, the finalizer for B can run.
+If a cyclic structure includes a block with a finalizer, that
+cycle is not guaranteed to be garbage collected and the finalizer
+is not guaranteed to run, because there is no ordering that
+respects the dependencies.
+<p>The finalizer is scheduled to run at some arbitrary time after the
+program can no longer reach the object to which obj points.
+There is no guarantee that finalizers will run before a program exits,
+so typically they are useful only for releasing non-memory resources
+associated with an object during a long-running program.
+For example, an <a href="/pkg/os/#File">os.File</a> object could use a finalizer to close the
+associated operating system file descriptor when a program discards
+an os.File without calling Close, but it would be a mistake
+to depend on a finalizer to flush an in-memory I/O buffer such as a
+<a href="/pkg/bufio/#Writer">bufio.Writer</a>, because the buffer would not be flushed at program exit.
+<p>It is not guaranteed that a finalizer will run if the size of *obj is
+zero bytes, because it may share same address with other zero-size
+objects in memory. See <a href="/ref/spec#Size_and_alignment_guarantees">https://go.dev/ref/spec#Size_and_alignment_guarantees</a>.
+<p>It is not guaranteed that a finalizer will run for objects allocated
+in initializers for package-level variables. Such objects may be
+linker-allocated, not heap-allocated.
+<p>Note that because finalizers may execute arbitrarily far into the future
+after an object is no longer referenced, the runtime is allowed to perform
+a space-saving optimization that batches objects together in a single
+allocation slot. The finalizer for an unreferenced object in such an
+allocation may never run if it always exists in the same batch as a
+referenced object. Typically, this batching only happens for tiny
+(on the order of 16 bytes or less) and pointer-free objects.
+<p>A finalizer may run as soon as an object becomes unreachable.
+In order to use finalizers correctly, the program must ensure that
+the object is reachable until it is no longer required.
+Objects stored in global variables, or that can be found by tracing
+pointers from a global variable, are reachable. A function argument or
+receiver may become unreachable at the last point where the function
+mentions it. To make an unreachable object reachable, pass the object
+to a call of the <a href="#KeepAlive">KeepAlive</a> function to mark the last point in the
+function where the object must be reachable.
+<p>For example, if p points to a struct, such as os.File, that contains
+a file descriptor d, and p has a finalizer that closes that file
+descriptor, and if the last use of p in a function is a call to
+syscall.Write(p.d, buf, size), then p may be unreachable as soon as
+the program enters <a href="/pkg/syscall/#Write">syscall.Write</a>. The finalizer may run at that moment,
+closing p.d, causing syscall.Write to fail because it is writing to
+a closed file descriptor (or, worse, to an entirely different
+file descriptor opened by a different goroutine). To avoid this problem,
+call KeepAlive(p) after the call to syscall.Write.
+<p>A single goroutine runs all finalizers for a program, sequentially.
+If a finalizer must run for a long time, it should do so by starting
+a new goroutine.
+<p>In the terminology of the Go memory model, a call
+SetFinalizer(x, f) “synchronizes before” the finalization call f(x).
+However, there is no guarantee that KeepAlive(x) or any other use of x
+“synchronizes before” f(x), so in general a finalizer should use a mutex
+or other synchronization mechanism if it needs to access mutable state in x.
+For example, consider a finalizer that inspects a mutable field in x
+that is modified from time to time in the main program before x
+becomes unreachable and the finalizer is invoked.
+The modifications in the main program and the inspection in the finalizer
+need to use appropriate synchronization, such as mutexes or atomic updates,
+to avoid read-write races.
+
+			
+		
+			
+			<h2 id="SetMutexProfileFraction">func <a href="/src/runtime/mprof.go?s=26864:26906#L809">SetMutexProfileFraction</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func SetMutexProfileFraction(rate <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SetMutexProfileFraction controls the fraction of mutex contention events
+that are reported in the mutex profile. On average 1/rate events are
+reported. The previous rate is returned.
+<p>To turn off profiling entirely, pass rate 0.
+To just read the current rate, pass rate &lt; 0.
+(For n&gt;1 the details of sampling may change.)
+
+			
+		
+			
+			<h2 id="Stack">func <a href="/src/runtime/mprof.go?s=56672:56708#L1680">Stack</a>
+				
+				
+			</h2>
+			<pre>func Stack(buf []<a href="/pkg/builtin/#byte">byte</a>, all <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Stack formats a stack trace of the calling goroutine into buf
+and returns the number of bytes written to buf.
+If all is true, Stack formats stack traces of all other goroutines
+into buf after the trace for the current goroutine.
+
+			
+		
+			
+			<h2 id="StartTrace">func <a href="/src/runtime/trace.go?s=16450:16473#L308">StartTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func StartTrace() <a href="/pkg/builtin/#error">error</a></pre>
+			<p>StartTrace enables tracing for the current process.
+While tracing, the data will be buffered and available via <a href="#ReadTrace">ReadTrace</a>.
+StartTrace returns an error if tracing is already enabled.
+Most clients should use the <a href="/pkg/runtime/trace/">runtime/trace</a> package or the <a href="/pkg/testing/">testing</a> package&apos;s
+-test.trace flag instead of calling StartTrace directly.
+
+			
+		
+			
+			<h2 id="StopTrace">func <a href="/src/runtime/trace.go?s=21896:21912#L447">StopTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func StopTrace()</pre>
+			<p>StopTrace stops tracing, if it was previously enabled.
+StopTrace only returns after all the reads for the trace have completed.
+
+			
+		
+			
+			<h2 id="ThreadCreateProfile">func <a href="/src/runtime/mprof.go?s=39444:39502#L1193">ThreadCreateProfile</a>
+				
+				
+			</h2>
+			<pre>func ThreadCreateProfile(p []<a href="#StackRecord">StackRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>ThreadCreateProfile returns n, the number of records in the thread creation profile.
+If len(p) &gt;= n, ThreadCreateProfile copies the profile into p and returns n, true.
+If len(p) &lt; n, ThreadCreateProfile does not change p and returns n, false.
+<p>Most clients should use the runtime/pprof package instead
+of calling ThreadCreateProfile directly.
+
+			
+		
+			
+			<h2 id="UnlockOSThread">func <a href="/src/runtime/proc.go?s=174756:174777#L5717">UnlockOSThread</a>
+				
+				
+			</h2>
+			<pre>func UnlockOSThread()</pre>
+			<p>UnlockOSThread undoes an earlier call to LockOSThread.
+If this drops the number of active LockOSThread calls on the
+calling goroutine to zero, it unwires the calling goroutine from
+its fixed operating system thread.
+If there are no active LockOSThread calls, this is a no-op.
+<p>Before calling UnlockOSThread, the caller must ensure that the OS
+thread is suitable for running other goroutines. If the caller made
+any permanent changes to the state of the thread that would affect
+other goroutines, it should not call this function and thus leave
+the goroutine locked to the OS thread until the goroutine (and
+hence the thread) exits.
+
+			
+		
+			
+			<h2 id="Version">func <a href="/src/runtime/extern.go?s=19622:19643#L365">Version</a>
+				
+				
+			</h2>
+			<pre>func Version() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Version returns the Go tree&apos;s version string.
+It is either the commit hash and date at the time of the build or,
+when possible, a release tag like &quot;go1.3&quot;.
+
+			
+		
+		
+			
+			<h2 id="BlockProfileRecord">type <a href="/src/runtime/mprof.go?s=34415:34490#L1030">BlockProfileRecord</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>BlockProfileRecord describes blocking events originated
+at a particular call sequence (stack trace).
+
+			<pre>type BlockProfileRecord struct {
+<span id="BlockProfileRecord.Count"></span>    Count  <a href="/pkg/builtin/#int64">int64</a>
+<span id="BlockProfileRecord.Cycles"></span>    Cycles <a href="/pkg/builtin/#int64">int64</a>
+    <a href="#StackRecord">StackRecord</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Cleanup">type <a href="/src/runtime/mcleanup.go?s=8053:8210#L198">Cleanup</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>Cleanup is a handle to a cleanup call for a specific object.
+
+			<pre>type Cleanup struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AddCleanup">func <a href="/src/runtime/mcleanup.go?s=3520:3585#L66">AddCleanup</a>
+					
+					
+				</h3>
+				<pre>func AddCleanup[T, S <a href="/pkg/builtin/#any">any</a>](ptr *<a href="#T">T</a>, cleanup func(<a href="#S">S</a>), arg <a href="#S">S</a>) <a href="#Cleanup">Cleanup</a></pre>
+				<p>AddCleanup attaches a cleanup function to ptr. Some time after ptr is no longer
+reachable, the runtime will call cleanup(arg) in a separate goroutine.
+<p>A typical use is that ptr is an object wrapping an underlying resource (e.g.,
+a File object wrapping an OS file descriptor), arg is the underlying resource
+(e.g., the OS file descriptor), and the cleanup function releases the underlying
+resource (e.g., by calling the close system call).
+<p>There are few constraints on ptr. In particular, multiple cleanups may be
+attached to the same pointer, or to different pointers within the same
+allocation.
+<p>If ptr is reachable from cleanup or arg, ptr will never be collected
+and the cleanup will never run. As a protection against simple cases of this,
+AddCleanup panics if arg is equal to ptr.
+<p>There is no specified order in which cleanups will run.
+In particular, if several objects point to each other and all become
+unreachable at the same time, their cleanups all become eligible to run
+and can run in any order. This is true even if the objects form a cycle.
+<p>Cleanups run concurrently with any user-created goroutines.
+Cleanups may also run concurrently with one another (unlike finalizers).
+If a cleanup function must run for a long time, it should create a new goroutine
+to avoid blocking the execution of other cleanups.
+<p>If ptr has both a cleanup and a finalizer, the cleanup will only run once
+it has been finalized and becomes unreachable without an associated finalizer.
+<p>The cleanup(arg) call is not always guaranteed to run; in particular it is not
+guaranteed to run before program exit.
+<p>Cleanups are not guaranteed to run if the size of T is zero bytes, because
+it may share same address with other zero-size objects in memory. See
+<a href="/ref/spec#Size_and_alignment_guarantees">https://go.dev/ref/spec#Size_and_alignment_guarantees</a>.
+<p>It is not guaranteed that a cleanup will run for objects allocated
+in initializers for package-level variables. Such objects may be
+linker-allocated, not heap-allocated.
+<p>Note that because cleanups may execute arbitrarily far into the future
+after an object is no longer referenced, the runtime is allowed to perform
+a space-saving optimization that batches objects together in a single
+allocation slot. The cleanup for an unreferenced object in such an
+allocation may never run if it always exists in the same batch as a
+referenced object. Typically, this batching only happens for tiny
+(on the order of 16 bytes or less) and pointer-free objects.
+<p>A cleanup may run as soon as an object becomes unreachable.
+In order to use cleanups correctly, the program must ensure that
+the object is reachable until it is safe to run its cleanup.
+Objects stored in global variables, or that can be found by tracing
+pointers from a global variable, are reachable. A function argument or
+receiver may become unreachable at the last point where the function
+mentions it. To ensure a cleanup does not get called prematurely,
+pass the object to the <a href="#KeepAlive">KeepAlive</a> function after the last point
+where the object must remain reachable.
+
+				
+
+
+<div id="example_AddCleanup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;runtime&#34;
+)
+
+func main() {
+	tempFile, err := os.CreateTemp(os.TempDir(), &#34;file.*&#34;)
+	if err != nil {
+		fmt.Println(&#34;failed to create temp file:&#34;, err)
+		return
+	}
+
+	ch := make(chan struct{})
+
+	// Attach a cleanup function to the file object.
+	runtime.AddCleanup(&amp;tempFile, func(fileName string) {
+		if err := os.Remove(fileName); err == nil {
+			fmt.Println(&#34;temp file has been removed&#34;)
+		}
+		ch &lt;- struct{}{}
+	}, tempFile.Name())
+
+	if err := tempFile.Close(); err != nil {
+		fmt.Println(&#34;failed to close temp file:&#34;, err)
+		return
+	}
+
+	// Run the garbage collector to reclaim unreachable objects
+	// and enqueue their cleanup functions.
+	runtime.GC()
+
+	// Wait until cleanup function is done.
+	&lt;-ch
+
+}
+</textarea></div>
+        <div class="output"><pre>temp file has been removed
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Cleanup.Stop">func (Cleanup) <a href="/src/runtime/mcleanup.go?s=8533:8556#L209">Stop</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c <a href="#Cleanup">Cleanup</a>) Stop()</pre>
+				<p>Stop cancels the cleanup call. Stop will have no effect if the cleanup call
+has already been queued for execution (because ptr became unreachable).
+To guarantee that Stop removes the cleanup function, the caller must ensure
+that the pointer that was passed to AddCleanup is reachable across the call to Stop.
+
+				
+			
+		
+			
+			<h2 id="Error">type <a href="/src/runtime/error.go?s=801:1035#L14">Error</a>
+				
+				
+			</h2>
+			<p>Error identifies a runtime error used in panic.
+<p>The Go runtime triggers panics for a variety of cases, as described by the
+Go Language Spec, such as out-of-bounds slice/array access, close of nil
+channels, type assertion failures, etc.
+<p>When these cases occur, the Go runtime panics with an error that implements
+Error. This can be useful when recovering from panics to distinguish between
+custom application panics and fundamental runtime panics.
+<p>Packages outside of the Go standard library should not implement Error.
+
+			<pre>type Error interface {
+    <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// RuntimeError is a no-op function but</span>
+    <span class="comment">// serves to distinguish types that are runtime</span>
+    <span class="comment">// errors from ordinary errors: a type is a</span>
+    <span class="comment">// runtime error if it has a RuntimeError method.</span>
+    RuntimeError()
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Frame">type <a href="/src/runtime/symtab.go?s=766:2494#L20">Frame</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Frame is the information returned by <a href="#Frames">Frames</a> for each call frame.
+
+			<pre>type Frame struct {
+<span id="Frame.PC"></span>    <span class="comment">// PC is the program counter for the location in this frame.</span>
+    <span class="comment">// For a frame that calls another frame, this will be the</span>
+    <span class="comment">// program counter of a call instruction. Because of inlining,</span>
+    <span class="comment">// multiple frames may have the same PC value, but different</span>
+    <span class="comment">// symbolic information.</span>
+    PC <a href="/pkg/builtin/#uintptr">uintptr</a>
+
+<span id="Frame.Func"></span>    <span class="comment">// Func is the Func value of this call frame. This may be nil</span>
+    <span class="comment">// for non-Go code or fully inlined functions.</span>
+    Func *<a href="#Func">Func</a>
+
+<span id="Frame.Function"></span>    <span class="comment">// Function is the package path-qualified function name of</span>
+    <span class="comment">// this call frame. If non-empty, this string uniquely</span>
+    <span class="comment">// identifies a single function in the program.</span>
+    <span class="comment">// This may be the empty string if not known.</span>
+    <span class="comment">// If Func is not nil then Function == Func.Name().</span>
+    Function <a href="/pkg/builtin/#string">string</a>
+
+<span id="Frame.File"></span>    <span class="comment">// File and Line are the file name and line number of the</span>
+    <span class="comment">// location in this frame. For non-leaf frames, this will be</span>
+    <span class="comment">// the location of a call. These may be the empty string and</span>
+    <span class="comment">// zero, respectively, if not known. The file name uses</span>
+    <span class="comment">// forward slashes, even on Windows.</span>
+    File <a href="/pkg/builtin/#string">string</a>
+<span id="Frame.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+
+<span id="Frame.Entry"></span>    <span class="comment">// Entry point program counter for the function; may be zero</span>
+    <span class="comment">// if not known. If Func is not nil then Entry ==</span>
+    <span class="comment">// Func.Entry().</span>
+    Entry <a href="/pkg/builtin/#uintptr">uintptr</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Frames">type <a href="/src/runtime/symtab.go?s=396:694#L7">Frames</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Frames may be used to get function/file/line information for a
+slice of PC values returned by <a href="#Callers">Callers</a>.
+
+			<pre>type Frames struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Frames" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;runtime&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	c := func() {
+		// Ask runtime.Callers for up to 10 PCs, including runtime.Callers itself.
+		pc := make([]uintptr, 10)
+		n := runtime.Callers(0, pc)
+		if n == 0 {
+			// No PCs available. This can happen if the first argument to
+			// runtime.Callers is large.
+			//
+			// Return now to avoid processing the zero Frame that would
+			// otherwise be returned by frames.Next below.
+			return
+		}
+
+		pc = pc[:n] // pass only valid pcs to runtime.CallersFrames
+		frames := runtime.CallersFrames(pc)
+
+		// Loop to get frames.
+		// A fixed number of PCs can expand to an indefinite number of Frames.
+		for {
+			frame, more := frames.Next()
+
+			// Canonicalize function name and skip callers of this function
+			// for predictable example output.
+			// You probably don&#39;t need this in your own code.
+			function := strings.ReplaceAll(frame.Function, &#34;main.main&#34;, &#34;runtime_test.ExampleFrames&#34;)
+			fmt.Printf(&#34;- more:%v | %s\n&#34;, more, function)
+			if function == &#34;runtime_test.ExampleFrames&#34; {
+				break
+			}
+
+			// Check whether there are more frames to process after this one.
+			if !more {
+				break
+			}
+		}
+	}
+
+	b := func() { c() }
+	a := func() { b() }
+
+	a()
+}
+</textarea></div>
+        <div class="output"><pre>- more:true | runtime.Callers
+- more:true | runtime_test.ExampleFrames.func1
+- more:true | runtime_test.ExampleFrames.func2
+- more:true | runtime_test.ExampleFrames.func3
+- more:true | runtime_test.ExampleFrames
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="CallersFrames">func <a href="/src/runtime/symtab.go?s=2685:2730#L70">CallersFrames</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func CallersFrames(callers []<a href="/pkg/builtin/#uintptr">uintptr</a>) *<a href="#Frames">Frames</a></pre>
+				<p>CallersFrames takes a slice of PC values returned by <a href="#Callers">Callers</a> and
+prepares to return function/file/line information.
+Do not change the slice until you are done with the <a href="#Frames">Frames</a>.
+
+				
+			
+
+			
+				<h3 id="Frames.Next">func (*Frames) <a href="/src/runtime/symtab.go?s=3186:3235#L85">Next</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (ci *<a href="#Frames">Frames</a>) Next() (frame <a href="#Frame">Frame</a>, more <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Next returns a <a href="#Frame">Frame</a> representing the next call frame in the slice
+of PC values. If it has already returned all call frames, Next
+returns a zero <a href="#Frame">Frame</a>.
+<p>The more result indicates whether the next call to Next will return
+a valid <a href="#Frame">Frame</a>. It does not necessarily indicate whether this call
+returned one.
+<p>See the <a href="#Frames">Frames</a> example for idiomatic usage.
+
+				
+			
+		
+			
+			<h2 id="Func">type <a href="/src/runtime/symtab.go?s=11456:11537#L334">Func</a>
+				
+				
+			</h2>
+			<p>A Func represents a Go function in the running binary.
+
+			<pre>type Func struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncForPC">func <a href="/src/runtime/symtab.go?s=26892:26924#L772">FuncForPC</a>
+					
+					
+				</h3>
+				<pre>func FuncForPC(pc <a href="/pkg/builtin/#uintptr">uintptr</a>) *<a href="#Func">Func</a></pre>
+				<p>FuncForPC returns a *<a href="#Func">Func</a> describing the function that contains the
+given program counter address, or else nil.
+<p>If pc represents multiple functions because of inlining, it returns
+the *Func describing the innermost function, but with an entry of
+the outermost function.
+
+				
+			
+
+			
+				<h3 id="Func.Entry">func (*Func) <a href="/src/runtime/symtab.go?s=28012:28042#L812">Entry</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) Entry() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Entry returns the entry address of the function.
+
+				
+			
+				<h3 id="Func.FileLine">func (*Func) <a href="/src/runtime/symtab.go?s=28385:28444#L825">FileLine</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) FileLine(pc <a href="/pkg/builtin/#uintptr">uintptr</a>) (file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FileLine returns the file name and line number of the
+source code corresponding to the program counter pc.
+The result will not be accurate if pc is not a program
+counter within f.
+
+				
+			
+				<h3 id="Func.Name">func (*Func) <a href="/src/runtime/symtab.go?s=27715:27743#L799">Name</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name returns the name of the function.
+
+				
+			
+		
+			
+			<h2 id="MemProfileRecord">type <a href="/src/runtime/mprof.go?s=28781:29058#L870">MemProfileRecord</a>
+				
+				
+			</h2>
+			<p>A MemProfileRecord describes the live objects allocated
+by a particular call sequence (stack trace).
+
+			<pre>type MemProfileRecord struct {
+<span id="MemProfileRecord.AllocBytes"></span>    AllocBytes, FreeBytes     <a href="/pkg/builtin/#int64">int64</a>       <span class="comment">// number of bytes allocated, freed</span>
+<span id="MemProfileRecord.AllocObjects"></span>    AllocObjects, FreeObjects <a href="/pkg/builtin/#int64">int64</a>       <span class="comment">// number of objects allocated, freed</span>
+<span id="MemProfileRecord.Stack0"></span>    Stack0                    [32]<a href="/pkg/builtin/#uintptr">uintptr</a> <span class="comment">// stack trace for this record; ends at first 0 entry</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MemProfileRecord.InUseBytes">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29135:29180#L877">InUseBytes</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) InUseBytes() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InUseBytes returns the number of bytes in use (AllocBytes - FreeBytes).
+
+				
+			
+				<h3 id="MemProfileRecord.InUseObjects">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29303:29350#L880">InUseObjects</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) InUseObjects() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InUseObjects returns the number of objects in use (AllocObjects - FreeObjects).
+
+				
+			
+				<h3 id="MemProfileRecord.Stack">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29481:29525#L886">Stack</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) Stack() []<a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Stack returns the stack trace associated with the record,
+a prefix of r.Stack0.
+
+				
+			
+		
+			
+			<h2 id="MemStats">type <a href="/src/runtime/mstats.go?s=1603:11487#L45">MemStats</a>
+				
+				
+			</h2>
+			<p>A MemStats records statistics about the memory allocator.
+
+			<pre>type MemStats struct {
+
+<span id="MemStats.Alloc"></span>    <span class="comment">// Alloc is bytes of allocated heap objects.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This is the same as HeapAlloc (see below).</span>
+    Alloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.TotalAlloc"></span>    <span class="comment">// TotalAlloc is cumulative bytes allocated for heap objects.</span>
+    <span class="comment">//</span>
+    <span class="comment">// TotalAlloc increases as heap objects are allocated, but</span>
+    <span class="comment">// unlike Alloc and HeapAlloc, it does not decrease when</span>
+    <span class="comment">// objects are freed.</span>
+    TotalAlloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Sys"></span>    <span class="comment">// Sys is the total bytes of memory obtained from the OS.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Sys is the sum of the XSys fields below. Sys measures the</span>
+    <span class="comment">// virtual address space reserved by the Go runtime for the</span>
+    <span class="comment">// heap, stacks, and other internal data structures. It&#39;s</span>
+    <span class="comment">// likely that not all of the virtual address space is backed</span>
+    <span class="comment">// by physical memory at any given moment, though in general</span>
+    <span class="comment">// it all was at some point.</span>
+    Sys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Lookups"></span>    <span class="comment">// Lookups is the number of pointer lookups performed by the</span>
+    <span class="comment">// runtime.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This is primarily useful for debugging runtime internals.</span>
+    Lookups <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Mallocs"></span>    <span class="comment">// Mallocs is the cumulative count of heap objects allocated.</span>
+    <span class="comment">// The number of live objects is Mallocs - Frees.</span>
+    Mallocs <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Frees"></span>    <span class="comment">// Frees is the cumulative count of heap objects freed.</span>
+    Frees <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapAlloc"></span>    <span class="comment">// HeapAlloc is bytes of allocated heap objects.</span>
+    <span class="comment">//</span>
+    <span class="comment">// &#34;Allocated&#34; heap objects include all reachable objects, as</span>
+    <span class="comment">// well as unreachable objects that the garbage collector has</span>
+    <span class="comment">// not yet freed. Specifically, HeapAlloc increases as heap</span>
+    <span class="comment">// objects are allocated and decreases as the heap is swept</span>
+    <span class="comment">// and unreachable objects are freed. Sweeping occurs</span>
+    <span class="comment">// incrementally between GC cycles, so these two processes</span>
+    <span class="comment">// occur simultaneously, and as a result HeapAlloc tends to</span>
+    <span class="comment">// change smoothly (in contrast with the sawtooth that is</span>
+    <span class="comment">// typical of stop-the-world garbage collectors).</span>
+    HeapAlloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapSys"></span>    <span class="comment">// HeapSys is bytes of heap memory obtained from the OS.</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapSys measures the amount of virtual address space</span>
+    <span class="comment">// reserved for the heap. This includes virtual address space</span>
+    <span class="comment">// that has been reserved but not yet used, which consumes no</span>
+    <span class="comment">// physical memory, but tends to be small, as well as virtual</span>
+    <span class="comment">// address space for which the physical memory has been</span>
+    <span class="comment">// returned to the OS after it became unused (see HeapReleased</span>
+    <span class="comment">// for a measure of the latter).</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapSys estimates the largest size the heap has had.</span>
+    HeapSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapIdle"></span>    <span class="comment">// HeapIdle is bytes in idle (unused) spans.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Idle spans have no objects in them. These spans could be</span>
+    <span class="comment">// (and may already have been) returned to the OS, or they can</span>
+    <span class="comment">// be reused for heap allocations, or they can be reused as</span>
+    <span class="comment">// stack memory.</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapIdle minus HeapReleased estimates the amount of memory</span>
+    <span class="comment">// that could be returned to the OS, but is being retained by</span>
+    <span class="comment">// the runtime so it can grow the heap without requesting more</span>
+    <span class="comment">// memory from the OS. If this difference is significantly</span>
+    <span class="comment">// larger than the heap size, it indicates there was a recent</span>
+    <span class="comment">// transient spike in live heap size.</span>
+    HeapIdle <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapInuse"></span>    <span class="comment">// HeapInuse is bytes in in-use spans.</span>
+    <span class="comment">//</span>
+    <span class="comment">// In-use spans have at least one object in them. These spans</span>
+    <span class="comment">// can only be used for other objects of roughly the same</span>
+    <span class="comment">// size.</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapInuse minus HeapAlloc estimates the amount of memory</span>
+    <span class="comment">// that has been dedicated to particular size classes, but is</span>
+    <span class="comment">// not currently being used. This is an upper bound on</span>
+    <span class="comment">// fragmentation, but in general this memory can be reused</span>
+    <span class="comment">// efficiently.</span>
+    HeapInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapReleased"></span>    <span class="comment">// HeapReleased is bytes of physical memory returned to the OS.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This counts heap memory from idle spans that was returned</span>
+    <span class="comment">// to the OS and has not yet been reacquired for the heap.</span>
+    HeapReleased <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapObjects"></span>    <span class="comment">// HeapObjects is the number of allocated heap objects.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Like HeapAlloc, this increases as objects are allocated and</span>
+    <span class="comment">// decreases as the heap is swept and unreachable objects are</span>
+    <span class="comment">// freed.</span>
+    HeapObjects <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.StackInuse"></span>    <span class="comment">// StackInuse is bytes in stack spans.</span>
+    <span class="comment">//</span>
+    <span class="comment">// In-use stack spans have at least one stack in them. These</span>
+    <span class="comment">// spans can only be used for other stacks of the same size.</span>
+    <span class="comment">//</span>
+    <span class="comment">// There is no StackIdle because unused stack spans are</span>
+    <span class="comment">// returned to the heap (and hence counted toward HeapIdle).</span>
+    StackInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.StackSys"></span>    <span class="comment">// StackSys is bytes of stack memory obtained from the OS.</span>
+    <span class="comment">//</span>
+    <span class="comment">// StackSys is StackInuse, plus any memory obtained directly</span>
+    <span class="comment">// from the OS for OS thread stacks.</span>
+    <span class="comment">//</span>
+    <span class="comment">// In non-cgo programs this metric is currently equal to StackInuse</span>
+    <span class="comment">// (but this should not be relied upon, and the value may change in</span>
+    <span class="comment">// the future).</span>
+    <span class="comment">//</span>
+    <span class="comment">// In cgo programs this metric includes OS thread stacks allocated</span>
+    <span class="comment">// directly from the OS. Currently, this only accounts for one stack in</span>
+    <span class="comment">// c-shared and c-archive build modes and other sources of stacks from</span>
+    <span class="comment">// the OS (notably, any allocated by C code) are not currently measured.</span>
+    <span class="comment">// Note this too may change in the future.</span>
+    StackSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MSpanInuse"></span>    <span class="comment">// MSpanInuse is bytes of allocated mspan structures.</span>
+    MSpanInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MSpanSys"></span>    <span class="comment">// MSpanSys is bytes of memory obtained from the OS for mspan</span>
+    <span class="comment">// structures.</span>
+    MSpanSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MCacheInuse"></span>    <span class="comment">// MCacheInuse is bytes of allocated mcache structures.</span>
+    MCacheInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MCacheSys"></span>    <span class="comment">// MCacheSys is bytes of memory obtained from the OS for</span>
+    <span class="comment">// mcache structures.</span>
+    MCacheSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.BuckHashSys"></span>    <span class="comment">// BuckHashSys is bytes of memory in profiling bucket hash tables.</span>
+    BuckHashSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.GCSys"></span>    <span class="comment">// GCSys is bytes of memory in garbage collection metadata.</span>
+    GCSys <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.2</span>
+
+<span id="MemStats.OtherSys"></span>    <span class="comment">// OtherSys is bytes of memory in miscellaneous off-heap</span>
+    <span class="comment">// runtime allocations.</span>
+    OtherSys <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.2</span>
+
+<span id="MemStats.NextGC"></span>    <span class="comment">// NextGC is the target heap size of the next GC cycle.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The garbage collector&#39;s goal is to keep HeapAlloc ≤ NextGC.</span>
+    <span class="comment">// At the end of each GC cycle, the target for the next cycle</span>
+    <span class="comment">// is computed based on the amount of reachable data and the</span>
+    <span class="comment">// value of GOGC.</span>
+    NextGC <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.LastGC"></span>    <span class="comment">// LastGC is the time the last garbage collection finished, as</span>
+    <span class="comment">// nanoseconds since 1970 (the UNIX epoch).</span>
+    LastGC <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseTotalNs"></span>    <span class="comment">// PauseTotalNs is the cumulative nanoseconds in GC</span>
+    <span class="comment">// stop-the-world pauses since the program started.</span>
+    <span class="comment">//</span>
+    <span class="comment">// During a stop-the-world pause, all goroutines are paused</span>
+    <span class="comment">// and only the garbage collector can run.</span>
+    PauseTotalNs <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseNs"></span>    <span class="comment">// PauseNs is a circular buffer of recent GC stop-the-world</span>
+    <span class="comment">// pause times in nanoseconds.</span>
+    <span class="comment">//</span>
+    <span class="comment">// The most recent pause is at PauseNs[(NumGC+255)%256]. In</span>
+    <span class="comment">// general, PauseNs[N%256] records the time paused in the most</span>
+    <span class="comment">// recent N%256th GC cycle. There may be multiple pauses per</span>
+    <span class="comment">// GC cycle; this is the sum of all pauses during a cycle.</span>
+    PauseNs [256]<a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseEnd"></span>    <span class="comment">// PauseEnd is a circular buffer of recent GC pause end times,</span>
+    <span class="comment">// as nanoseconds since 1970 (the UNIX epoch).</span>
+    <span class="comment">//</span>
+    <span class="comment">// This buffer is filled the same way as PauseNs. There may be</span>
+    <span class="comment">// multiple pauses per GC cycle; this records the end of the</span>
+    <span class="comment">// last pause in a cycle.</span>
+    PauseEnd [256]<a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.4</span>
+
+<span id="MemStats.NumGC"></span>    <span class="comment">// NumGC is the number of completed GC cycles.</span>
+    NumGC <a href="/pkg/builtin/#uint32">uint32</a>
+
+<span id="MemStats.NumForcedGC"></span>    <span class="comment">// NumForcedGC is the number of GC cycles that were forced by</span>
+    <span class="comment">// the application calling the GC function.</span>
+    NumForcedGC <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// Go 1.8</span>
+
+<span id="MemStats.GCCPUFraction"></span>    <span class="comment">// GCCPUFraction is the fraction of this program&#39;s available</span>
+    <span class="comment">// CPU time used by the GC since the program started.</span>
+    <span class="comment">//</span>
+    <span class="comment">// GCCPUFraction is expressed as a number between 0 and 1,</span>
+    <span class="comment">// where 0 means GC has consumed none of this program&#39;s CPU. A</span>
+    <span class="comment">// program&#39;s available CPU time is defined as the integral of</span>
+    <span class="comment">// GOMAXPROCS since the program started. That is, if</span>
+    <span class="comment">// GOMAXPROCS is 2 and a program has been running for 10</span>
+    <span class="comment">// seconds, its &#34;available CPU&#34; is 20 seconds. GCCPUFraction</span>
+    <span class="comment">// does not include CPU time used for write barrier activity.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This is the same as the fraction of CPU reported by</span>
+    <span class="comment">// GODEBUG=gctrace=1.</span>
+    GCCPUFraction <a href="/pkg/builtin/#float64">float64</a> <span class="comment">// Go 1.5</span>
+
+<span id="MemStats.EnableGC"></span>    <span class="comment">// EnableGC indicates that GC is enabled. It is always true,</span>
+    <span class="comment">// even if GOGC=off.</span>
+    EnableGC <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="MemStats.DebugGC"></span>    <span class="comment">// DebugGC is currently unused.</span>
+    DebugGC <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="MemStats.BySize"></span>    <span class="comment">// BySize reports per-size class allocation statistics.</span>
+    <span class="comment">//</span>
+    <span class="comment">// BySize[N] gives statistics for allocations of size S where</span>
+    <span class="comment">// BySize[N-1].Size &lt; S ≤ BySize[N].Size.</span>
+    <span class="comment">//</span>
+    <span class="comment">// This does not report allocations larger than BySize[60].Size.</span>
+    BySize [61]struct {
+        <span class="comment">// Size is the maximum byte size of an object in this</span>
+        <span class="comment">// size class.</span>
+        Size <a href="/pkg/builtin/#uint32">uint32</a>
+
+        <span class="comment">// Mallocs is the cumulative count of heap objects</span>
+        <span class="comment">// allocated in this size class. The cumulative bytes</span>
+        <span class="comment">// of allocation is Size*Mallocs. The number of live</span>
+        <span class="comment">// objects in this size class is Mallocs - Frees.</span>
+        Mallocs <a href="/pkg/builtin/#uint64">uint64</a>
+
+        <span class="comment">// Frees is the cumulative count of heap objects freed</span>
+        <span class="comment">// in this size class.</span>
+        Frees <a href="/pkg/builtin/#uint64">uint64</a>
+    }
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PanicNilError">type <a href="/src/runtime/panic.go?s=24248:24641#L774">PanicNilError</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>A PanicNilError happens when code calls panic(nil).
+<p>Before Go 1.21, programs that called panic(nil) observed recover returning nil.
+Starting in Go 1.21, programs that call panic(nil) observe recover returning a *PanicNilError.
+Programs can change back to the old behavior by setting GODEBUG=panicnil=1.
+
+			<pre>type PanicNilError struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PanicNilError.Error">func (*PanicNilError) <a href="/src/runtime/panic.go?s=24643:24679#L784">Error</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (*<a href="#PanicNilError">PanicNilError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="PanicNilError.RuntimeError">func (*PanicNilError) <a href="/src/runtime/panic.go?s=24739:24775#L785">RuntimeError</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (*<a href="#PanicNilError">PanicNilError</a>) RuntimeError()</pre>
+				
+				
+			
+		
+			
+			<h2 id="Pinner">type <a href="/src/runtime/pinner.go?s=1296:1327#L24">Pinner</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>A Pinner is a set of Go objects each pinned to a fixed location in memory. The
+<a href="#Pinner.Pin">Pinner.Pin</a> method pins one object, while <a href="#Pinner.Unpin">Pinner.Unpin</a> unpins all pinned
+objects.
+<p>The purpose of a Pinner is two-fold.
+First, it allows C code to safely use Go pointers that have not been passed
+explicitly to the C code via a cgo call.
+For example, for safely interacting with a pointer stored inside of a struct
+whose pointer is passed to a C function.
+Second, it allows C memory to safely retain that Go pointer even after the
+cgo call returns, provided the object remains pinned.
+<p>A Pinner arranges for its objects to be automatically unpinned some time after
+it becomes unreachable, so its referents will not leak. However, this means the
+Pinner itself must be kept alive across a cgo call, or as long as C retains a
+reference to the pinned Go pointers.
+<p>Reusing a Pinner is safe, and in fact encouraged, to avoid the cost of
+initializing new Pinners on first use.
+<p>The zero value of Pinner is ready to use.
+
+			<pre>type Pinner struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pinner.Pin">func (*Pinner) <a href="/src/runtime/pinner.go?s=1909:1942#L39">Pin</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (p *<a href="#Pinner">Pinner</a>) Pin(pointer <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Pin pins a Go object, preventing it from being moved or freed by the garbage
+collector until the <a href="#Pinner.Unpin">Pinner.Unpin</a> method has been called.
+<p>A pointer to a pinned object can be directly stored in C memory or can be
+contained in Go memory passed to C functions. If the pinned object itself
+contains pointers to Go objects, these objects must be pinned separately if they
+are going to be accessed from C code.
+<p>The argument must be a pointer of any type or an <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a>.
+<p>It&apos;s safe to call Pin on non-Go pointers, in which case Pin will do nothing.
+
+				
+			
+				<h3 id="Pinner.Unpin">func (*Pinner) <a href="/src/runtime/pinner.go?s=3010:3034#L76">Unpin</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (p *<a href="#Pinner">Pinner</a>) Unpin()</pre>
+				<p>Unpin unpins all pinned objects of the <a href="#Pinner">Pinner</a>.
+It&apos;s safe and encouraged to reuse a Pinner after calling Unpin.
+
+				
+			
+		
+			
+			<h2 id="StackRecord">type <a href="/src/runtime/mprof.go?s=27364:27465#L831">StackRecord</a>
+				
+				
+			</h2>
+			<p>A StackRecord describes a single execution stack.
+
+			<pre>type StackRecord struct {
+<span id="StackRecord.Stack0"></span>    Stack0 [32]<a href="/pkg/builtin/#uintptr">uintptr</a> <span class="comment">// stack trace for this record; ends at first 0 entry</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StackRecord.Stack">func (*StackRecord) <a href="/src/runtime/mprof.go?s=27553:27592#L837">Stack</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#StackRecord">StackRecord</a>) Stack() []<a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Stack returns the stack trace associated with the record,
+a prefix of r.Stack0.
+
+				
+			
+		
+			
+			<h2 id="TypeAssertionError">type <a href="/src/runtime/error.go?s=1095:1274#L25">TypeAssertionError</a>
+				
+				
+			</h2>
+			<p>A TypeAssertionError explains a failed type assertion.
+
+			<pre>type TypeAssertionError struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeAssertionError.Error">func (*TypeAssertionError) <a href="/src/runtime/error.go?s=1322:1365#L34">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#TypeAssertionError">TypeAssertionError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeAssertionError.RuntimeError">func (*TypeAssertionError) <a href="/src/runtime/error.go?s=1276:1317#L32">RuntimeError</a>
+					
+					
+				</h3>
+				<pre>func (*<a href="#TypeAssertionError">TypeAssertionError</a>) RuntimeError()</pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="asan/">asan</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="cgo/">cgo</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package cgo contains runtime support for code generated by the cgo tool.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="coverage/">coverage</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package coverage contains APIs for writing coverage profile data at runtime from long-running and/or server programs that do not terminate via os.Exit.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="debug/">debug</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package debug contains facilities for programs to debug themselves while they are running.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="metrics/">metrics</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package metrics provides a stable interface to access implementation-defined metrics exported by the Go runtime.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="msan/">msan</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="pprof/">pprof</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package pprof writes runtime profiling data in the format expected by the pprof visualization tool.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="race/">race</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package race implements data race detection logic.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="secret/">secret</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package secret contains helper functions for zeroing out memory that is otherwise invisible to a user program in the service of forward secrecy.
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="trace/">trace</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package trace contains facilities for programs to generate traces for the Go execution tracer.
+					</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

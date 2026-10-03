@@ -1,0 +1,175 @@
+<!--{
+  "Title": "go/importer package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package importer</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/importer"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package importer provides access to export data importers.
+<p>These functions, which are mostly deprecated, date from before the
+introduction of modules in release Go 1.11. They should no longer
+be relied on except for use in test cases using small programs that
+depend only on the standard library. For reliable module-aware
+loading of type information, use the packages.Load function from
+golang.org/x/tools/go/packages.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Default">func Default() types.Importer</a></dd>
+			
+				<dd><a href="#For">func For(compiler string, lookup Lookup) types.Importer</a></dd>
+			
+				<dd><a href="#ForCompiler">func ForCompiler(fset *token.FileSet, compiler string, lookup Lookup) types.Importer</a></dd>
+			
+			
+				
+				<dd><a href="#Lookup">type Lookup</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/importer/importer.go">importer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Default">func <a href="/src/go/importer/importer.go?s=3482:3511#L88">Default</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Default() <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>Default returns an Importer for the compiler that built the running binary.
+If available, the result implements <a href="/pkg/go/types/#ImporterFrom">types.ImporterFrom</a>.
+<p>Default may be convenient for use in the simplest of cases, but
+most clients should instead use <a href="#ForCompiler">ForCompiler</a>, which accepts a
+<a href="/pkg/go/token/#FileSet">token.FileSet</a> from the caller; without it, all position
+information derived from the Importer will be incorrect and
+misleading. See also the package documentation.
+
+			
+		
+			
+			<h2 id="For">func <a href="/src/go/importer/importer.go?s=2912:2967#L76">For</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func For(compiler <a href="/pkg/builtin/#string">string</a>, lookup <a href="#Lookup">Lookup</a>) <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>For calls <a href="#ForCompiler">ForCompiler</a> with a new FileSet.
+<p>Deprecated: Use <a href="#ForCompiler">ForCompiler</a>, which populates a FileSet
+with the positions of objects created by the importer.
+
+			
+		
+			
+			<h2 id="ForCompiler">func <a href="/src/go/importer/importer.go?s=1971:2055#L38">ForCompiler</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<pre>func ForCompiler(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, compiler <a href="/pkg/builtin/#string">string</a>, lookup <a href="#Lookup">Lookup</a>) <a href="/pkg/go/types/">types</a>.<a href="/pkg/go/types/#Importer">Importer</a></pre>
+			<p>ForCompiler returns an Importer for importing from installed packages
+for the compilers &quot;gc&quot; and &quot;gccgo&quot;, or for importing directly
+from the source if the compiler argument is &quot;source&quot;. In this
+latter case, importing may fail under circumstances where the
+exported API is not entirely defined in pure Go source code
+(if the package API depends on cgo-defined entities, the type
+checker won&apos;t have access to those).
+<p>The lookup function is called each time the resulting importer needs
+to resolve an import path. In this mode the importer can only be
+invoked with canonical import paths (not relative or absolute ones);
+it is assumed that the translation to canonical import paths is being
+done by the client of the importer.
+<p>A lookup function must be provided for correct module-aware
+operation. Providing a nil value for lookup is deprecated but, for
+backwards-compatibility, the importer will in this case attempt to
+resolve imports in the $GOPATH workspace.
+
+			
+		
+		
+			
+			<h2 id="Lookup">type <a href="/src/go/importer/importer.go?s=903:955#L18">Lookup</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>A Lookup function returns a reader to access package data for
+a given import path, or an error if no matching package is found.
+
+			<pre>type Lookup func(path <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,716 @@
+<!--{
+  "Title": "compress/gzip package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package gzip</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "compress/gzip"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package gzip implements reading and writing of gzip format compressed files,
+as specified in RFC 1952.
+
+				
+
+
+<div id="example__compressingReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (CompressingReader)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (CompressingReader)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;compress/gzip&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	// This is an example of writing a compressing reader.
+	// This can be useful for an HTTP client body, as shown.
+
+	const testdata = &#34;the data to be compressed&#34;
+
+	// This HTTP handler is just for testing purposes.
+	handler := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		zr, err := gzip.NewReader(req.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Just output the data for the example.
+		if _, err := io.Copy(os.Stdout, zr); err != nil {
+			log.Fatal(err)
+		}
+	})
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	// The remainder is the example code.
+
+	// The data we want to compress, as an io.Reader
+	dataReader := strings.NewReader(testdata)
+
+	// bodyReader is the body of the HTTP request, as an io.Reader.
+	// httpWriter is the body of the HTTP request, as an io.Writer.
+	bodyReader, httpWriter := io.Pipe()
+
+	// Make sure that bodyReader is always closed, so that the
+	// goroutine below will always exit.
+	defer bodyReader.Close()
+
+	// gzipWriter compresses data to httpWriter.
+	gzipWriter := gzip.NewWriter(httpWriter)
+
+	// errch collects any errors from the writing goroutine.
+	errch := make(chan error, 1)
+
+	go func() {
+		defer close(errch)
+		sentErr := false
+		sendErr := func(err error) {
+			if !sentErr {
+				errch &lt;- err
+				sentErr = true
+			}
+		}
+
+		// Copy our data to gzipWriter, which compresses it to
+		// gzipWriter, which feeds it to bodyReader.
+		if _, err := io.Copy(gzipWriter, dataReader); err != nil &amp;&amp; err != io.ErrClosedPipe {
+			sendErr(err)
+		}
+		if err := gzipWriter.Close(); err != nil &amp;&amp; err != io.ErrClosedPipe {
+			sendErr(err)
+		}
+		if err := httpWriter.Close(); err != nil &amp;&amp; err != io.ErrClosedPipe {
+			sendErr(err)
+		}
+	}()
+
+	// Send an HTTP request to the test server.
+	req, err := http.NewRequest(&#34;PUT&#34;, ts.URL, bodyReader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Note that passing req to http.Client.Do promises that it
+	// will close the body, in this case bodyReader.
+	resp, err := ts.Client().Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check whether there was an error compressing the data.
+	if err := &lt;-errch; err != nil {
+		log.Fatal(err)
+	}
+
+	// For this example we don&#39;t care about the response.
+	resp.Body.Close()
+
+}
+</textarea></div>
+        <div class="output"><pre>the data to be compressed
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__writerReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (WriterReader)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (WriterReader)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;compress/gzip&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&amp;buf)
+
+	// Setting the Header fields is optional.
+	zw.Name = &#34;a-new-hope.txt&#34;
+	zw.Comment = &#34;an epic space opera by George Lucas&#34;
+	zw.ModTime = time.Date(1977, time.May, 25, 0, 0, 0, 0, time.UTC)
+
+	_, err := zw.Write([]byte(&#34;A long time ago in a galaxy far, far away...&#34;))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := zw.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	zr, err := gzip.NewReader(&amp;buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;Name: %s\nComment: %s\nModTime: %s\n\n&#34;, zr.Name, zr.Comment, zr.ModTime.UTC())
+
+	if _, err := io.Copy(os.Stdout, zr); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := zr.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Name: a-new-hope.txt
+Comment: an epic space opera by George Lucas
+ModTime: 1977-05-25 00:00:00 +0000 UTC
+
+A long time ago in a galaxy far, far away...
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+			
+				
+				<dd><a href="#Header">type Header</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r io.Reader) (*Reader, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Close">func (z *Reader) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Multistream">func (z *Reader) Multistream(ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Read">func (z *Reader) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Reset">func (z *Reader) Reset(r io.Reader) error</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriterLevel">func NewWriterLevel(w io.Writer, level int) (*Writer, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (z *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (z *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Reset">func (z *Writer) Reset(w io.Writer)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (z *Writer) Write(p []byte) (int, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Reader_Multistream">Reader.Multistream</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__compressingReader">Package (CompressingReader)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__writerReader">Package (WriterReader)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/compress/gzip/gunzip.go">gunzip.go</a>
+			
+				<a href="/src/compress/gzip/gzip.go">gzip.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>These constants are copied from the <a href="/pkg/compress/flate/">flate</a> package, so that code that imports
+<a href="/pkg/compress/gzip/">compress/gzip</a> does not also have to import <a href="/pkg/compress/flate/">compress/flate</a>.
+
+				<pre>const (
+    <span id="NoCompression">NoCompression</span>      = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#NoCompression">NoCompression</a>
+    <span id="BestSpeed">BestSpeed</span>          = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#BestSpeed">BestSpeed</a>
+    <span id="BestCompression">BestCompression</span>    = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#BestCompression">BestCompression</a>
+    <span id="DefaultCompression">DefaultCompression</span> = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#DefaultCompression">DefaultCompression</a>
+    <span id="HuffmanOnly">HuffmanOnly</span>        = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#HuffmanOnly">HuffmanOnly</a>
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span class="comment">// ErrChecksum is returned when reading GZIP data that has an invalid checksum.</span>
+    <span id="ErrChecksum">ErrChecksum</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;gzip: invalid checksum&#34;)
+    <span class="comment">// ErrHeader is returned when reading GZIP data that has an invalid header.</span>
+    <span id="ErrHeader">ErrHeader</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;gzip: invalid header&#34;)
+)</pre>
+			
+		
+		
+		
+			
+			<h2 id="Header">type <a href="/src/compress/gzip/gunzip.go?s=1301:1504#L42">Header</a>
+				
+				
+			</h2>
+			<p>The gzip file stores a header giving metadata about the compressed file.
+That header is exposed as the fields of the <a href="#Writer">Writer</a> and <a href="#Reader">Reader</a> structs.
+<p>Strings must be UTF-8 encoded and may only contain Unicode code points
+U+0001 through U+00FF, due to limitations of the GZIP file format.
+
+			<pre>type Header struct {
+<span id="Header.Comment"></span>    Comment <a href="/pkg/builtin/#string">string</a>    <span class="comment">// comment</span>
+<span id="Header.Extra"></span>    Extra   []<a href="/pkg/builtin/#byte">byte</a>    <span class="comment">// &#34;extra data&#34;</span>
+<span id="Header.ModTime"></span>    ModTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a> <span class="comment">// modification time</span>
+<span id="Header.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a>    <span class="comment">// file name</span>
+<span id="Header.OS"></span>    OS      <a href="/pkg/builtin/#byte">byte</a>      <span class="comment">// operating system type</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/compress/gzip/gunzip.go?s=2227:2540#L64">Reader</a>
+				
+				
+			</h2>
+			<p>A Reader is an <a href="/pkg/io/#Reader">io.Reader</a> that can be read to retrieve
+uncompressed data from a gzip-format compressed file.
+<p>In general, a gzip file can be a concatenation of gzip files,
+each with its own header. Reads from the Reader
+return the concatenation of the uncompressed data of each.
+Only the first header is recorded in the Reader fields.
+<p>Gzip files store a length and checksum of the uncompressed data.
+The Reader will return an <a href="#ErrChecksum">ErrChecksum</a> when <a href="#Reader.Read">Reader.Read</a>
+reaches the end of the uncompressed data if it does not
+have the expected length or checksum. Clients should treat data
+returned by <a href="#Reader.Read">Reader.Read</a> as tentative until they receive the <a href="/pkg/io/#EOF">io.EOF</a>
+marking the end of the data.
+
+			<pre>type Reader struct {
+    <a href="#Header">Header</a> <span class="comment">// valid after NewReader or Reader.Reset</span>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/compress/gzip/gunzip.go?s=2862:2906#L82">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (*<a href="#Reader">Reader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewReader creates a new <a href="#Reader">Reader</a> reading the given reader.
+If r does not also implement <a href="/pkg/io/#ByteReader">io.ByteReader</a>,
+the decompressor may read more data than necessary from r.
+<p>It is the caller&apos;s responsibility to call <a href="#Reader.Close">Reader.Close</a> when done.
+<p>The Reader.<a href="#Header">Header</a> fields will be valid in the <a href="#Reader">Reader</a> returned.
+
+				
+			
+
+			
+				<h3 id="Reader.Close">func (*Reader) <a href="/src/compress/gzip/gunzip.go?s=8598:8628#L280">Close</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Reader">Reader</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes the <a href="#Reader">Reader</a>. It does not close the underlying reader.
+In order for the GZIP checksum to be verified, the reader must be
+fully consumed until the <a href="/pkg/io/#EOF">io.EOF</a>.
+
+				
+			
+				<h3 id="Reader.Multistream">func (*Reader) <a href="/src/compress/gzip/gunzip.go?s=4502:4539#L123">Multistream</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (z *<a href="#Reader">Reader</a>) Multistream(ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Multistream controls whether the reader supports multistream files.
+<p>If enabled (the default), the <a href="#Reader">Reader</a> expects the input to be a sequence
+of individually gzipped data streams, each with its own header and
+trailer, ending at EOF. The effect is that the concatenation of a sequence
+of gzipped files is treated as equivalent to the gzip of the concatenation
+of the sequence. This is standard behavior for gzip readers.
+<p>Calling Multistream(false) disables this behavior; disabling the behavior
+can be useful when reading file formats that distinguish individual gzip
+data streams or mix gzip data streams with other data streams.
+In this mode, when the <a href="#Reader">Reader</a> reaches the end of the data stream,
+<a href="#Reader.Read">Reader.Read</a> returns <a href="/pkg/io/#EOF">io.EOF</a>. The underlying reader must implement <a href="/pkg/io/#ByteReader">io.ByteReader</a>
+in order to be left positioned just after the gzip stream.
+To start the next stream, call z.Reset(r) followed by z.Multistream(false).
+If there is no next stream, z.Reset(r) will return <a href="/pkg/io/#EOF">io.EOF</a>.
+
+				
+
+
+<div id="example_Reader_Multistream" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;compress/gzip&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&amp;buf)
+
+	var files = []struct {
+		name    string
+		comment string
+		modTime time.Time
+		data    string
+	}{
+		{&#34;file-1.txt&#34;, &#34;file-header-1&#34;, time.Date(2006, time.February, 1, 3, 4, 5, 0, time.UTC), &#34;Hello Gophers - 1&#34;},
+		{&#34;file-2.txt&#34;, &#34;file-header-2&#34;, time.Date(2007, time.March, 2, 4, 5, 6, 1, time.UTC), &#34;Hello Gophers - 2&#34;},
+	}
+
+	for _, file := range files {
+		zw.Name = file.name
+		zw.Comment = file.comment
+		zw.ModTime = file.modTime
+
+		if _, err := zw.Write([]byte(file.data)); err != nil {
+			log.Fatal(err)
+		}
+
+		if err := zw.Close(); err != nil {
+			log.Fatal(err)
+		}
+
+		zw.Reset(&amp;buf)
+	}
+
+	zr, err := gzip.NewReader(&amp;buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		zr.Multistream(false)
+		fmt.Printf(&#34;Name: %s\nComment: %s\nModTime: %s\n\n&#34;, zr.Name, zr.Comment, zr.ModTime.UTC())
+
+		if _, err := io.Copy(os.Stdout, zr); err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Print(&#34;\n\n&#34;)
+
+		err = zr.Reset(&amp;buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if err := zr.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Name: file-1.txt
+Comment: file-header-1
+ModTime: 2006-02-01 03:04:05 +0000 UTC
+
+Hello Gophers - 1
+
+Name: file-2.txt
+Comment: file-header-2
+ModTime: 2007-03-02 04:05:06 +0000 UTC
+
+Hello Gophers - 2
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Reader.Read">func (*Reader) <a href="/src/compress/gzip/gunzip.go?s=7563:7613#L236">Read</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Reader">Reader</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read implements <a href="/pkg/io/#Reader">io.Reader</a>, reading uncompressed bytes from its underlying reader.
+
+				
+			
+				<h3 id="Reader.Reset">func (*Reader) <a href="/src/compress/gzip/gunzip.go?s=3221:3262#L93">Reset</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (z *<a href="#Reader">Reader</a>) Reset(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Reset discards the <a href="#Reader">Reader</a> z&apos;s state and makes it equivalent to the
+result of its original state from <a href="#NewReader">NewReader</a>, but reading from r instead.
+This permits reusing a <a href="#Reader">Reader</a> rather than allocating a new one.
+
+				
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/compress/gzip/gzip.go?s=710:1056#L18">Writer</a>
+				
+				
+			</h2>
+			<p>A Writer is an <a href="/pkg/io/#WriteCloser">io.WriteCloser</a>.
+Writes to a Writer are compressed and written to w.
+
+			<pre>type Writer struct {
+    <a href="#Header">Header</a> <span class="comment">// written at first call to Write, Flush, or Close</span>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/compress/gzip/gzip.go?s=1595:1630#L43">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter returns a new <a href="#Writer">Writer</a>.
+Writes to the returned writer are compressed and written to w.
+<p>It is the caller&apos;s responsibility to call Close on the <a href="#Writer">Writer</a> when done.
+Writes may be buffered and not flushed until Close.
+<p>Callers that wish to set the fields in Writer.<a href="#Header">Header</a> must do so before
+the first call to Write, Flush, or Close.
+<p>Note that the exact bytes written to w are not covered by the Go 1
+compatibility promise. Callers, including tests, should not depend on the
+exact written bytes.
+
+				
+			
+				<h3 id="NewWriterLevel">func <a href="/src/compress/gzip/gzip.go?s=2208:2268#L58">NewWriterLevel</a>
+					
+					
+				</h3>
+				<pre>func NewWriterLevel(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, level <a href="/pkg/builtin/#int">int</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewWriterLevel is like <a href="#NewWriter">NewWriter</a> but specifies the compression level instead
+of assuming <a href="#DefaultCompression">DefaultCompression</a>.
+<p>The compression level can be <a href="#DefaultCompression">DefaultCompression</a>, <a href="#NoCompression">NoCompression</a>, <a href="#HuffmanOnly">HuffmanOnly</a>
+or any integer value between <a href="#BestSpeed">BestSpeed</a> and <a href="#BestCompression">BestCompression</a> inclusive.
+The error returned will be nil if the level is valid.
+<p>Note that the exact bytes written to w are not covered by the Go 1
+compatibility promise. Callers, including tests, should not depend on the
+exact written bytes.
+
+				
+			
+
+			
+				<h3 id="Writer.Close">func (*Writer) <a href="/src/compress/gzip/gzip.go?s=6364:6394#L226">Close</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes the <a href="#Writer">Writer</a> by flushing any unwritten data to the underlying
+<a href="/pkg/io/#Writer">io.Writer</a> and writing the GZIP footer.
+It does not close the underlying <a href="/pkg/io/#Writer">io.Writer</a>.
+
+				
+			
+				<h3 id="Writer.Flush">func (*Writer) <a href="/src/compress/gzip/gzip.go?s=5966:5996#L206">Flush</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush flushes any pending compressed data to the underlying writer.
+<p>It is useful mainly in compressed network protocols, to ensure that
+a remote reader has enough data to reconstruct a packet. Flush does
+not return until the data has been written. If the underlying
+writer returns an error, Flush returns that error.
+<p>In the terminology of the zlib library, Flush is equivalent to Z_SYNC_FLUSH.
+
+				
+			
+				<h3 id="Writer.Reset">func (*Writer) <a href="/src/compress/gzip/gzip.go?s=2947:2982#L86">Reset</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Reset(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>)</pre>
+				<p>Reset discards the <a href="#Writer">Writer</a> z&apos;s state and makes it equivalent to the
+result of its original state from <a href="#NewWriter">NewWriter</a> or <a href="#NewWriterLevel">NewWriterLevel</a>, but
+writing to w instead. This permits reusing a <a href="#Writer">Writer</a> rather than
+allocating a new one.
+
+				
+			
+				<h3 id="Writer.Write">func (*Writer) <a href="/src/compress/gzip/gzip.go?s=4246:4291#L137">Write</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write writes a compressed form of p to the underlying <a href="/pkg/io/#Writer">io.Writer</a>. The
+compressed bytes are not necessarily flushed until the <a href="#Writer">Writer</a> is closed.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

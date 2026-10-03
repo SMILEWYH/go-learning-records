@@ -1,0 +1,3866 @@
+<!--{
+  "Title": "go/ast 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/ast 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/ast"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ast 包声明用于表示 Go 包语法树的类型。<p>语法树可以直接构造，但通常由语法分析器从 Go 源代码生成；参见 <a href="/pkg/go/parser/#ParseFile">go/parser.ParseFile</a> 函数。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#FileExports">func FileExports(src *File) bool</a></dd>
+			
+				<dd><a href="#FilterDecl">func FilterDecl(decl Decl, f Filter) bool</a></dd>
+			
+				<dd><a href="#FilterFile">func FilterFile(src *File, f Filter) bool</a></dd>
+			
+				<dd><a href="#FilterPackage">func FilterPackage(pkg *Package, f Filter) bool</a></dd>
+			
+				<dd><a href="#Fprint">func Fprint(w io.Writer, fset *token.FileSet, x any, f FieldFilter) error</a></dd>
+			
+				<dd><a href="#Inspect">func Inspect(node Node, f func(Node) bool)</a></dd>
+			
+				<dd><a href="#IsExported">func IsExported(name string) bool</a></dd>
+			
+				<dd><a href="#IsGenerated">func IsGenerated(file *File) bool</a></dd>
+			
+				<dd><a href="#NotNilFilter">func NotNilFilter(_ string, v reflect.Value) bool</a></dd>
+			
+				<dd><a href="#PackageExports">func PackageExports(pkg *Package) bool</a></dd>
+			
+				<dd><a href="#Preorder">func Preorder(root Node) iter.Seq[Node]</a></dd>
+			
+				<dd><a href="#PreorderStack">func PreorderStack(root Node, stack []Node, f func(n Node, stack []Node) bool)</a></dd>
+			
+				<dd><a href="#Print">func Print(fset *token.FileSet, x any) error</a></dd>
+			
+				<dd><a href="#SortImports">func SortImports(fset *token.FileSet, f *File)</a></dd>
+			
+				<dd><a href="#Walk">func Walk(v Visitor, node Node)</a></dd>
+			
+			
+				
+				<dd><a href="#ArrayType">type ArrayType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ArrayType.End">func (x *ArrayType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ArrayType.Pos">func (x *ArrayType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#AssignStmt">type AssignStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#AssignStmt.End">func (s *AssignStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AssignStmt.Pos">func (s *AssignStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BadDecl">type BadDecl</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BadDecl.End">func (d *BadDecl) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BadDecl.Pos">func (d *BadDecl) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BadExpr">type BadExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BadExpr.End">func (x *BadExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BadExpr.Pos">func (x *BadExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BadStmt">type BadStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BadStmt.End">func (s *BadStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BadStmt.Pos">func (s *BadStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BasicLit">type BasicLit</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BasicLit.End">func (x *BasicLit) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BasicLit.Pos">func (x *BasicLit) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BinaryExpr">type BinaryExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BinaryExpr.End">func (x *BinaryExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BinaryExpr.Pos">func (x *BinaryExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BlockStmt">type BlockStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BlockStmt.End">func (s *BlockStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BlockStmt.Pos">func (s *BlockStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#BranchStmt">type BranchStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BranchStmt.End">func (s *BranchStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BranchStmt.Pos">func (s *BranchStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#CallExpr">type CallExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CallExpr.End">func (x *CallExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CallExpr.Pos">func (x *CallExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#CaseClause">type CaseClause</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CaseClause.End">func (s *CaseClause) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CaseClause.Pos">func (s *CaseClause) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#ChanDir">type ChanDir</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ChanType">type ChanType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ChanType.End">func (x *ChanType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChanType.Pos">func (x *ChanType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#CommClause">type CommClause</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommClause.End">func (s *CommClause) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommClause.Pos">func (s *CommClause) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Comment">type Comment</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Comment.End">func (c *Comment) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Comment.Pos">func (c *Comment) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#CommentGroup">type CommentGroup</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentGroup.End">func (g *CommentGroup) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentGroup.Pos">func (g *CommentGroup) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentGroup.Text">func (g *CommentGroup) Text() string</a></dd>
+				
+			
+				
+				<dd><a href="#CommentMap">type CommentMap</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCommentMap">func NewCommentMap(fset *token.FileSet, node Node, comments []*CommentGroup) CommentMap</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentMap.Comments">func (cmap CommentMap) Comments() []*CommentGroup</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentMap.Filter">func (cmap CommentMap) Filter(node Node) CommentMap</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentMap.String">func (cmap CommentMap) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommentMap.Update">func (cmap CommentMap) Update(old, new Node) Node</a></dd>
+				
+			
+				
+				<dd><a href="#CompositeLit">type CompositeLit</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CompositeLit.End">func (x *CompositeLit) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CompositeLit.Pos">func (x *CompositeLit) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Decl">type Decl</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DeclStmt">type DeclStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DeclStmt.End">func (s *DeclStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DeclStmt.Pos">func (s *DeclStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#DeferStmt">type DeferStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DeferStmt.End">func (s *DeferStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DeferStmt.Pos">func (s *DeferStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Directive">type Directive</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseDirective">func ParseDirective(pos token.Pos, c string) (Directive, bool)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Directive.End">func (d *Directive) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Directive.ParseArgs">func (d *Directive) ParseArgs() ([]DirectiveArg, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Directive.Pos">func (d *Directive) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#DirectiveArg">type DirectiveArg</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Ellipsis">type Ellipsis</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Ellipsis.End">func (x *Ellipsis) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ellipsis.Pos">func (x *Ellipsis) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#EmptyStmt">type EmptyStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#EmptyStmt.End">func (s *EmptyStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#EmptyStmt.Pos">func (s *EmptyStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Expr">type Expr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Unparen">func Unparen(e Expr) Expr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ExprStmt">type ExprStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ExprStmt.End">func (s *ExprStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ExprStmt.Pos">func (s *ExprStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Field">type Field</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Field.End">func (f *Field) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Field.Pos">func (f *Field) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#FieldFilter">type FieldFilter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FieldList">type FieldList</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FieldList.End">func (f *FieldList) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FieldList.NumFields">func (f *FieldList) NumFields() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FieldList.Pos">func (f *FieldList) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MergePackageFiles">func MergePackageFiles(pkg *Package, mode MergeMode) *File</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.End">func (f *File) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Pos">func (f *File) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Filter">type Filter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ForStmt">type ForStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ForStmt.End">func (s *ForStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ForStmt.Pos">func (s *ForStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#FuncDecl">type FuncDecl</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncDecl.End">func (d *FuncDecl) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncDecl.Pos">func (d *FuncDecl) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#FuncLit">type FuncLit</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncLit.End">func (x *FuncLit) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncLit.Pos">func (x *FuncLit) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#FuncType">type FuncType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncType.End">func (x *FuncType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncType.Pos">func (x *FuncType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#GenDecl">type GenDecl</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#GenDecl.End">func (d *GenDecl) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GenDecl.Pos">func (d *GenDecl) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#GoStmt">type GoStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#GoStmt.End">func (s *GoStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#GoStmt.Pos">func (s *GoStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Ident">type Ident</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewIdent">func NewIdent(name string) *Ident</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Ident.End">func (x *Ident) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ident.IsExported">func (id *Ident) IsExported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ident.Pos">func (x *Ident) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Ident.String">func (id *Ident) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#IfStmt">type IfStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IfStmt.End">func (s *IfStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IfStmt.Pos">func (s *IfStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#ImportSpec">type ImportSpec</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ImportSpec.End">func (s *ImportSpec) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ImportSpec.Pos">func (s *ImportSpec) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Importer">type Importer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IncDecStmt">type IncDecStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IncDecStmt.End">func (s *IncDecStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IncDecStmt.Pos">func (s *IncDecStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#IndexExpr">type IndexExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IndexExpr.End">func (x *IndexExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IndexExpr.Pos">func (x *IndexExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#IndexListExpr">type IndexListExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#IndexListExpr.End">func (x *IndexListExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#IndexListExpr.Pos">func (x *IndexListExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#InterfaceType">type InterfaceType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InterfaceType.End">func (x *InterfaceType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#InterfaceType.Pos">func (x *InterfaceType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#KeyValueExpr">type KeyValueExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#KeyValueExpr.End">func (x *KeyValueExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#KeyValueExpr.Pos">func (x *KeyValueExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#LabeledStmt">type LabeledStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LabeledStmt.End">func (s *LabeledStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LabeledStmt.Pos">func (s *LabeledStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#MapType">type MapType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MapType.End">func (x *MapType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapType.Pos">func (x *MapType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#MergeMode">type MergeMode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Node">type Node</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ObjKind">type ObjKind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ObjKind.String">func (kind ObjKind) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Object">type Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewObj">func NewObj(kind ObjKind, name string) *Object</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Object.Pos">func (obj *Object) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Package">type Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPackage">func NewPackage(fset *token.FileSet, files map[string]*File, importer Importer, universe *Scope) (*Package, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.End">func (p *Package) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Pos">func (p *Package) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#ParenExpr">type ParenExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ParenExpr.End">func (x *ParenExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParenExpr.Pos">func (x *ParenExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#RangeStmt">type RangeStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RangeStmt.End">func (s *RangeStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RangeStmt.Pos">func (s *RangeStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#ReturnStmt">type ReturnStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ReturnStmt.End">func (s *ReturnStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReturnStmt.Pos">func (s *ReturnStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Scope">type Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewScope">func NewScope(outer *Scope) *Scope</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Insert">func (s *Scope) Insert(obj *Object) (alt *Object)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Lookup">func (s *Scope) Lookup(name string) *Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.String">func (s *Scope) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#SelectStmt">type SelectStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SelectStmt.End">func (s *SelectStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SelectStmt.Pos">func (s *SelectStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#SelectorExpr">type SelectorExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SelectorExpr.End">func (x *SelectorExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SelectorExpr.Pos">func (x *SelectorExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#SendStmt">type SendStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SendStmt.End">func (s *SendStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SendStmt.Pos">func (s *SendStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#SliceExpr">type SliceExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SliceExpr.End">func (x *SliceExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SliceExpr.Pos">func (x *SliceExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Spec">type Spec</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StarExpr">type StarExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StarExpr.End">func (x *StarExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StarExpr.Pos">func (x *StarExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Stmt">type Stmt</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StructType">type StructType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StructType.End">func (x *StructType) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StructType.Pos">func (x *StructType) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#SwitchStmt">type SwitchStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SwitchStmt.End">func (s *SwitchStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SwitchStmt.Pos">func (s *SwitchStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#TypeAssertExpr">type TypeAssertExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertExpr.End">func (x *TypeAssertExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertExpr.Pos">func (x *TypeAssertExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#TypeSpec">type TypeSpec</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeSpec.End">func (s *TypeSpec) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeSpec.Pos">func (s *TypeSpec) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#TypeSwitchStmt">type TypeSwitchStmt</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeSwitchStmt.End">func (s *TypeSwitchStmt) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeSwitchStmt.Pos">func (s *TypeSwitchStmt) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#UnaryExpr">type UnaryExpr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnaryExpr.End">func (x *UnaryExpr) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnaryExpr.Pos">func (x *UnaryExpr) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#ValueSpec">type ValueSpec</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ValueSpec.End">func (s *ValueSpec) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ValueSpec.Pos">func (s *ValueSpec) Pos() token.Pos</a></dd>
+				
+			
+				
+				<dd><a href="#Visitor">type Visitor</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_CommentMap">CommentMap</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Inspect">Inspect</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Preorder">Preorder</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Print">Print</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/ast/ast.go">ast.go</a>
+			
+				<a href="/src/go/ast/commentmap.go">commentmap.go</a>
+			
+				<a href="/src/go/ast/directive.go">directive.go</a>
+			
+				<a href="/src/go/ast/filter.go">filter.go</a>
+			
+				<a href="/src/go/ast/import.go">import.go</a>
+			
+				<a href="/src/go/ast/print.go">print.go</a>
+			
+				<a href="/src/go/ast/resolve.go">resolve.go</a>
+			
+				<a href="/src/go/ast/scope.go">scope.go</a>
+			
+				<a href="/src/go/ast/walk.go">walk.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="FileExports">func <a href="/src/go/ast/filter.go?s=870:902#L17">FileExports</a>
+				
+				
+			</h2>
+			<pre>func FileExports(src *<a href="#File">File</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FileExports 就地裁剪 Go 源文件的 AST，使其只保留导出节点：删除所有未导出的顶层标识符及其关联信息（例如类型、初始值或函数体）。导出类型中未导出的字段和方法也会被移除。<a href="#File.Comments">File.Comments</a> 列表不会改变。<p>FileExports 报告是否存在导出声明。<h2 id="FilterDecl">func <a href="/src/go/ast/filter.go?s=5617:5658#L222">FilterDecl</a>
+				
+				
+			</h2>
+			<pre>func FilterDecl(decl <a href="#Decl">Decl</a>, f <a href="#Filter">Filter</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FilterDecl 就地裁剪 Go 声明的 AST，删除所有未通过过滤函数 f 的名称，包括结构体字段名和接口方法名，但不包括参数列表中的名称。<p>FilterDecl 报告过滤后是否还剩下任何声明的名称。<h2 id="FilterFile">func <a href="/src/go/ast/filter.go?s=6426:6467#L246">FilterFile</a>
+				
+				
+			</h2>
+			<pre>func FilterFile(src *<a href="#File">File</a>, f <a href="#Filter">Filter</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FilterFile 就地裁剪 Go 文件的 AST，从顶层声明中删除所有未通过过滤函数 f 的名称，包括结构体字段名和接口方法名，但不包括参数列表中的名称。如果某个声明在删除后为空，就将该声明从 AST 中移除。导入声明始终被移除。<a href="#File.Comments">File.Comments</a> 列表不会改变。<p>FilterFile 报告过滤后是否还剩下任何顶层声明。<h2 id="FilterPackage">func <a href="/src/go/ast/filter.go?s=7361:7408#L275">FilterPackage</a>
+				
+				
+			</h2>
+			<pre>func FilterPackage(pkg *<a href="#Package">Package</a>, f <a href="#Filter">Filter</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>FilterPackage 就地裁剪 Go 包的 AST，从顶层声明中删除所有未通过过滤函数 f 的名称，包括结构体字段名和接口方法名，但不包括参数列表中的名称。如果某个声明在删除后为空，就将该声明从 AST 中移除。pkg.Files 列表不会改变，以免丢失文件名和顶层包注释。<p>FilterPackage 报告过滤后是否还剩下任何顶层声明。<p>已弃用：请使用类型检查器 <a href="/pkg/go/types/">go/types</a> 代替 <a href="#Package">Package</a>；参见 <a href="#Object">Object</a>。也可以使用 <a href="#FilterFile">FilterFile</a>。<h2 id="Fprint">func <a href="/src/go/ast/print.go?s=1197:1270#L29">Fprint</a>
+				
+				
+			</h2>
+			<pre>func Fprint(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, x <a href="/pkg/builtin/#any">any</a>, f <a href="#FieldFilter">FieldFilter</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Fprint 将从 AST 节点 x 开始的树或子树输出到 w。如果 fset != nil，则相对于该文件集解释位置信息；否则将位置输出为整数值（文件集特定的偏移量）。<p>可以提供非 nil 的 <a href="#FieldFilter">FieldFilter</a> f 来控制输出：只有 f(fieldname, fieldvalue) 为 true 的结构体字段才会被输出，其他字段均被过滤掉。未导出的结构体字段永远不会输出。<h2 id="Inspect">func <a href="/src/go/ast/walk.go?s=6308:6350#L366">Inspect</a>
+				
+				
+			</h2>
+			<pre>func Inspect(node <a href="#Node">Node</a>, f func(<a href="#Node">Node</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Inspect 按深度优先顺序遍历 AST：首先调用 f(node)，node 不能为 nil。如果 f 返回 true，Inspect 会对 node 的每个非 nil 子节点递归调用 f，最后再调用 f(nil)。<p>在许多情况下，使用 <a href="#Preorder">Preorder</a> 会更方便，它返回遍历节点序列的迭代器；也可以使用 <a href="#PreorderStack">PreorderStack</a>，它与 <a href="#Inspect">Inspect</a> 一样允许控制是否进入子树，但还会报告包含当前节点的祖先节点栈。<div id="example_Inspect" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例演示如何检查 Go 程序的 AST。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src 是我们要检查其 AST 的输入。
+	src := `
+package p
+const c = 1.0
+var X = f(3.14)*2 &#43; c
+`
+
+	// 通过解析 src 创建 AST。
+	fset := token.NewFileSet() // 位置相对于 fset
+	f, err := parser.ParseFile(fset, &#34;src.go&#34;, src, parser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
+	}
+
+	// 检查 AST 并输出所有标识符和字面量。
+	ast.Inspect(f, func(n ast.Node) bool {
+		var s string
+		switch x := n.(type) {
+		case *ast.BasicLit:
+			s = x.Value
+		case *ast.Ident:
+			s = x.Name
+		}
+		if s != &#34;&#34; {
+			fmt.Printf(&#34;%s:\t%s\n&#34;, fset.Position(n.Pos()), s)
+		}
+		return true
+	})
+
+}
+</textarea></div>
+        <div class="output"><pre>src.go:2:9:	p
+src.go:3:7:	c
+src.go:3:11:	1.0
+src.go:4:5:	X
+src.go:4:9:	f
+src.go:4:11:	3.14
+src.go:4:17:	2
+src.go:4:21:	c
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IsExported">func <a href="/src/go/ast/ast.go?s=19430:19463#L596">IsExported</a>
+				
+				
+			</h2>
+			<pre>func IsExported(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsExported 报告 name 是否以大写字母开头。<h2 id="IsGenerated">func <a href="/src/go/ast/ast.go?s=36696:36729#L1109">IsGenerated</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func IsGenerated(file *<a href="#File">File</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsGenerated 通过检测 <a href="/s/generatedcode">https://go.dev/s/generatedcode</a> 描述的特殊注释，报告该文件是否由程序生成，而非手工编写。<p>必须使用 <a href="/pkg/go/parser/#ParseComments">go/parser.ParseComments</a> 标志解析语法树。例如：<pre>f, err := parser.ParseFile(fset, filename, src, parser.ParseComments|parser.PackageClauseOnly|parser.SkipObjectResolution)
+if err != nil { ... }
+gen := ast.IsGenerated(f)
+</pre>
+
+			
+		
+			
+			<h2 id="NotNilFilter">func <a href="/src/go/ast/print.go?s=526:575#L12">NotNilFilter</a>
+				
+				
+			</h2>
+			<pre>func NotNilFilter(_ <a href="/pkg/builtin/#string">string</a>, v <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>NotNilFilter 是一个 <a href="#FieldFilter">FieldFilter</a>，对于非 nil 字段值返回 true，否则返回 false。<h2 id="PackageExports">func <a href="/src/go/ast/filter.go?s=1379:1417#L30">PackageExports</a>
+				
+				
+			</h2>
+			<pre>func PackageExports(pkg *<a href="#Package">Package</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>PackageExports 就地裁剪 Go 包的 AST，使其只保留导出节点。pkg.Files 列表不会改变，以免丢失文件名和顶层包注释。<p>PackageExports 报告是否存在导出声明；否则返回 false。<p>已弃用：请使用类型检查器 <a href="/pkg/go/types/">go/types</a> 代替 <a href="#Package">Package</a>；参见 <a href="#Object">Object</a>。也可以使用 <a href="#FileExports">FileExports</a>。<h2 id="Preorder">func <a href="/src/go/ast/walk.go?s=6626:6665#L376">Preorder</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func Preorder(root <a href="#Node">Node</a>) <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Node">Node</a>]</pre>
+			<p>Preorder 返回一个迭代器，按深度优先的前序顺序遍历指定根节点之下（包括根节点）的语法树全部节点。<p>要更精细地控制各个子树的遍历，请使用 <a href="#Inspect">Inspect</a> 或 <a href="#PreorderStack">PreorderStack</a>。<div id="example_Preorder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	src := `
+package p
+
+func f(x, y int) {
+	print(x &#43; y)
+}
+`
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, &#34;&#34;, src, parser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
+	}
+
+	// 按顺序输出标识符
+	for n := range ast.Preorder(f) {
+		id, ok := n.(*ast.Ident)
+		if !ok {
+			continue
+		}
+		fmt.Println(id.Name)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>p
+f
+x
+y
+int
+print
+x
+y
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="PreorderStack">func <a href="/src/go/ast/walk.go?s=7499:7577#L401">PreorderStack</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func PreorderStack(root <a href="#Node">Node</a>, stack []<a href="#Node">Node</a>, f func(n <a href="#Node">Node</a>, stack []<a href="#Node">Node</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>PreorderStack 遍历以 root 为根的树，在访问每个节点之前调用 f。<p>每次调用 f 都提供当前节点和遍历栈；遍历栈由 stack 的原始值加上从 root 到 n 的所有节点组成，但不包括 n 本身。（这种设计允许嵌套调用 PreorderStack 而不会重复计算节点。）<p>如果 f 返回 false，遍历将跳过该子树。与 <a href="#Inspect">Inspect</a> 不同，访问节点 n 后不会再次调用 f。（实践中，第二次调用几乎总是仅用于出栈，而正确完成这件事意外地棘手。）<h2 id="Print">func <a href="/src/go/ast/print.go?s=1959:2003#L63">Print</a>
+				
+				
+			</h2>
+			<pre>func Print(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, x <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Print 将 x 输出到标准输出，跳过 nil 字段。Print(fset, x) 与 Fprint(os.Stdout, fset, x, NotNilFilter) 相同。<div id="example_Print" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例展示为了调试而输出 AST 时的样子。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;go/ast&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src 是我们要输出其 AST 的输入。
+	src := `
+package main
+func main() {
+	println(&#34;Hello, World!&#34;)
+}
+`
+
+	// 通过解析 src 创建 AST。
+	fset := token.NewFileSet()                   // 位置相对于 fset
+	f, err := parser.ParseFile(fset, &#34;&#34;, src, 0) // 需要对象解析
+	if err != nil {
+		panic(err)
+	}
+
+	// 输出 AST。
+	ast.Print(fset, f)
+
+}
+</textarea></div>
+        <div class="output"><pre>     0  *ast.File {
+     1  .  Package: 2:1
+     2  .  Name: *ast.Ident {
+     3  .  .  NamePos: 2:9
+     4  .  .  Name: &#34;main&#34;
+     5  .  }
+     6  .  Decls: []ast.Decl (len = 1) {
+     7  .  .  0: *ast.FuncDecl {
+     8  .  .  .  Name: *ast.Ident {
+     9  .  .  .  .  NamePos: 3:6
+    10  .  .  .  .  Name: &#34;main&#34;
+    11  .  .  .  .  Obj: *ast.Object {
+    12  .  .  .  .  .  Kind: func
+    13  .  .  .  .  .  Name: &#34;main&#34;
+    14  .  .  .  .  .  Decl: *(obj @ 7)
+    15  .  .  .  .  }
+    16  .  .  .  }
+    17  .  .  .  Type: *ast.FuncType {
+    18  .  .  .  .  Func: 3:1
+    19  .  .  .  .  Params: *ast.FieldList {
+    20  .  .  .  .  .  Opening: 3:10
+    21  .  .  .  .  .  Closing: 3:11
+    22  .  .  .  .  }
+    23  .  .  .  }
+    24  .  .  .  Body: *ast.BlockStmt {
+    25  .  .  .  .  Lbrace: 3:13
+    26  .  .  .  .  List: []ast.Stmt (len = 1) {
+    27  .  .  .  .  .  0: *ast.ExprStmt {
+    28  .  .  .  .  .  .  X: *ast.CallExpr {
+    29  .  .  .  .  .  .  .  Fun: *ast.Ident {
+    30  .  .  .  .  .  .  .  .  NamePos: 4:2
+    31  .  .  .  .  .  .  .  .  Name: &#34;println&#34;
+    32  .  .  .  .  .  .  .  }
+    33  .  .  .  .  .  .  .  Lparen: 4:9
+    34  .  .  .  .  .  .  .  Args: []ast.Expr (len = 1) {
+    35  .  .  .  .  .  .  .  .  0: *ast.BasicLit {
+    36  .  .  .  .  .  .  .  .  .  ValuePos: 4:10
+    37  .  .  .  .  .  .  .  .  .  ValueEnd: 4:25
+    38  .  .  .  .  .  .  .  .  .  Kind: STRING
+    39  .  .  .  .  .  .  .  .  .  Value: &#34;\&#34;Hello, World!\&#34;&#34;
+    40  .  .  .  .  .  .  .  .  }
+    41  .  .  .  .  .  .  .  }
+    42  .  .  .  .  .  .  .  Ellipsis: -
+    43  .  .  .  .  .  .  .  Rparen: 4:25
+    44  .  .  .  .  .  .  }
+    45  .  .  .  .  .  }
+    46  .  .  .  .  }
+    47  .  .  .  .  Rbrace: 5:1
+    48  .  .  .  }
+    49  .  .  }
+    50  .  }
+    51  .  FileStart: 1:1
+    52  .  FileEnd: 5:3
+    53  .  Scope: *ast.Scope {
+    54  .  .  Objects: map[string]*ast.Object (len = 1) {
+    55  .  .  .  &#34;main&#34;: *(obj @ 11)
+    56  .  .  }
+    57  .  }
+    58  .  Unresolved: []*ast.Ident (len = 1) {
+    59  .  .  0: *(obj @ 29)
+    60  .  }
+    61  .  GoVersion: &#34;&#34;
+    62  }
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="SortImports">func <a href="/src/go/ast/import.go?s=387:433#L6">SortImports</a>
+				
+				
+			</h2>
+			<pre>func SortImports(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, f *<a href="#File">File</a>)</pre>
+			<p>SortImports 对 f 的导入块中连续的导入行进行排序。只要不会丢失数据，它还会删除重复导入。<h2 id="Walk">func <a href="/src/go/ast/walk.go?s=988:1019#L23">Walk</a>
+				
+				
+			</h2>
+			<pre>func Walk(v <a href="#Visitor">Visitor</a>, node <a href="#Node">Node</a>)</pre>
+			<p>Walk 按深度优先顺序遍历 AST：首先调用 v.Visit(node)，node 不能为 nil。如果 v.Visit(node) 返回的访问器 w 非 nil，则对 node 的每个非 nil 子节点以访问器 w 递归调用 Walk，最后调用 w.Visit(nil)。<h2 id="ArrayType">type <a href="/src/go/ast/ast.go?s=13141:13315#L437">ArrayType</a>
+				
+				
+			</h2>
+			<p>ArrayType 节点表示数组或切片类型。<pre>type ArrayType struct {
+<span id="ArrayType.Lbrack"></span>    Lbrack <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "[" 的位置</span>
+<span id="ArrayType.Len"></span>    Len    <a href="#Expr">Expr</a>      <span class="comment">// 对于 [...]T 数组类型为 Ellipsis 节点，对于切片类型为 nil</span>
+<span id="ArrayType.Elt"></span>    Elt    <a href="#Expr">Expr</a>      <span class="comment">// 元素类型</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ArrayType.End">func (*ArrayType) <a href="/src/go/ast/ast.go?s=17678:17713#L549">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ArrayType">ArrayType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ArrayType.Pos">func (*ArrayType) <a href="/src/go/ast/ast.go?s=15829:15864#L507">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ArrayType">ArrayType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="AssignStmt">type <a href="/src/go/ast/ast.go?s=21317:21460#L667">AssignStmt</a>
+				
+				
+			</h2>
+			<p>AssignStmt 节点表示赋值或短变量声明。<pre>type AssignStmt struct {
+<span id="AssignStmt.Lhs"></span>    Lhs    []<a href="#Expr">Expr</a>
+<span id="AssignStmt.TokPos"></span>    TokPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Tok 的位置</span>
+<span id="AssignStmt.Tok"></span>    Tok    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// 赋值词法单元或 DEFINE</span>
+<span id="AssignStmt.Rhs"></span>    Rhs    []<a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AssignStmt.End">func (*AssignStmt) <a href="/src/go/ast/ast.go?s=26572:26608#L814">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#AssignStmt">AssignStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="AssignStmt.Pos">func (*AssignStmt) <a href="/src/go/ast/ast.go?s=25238:25274#L785">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#AssignStmt">AssignStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BadDecl">type <a href="/src/go/ast/ast.go?s=31334:31411#L970">BadDecl</a>
+				
+				
+			</h2>
+			<p>BadDecl 节点是声明的占位符，该声明包含语法错误，因而无法创建正确的声明节点。<pre>type BadDecl struct {
+<span id="BadDecl.From"></span>    From, To <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 错误声明的位置范围</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BadDecl.End">func (*BadDecl) <a href="/src/go/ast/ast.go?s=32743:32776#L1010">End</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#BadDecl">BadDecl</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BadDecl.Pos">func (*BadDecl) <a href="/src/go/ast/ast.go?s=32575:32608#L1006">Pos</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#BadDecl">BadDecl</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BadExpr">type <a href="/src/go/ast/ast.go?s=8011:8087#L276">BadExpr</a>
+				
+				
+			</h2>
+			<p>BadExpr 节点是表达式的占位符，该表达式包含语法错误，因而无法创建正确的表达式节点。<pre>type BadExpr struct {
+<span id="BadExpr.From"></span>    From, To <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 错误表达式的位置范围</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BadExpr.End">func (*BadExpr) <a href="/src/go/ast/ast.go?s=16328:16361#L519">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BadExpr">BadExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BadExpr.Pos">func (*BadExpr) <a href="/src/go/ast/ast.go?s=14762:14795#L485">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BadExpr">BadExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BadStmt">type <a href="/src/go/ast/ast.go?s=20085:20160#L618">BadStmt</a>
+				
+				
+			</h2>
+			<p>BadStmt 节点是语句的占位符，这些语句包含语法错误，因而无法创建正确的语句节点。<pre>type BadStmt struct {
+<span id="BadStmt.From"></span>    From, To <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 错误语句的位置范围</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BadStmt.End">func (*BadStmt) <a href="/src/go/ast/ast.go?s=26080:26113#L800">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BadStmt">BadStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BadStmt.Pos">func (*BadStmt) <a href="/src/go/ast/ast.go?s=24795:24828#L778">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BadStmt">BadStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BasicLit">type <a href="/src/go/ast/ast.go?s=9136:9460#L306">BasicLit</a>
+				
+				
+			</h2>
+			<p>BasicLit 节点表示基本类型字面量。<p>注意，对于 CHAR 和 STRING 种类，字面量连同引号一起存储。例如，对于双引号 STRING，Value 字段中的第一个和最后一个 rune 都是 &quot;。可以分别使用 <a href="/pkg/strconv/#Unquote">strconv.Unquote</a> 和 <a href="/pkg/strconv/#UnquoteChar">strconv.UnquoteChar</a> 函数去除 STRING 和 CHAR 值的引号。<p>对于原始字符串字面量（Kind == token.STRING &amp;&amp; Value[0] == &apos;`&apos;），Value 字段包含字符串文本，但不包含源代码中可能存在的回车符（\r）。<pre>type BasicLit struct {
+<span id="BasicLit.ValuePos"></span>    ValuePos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// 字面量的位置</span>
+<span id="BasicLit.ValueEnd"></span>    ValueEnd <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// 紧接字面量之后的位置；Go 1.26 中加入</span>
+<span id="BasicLit.Kind"></span>    Kind     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// token.INT、token.FLOAT、token.IMAG、token.CHAR 或 token.STRING</span>
+<span id="BasicLit.Value"></span>    Value    <a href="/pkg/builtin/#string">string</a>      <span class="comment">// 字面量字符串，例如 42、0x7f、3.14、1e-9、2.4i、'a'、'\x7f'、"foo" 或 `\m\n\o`</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BasicLit.End">func (*BasicLit) <a href="/src/go/ast/ast.go?s=16582:16616#L527">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BasicLit">BasicLit</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BasicLit.Pos">func (*BasicLit) <a href="/src/go/ast/ast.go?s=14928:14962#L488">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BasicLit">BasicLit</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BinaryExpr">type <a href="/src/go/ast/ast.go?s=12439:12604#L406">BinaryExpr</a>
+				
+				
+			</h2>
+			<p>BinaryExpr 节点表示二元表达式。<pre>type BinaryExpr struct {
+<span id="BinaryExpr.X"></span>    X     <a href="#Expr">Expr</a>        <span class="comment">// 左操作数</span>
+<span id="BinaryExpr.OpPos"></span>    OpPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Op 的位置</span>
+<span id="BinaryExpr.Op"></span>    Op    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// 运算符</span>
+<span id="BinaryExpr.Y"></span>    Y     <a href="#Expr">Expr</a>        <span class="comment">// 右操作数</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BinaryExpr.End">func (*BinaryExpr) <a href="/src/go/ast/ast.go?s=17550:17586#L547">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BinaryExpr">BinaryExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BinaryExpr.Pos">func (*BinaryExpr) <a href="/src/go/ast/ast.go?s=15703:15739#L505">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#BinaryExpr">BinaryExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BlockStmt">type <a href="/src/go/ast/ast.go?s=22245:22402#L702">BlockStmt</a>
+				
+				
+			</h2>
+			<p>BlockStmt 节点表示花括号括起的语句列表。<pre>type BlockStmt struct {
+<span id="BlockStmt.Lbrace"></span>    Lbrace <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "{" 的位置</span>
+<span id="BlockStmt.List"></span>    List   []<a href="#Stmt">Stmt</a>
+<span id="BlockStmt.Rbrace"></span>    Rbrace <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "}" 的位置（如果有；可能因语法错误而缺失）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BlockStmt.End">func (*BlockStmt) <a href="/src/go/ast/ast.go?s=27056:27091#L829">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BlockStmt">BlockStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BlockStmt.Pos">func (*BlockStmt) <a href="/src/go/ast/ast.go?s=25544:25579#L790">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BlockStmt">BlockStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BranchStmt">type <a href="/src/go/ast/ast.go?s=22005:22185#L695">BranchStmt</a>
+				
+				
+			</h2>
+			<p>BranchStmt 节点表示 break、continue、goto 或 fallthrough 语句。<pre>type BranchStmt struct {
+<span id="BranchStmt.TokPos"></span>    TokPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Tok 的位置</span>
+<span id="BranchStmt.Tok"></span>    Tok    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// 关键字词法单元（BREAK、CONTINUE、GOTO、FALLTHROUGH）</span>
+<span id="BranchStmt.Label"></span>    Label  *<a href="#Ident">Ident</a>      <span class="comment">// 标签名称；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BranchStmt.End">func (*BranchStmt) <a href="/src/go/ast/ast.go?s=26913:26949#L823">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BranchStmt">BranchStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="BranchStmt.Pos">func (*BranchStmt) <a href="/src/go/ast/ast.go?s=25483:25519#L789">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#BranchStmt">BranchStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CallExpr">type <a href="/src/go/ast/ast.go?s=11631:11903#L380">CallExpr</a>
+				
+				
+			</h2>
+			<p>CallExpr 节点表示后跟实参列表的表达式。<pre>type CallExpr struct {
+<span id="CallExpr.Fun"></span>    Fun      <a href="#Expr">Expr</a>      <span class="comment">// 函数表达式</span>
+<span id="CallExpr.Lparen"></span>    Lparen   <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "(" 的位置</span>
+<span id="CallExpr.Args"></span>    Args     []<a href="#Expr">Expr</a>    <span class="comment">// 函数实参；或 nil</span>
+<span id="CallExpr.Ellipsis"></span>    Ellipsis <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "..." 的位置（没有 "..." 时为 token.NoPos）</span>
+<span id="CallExpr.Rparen"></span>    Rparen   <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ")" 的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CallExpr.End">func (*CallExpr) <a href="/src/go/ast/ast.go?s=17361:17395#L544">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#CallExpr">CallExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CallExpr.Pos">func (*CallExpr) <a href="/src/go/ast/ast.go?s=15520:15554#L502">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#CallExpr">CallExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CaseClause">type <a href="/src/go/ast/ast.go?s=22732:22970#L718">CaseClause</a>
+				
+				
+			</h2>
+			<p>CaseClause 表示表达式 switch 或类型 switch 语句中的一个 case。<pre>type CaseClause struct {
+<span id="CaseClause.Case"></span>    Case  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "case" 或 "default" 关键字的位置</span>
+<span id="CaseClause.List"></span>    List  []<a href="#Expr">Expr</a>    <span class="comment">// 表达式或类型列表；nil 表示 default 分支</span>
+<span id="CaseClause.Colon"></span>    Colon <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ":" 的位置</span>
+<span id="CaseClause.Body"></span>    Body  []<a href="#Stmt">Stmt</a>    <span class="comment">// 语句列表；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CaseClause.End">func (*CaseClause) <a href="/src/go/ast/ast.go?s=27330:27366#L844">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#CaseClause">CaseClause</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CaseClause.Pos">func (*CaseClause) <a href="/src/go/ast/ast.go?s=25662:25698#L792">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#CaseClause">CaseClause</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ChanDir">type <a href="/src/go/ast/ast.go?s=12899:12915#L425">ChanDir</a>
+				
+				
+			</h2>
+			<p>通道类型的方向由位掩码表示，该掩码包含以下常量中的一个或两个。<pre>type ChanDir <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="SEND">SEND</span> <a href="#ChanDir">ChanDir</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+    <span id="RECV">RECV</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ChanType">type <a href="/src/go/ast/ast.go?s=14456:14699#L475">ChanType</a>
+				
+				
+			</h2>
+			<p>ChanType 节点表示通道类型。<pre>type ChanType struct {
+<span id="ChanType.Begin"></span>    Begin <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "chan" 关键字或 "&lt;-" 中先出现者的位置</span>
+<span id="ChanType.Arrow"></span>    Arrow <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "&lt;-" 的位置（没有 "&lt;-" 时为 token.NoPos）；Go 1.1 中加入</span>
+<span id="ChanType.Dir"></span>    Dir   <a href="#ChanDir">ChanDir</a>   <span class="comment">// 通道方向</span>
+<span id="ChanType.Value"></span>    Value <a href="#Expr">Expr</a>      <span class="comment">// 值类型</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ChanType.End">func (*ChanType) <a href="/src/go/ast/ast.go?s=18054:18088#L559">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ChanType">ChanType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ChanType.Pos">func (*ChanType) <a href="/src/go/ast/ast.go?s=16268:16302#L517">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ChanType">ChanType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CommClause">type <a href="/src/go/ast/ast.go?s=23608:23843#L742">CommClause</a>
+				
+				
+			</h2>
+			<p>CommClause 节点表示 select 语句中的一个 case。<pre>type CommClause struct {
+<span id="CommClause.Case"></span>    Case  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "case" 或 "default" 关键字的位置</span>
+<span id="CommClause.Comm"></span>    Comm  <a href="#Stmt">Stmt</a>      <span class="comment">// 发送或接收语句；nil 表示 default 分支</span>
+<span id="CommClause.Colon"></span>    Colon <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ":" 的位置</span>
+<span id="CommClause.Body"></span>    Body  []<a href="#Stmt">Stmt</a>    <span class="comment">// 语句列表；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CommClause.End">func (*CommClause) <a href="/src/go/ast/ast.go?s=27581:27617#L852">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#CommClause">CommClause</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CommClause.Pos">func (*CommClause) <a href="/src/go/ast/ast.go?s=25843:25879#L795">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#CommClause">CommClause</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Comment">type <a href="/src/go/ast/ast.go?s=2276:2428#L58">Comment</a>
+				
+				
+			</h2>
+			<p>Comment 节点表示一条 // 风格或 /* 风格的注释。<p>Text 字段包含注释文本，但不包含源代码中可能存在的回车符（\r）。由于注释结束位置通过 len(Text) 计算，对于包含回车符的注释，<a href="#Comment.End">Comment.End</a> 报告的位置与真实的源代码结束位置不一致。<pre>type Comment struct {
+<span id="Comment.Slash"></span>    Slash <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 注释开头 "/" 的位置</span>
+<span id="Comment.Text"></span>    Text  <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 注释文本（对于 // 风格的注释，不包含 '\n'）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Comment.End">func (*Comment) <a href="/src/go/ast/ast.go?s=2483:2516#L64">End</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Comment">Comment</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Comment.Pos">func (*Comment) <a href="/src/go/ast/ast.go?s=2430:2463#L63">Pos</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Comment">Comment</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CommentGroup">type <a href="/src/go/ast/ast.go?s=2671:2733#L68">CommentGroup</a>
+				
+				
+			</h2>
+			<p>CommentGroup 表示一系列注释，注释之间没有其他词法单元，也没有空行。<pre>type CommentGroup struct {
+<span id="CommentGroup.List"></span>    List []*<a href="#Comment">Comment</a> <span class="comment">// len(List) &gt; 0</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CommentGroup.End">func (*CommentGroup) <a href="/src/go/ast/ast.go?s=2801:2839#L73">End</a>
+					
+					
+				</h3>
+				<pre>func (g *<a href="#CommentGroup">CommentGroup</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CommentGroup.Pos">func (*CommentGroup) <a href="/src/go/ast/ast.go?s=2735:2773#L72">Pos</a>
+					
+					
+				</h3>
+				<pre>func (g *<a href="#CommentGroup">CommentGroup</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CommentGroup.Text">func (*CommentGroup) <a href="/src/go/ast/ast.go?s=3482:3518#L91">Text</a>
+					
+					
+				</h3>
+				<pre>func (g *<a href="#CommentGroup">CommentGroup</a>) Text() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Text 返回注释文本。它会移除注释标记（//、/* 和 */）、行注释的第一个空格，以及开头和结尾的空行。&quot;//line&quot; 和 &quot;//go:noinline&quot; 等注释指令也会被移除。多个空行会合并为一个，每行末尾的空白会被裁掉。除非结果为空，否则结果以换行符结尾。<h2 id="CommentMap">type <a href="/src/go/ast/commentmap.go?s=594:634#L16">CommentMap</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>CommentMap 将 AST 节点映射到与之关联的注释组列表。有关关联规则的说明，参见 <a href="#NewCommentMap">NewCommentMap</a>。<pre>type CommentMap map[<a href="#Node">Node</a>][]*<a href="#CommentGroup">CommentGroup</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_CommentMap" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例演示如何在 Go 程序中移除变量声明，同时使用 ast.CommentMap 保持正确的注释关联。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/format&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	// src 是输入，我们将为它创建 AST，
+	// 随后操作该 AST。
+	src := `
+// This is the package comment.
+package main
+
+// This comment is associated with the hello constant.
+const hello = &#34;Hello, World!&#34; // line comment 1
+
+// This comment is associated with the foo variable.
+var foo = hello // line comment 2
+
+// This comment is associated with the main function.
+func main() {
+	fmt.Println(hello) // line comment 3
+}
+`
+
+	// 通过解析 src 创建 AST。
+	fset := token.NewFileSet() // 位置相对于 fset
+	f, err := parser.ParseFile(fset, &#34;src.go&#34;, src, parser.ParseComments|parser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
+	}
+
+	// 根据 ast.File 的注释创建 ast.CommentMap。
+	// 这有助于维护注释
+	// 与 AST 节点之间的关联。
+	cmap := ast.NewCommentMap(fset, f, f.Comments)
+
+	// 从声明列表中移除第一个变量声明。
+	for i, decl := range f.Decls {
+		if gen, ok := decl.(*ast.GenDecl); ok &amp;&amp; gen.Tok == token.VAR {
+			copy(f.Decls[i:], f.Decls[i&#43;1:])
+			f.Decls = f.Decls[:len(f.Decls)-1]
+			break
+		}
+	}
+
+	// 使用注释映射过滤掉不再属于该 AST 的注释
+	// （与变量声明关联的注释），并创建
+	// 新的注释列表。
+	f.Comments = cmap.Filter(f).Comments()
+
+	// 输出修改后的 AST。
+	var buf strings.Builder
+	if err := format.Node(&amp;buf, fset, f); err != nil {
+		panic(err)
+	}
+	fmt.Printf(&#34;%s&#34;, buf.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>// This is the package comment.
+package main
+
+// This comment is associated with the hello constant.
+const hello = &#34;Hello, World!&#34; // line comment 1
+
+// This comment is associated with the main function.
+func main() {
+	fmt.Println(hello) // line comment 3
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewCommentMap">func <a href="/src/go/ast/commentmap.go?s=3513:3600#L117">NewCommentMap</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func NewCommentMap(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, node <a href="#Node">Node</a>, comments []*<a href="#CommentGroup">CommentGroup</a>) <a href="#CommentMap">CommentMap</a></pre>
+				<p>NewCommentMap 创建新的注释映射，将 comments 列表中的注释组与 node 指定的 AST 中的节点关联。<p>满足以下任一条件时，注释组 g 与节点 n 关联：<ul>
+<li>g 的起始行与 n 的结束行相同<li>g 从紧接 n 的下一行开始，且 g 之后、下一个节点之前至少有一个空行<li>g 从 n 之前开始，并且按前面的规则，它没有与 n 前面的节点关联</ul>
+<p>NewCommentMap 尽量将注释组关联到“最大”的节点。例如，如果注释是赋值语句尾部的行注释，就将它关联到整个赋值，而不是赋值中最后一个操作数。<h3 id="CommentMap.Comments">func (CommentMap) <a href="/src/go/ast/commentmap.go?s=7230:7279#L243">Comments</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (cmap <a href="#CommentMap">CommentMap</a>) Comments() []*<a href="#CommentGroup">CommentGroup</a></pre>
+				<p>Comments 返回注释映射中的注释组列表。结果按源代码顺序排序。<h3 id="CommentMap.Filter">func (CommentMap) <a href="/src/go/ast/commentmap.go?s=6922:6973#L230">Filter</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (cmap <a href="#CommentMap">CommentMap</a>) Filter(node <a href="#Node">Node</a>) <a href="#CommentMap">CommentMap</a></pre>
+				<p>Filter 返回新的注释映射，仅包含 cmap 中那些对应节点存在于 node 指定的 AST 中的条目。<h3 id="CommentMap.String">func (CommentMap) <a href="/src/go/ast/commentmap.go?s=8135:8173#L288">String</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (cmap <a href="#CommentMap">CommentMap</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="CommentMap.Update">func (CommentMap) <a href="/src/go/ast/commentmap.go?s=6601:6650#L219">Update</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (cmap <a href="#CommentMap">CommentMap</a>) Update(old, new <a href="#Node">Node</a>) <a href="#Node">Node</a></pre>
+				<p>Update 用新节点替换注释映射中的旧节点，并返回新节点。原先与旧节点关联的注释会改为与新节点关联。<h2 id="CompositeLit">type <a href="/src/go/ast/ast.go?s=9661:9961#L320">CompositeLit</a>
+				
+				
+			</h2>
+			<p>CompositeLit 节点表示复合字面量。<pre>type CompositeLit struct {
+<span id="CompositeLit.Type"></span>    Type       <a href="#Expr">Expr</a>      <span class="comment">// 字面量类型；或 nil</span>
+<span id="CompositeLit.Lbrace"></span>    Lbrace     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "{" 的位置</span>
+<span id="CompositeLit.Elts"></span>    Elts       []<a href="#Expr">Expr</a>    <span class="comment">// 复合元素列表；或 nil</span>
+<span id="CompositeLit.Rbrace"></span>    Rbrace     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "}" 的位置</span>
+<span id="CompositeLit.Incomplete"></span>    Incomplete <a href="/pkg/builtin/#bool">bool</a>      <span class="comment">// 若 Elts 列表中缺失源代码表达式，则为 true；Go 1.11 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CompositeLit.End">func (*CompositeLit) <a href="/src/go/ast/ast.go?s=16907:16945#L537">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#CompositeLit">CompositeLit</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="CompositeLit.Pos">func (*CompositeLit) <a href="/src/go/ast/ast.go?s=15044:15082#L490">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#CompositeLit">CompositeLit</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Decl">type <a href="/src/go/ast/ast.go?s=1757:1798#L44">Decl</a>
+				
+				
+			</h2>
+			<p>所有声明节点都实现 Decl 接口。<pre>type Decl interface {
+    <a href="#Node">Node</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DeclStmt">type <a href="/src/go/ast/ast.go?s=20229:20304#L623">DeclStmt</a>
+				
+				
+			</h2>
+			<p>DeclStmt 节点表示语句列表中的声明。<pre>type DeclStmt struct {
+<span id="DeclStmt.Decl"></span>    Decl <a href="#Decl">Decl</a> <span class="comment">// 词法单元为 CONST、TYPE 或 VAR 的 *GenDecl</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DeclStmt.End">func (*DeclStmt) <a href="/src/go/ast/ast.go?s=26131:26165#L801">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#DeclStmt">DeclStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="DeclStmt.Pos">func (*DeclStmt) <a href="/src/go/ast/ast.go?s=24854:24888#L779">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#DeclStmt">DeclStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="DeferStmt">type <a href="/src/go/ast/ast.go?s=21642:21730#L681">DeferStmt</a>
+				
+				
+			</h2>
+			<p>DeferStmt 节点表示 defer 语句。<pre>type DeferStmt struct {
+<span id="DeferStmt.Defer"></span>    Defer <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "defer" 关键字的位置</span>
+<span id="DeferStmt.Call"></span>    Call  *<a href="#CallExpr">CallExpr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DeferStmt.End">func (*DeferStmt) <a href="/src/go/ast/ast.go?s=26707:26742#L816">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#DeferStmt">DeferStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="DeferStmt.Pos">func (*DeferStmt) <a href="/src/go/ast/ast.go?s=25362:25397#L787">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#DeferStmt">DeferStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Directive">type <a href="/src/go/ast/directive.go?s=736:1047#L22">Directive</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Directive 是以下形式的注释：<pre>//tool:name args
+</pre>
+<p>例如，对于以下指令：<pre>//go:generate stringer -type Op -trimprefix Op
+</pre>
+<p>其 Tool 为 &quot;go&quot;，Name 为 &quot;generate&quot;，Args 为 &quot;stringer -type Op -trimprefix Op&quot;。<p>虽然 Args 没有严格的语法，但按照惯例，它是以空格分隔的序列，序列元素可以是不带引号的单词、以 &apos;&quot;&apos; 括起的 Go 字符串，或以 &apos;`&apos; 括起的原始字符串。<p>规范见 <a href="/doc/comment#directives">https://go.dev/doc/comment#directives</a>。<pre>type Directive struct {
+<span id="Directive.Tool"></span>    Tool <a href="/pkg/builtin/#string">string</a>
+<span id="Directive.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Directive.Args"></span>    Args <a href="/pkg/builtin/#string">string</a> <span class="comment">// 无前导或尾随空白</span>
+
+<span id="Directive.Slash"></span>    <span class="comment">// Slash 是指令开头 "//" 的位置。</span>
+    Slash <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>
+
+<span id="Directive.ArgsPos"></span>    <span class="comment">// ArgsPos 是 Args 的起始位置，根据传给</span>
+    <span class="comment">// ParseDirective 的位置计算。</span>
+    ArgsPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseDirective">func <a href="/src/go/ast/directive.go?s=1618:1680#L46">ParseDirective</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func ParseDirective(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, c <a href="/pkg/builtin/#string">string</a>) (<a href="#Directive">Directive</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>ParseDirective 从单行注释中解析指令注释。<p>如果该行不是指令注释，则返回 false。<p>提供的文本必须只有一行，并应包含开头的 &quot;//&quot;。如果文本不以 &quot;//&quot; 开头，则返回 false。<p>调用方可以提供 c 起始处的文件位置，用于跟踪各个参数的位置。该位置可以是 <a href="#Comment.Slash">Comment.Slash</a>，也可以由调用方构造，或者直接为 0。如果调用方传入 0，那么这些位置实际上就是字符串 c 内的字节偏移量。<h3 id="Directive.End">func (*Directive) <a href="/src/go/ast/directive.go?s=2758:2793#L89">End</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (d *<a href="#Directive">Directive</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Directive.ParseArgs">func (*Directive) <a href="/src/go/ast/directive.go?s=3483:3538#L106">ParseArgs</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (d *<a href="#Directive">Directive</a>) ParseArgs() ([]<a href="#DirectiveArg">DirectiveArg</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseArgs 按标准惯例解析 <a href="#Directive">Directive</a> 的参数，即一系列词法单元，每个单元可以是不带引号的单词、双引号 Go 字符串，或反引号原始 Go 字符串。各个单元必须由一个或多个 Unicode 空白字符分隔。<p>如果参数不符合此语法，则返回错误。<h3 id="Directive.Pos">func (*Directive) <a href="/src/go/ast/directive.go?s=2703:2738#L88">Pos</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (d *<a href="#Directive">Directive</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="DirectiveArg">type <a href="/src/go/ast/directive.go?s=2903:3130#L92">DirectiveArg</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>DirectiveArg 是指令注释的一个参数。<pre>type DirectiveArg struct {
+<span id="DirectiveArg.Arg"></span>    <span class="comment">// Arg 是解析后的参数字符串。如果参数是带引号的字符串，</span>
+    <span class="comment">// 则这是去除引号后的形式。</span>
+    Arg <a href="/pkg/builtin/#string">string</a>
+<span id="DirectiveArg.Pos"></span>    <span class="comment">// Pos 是此参数首字符的位置。</span>
+    Pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Ellipsis">type <a href="/src/go/ast/ast.go?s=8420:8559#L290">Ellipsis</a>
+				
+				
+			</h2>
+			<p>Ellipsis 节点表示参数列表中的 &quot;...&quot; 类型，或数组类型中的 &quot;...&quot; 长度。<pre>type Ellipsis struct {
+<span id="Ellipsis.Ellipsis"></span>    Ellipsis <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "..." 的位置</span>
+<span id="Ellipsis.Elt"></span>    Elt      <a href="#Expr">Expr</a>      <span class="comment">// 省略号的元素类型（仅用于参数列表）；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Ellipsis.End">func (*Ellipsis) <a href="/src/go/ast/ast.go?s=16463:16497#L521">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Ellipsis">Ellipsis</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Ellipsis.Pos">func (*Ellipsis) <a href="/src/go/ast/ast.go?s=14871:14905#L487">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Ellipsis">Ellipsis</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="EmptyStmt">type <a href="/src/go/ast/ast.go?s=20489:20624#L631">EmptyStmt</a>
+				
+				
+			</h2>
+			<p>EmptyStmt 节点表示空语句。空语句的“位置”是紧随其后的显式或隐式分号的位置。<pre>type EmptyStmt struct {
+<span id="EmptyStmt.Semicolon"></span>    Semicolon <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 后续 ";" 的位置</span>
+<span id="EmptyStmt.Implicit"></span>    Implicit  <a href="/pkg/builtin/#bool">bool</a>      <span class="comment">// 若设置，则源代码中省略了 ";"；Go 1.5 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="EmptyStmt.End">func (*EmptyStmt) <a href="/src/go/ast/ast.go?s=26190:26225#L802">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#EmptyStmt">EmptyStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="EmptyStmt.Pos">func (*EmptyStmt) <a href="/src/go/ast/ast.go?s=24919:24954#L780">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#EmptyStmt">EmptyStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Expr">type <a href="/src/go/ast/ast.go?s=1563:1604#L32">Expr</a>
+				
+				
+			</h2>
+			<p>所有表达式节点都实现 Expr 接口。<pre>type Expr interface {
+    <a href="#Node">Node</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Unparen">func <a href="/src/go/ast/ast.go?s=37479:37504#L1137">Unparen</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func Unparen(e <a href="#Expr">Expr</a>) <a href="#Expr">Expr</a></pre>
+				<p>Unparen 返回移除了所有外围圆括号的表达式。<h2 id="ExprStmt">type <a href="/src/go/ast/ast.go?s=20861:20904#L646">ExprStmt</a>
+				
+				
+			</h2>
+			<p>ExprStmt 节点表示语句列表中的独立表达式。<pre>type ExprStmt struct {
+<span id="ExprStmt.X"></span>    X <a href="#Expr">Expr</a> <span class="comment">// 表达式</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ExprStmt.End">func (*ExprStmt) <a href="/src/go/ast/ast.go?s=26372:26406#L809">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ExprStmt">ExprStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ExprStmt.Pos">func (*ExprStmt) <a href="/src/go/ast/ast.go?s=25049:25083#L782">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ExprStmt">ExprStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Field">type <a href="/src/go/ast/ast.go?s=5962:6266#L191">Field</a>
+				
+				
+			</h2>
+			<p>Field 表示结构体类型中的字段声明列表、接口类型中的方法列表，或签名中的参数/结果声明。对于未命名参数（仅包含类型的参数列表）和嵌入的结构体字段，<a href="#Field.Names">Field.Names</a> 为 nil。在后一种情况下，字段名就是类型名。<pre>type Field struct {
+<span id="Field.Doc"></span>    Doc     *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="Field.Names"></span>    Names   []*<a href="#Ident">Ident</a>      <span class="comment">// 字段、方法或（类型）参数的名称；或 nil</span>
+<span id="Field.Type"></span>    Type    <a href="#Expr">Expr</a>          <span class="comment">// 字段、方法或参数的类型；或 nil</span>
+<span id="Field.Tag"></span>    Tag     *<a href="#BasicLit">BasicLit</a>     <span class="comment">// 字段标签；或 nil</span>
+<span id="Field.Comment"></span>    Comment *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 行注释；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Field.End">func (*Field) <a href="/src/go/ast/ast.go?s=6422:6453#L209">End</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Field">Field</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Field.Pos">func (*Field) <a href="/src/go/ast/ast.go?s=6268:6299#L199">Pos</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Field">Field</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="FieldFilter">type <a href="/src/go/ast/print.go?s=345:405#L8">FieldFilter</a>
+				
+				
+			</h2>
+			<p>可以向 <a href="#Fprint">Fprint</a> 提供 FieldFilter 来控制输出。<pre>type FieldFilter func(name <a href="/pkg/builtin/#string">string</a>, value <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Value">Value</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FieldList">type <a href="/src/go/ast/ast.go?s=6738:6956#L224">FieldList</a>
+				
+				
+			</h2>
+			<p>FieldList 表示由圆括号、花括号或方括号括起的 Field 列表。<pre>type FieldList struct {
+<span id="FieldList.Opening"></span>    Opening <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 左圆括号、左花括号或左方括号的位置（如果有）</span>
+<span id="FieldList.List"></span>    List    []*<a href="#Field">Field</a>  <span class="comment">// 字段列表；或 nil</span>
+<span id="FieldList.Closing"></span>    Closing <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 右圆括号、右花括号或右方括号的位置（如果有）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FieldList.End">func (*FieldList) <a href="/src/go/ast/ast.go?s=7211:7246#L242">End</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FieldList">FieldList</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="FieldList.NumFields">func (*FieldList) <a href="/src/go/ast/ast.go?s=7571:7606#L255">NumFields</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FieldList">FieldList</a>) NumFields() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumFields 返回 <a href="#FieldList">FieldList</a> 所表示的参数或结构体字段的数量。<h3 id="FieldList.Pos">func (*FieldList) <a href="/src/go/ast/ast.go?s=6958:6993#L230">Pos</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#FieldList">FieldList</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="File">type <a href="/src/go/ast/ast.go?s=34434:35170#L1054">File</a>
+				
+				
+			</h2>
+			<p>File 节点表示 Go 源文件。<p>Comments 列表按出现顺序包含源文件中的全部注释，包括其他节点通过 Doc 和 Comment 字段指向的注释。<p>为了使用 go/format 和 go/printer 包正确输出带注释的源代码，修改 File 的语法树时必须特别注意更新注释：输出时，注释按其位置穿插在词法单元之间。如果删除或移动了语法树节点，也必须相应删除其附近的相关注释（从 <a href="#File.Comments">File.Comments</a> 列表中删除），或通过更新位置来移动注释。可以使用 <a href="#CommentMap">CommentMap</a> 简化其中一些操作。<p>注释是否与节点关联、如何关联，取决于操作语法树的程序如何解释语法树：除通过 Doc 和 <a href="#Comment">Comment</a> 直接与节点关联的注释外，其余注释都是“自由浮动”的（另见问题 <a href="/issue/18593">#18593</a>、<a href="/issue/20744">#20744</a>）。<pre>type File struct {
+<span id="File.Doc"></span>    Doc     *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="File.Package"></span>    Package <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>     <span class="comment">// "package" 关键字的位置</span>
+<span id="File.Name"></span>    Name    *<a href="#Ident">Ident</a>        <span class="comment">// 包名</span>
+<span id="File.Decls"></span>    Decls   []<a href="#Decl">Decl</a>        <span class="comment">// 顶层声明；或 nil</span>
+
+<span id="File.FileStart"></span>    FileStart, FileEnd <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>       <span class="comment">// 整个文件的起始和结束位置；Go 1.20 中加入</span>
+<span id="File.Scope"></span>    Scope              *<a href="#Scope">Scope</a>          <span class="comment">// 包作用域（仅此文件）。已弃用：参见 Object</span>
+<span id="File.Imports"></span>    Imports            []*<a href="#ImportSpec">ImportSpec</a>   <span class="comment">// 此文件中的导入</span>
+<span id="File.Unresolved"></span>    Unresolved         []*<a href="#Ident">Ident</a>        <span class="comment">// 此文件中未解析的标识符。已弃用：参见 Object</span>
+<span id="File.Comments"></span>    Comments           []*<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 文件中的注释，按词法顺序排列</span>
+<span id="File.GoVersion"></span>    GoVersion          <a href="/pkg/builtin/#string">string</a>          <span class="comment">// //go:build 或 // +build 指令要求的最低 Go 版本；Go 1.21 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MergePackageFiles">func <a href="/src/go/ast/filter.go?s=9398:9456#L339">MergePackageFiles</a>
+					
+					
+				</h3>
+				<pre>func MergePackageFiles(pkg *<a href="#Package">Package</a>, mode <a href="#MergeMode">MergeMode</a>) *<a href="#File">File</a></pre>
+				<p>MergePackageFiles 合并属于某个包的各个文件的 AST，创建一个文件 AST。mode 标志控制合并行为。<p>已弃用：此函数的规范不够明确，并有无法修复的缺陷；此外，<a href="#Package">Package</a> 也已弃用。<h3 id="File.End">func (*File) <a href="/src/go/ast/ast.go?s=35593:35623#L1078">End</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>End 返回文件中最后一个声明的结束位置。该位置可能无效，例如在空文件中。<p>（要获取整个文件的结束位置，请使用 FileEnd，它始终有效。）<h3 id="File.Pos">func (*File) <a href="/src/go/ast/ast.go?s=35356:35386#L1072">Pos</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回 package 声明的位置。该位置可能无效，例如在空文件中。<p>（要获取整个文件的起始位置，请使用 FileStart，它始终有效。）<h2 id="Filter">type <a href="/src/go/ast/filter.go?s=1572:1601#L37">Filter</a>
+				
+				
+			</h2>
+			
+			<pre>type Filter func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ForStmt">type <a href="/src/go/ast/ast.go?s=24058:24285#L756">ForStmt</a>
+				
+				
+			</h2>
+			<p>ForStmt 表示 for 语句。<pre>type ForStmt struct {
+<span id="ForStmt.For"></span>    For  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "for" 关键字的位置</span>
+<span id="ForStmt.Init"></span>    Init <a href="#Stmt">Stmt</a>      <span class="comment">// 初始化语句；或 nil</span>
+<span id="ForStmt.Cond"></span>    Cond <a href="#Expr">Expr</a>      <span class="comment">// 条件；或 nil</span>
+<span id="ForStmt.Post"></span>    Post <a href="#Stmt">Stmt</a>      <span class="comment">// 迭代后执行的语句；或 nil</span>
+<span id="ForStmt.Body"></span>    Body *<a href="#BlockStmt">BlockStmt</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ForStmt.End">func (*ForStmt) <a href="/src/go/ast/ast.go?s=27763:27796#L859">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ForStmt">ForStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ForStmt.Pos">func (*ForStmt) <a href="/src/go/ast/ast.go?s=25963:25996#L797">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ForStmt">ForStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="FuncDecl">type <a href="/src/go/ast/ast.go?s=32143:32516#L995">FuncDecl</a>
+				
+				
+			</h2>
+			<p>FuncDecl 节点表示函数声明。<pre>type FuncDecl struct {
+<span id="FuncDecl.Doc"></span>    Doc  *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="FuncDecl.Recv"></span>    Recv *<a href="#FieldList">FieldList</a>    <span class="comment">// 接收者（方法）；或 nil（函数）</span>
+<span id="FuncDecl.Name"></span>    Name *<a href="#Ident">Ident</a>        <span class="comment">// 函数或方法名</span>
+<span id="FuncDecl.Type"></span>    Type *<a href="#FuncType">FuncType</a>     <span class="comment">// 函数签名：类型参数、值参数、结果，以及 "func" 关键字的位置</span>
+<span id="FuncDecl.Body"></span>    Body *<a href="#BlockStmt">BlockStmt</a>    <span class="comment">// 函数体；对于外部（非 Go）函数为 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncDecl.End">func (*FuncDecl) <a href="/src/go/ast/ast.go?s=32906:32940#L1017">End</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#FuncDecl">FuncDecl</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="FuncDecl.Pos">func (*FuncDecl) <a href="/src/go/ast/ast.go?s=32683:32717#L1008">Pos</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#FuncDecl">FuncDecl</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="FuncLit">type <a href="/src/go/ast/ast.go?s=9513:9602#L314">FuncLit</a>
+				
+				
+			</h2>
+			<p>FuncLit 节点表示函数字面量。<pre>type FuncLit struct {
+<span id="FuncLit.Type"></span>    Type *<a href="#FuncType">FuncType</a>  <span class="comment">// 函数类型</span>
+<span id="FuncLit.Body"></span>    Body *<a href="#BlockStmt">BlockStmt</a> <span class="comment">// 函数体</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncLit.End">func (*FuncLit) <a href="/src/go/ast/ast.go?s=16842:16875#L536">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#FuncLit">FuncLit</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="FuncLit.Pos">func (*FuncLit) <a href="/src/go/ast/ast.go?s=14985:15018#L489">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#FuncLit">FuncLit</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="FuncType">type <a href="/src/go/ast/ast.go?s=13686:13959#L453">FuncType</a>
+				
+				
+			</h2>
+			<p>FuncType 节点表示函数类型。<pre>type FuncType struct {
+<span id="FuncType.Func"></span>    Func       <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "func" 关键字的位置（没有 "func" 时为 token.NoPos）</span>
+<span id="FuncType.TypeParams"></span>    TypeParams *<a href="#FieldList">FieldList</a> <span class="comment">// 类型参数；或 nil；Go 1.18 中加入</span>
+<span id="FuncType.Params"></span>    Params     *<a href="#FieldList">FieldList</a> <span class="comment">// 输入参数；非 nil</span>
+<span id="FuncType.Results"></span>    Results    *<a href="#FieldList">FieldList</a> <span class="comment">// 输出结果；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncType.End">func (*FuncType) <a href="/src/go/ast/ast.go?s=17809:17843#L551">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#FuncType">FuncType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="FuncType.Pos">func (*FuncType) <a href="/src/go/ast/ast.go?s=15951:15985#L509">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#FuncType">FuncType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="GenDecl">type <a href="/src/go/ast/ast.go?s=31799:32085#L985">GenDecl</a>
+				
+				
+			</h2>
+			<p>GenDecl 节点（通用声明节点）表示导入、常量、类型或变量声明。有效的 Lparen 位置（Lparen.IsValid()）表示带圆括号的声明。<p>Tok 值与 Specs 元素类型的关系如下：<pre>token.IMPORT  *ImportSpec
+token.CONST   *ValueSpec
+token.TYPE    *TypeSpec
+token.VAR     *ValueSpec
+</pre>
+
+			<pre>type GenDecl struct {
+<span id="GenDecl.Doc"></span>    Doc    *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="GenDecl.TokPos"></span>    TokPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>     <span class="comment">// Tok 的位置</span>
+<span id="GenDecl.Tok"></span>    Tok    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>   <span class="comment">// IMPORT、CONST、TYPE 或 VAR</span>
+<span id="GenDecl.Lparen"></span>    Lparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>     <span class="comment">// '(' 的位置（如果有）</span>
+<span id="GenDecl.Specs"></span>    Specs  []<a href="#Spec">Spec</a>
+<span id="GenDecl.Rparen"></span>    Rparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ')' 的位置（如果有）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="GenDecl.End">func (*GenDecl) <a href="/src/go/ast/ast.go?s=32793:32826#L1011">End</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#GenDecl">GenDecl</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="GenDecl.Pos">func (*GenDecl) <a href="/src/go/ast/ast.go?s=32628:32661#L1007">Pos</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#GenDecl">GenDecl</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="GoStmt">type <a href="/src/go/ast/ast.go?s=21508:21588#L675">GoStmt</a>
+				
+				
+			</h2>
+			<p>GoStmt 节点表示 go 语句。<pre>type GoStmt struct {
+<span id="GoStmt.Go"></span>    Go   <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "go" 关键字的位置</span>
+<span id="GoStmt.Call"></span>    Call *<a href="#CallExpr">CallExpr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="GoStmt.End">func (*GoStmt) <a href="/src/go/ast/ast.go?s=26646:26678#L815">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#GoStmt">GoStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="GoStmt.Pos">func (*GoStmt) <a href="/src/go/ast/ast.go?s=25305:25337#L786">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#GoStmt">GoStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Ident">type <a href="/src/go/ast/ast.go?s=8134:8304#L281">Ident</a>
+				
+				
+			</h2>
+			<p>Ident 节点表示标识符。<pre>type Ident struct {
+<span id="Ident.NamePos"></span>    NamePos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 标识符的位置</span>
+<span id="Ident.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 标识符名称</span>
+<span id="Ident.Obj"></span>    Obj     *<a href="#Object">Object</a>   <span class="comment">// 所指对象，或 nil。已弃用：参见 Object。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewIdent">func <a href="/src/go/ast/ast.go?s=19284:19317#L593">NewIdent</a>
+					
+					
+				</h3>
+				<pre>func NewIdent(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Ident">Ident</a></pre>
+				<p>NewIdent 创建不带位置信息的新 <a href="#Ident">Ident</a>。对于由 Go 语法分析器之外的代码生成的 AST，这很有用。<h3 id="Ident.End">func (*Ident) <a href="/src/go/ast/ast.go?s=16378:16409#L520">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Ident">Ident</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Ident.IsExported">func (*Ident) <a href="/src/go/ast/ast.go?s=19566:19600#L599">IsExported</a>
+					
+					
+				</h3>
+				<pre>func (id *<a href="#Ident">Ident</a>) IsExported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsExported 报告 id 是否以大写字母开头。<h3 id="Ident.Pos">func (*Ident) <a href="/src/go/ast/ast.go?s=14815:14846#L486">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Ident">Ident</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Ident.String">func (*Ident) <a href="/src/go/ast/ast.go?s=19639:19671#L601">String</a>
+					
+					
+				</h3>
+				<pre>func (id *<a href="#Ident">Ident</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IfStmt">type <a href="/src/go/ast/ast.go?s=22452:22651#L709">IfStmt</a>
+				
+				
+			</h2>
+			<p>IfStmt 节点表示 if 语句。<pre>type IfStmt struct {
+<span id="IfStmt.If"></span>    If   <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "if" 关键字的位置</span>
+<span id="IfStmt.Init"></span>    Init <a href="#Stmt">Stmt</a>      <span class="comment">// 初始化语句；或 nil</span>
+<span id="IfStmt.Cond"></span>    Cond <a href="#Expr">Expr</a>      <span class="comment">// 条件</span>
+<span id="IfStmt.Body"></span>    Body *<a href="#BlockStmt">BlockStmt</a>
+<span id="IfStmt.Else"></span>    Else <a href="#Stmt">Stmt</a> <span class="comment">// else 分支；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IfStmt.End">func (*IfStmt) <a href="/src/go/ast/ast.go?s=27227:27259#L838">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#IfStmt">IfStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="IfStmt.Pos">func (*IfStmt) <a href="/src/go/ast/ast.go?s=25605:25637#L791">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#IfStmt">IfStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ImportSpec">type <a href="/src/go/ast/ast.go?s=29131:29442#L899">ImportSpec</a>
+				
+				
+			</h2>
+			<p>ImportSpec 节点表示单个包导入。<pre>type ImportSpec struct {
+<span id="ImportSpec.Doc"></span>    Doc     *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="ImportSpec.Name"></span>    Name    *<a href="#Ident">Ident</a>        <span class="comment">// 本地包名（包括 "."）；或 nil</span>
+<span id="ImportSpec.Path"></span>    Path    *<a href="#BasicLit">BasicLit</a>     <span class="comment">// 导入路径</span>
+<span id="ImportSpec.Comment"></span>    Comment *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 行注释；或 nil</span>
+<span id="ImportSpec.EndPos"></span>    EndPos  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>     <span class="comment">// 声明项的结束位置（非零时覆盖 Path.Pos）</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ImportSpec.End">func (*ImportSpec) <a href="/src/go/ast/ast.go?s=30580:30616#L940">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ImportSpec">ImportSpec</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ImportSpec.Pos">func (*ImportSpec) <a href="/src/go/ast/ast.go?s=30348:30384#L931">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ImportSpec">ImportSpec</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Importer">type <a href="/src/go/ast/resolve.go?s=1818:1902#L55">Importer</a>
+				
+				
+			</h2>
+			<p>Importer 将导入路径解析为包 Object。imports 映射记录已经导入的包，以包 ID（规范导入路径）为索引。Importer 必须确定规范导入路径，并检查它是否已存在于 imports 映射中。如果存在，可以返回该映射条目；否则，应将给定路径的包数据加载到新的 *<a href="#Object">Object</a>（pkg）中，将 pkg 记录到 imports 映射，然后返回 pkg。<p>已弃用：请改用类型检查器 <a href="/pkg/go/types/">go/types</a>；参见 <a href="#Object">Object</a>。<pre>type Importer func(imports map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Object">Object</a>, path <a href="/pkg/builtin/#string">string</a>) (pkg *<a href="#Object">Object</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="IncDecStmt">type <a href="/src/go/ast/ast.go?s=21114:21225#L658">IncDecStmt</a>
+				
+				
+			</h2>
+			<p>IncDecStmt 节点表示自增或自减语句。<pre>type IncDecStmt struct {
+<span id="IncDecStmt.X"></span>    X      <a href="#Expr">Expr</a>
+<span id="IncDecStmt.TokPos"></span>    TokPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Tok 的位置</span>
+<span id="IncDecStmt.Tok"></span>    Tok    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// INC 或 DEC</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IncDecStmt.End">func (*IncDecStmt) <a href="/src/go/ast/ast.go?s=26494:26530#L811">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#IncDecStmt">IncDecStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="IncDecStmt.Pos">func (*IncDecStmt) <a href="/src/go/ast/ast.go?s=25176:25212#L784">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#IncDecStmt">IncDecStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IndexExpr">type <a href="/src/go/ast/ast.go?s=10398:10567#L342">IndexExpr</a>
+				
+				
+			</h2>
+			<p>IndexExpr 节点表示后跟索引的表达式。<pre>type IndexExpr struct {
+<span id="IndexExpr.X"></span>    X      <a href="#Expr">Expr</a>      <span class="comment">// 表达式</span>
+<span id="IndexExpr.Lbrack"></span>    Lbrack <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "[" 的位置</span>
+<span id="IndexExpr.Index"></span>    Index  <a href="#Expr">Expr</a>      <span class="comment">// 索引表达式</span>
+<span id="IndexExpr.Rbrack"></span>    Rbrack <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "]" 的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IndexExpr.End">func (*IndexExpr) <a href="/src/go/ast/ast.go?s=17101:17136#L540">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#IndexExpr">IndexExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="IndexExpr.Pos">func (*IndexExpr) <a href="/src/go/ast/ast.go?s=15272:15307#L498">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#IndexExpr">IndexExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IndexListExpr">type <a href="/src/go/ast/ast.go?s=10655:10833#L351">IndexListExpr</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>IndexListExpr 节点表示后跟多个索引的表达式。<pre>type IndexListExpr struct {
+<span id="IndexListExpr.X"></span>    X       <a href="#Expr">Expr</a>      <span class="comment">// 表达式</span>
+<span id="IndexListExpr.Lbrack"></span>    Lbrack  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "[" 的位置</span>
+<span id="IndexListExpr.Indices"></span>    Indices []<a href="#Expr">Expr</a>    <span class="comment">// 索引表达式列表</span>
+<span id="IndexListExpr.Rbrack"></span>    Rbrack  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "]" 的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="IndexListExpr.End">func (*IndexListExpr) <a href="/src/go/ast/ast.go?s=17166:17205#L541">End</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (x *<a href="#IndexListExpr">IndexListExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="IndexListExpr.Pos">func (*IndexListExpr) <a href="/src/go/ast/ast.go?s=15334:15373#L499">Pos</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (x *<a href="#IndexListExpr">IndexListExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="InterfaceType">type <a href="/src/go/ast/ast.go?s=14018:14269#L461">InterfaceType</a>
+				
+				
+			</h2>
+			<p>InterfaceType 节点表示接口类型。<pre>type InterfaceType struct {
+<span id="InterfaceType.Interface"></span>    Interface  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "interface" 关键字的位置</span>
+<span id="InterfaceType.Methods"></span>    Methods    *<a href="#FieldList">FieldList</a> <span class="comment">// 嵌入接口、方法或类型的列表</span>
+<span id="InterfaceType.Incomplete"></span>    Incomplete <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 若 Methods 列表中缺失源代码中的方法或类型，则为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InterfaceType.End">func (*InterfaceType) <a href="/src/go/ast/ast.go?s=17922:17961#L557">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#InterfaceType">InterfaceType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="InterfaceType.Pos">func (*InterfaceType) <a href="/src/go/ast/ast.go?s=16148:16187#L515">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#InterfaceType">InterfaceType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="KeyValueExpr">type <a href="/src/go/ast/ast.go?s=12693:12780#L416">KeyValueExpr</a>
+				
+				
+			</h2>
+			<p>KeyValueExpr 节点表示复合字面量中的 (key : value) 对。<pre>type KeyValueExpr struct {
+<span id="KeyValueExpr.Key"></span>    Key   <a href="#Expr">Expr</a>
+<span id="KeyValueExpr.Colon"></span>    Colon <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ":" 的位置</span>
+<span id="KeyValueExpr.Value"></span>    Value <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="KeyValueExpr.End">func (*KeyValueExpr) <a href="/src/go/ast/ast.go?s=17612:17650#L548">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#KeyValueExpr">KeyValueExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="KeyValueExpr.Pos">func (*KeyValueExpr) <a href="/src/go/ast/ast.go?s=15765:15803#L506">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#KeyValueExpr">KeyValueExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="LabeledStmt">type <a href="/src/go/ast/ast.go?s=20682:20770#L637">LabeledStmt</a>
+				
+				
+			</h2>
+			<p>LabeledStmt 节点表示带标签的语句。<pre>type LabeledStmt struct {
+<span id="LabeledStmt.Label"></span>    Label *<a href="#Ident">Ident</a>
+<span id="LabeledStmt.Colon"></span>    Colon <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ":" 的位置</span>
+<span id="LabeledStmt.Stmt"></span>    Stmt  <a href="#Stmt">Stmt</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LabeledStmt.End">func (*LabeledStmt) <a href="/src/go/ast/ast.go?s=26310:26347#L808">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#LabeledStmt">LabeledStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="LabeledStmt.Pos">func (*LabeledStmt) <a href="/src/go/ast/ast.go?s=24983:25020#L781">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#LabeledStmt">LabeledStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="MapType">type <a href="/src/go/ast/ast.go?s=14314:14406#L468">MapType</a>
+				
+				
+			</h2>
+			<p>MapType 节点表示映射类型。<pre>type MapType struct {
+<span id="MapType.Map"></span>    Map   <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "map" 关键字的位置</span>
+<span id="MapType.Key"></span>    Key   <a href="#Expr">Expr</a>
+<span id="MapType.Value"></span>    Value <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MapType.End">func (*MapType) <a href="/src/go/ast/ast.go?s=17989:18022#L558">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#MapType">MapType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="MapType.Pos">func (*MapType) <a href="/src/go/ast/ast.go?s=16211:16244#L516">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#MapType">MapType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="MergeMode">type <a href="/src/go/ast/filter.go?s=7912:7931#L296">MergeMode</a>
+				
+				
+			</h2>
+			<p>MergeMode 标志控制 <a href="#MergePackageFiles">MergePackageFiles</a> 的行为。<p>已弃用：请使用类型检查器 <a href="/pkg/go/types/">go/types</a> 代替 <a href="#Package">Package</a>；参见 <a href="#Object">Object</a>。<pre>type MergeMode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				<p>已弃用：请使用类型检查器 <a href="/pkg/go/types/">go/types</a> 代替 <a href="#Package">Package</a>；参见 <a href="#Object">Object</a>。<pre>const (
+    <span class="comment">// 若设置，则排除重复的函数声明。</span>
+    <span id="FilterFuncDuplicates">FilterFuncDuplicates</span> <a href="#MergeMode">MergeMode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+    <span class="comment">// 若设置，则排除未通过 Doc 或 Comment</span>
+    <span class="comment">// 与某个特定 AST 节点关联的注释。</span>
+    <span id="FilterUnassociatedComments">FilterUnassociatedComments</span>
+    <span class="comment">// 若设置，则排除重复的导入声明。</span>
+    <span id="FilterImportDuplicates">FilterImportDuplicates</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Node">type <a href="/src/go/ast/ast.go?s=1339:1507#L26">Node</a>
+				
+				
+			</h2>
+			<p>所有节点类型都实现 Node 接口。<pre>type Node interface {
+    Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 属于此节点的第一个字符的位置</span>
+    End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 紧接此节点之后的第一个字符的位置</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ObjKind">type <a href="/src/go/ast/scope.go?s=4255:4271#L138">ObjKind</a>
+				
+				
+			</h2>
+			<p>ObjKind 描述 <a href="#Object">Object</a> 所表示实体的种类。<pre>type ObjKind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>所有可能的 <a href="#Object">Object</a> 种类列表。<pre>const (
+    <span id="Bad">Bad</span> <a href="#ObjKind">ObjKind</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 用于错误处理</span>
+    <span id="Pkg">Pkg</span>                <span class="comment">// 包</span>
+    <span id="Con">Con</span>                <span class="comment">// 常量</span>
+    <span id="Typ">Typ</span>                <span class="comment">// 类型</span>
+    <span id="Var">Var</span>                <span class="comment">// 变量</span>
+    <span id="Fun">Fun</span>                <span class="comment">// 函数或方法</span>
+    <span id="Lbl">Lbl</span>                <span class="comment">// 标签</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ObjKind.String">func (ObjKind) <a href="/src/go/ast/scope.go?s=4698:4733#L161">String</a>
+					
+					
+				</h3>
+				<pre>func (kind <a href="#ObjKind">ObjKind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Object">type <a href="/src/go/ast/scope.go?s=2761:3028#L77">Object</a>
+				
+				
+			</h2>
+			<p>Object 描述命名的语言实体，例如包、常量、类型、变量、函数（包括方法）或标签。<p>Data 字段包含对象特定的数据：<pre>Kind    Data 类型         Data 值
+Pkg     *Scope            包作用域
+Con     int               相应声明的 iota 值
+</pre>
+<p>已弃用：没有类型信息，就无法正确计算 Ident 与 Object 之间的关系。例如，表达式 T{K: 0} 可能表示结构体、映射、切片或数组字面量，这取决于 T 的类型。如果 T 是结构体，则 K 引用 T 的字段；对于其他类型，K 引用环境中的某个值。<p>新程序应设置 <a href="/pkg/go/parser/#SkipObjectResolution">go/parser.SkipObjectResolution</a> 语法分析器标志，禁用基于语法的对象解析（这也会节省 CPU 和内存）；如果需要解析对象，则改用类型检查器 <a href="/pkg/go/types/">go/types</a>。详情参见 <a href="/pkg/go/types/#Info">go/types.Info</a> 结构体的 Defs、Uses 和 Implicits 字段。<pre>type Object struct {
+<span id="Object.Kind"></span>    Kind <a href="#ObjKind">ObjKind</a>
+<span id="Object.Name"></span>    Name <a href="/pkg/builtin/#string">string</a> <span class="comment">// 声明的名称</span>
+<span id="Object.Decl"></span>    Decl <a href="/pkg/builtin/#any">any</a>    <span class="comment">// 对应的 Field、XxxSpec、FuncDecl、LabeledStmt、AssignStmt、Scope；或 nil</span>
+<span id="Object.Data"></span>    Data <a href="/pkg/builtin/#any">any</a>    <span class="comment">// 对象特定的数据；或 nil</span>
+<span id="Object.Type"></span>    Type <a href="/pkg/builtin/#any">any</a>    <span class="comment">// 类型信息的占位符；可以为 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewObj">func <a href="/src/go/ast/scope.go?s=3087:3133#L86">NewObj</a>
+					
+					
+				</h3>
+				<pre>func NewObj(kind <a href="#ObjKind">ObjKind</a>, name <a href="/pkg/builtin/#string">string</a>) *<a href="#Object">Object</a></pre>
+				<p>NewObj 根据给定种类和名称创建新对象。<h3 id="Object.Pos">func (*Object) <a href="/src/go/ast/scope.go?s=3360:3394#L93">Pos</a>
+					
+					
+				</h3>
+				<pre>func (obj *<a href="#Object">Object</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 计算对象名称声明的源代码位置。如果无法计算，结果可能是无效位置（obj.Decl 可能为 nil 或不正确）。<h2 id="Package">type <a href="/src/go/ast/ast.go?s=35875:36130#L1089">Package</a>
+				
+				
+			</h2>
+			<p>Package 节点表示一组共同构成 Go 包的源文件。<p>已弃用：请改用类型检查器 <a href="/pkg/go/types/">go/types</a>；参见 <a href="#Object">Object</a>。<pre>type Package struct {
+<span id="Package.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a>             <span class="comment">// 包名</span>
+<span id="Package.Scope"></span>    Scope   *<a href="#Scope">Scope</a>             <span class="comment">// 跨所有文件的包作用域</span>
+<span id="Package.Imports"></span>    Imports map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Object">Object</a> <span class="comment">// 包 ID 到包对象的映射</span>
+<span id="Package.Files"></span>    Files   map[<a href="/pkg/builtin/#string">string</a>]*<a href="#File">File</a>   <span class="comment">// 按文件名索引的 Go 源文件</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewPackage">func <a href="/src/go/ast/resolve.go?s=2588:2702#L67">NewPackage</a>
+					
+					
+				</h3>
+				<pre>func NewPackage(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, files map[<a href="/pkg/builtin/#string">string</a>]*<a href="#File">File</a>, importer <a href="#Importer">Importer</a>, universe *<a href="#Scope">Scope</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewPackage 根据一组 <a href="#File">File</a> 节点创建新的 <a href="#Package">Package</a> 节点。它跨文件解析未解析的标识符，并相应更新每个文件的 Unresolved 列表。如果提供非 nil 的 importer 和全域作用域，则用它们解析未在任何包文件中声明的标识符。所有剩余未解析的标识符都会报告为未声明。如果这些文件属于不同的包，会选定一个包名，报告其他包名的文件并忽略它们。结果为包节点；如果存在错误，还会返回 <a href="/pkg/go/scanner/#ErrorList">scanner.ErrorList</a>。<p>已弃用：请改用类型检查器 <a href="/pkg/go/types/">go/types</a>；参见 <a href="#Object">Object</a>。<h3 id="Package.End">func (*Package) <a href="/src/go/ast/ast.go?s=36189:36222#L1097">End</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Package.Pos">func (*Package) <a href="/src/go/ast/ast.go?s=36132:36165#L1096">Pos</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Package">Package</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ParenExpr">type <a href="/src/go/ast/ast.go?s=10024:10168#L329">ParenExpr</a>
+				
+				
+			</h2>
+			<p>ParenExpr 节点表示带圆括号的表达式。<pre>type ParenExpr struct {
+<span id="ParenExpr.Lparen"></span>    Lparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "(" 的位置</span>
+<span id="ParenExpr.X"></span>    X      <a href="#Expr">Expr</a>      <span class="comment">// 带圆括号的表达式</span>
+<span id="ParenExpr.Rparen"></span>    Rparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ")" 的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParenExpr.End">func (*ParenExpr) <a href="/src/go/ast/ast.go?s=16972:17007#L538">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ParenExpr">ParenExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ParenExpr.Pos">func (*ParenExpr) <a href="/src/go/ast/ast.go?s=15149:15184#L496">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#ParenExpr">ParenExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RangeStmt">type <a href="/src/go/ast/ast.go?s=24352:24738#L765">RangeStmt</a>
+				
+				
+			</h2>
+			<p>RangeStmt 表示带 range 子句的 for 语句。<pre>type RangeStmt struct {
+<span id="RangeStmt.For"></span>    For        <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// "for" 关键字的位置</span>
+<span id="RangeStmt.Key"></span>    Key, Value <a href="#Expr">Expr</a>        <span class="comment">// Key、Value 可以为 nil</span>
+<span id="RangeStmt.TokPos"></span>    TokPos     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Tok 的位置；Key == nil 时无效</span>
+<span id="RangeStmt.Tok"></span>    Tok        <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// Key == nil 时为 ILLEGAL，否则为 ASSIGN 或 DEFINE</span>
+<span id="RangeStmt.Range"></span>    Range      <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// "range" 关键字的位置；Go 1.20 中加入</span>
+<span id="RangeStmt.X"></span>    X          <a href="#Expr">Expr</a>        <span class="comment">// 要遍历的值</span>
+<span id="RangeStmt.Body"></span>    Body       *<a href="#BlockStmt">BlockStmt</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RangeStmt.End">func (*RangeStmt) <a href="/src/go/ast/ast.go?s=27824:27859#L860">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#RangeStmt">RangeStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="RangeStmt.Pos">func (*RangeStmt) <a href="/src/go/ast/ast.go?s=26021:26056#L798">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#RangeStmt">RangeStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ReturnStmt">type <a href="/src/go/ast/ast.go?s=21786:21910#L687">ReturnStmt</a>
+				
+				
+			</h2>
+			<p>ReturnStmt 节点表示 return 语句。<pre>type ReturnStmt struct {
+<span id="ReturnStmt.Return"></span>    Return  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "return" 关键字的位置</span>
+<span id="ReturnStmt.Results"></span>    Results []<a href="#Expr">Expr</a>    <span class="comment">// 结果表达式；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ReturnStmt.End">func (*ReturnStmt) <a href="/src/go/ast/ast.go?s=26768:26804#L817">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ReturnStmt">ReturnStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ReturnStmt.Pos">func (*ReturnStmt) <a href="/src/go/ast/ast.go?s=25422:25458#L788">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ReturnStmt">ReturnStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Scope">type <a href="/src/go/ast/scope.go?s=491:556#L10">Scope</a>
+				
+				
+			</h2>
+			<p>Scope 维护在该作用域中声明的命名语言实体集合，以及指向紧邻外围作用域的链接。<p>已弃用：请改用类型检查器 <a href="/pkg/go/types/">go/types</a>；参见 <a href="#Object">Object</a>。<pre>type Scope struct {
+<span id="Scope.Outer"></span>    Outer   *<a href="#Scope">Scope</a>
+<span id="Scope.Objects"></span>    Objects map[<a href="/pkg/builtin/#string">string</a>]*<a href="#Object">Object</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewScope">func <a href="/src/go/ast/scope.go?s=617:651#L16">NewScope</a>
+					
+					
+				</h3>
+				<pre>func NewScope(outer *<a href="#Scope">Scope</a>) *<a href="#Scope">Scope</a></pre>
+				<p>NewScope 创建嵌套在 outer 作用域中的新作用域。<h3 id="Scope.Insert">func (*Scope) <a href="/src/go/ast/scope.go?s=1186:1235#L32">Insert</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Insert(obj *<a href="#Object">Object</a>) (alt *<a href="#Object">Object</a>)</pre>
+				<p>Insert 尝试将命名对象 obj 插入作用域 s。如果该作用域已包含同名对象 alt，Insert 保持作用域不变并返回 alt；否则插入 obj 并返回 nil。<h3 id="Scope.Lookup">func (*Scope) <a href="/src/go/ast/scope.go?s=881:924#L24">Lookup</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Lookup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Object">Object</a></pre>
+				<p>Lookup 返回在作用域 s 中找到的给定名称的对象；如果找不到，则返回 nil。它忽略外层作用域。<h3 id="Scope.String">func (*Scope) <a href="/src/go/ast/scope.go?s=1345:1376#L40">String</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>调试支持。<h2 id="SelectStmt">type <a href="/src/go/ast/ast.go?s=23899:24013#L750">SelectStmt</a>
+				
+				
+			</h2>
+			<p>SelectStmt 节点表示 select 语句。<pre>type SelectStmt struct {
+<span id="SelectStmt.Select"></span>    Select <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "select" 关键字的位置</span>
+<span id="SelectStmt.Body"></span>    Body   *<a href="#BlockStmt">BlockStmt</a> <span class="comment">// 仅包含 CommClause</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SelectStmt.End">func (*SelectStmt) <a href="/src/go/ast/ast.go?s=27702:27738#L858">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SelectStmt">SelectStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="SelectStmt.Pos">func (*SelectStmt) <a href="/src/go/ast/ast.go?s=25902:25938#L796">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SelectStmt">SelectStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SelectorExpr">type <a href="/src/go/ast/ast.go?s=10244:10326#L336">SelectorExpr</a>
+				
+				
+			</h2>
+			<p>SelectorExpr 节点表示后跟选择器的表达式。<pre>type SelectorExpr struct {
+<span id="SelectorExpr.X"></span>    X   <a href="#Expr">Expr</a>   <span class="comment">// 表达式</span>
+<span id="SelectorExpr.Sel"></span>    Sel *<a href="#Ident">Ident</a> <span class="comment">// 字段选择器</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SelectorExpr.End">func (*SelectorExpr) <a href="/src/go/ast/ast.go?s=17037:17075#L539">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#SelectorExpr">SelectorExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="SelectorExpr.Pos">func (*SelectorExpr) <a href="/src/go/ast/ast.go?s=15210:15248#L497">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#SelectorExpr">SelectorExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SendStmt">type <a href="/src/go/ast/ast.go?s=20956:21040#L651">SendStmt</a>
+				
+				
+			</h2>
+			<p>SendStmt 节点表示发送语句。<pre>type SendStmt struct {
+<span id="SendStmt.Chan"></span>    Chan  <a href="#Expr">Expr</a>
+<span id="SendStmt.Arrow"></span>    Arrow <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "&lt;-" 的位置</span>
+<span id="SendStmt.Value"></span>    Value <a href="#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SendStmt.End">func (*SendStmt) <a href="/src/go/ast/ast.go?s=26431:26465#L810">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SendStmt">SendStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="SendStmt.Pos">func (*SendStmt) <a href="/src/go/ast/ast.go?s=25111:25145#L783">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SendStmt">SendStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SliceExpr">type <a href="/src/go/ast/ast.go?s=10909:11258#L359">SliceExpr</a>
+				
+				
+			</h2>
+			<p>SliceExpr 节点表示后跟切片索引的表达式。<pre>type SliceExpr struct {
+<span id="SliceExpr.X"></span>    X      <a href="#Expr">Expr</a>      <span class="comment">// 表达式</span>
+<span id="SliceExpr.Lbrack"></span>    Lbrack <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "[" 的位置</span>
+<span id="SliceExpr.Low"></span>    Low    <a href="#Expr">Expr</a>      <span class="comment">// 切片范围的起点；或 nil</span>
+<span id="SliceExpr.High"></span>    High   <a href="#Expr">Expr</a>      <span class="comment">// 切片范围的终点；或 nil</span>
+<span id="SliceExpr.Max"></span>    Max    <a href="#Expr">Expr</a>      <span class="comment">// 切片的最大容量；或 nil；Go 1.2 中加入</span>
+<span id="SliceExpr.Slice3"></span>    Slice3 <a href="/pkg/builtin/#bool">bool</a>      <span class="comment">// 若为三索引切片（有两个冒号），则为 true；Go 1.2 中加入</span>
+<span id="SliceExpr.Rbrack"></span>    Rbrack <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "]" 的位置</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SliceExpr.End">func (*SliceExpr) <a href="/src/go/ast/ast.go?s=17231:17266#L542">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#SliceExpr">SliceExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="SliceExpr.Pos">func (*SliceExpr) <a href="/src/go/ast/ast.go?s=15396:15431#L500">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#SliceExpr">SliceExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Spec">type <a href="/src/go/ast/ast.go?s=29030:29069#L893">Spec</a>
+				
+				
+			</h2>
+			<p>Spec 类型表示 *ImportSpec、*ValueSpec 或 *TypeSpec 中的任意一种。<pre>type Spec interface {
+    <a href="#Node">Node</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StarExpr">type <a href="/src/go/ast/ast.go?s=12055:12139#L391">StarExpr</a>
+				
+				
+			</h2>
+			<p>StarExpr 节点表示 &quot;*&quot; Expression 形式的表达式。从语义上看，它可以是一元 &quot;*&quot; 表达式，也可以是指针类型。<pre>type StarExpr struct {
+<span id="StarExpr.Star"></span>    Star <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "*" 的位置</span>
+<span id="StarExpr.X"></span>    X    <a href="#Expr">Expr</a>      <span class="comment">// 操作数</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StarExpr.End">func (*StarExpr) <a href="/src/go/ast/ast.go?s=17426:17460#L545">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#StarExpr">StarExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="StarExpr.Pos">func (*StarExpr) <a href="/src/go/ast/ast.go?s=15584:15618#L503">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#StarExpr">StarExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Stmt">type <a href="/src/go/ast/ast.go?s=1659:1700#L38">Stmt</a>
+				
+				
+			</h2>
+			<p>所有语句节点都实现 Stmt 接口。<pre>type Stmt interface {
+    <a href="#Node">Node</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StructType">type <a href="/src/go/ast/ast.go?s=13366:13580#L444">StructType</a>
+				
+				
+			</h2>
+			<p>StructType 节点表示结构体类型。<pre>type StructType struct {
+<span id="StructType.Struct"></span>    Struct     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "struct" 关键字的位置</span>
+<span id="StructType.Fields"></span>    Fields     *<a href="#FieldList">FieldList</a> <span class="comment">// 字段声明列表</span>
+<span id="StructType.Incomplete"></span>    Incomplete <a href="/pkg/builtin/#bool">bool</a>       <span class="comment">// 若 Fields 列表中缺失源代码中的字段，则为 true</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StructType.End">func (*StructType) <a href="/src/go/ast/ast.go?s=17742:17778#L550">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#StructType">StructType</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="StructType.Pos">func (*StructType) <a href="/src/go/ast/ast.go?s=15890:15926#L508">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#StructType">StructType</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SwitchStmt">type <a href="/src/go/ast/ast.go?s=23038:23254#L726">SwitchStmt</a>
+				
+				
+			</h2>
+			<p>SwitchStmt 节点表示表达式 switch 语句。<pre>type SwitchStmt struct {
+<span id="SwitchStmt.Switch"></span>    Switch <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "switch" 关键字的位置</span>
+<span id="SwitchStmt.Init"></span>    Init   <a href="#Stmt">Stmt</a>       <span class="comment">// 初始化语句；或 nil</span>
+<span id="SwitchStmt.Tag"></span>    Tag    <a href="#Expr">Expr</a>       <span class="comment">// 分支匹配表达式；或 nil</span>
+<span id="SwitchStmt.Body"></span>    Body   *<a href="#BlockStmt">BlockStmt</a> <span class="comment">// 仅包含 CaseClause</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SwitchStmt.End">func (*SwitchStmt) <a href="/src/go/ast/ast.go?s=27451:27487#L850">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SwitchStmt">SwitchStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="SwitchStmt.Pos">func (*SwitchStmt) <a href="/src/go/ast/ast.go?s=25721:25757#L793">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SwitchStmt">SwitchStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TypeAssertExpr">type <a href="/src/go/ast/ast.go?s=11350:11553#L372">TypeAssertExpr</a>
+				
+				
+			</h2>
+			<p>TypeAssertExpr 节点表示后跟类型断言的表达式。<pre>type TypeAssertExpr struct {
+<span id="TypeAssertExpr.X"></span>    X      <a href="#Expr">Expr</a>      <span class="comment">// 表达式</span>
+<span id="TypeAssertExpr.Lparen"></span>    Lparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// "(" 的位置；Go 1.2 中加入</span>
+<span id="TypeAssertExpr.Type"></span>    Type   <a href="#Expr">Expr</a>      <span class="comment">// 断言的类型；nil 表示类型 switch 中的 X.(type)</span>
+<span id="TypeAssertExpr.Rparen"></span>    Rparen <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// ")" 的位置；Go 1.2 中加入</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeAssertExpr.End">func (*TypeAssertExpr) <a href="/src/go/ast/ast.go?s=17296:17336#L543">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#TypeAssertExpr">TypeAssertExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="TypeAssertExpr.Pos">func (*TypeAssertExpr) <a href="/src/go/ast/ast.go?s=15458:15498#L501">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#TypeAssertExpr">TypeAssertExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TypeSpec">type <a href="/src/go/ast/ast.go?s=29913:30296#L919">TypeSpec</a>
+				
+				
+			</h2>
+			<p>TypeSpec 节点表示类型声明（TypeSpec 产生式）。<pre>type TypeSpec struct {
+<span id="TypeSpec.Doc"></span>    Doc        *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="TypeSpec.Name"></span>    Name       *<a href="#Ident">Ident</a>        <span class="comment">// 类型名称</span>
+<span id="TypeSpec.TypeParams"></span>    TypeParams *<a href="#FieldList">FieldList</a>    <span class="comment">// 类型参数；或 nil；Go 1.18 中加入</span>
+<span id="TypeSpec.Assign"></span>    Assign     <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>     <span class="comment">// '=' 的位置（如果有）；Go 1.9 中加入</span>
+<span id="TypeSpec.Type"></span>    Type       <a href="#Expr">Expr</a>          <span class="comment">// *Ident、*ParenExpr、*SelectorExpr、*StarExpr，或任意 *XxxType</span>
+<span id="TypeSpec.Comment"></span>    Comment    *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 行注释；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeSpec.End">func (*TypeSpec) <a href="/src/go/ast/ast.go?s=30871:30905#L956">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#TypeSpec">TypeSpec</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="TypeSpec.Pos">func (*TypeSpec) <a href="/src/go/ast/ast.go?s=30519:30553#L938">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#TypeSpec">TypeSpec</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TypeSwitchStmt">type <a href="/src/go/ast/ast.go?s=23319:23542#L734">TypeSwitchStmt</a>
+				
+				
+			</h2>
+			<p>TypeSwitchStmt 节点表示类型 switch 语句。<pre>type TypeSwitchStmt struct {
+<span id="TypeSwitchStmt.Switch"></span>    Switch <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>  <span class="comment">// "switch" 关键字的位置</span>
+<span id="TypeSwitchStmt.Init"></span>    Init   <a href="#Stmt">Stmt</a>       <span class="comment">// 初始化语句；或 nil</span>
+<span id="TypeSwitchStmt.Assign"></span>    Assign <a href="#Stmt">Stmt</a>       <span class="comment">// x := y.(type) 或 y.(type)</span>
+<span id="TypeSwitchStmt.Body"></span>    Body   *<a href="#BlockStmt">BlockStmt</a> <span class="comment">// 仅包含 CaseClause</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeSwitchStmt.End">func (*TypeSwitchStmt) <a href="/src/go/ast/ast.go?s=27516:27556#L851">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#TypeSwitchStmt">TypeSwitchStmt</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="TypeSwitchStmt.Pos">func (*TypeSwitchStmt) <a href="/src/go/ast/ast.go?s=25782:25822#L794">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#TypeSwitchStmt">TypeSwitchStmt</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnaryExpr">type <a href="/src/go/ast/ast.go?s=12260:12382#L399">UnaryExpr</a>
+				
+				
+			</h2>
+			<p>UnaryExpr 节点表示一元表达式。一元 &quot;*&quot; 表达式通过 StarExpr 节点表示。<pre>type UnaryExpr struct {
+<span id="UnaryExpr.OpPos"></span>    OpPos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>   <span class="comment">// Op 的位置</span>
+<span id="UnaryExpr.Op"></span>    Op    <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a> <span class="comment">// 运算符</span>
+<span id="UnaryExpr.X"></span>    X     <a href="#Expr">Expr</a>        <span class="comment">// 操作数</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnaryExpr.End">func (*UnaryExpr) <a href="/src/go/ast/ast.go?s=17488:17523#L546">End</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#UnaryExpr">UnaryExpr</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="UnaryExpr.Pos">func (*UnaryExpr) <a href="/src/go/ast/ast.go?s=15643:15678#L504">Pos</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#UnaryExpr">UnaryExpr</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ValueSpec">type <a href="/src/go/ast/ast.go?s=29555:29837#L910">ValueSpec</a>
+				
+				
+			</h2>
+			<p>ValueSpec 节点表示常量或变量声明（ConstSpec 或 VarSpec 产生式）。<pre>type ValueSpec struct {
+<span id="ValueSpec.Doc"></span>    Doc     *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 关联的文档；或 nil</span>
+<span id="ValueSpec.Names"></span>    Names   []*<a href="#Ident">Ident</a>      <span class="comment">// 值的名称（len(Names) &gt; 0）</span>
+<span id="ValueSpec.Type"></span>    Type    <a href="#Expr">Expr</a>          <span class="comment">// 值类型；或 nil</span>
+<span id="ValueSpec.Values"></span>    Values  []<a href="#Expr">Expr</a>        <span class="comment">// 初始值；或 nil</span>
+<span id="ValueSpec.Comment"></span>    Comment *<a href="#CommentGroup">CommentGroup</a> <span class="comment">// 行注释；或 nil</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ValueSpec.End">func (*ValueSpec) <a href="/src/go/ast/ast.go?s=30684:30719#L947">End</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ValueSpec">ValueSpec</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="ValueSpec.Pos">func (*ValueSpec) <a href="/src/go/ast/ast.go?s=30455:30490#L937">Pos</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#ValueSpec">ValueSpec</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Visitor">type <a href="/src/go/ast/walk.go?s=417:473#L5">Visitor</a>
+				
+				
+			</h2>
+			<p><a href="#Walk">Walk</a> 遇到每个节点时都会调用 Visitor 的 Visit 方法。如果返回的访问器 w 非 nil，<a href="#Walk">Walk</a> 会使用访问器 w 访问 node 的每个子节点，最后调用 w.Visit(nil)。<pre>type Visitor interface {
+    Visit(node <a href="#Node">Node</a>) (w <a href="#Visitor">Visitor</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

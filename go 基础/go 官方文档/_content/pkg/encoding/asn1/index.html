@@ -1,0 +1,501 @@
+<!--{
+  "Title": "encoding/asn1 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package asn1</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/asn1"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>asn1 包实现了对 DER 编码的 ASN.1 数据结构的解析，其定义见 ITU-T Rec X.690。
+<p>另见《ASN.1、BER 和 DER 子集入门指南》（A Layman's Guide to a Subset of ASN.1, BER, and DER）：<a href="http://luca.ntop.org/Teaching/Appunti/asn1.html">http://luca.ntop.org/Teaching/Appunti/asn1.html</a>。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Marshal">func Marshal(val any) ([]byte, error)</a></dd>
+			
+				<dd><a href="#MarshalWithParams">func MarshalWithParams(val any, params string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Unmarshal">func Unmarshal(b []byte, val any) (rest []byte, err error)</a></dd>
+			
+				<dd><a href="#UnmarshalWithParams">func UnmarshalWithParams(b []byte, val any, params string) (rest []byte, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#BitString">type BitString</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BitString.At">func (b BitString) At(i int) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BitString.RightAlign">func (b BitString) RightAlign() []byte</a></dd>
+				
+			
+				
+				<dd><a href="#Enumerated">type Enumerated</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Flag">type Flag</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ObjectIdentifier">type ObjectIdentifier</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ObjectIdentifier.Equal">func (oi ObjectIdentifier) Equal(other ObjectIdentifier) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ObjectIdentifier.String">func (oi ObjectIdentifier) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#RawContent">type RawContent</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RawValue">type RawValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StructuralError">type StructuralError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StructuralError.Error">func (e StructuralError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#SyntaxError">type SyntaxError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntaxError.Error">func (e SyntaxError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/asn1/asn1.go">asn1.go</a>
+			
+				<a href="/src/encoding/asn1/common.go">common.go</a>
+			
+				<a href="/src/encoding/asn1/marshal.go">marshal.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>ASN.1 标签表示其后对象的类型。
+
+				<pre>const (
+    <span id="TagBoolean">TagBoolean</span>         = 1
+    <span id="TagInteger">TagInteger</span>         = 2
+    <span id="TagBitString">TagBitString</span>       = 3
+    <span id="TagOctetString">TagOctetString</span>     = 4
+    <span id="TagNull">TagNull</span>            = 5
+    <span id="TagOID">TagOID</span>             = 6
+    <span id="TagEnum">TagEnum</span>            = 10
+    <span id="TagUTF8String">TagUTF8String</span>      = 12
+    <span id="TagSequence">TagSequence</span>        = 16
+    <span id="TagSet">TagSet</span>             = 17
+    <span id="TagNumericString">TagNumericString</span>   = 18
+    <span id="TagPrintableString">TagPrintableString</span> = 19
+    <span id="TagT61String">TagT61String</span>       = 20
+    <span id="TagIA5String">TagIA5String</span>       = 22
+    <span id="TagUTCTime">TagUTCTime</span>         = 23
+    <span id="TagGeneralizedTime">TagGeneralizedTime</span> = 24
+    <span id="TagGeneralString">TagGeneralString</span>   = 27
+    <span id="TagBMPString">TagBMPString</span>       = 30
+)</pre>
+			
+				<p>ASN.1 类别类型表示标签所属的命名空间。
+
+				<pre>const (
+    <span id="ClassUniversal">ClassUniversal</span>       = 0
+    <span id="ClassApplication">ClassApplication</span>     = 1
+    <span id="ClassContextSpecific">ClassContextSpecific</span> = 2
+    <span id="ClassPrivate">ClassPrivate</span>         = 3
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>NullBytes 包含表示 DER 编码的 ASN.1 NULL 类型的字节。
+
+				<pre>var <span id="NullBytes">NullBytes</span> = []<a href="/pkg/builtin/#byte">byte</a>{<a href="#TagNull">TagNull</a>, 0}</pre>
+			
+				<p>NullRawValue 是一个 <a href="#RawValue">RawValue</a>，其 Tag 设为 ASN.1 NULL 类型的标签（5）。
+
+				<pre>var <span id="NullRawValue">NullRawValue</span> = <a href="#RawValue">RawValue</a>{<a href="#RawValue.Tag">Tag</a>: <a href="#TagNull">TagNull</a>}</pre>
+			
+		
+		
+			
+			<h2 id="Marshal">func <a href="/src/encoding/asn1/marshal.go?s=17241:17278#L725">Marshal</a>
+				
+				
+			</h2>
+			<pre>func Marshal(val <a href="/pkg/builtin/#any">any</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Marshal 返回 val 的 ASN.1 编码。
+<p>除 Unmarshal 识别的结构体标签外，还可以使用以下标签：
+<pre>ia5:         将字符串序列化为 ASN.1 IA5String 值
+omitempty:   跳过空切片
+printable:   将字符串序列化为 ASN.1 PrintableString 值
+utf8:        将字符串序列化为 ASN.1 UTF8String 值
+numeric:     将字符串序列化为 ASN.1 NumericString 值
+utc:         将 time.Time 序列化为 ASN.1 UTCTime 值
+generalized: 将 time.Time 序列化为 ASN.1 GeneralizedTime 值
+</pre>
+
+			
+		
+			
+			<h2 id="MarshalWithParams">func <a href="/src/encoding/asn1/marshal.go?s=17464:17526#L731">MarshalWithParams</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<pre>func MarshalWithParams(val <a href="/pkg/builtin/#any">any</a>, params <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MarshalWithParams 允许为顶层元素指定字段参数。params 的形式与字段标签相同。
+
+			
+		
+			
+			<h2 id="Unmarshal">func <a href="/src/encoding/asn1/asn1.go?s=34110:34168#L1139">Unmarshal</a>
+				
+				
+			</h2>
+			<pre>func Unmarshal(b []<a href="/pkg/builtin/#byte">byte</a>, val <a href="/pkg/builtin/#any">any</a>) (rest []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Unmarshal 解析 DER 编码的 ASN.1 数据结构 b，并使用 reflect 包填充 val 指向的任意值。由于 Unmarshal 使用 reflect 包，写入的结构体必须使用大写字母开头的字段名。如果 val 为 nil 或不是指针，Unmarshal 会返回错误。
+<p>解析 b 后，剩余的、未用于填充 val 的字节会通过 rest 返回。将 SEQUENCE 解析到结构体时，SEQUENCE 末尾在 val 中没有对应字段的元素不会包含在 rest 中，因为它们被视为 SEQUENCE 的有效元素，而非尾随数据。
+<ul>
+<li><p>ASN.1 INTEGER 可以写入 int、int32、int64 或 *<a href="/pkg/math/big/#Int">big.Int</a>。如果编码的值超出 Go 类型的表示范围，Unmarshal 会返回解析错误。
+<li><p>ASN.1 BIT STRING 可以写入 <a href="#BitString">BitString</a>。
+<li><p>ASN.1 OCTET STRING 可以写入 []byte。
+<li><p>ASN.1 OBJECT IDENTIFIER 可以写入 <a href="#ObjectIdentifier">ObjectIdentifier</a>。
+<li><p>ASN.1 ENUMERATED 可以写入 <a href="#Enumerated">Enumerated</a>。
+<li><p>ASN.1 UTCTIME 或 GENERALIZEDTIME 可以写入 <a href="/pkg/time/#Time">time.Time</a>。
+<li><p>ASN.1 PrintableString、IA5String 或 NumericString 可以写入 string。
+<li><p>上述任意 ASN.1 值均可写入 interface{}。接口中保存的值具有对应的 Go 类型。对于整数，该类型为 int64。
+<li><p>如果 x 可以写入切片的元素类型，则 ASN.1 SEQUENCE OF x 或 SET OF x 可以写入该切片。
+<li><p>如果序列中的每个元素都能写入结构体中对应的元素，则 ASN.1 SEQUENCE 或 SET 可以写入该结构体。
+</ul>
+<p>Unmarshal 对结构体字段上的以下标签有特殊解释：
+<pre>application 指定使用 APPLICATION 标签
+private     指定使用 PRIVATE 标签
+default:x   为可选的整数字段设置默认值（仅在同时指定 optional 时生效）
+explicit    指定在隐式标签外再包裹一个显式标签
+optional    将字段标记为 ASN.1 OPTIONAL
+set         预期类型为 SET，而非 SEQUENCE
+tag:x       指定 ASN.1 标签编号；隐含 ASN.1 CONTEXT SPECIFIC 类别
+</pre>
+<p>将带有 IMPLICIT 标签的 ASN.1 值解码到字符串字段时，Unmarshal 默认采用 PrintableString，它不支持 '@' 和 '&amp;' 等字符。若要强制采用其他编码，请使用以下标签：
+<pre>ia5     将字符串按 ASN.1 IA5String 值反序列化
+numeric 将字符串按 ASN.1 NumericString 值反序列化
+utf8    将字符串按 ASN.1 UTF8String 值反序列化
+</pre>
+<p>将带有 IMPLICIT 标签的 ASN.1 值解码到 time.Time 字段时，Unmarshal 默认采用 UTCTime，它不支持时区或小数秒。若要强制采用 GeneralizedTime，请使用以下标签：
+<pre>generalized 将 time.Time 按 ASN.1 GeneralizedTime 值反序列化
+</pre>
+<p>如果结构体第一个字段的类型为 RawContent，则该结构体的原始 ASN1 内容会保存在此字段中。
+<p>如果切片类型的名称以“SET”结尾，则会按带有“set”标签的方式处理。此时该类型会被解释为 SET OF x，而非 SEQUENCE OF x。这可用于无法指定结构体标签的嵌套切片。
+<p>不支持其他 ASN.1 类型；如果遇到它们，Unmarshal 会返回解析错误。
+
+			
+		
+			
+			<h2 id="UnmarshalWithParams">func <a href="/src/encoding/asn1/asn1.go?s=34869:34952#L1162">UnmarshalWithParams</a>
+				
+				
+			</h2>
+			<pre>func UnmarshalWithParams(b []<a href="/pkg/builtin/#byte">byte</a>, val <a href="/pkg/builtin/#any">any</a>, params <a href="/pkg/builtin/#string">string</a>) (rest []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>UnmarshalWithParams 允许为顶层元素指定字段参数。params 的形式与字段标签相同。
+
+			
+		
+		
+			
+			<h2 id="BitString">type <a href="/src/encoding/asn1/asn1.go?s=4267:4374#L153">BitString</a>
+				
+				
+			</h2>
+			<p>BitString 是表示 ASN.1 BIT STRING 类型时使用的结构。位串在内存中填充到整字节边界，同时记录有效位数。填充位为零。
+
+			<pre>type BitString struct {
+<span id="BitString.Bytes"></span>    Bytes     []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// 按字节打包的位。</span>
+<span id="BitString.BitLength"></span>    BitLength <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 以位为单位的长度。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BitString.At">func (BitString) <a href="/src/encoding/asn1/asn1.go?s=4464:4496#L160">At</a>
+					
+					
+				</h3>
+				<pre>func (b <a href="#BitString">BitString</a>) At(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>At 返回给定索引处的位。如果索引越界，则返回 0。
+
+				
+			
+				<h3 id="BitString.RightAlign">func (BitString) <a href="/src/encoding/asn1/asn1.go?s=4736:4774#L171">RightAlign</a>
+					
+					
+				</h3>
+				<pre>func (b <a href="#BitString">BitString</a>) RightAlign() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>RightAlign 返回一个填充位位于开头的切片。该切片可能与 BitString 共享内存。
+
+				
+			
+		
+			
+			<h2 id="Enumerated">type <a href="/src/encoding/asn1/asn1.go?s=7500:7519#L282">Enumerated</a>
+				
+				
+			</h2>
+			<p>Enumerated 用普通的 int 表示。
+
+			<pre>type Enumerated <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Flag">type <a href="/src/encoding/asn1/asn1.go?s=7588:7602#L287">Flag</a>
+				
+				
+			</h2>
+			<p>Flag 接受任何数据，并在该数据存在时设为 true。
+
+			<pre>type Flag <a href="/pkg/builtin/#bool">bool</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ObjectIdentifier">type <a href="/src/encoding/asn1/asn1.go?s=5905:5932#L216">ObjectIdentifier</a>
+				
+				
+			</h2>
+			<p>ObjectIdentifier 表示 ASN.1 OBJECT IDENTIFIER。
+
+			<pre>type ObjectIdentifier []<a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ObjectIdentifier.Equal">func (ObjectIdentifier) <a href="/src/encoding/asn1/asn1.go?s=6003:6064#L219">Equal</a>
+					
+					
+				</h3>
+				<pre>func (oi <a href="#ObjectIdentifier">ObjectIdentifier</a>) Equal(other <a href="#ObjectIdentifier">ObjectIdentifier</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 oi 和 other 是否表示同一个标识符。
+
+				
+			
+				<h3 id="ObjectIdentifier.String">func (ObjectIdentifier) <a href="/src/encoding/asn1/asn1.go?s=6102:6144#L223">String</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (oi <a href="#ObjectIdentifier">ObjectIdentifier</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="RawContent">type <a href="/src/encoding/asn1/asn1.go?s=15291:15313#L537">RawContent</a>
+				
+				
+			</h2>
+			<p>RawContent 用于指示需要为结构体保留尚未解码的 DER 数据。使用时，结构体的第一个字段必须具有此类型。如果其他字段使用该类型，则会产生错误。
+
+			<pre>type RawContent []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RawValue">type <a href="/src/encoding/asn1/asn1.go?s=14937:15063#L527">RawValue</a>
+				
+				
+			</h2>
+			<p>RawValue 表示一个尚未解码的 ASN.1 对象。
+
+			<pre>type RawValue struct {
+<span id="RawValue.Class"></span>    Class, Tag <a href="/pkg/builtin/#int">int</a>
+<span id="RawValue.IsCompound"></span>    IsCompound <a href="/pkg/builtin/#bool">bool</a>
+<span id="RawValue.Bytes"></span>    Bytes      []<a href="/pkg/builtin/#byte">byte</a>
+<span id="RawValue.FullBytes"></span>    FullBytes  []<a href="/pkg/builtin/#byte">byte</a> <span class="comment">// 包含标签和长度</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StructuralError">type <a href="/src/encoding/asn1/asn1.go?s=1248:1291#L30">StructuralError</a>
+				
+				
+			</h2>
+			<p>StructuralError 表明 ASN.1 数据有效，但接收它的 Go 类型不匹配。
+
+			<pre>type StructuralError struct {
+<span id="StructuralError.Msg"></span>    Msg <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StructuralError.Error">func (StructuralError) <a href="/src/encoding/asn1/asn1.go?s=1293:1332#L34">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#StructuralError">StructuralError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="SyntaxError">type <a href="/src/encoding/asn1/asn1.go?s=1437:1476#L37">SyntaxError</a>
+				
+				
+			</h2>
+			<p>SyntaxError 表明 ASN.1 数据无效。
+
+			<pre>type SyntaxError struct {
+<span id="SyntaxError.Msg"></span>    Msg <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyntaxError.Error">func (SyntaxError) <a href="/src/encoding/asn1/asn1.go?s=1478:1513#L41">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#SyntaxError">SyntaxError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

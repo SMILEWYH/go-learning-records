@@ -1,0 +1,194 @@
+<!--{
+  "Title": "net/http/pprof 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package pprof</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/pprof"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>pprof 包通过 HTTP 服务器提供运行时性能分析数据，格式符合 pprof 可视化工具的要求。
+<p>通常仅为注册 HTTP 处理器这一副作用而导入本包。它处理的路径均以 /debug/pprof/ 开头。从 Go 1.22 起，所有这些路径都必须使用 GET 请求。
+<p>使用 pprof 时，将本包链接到程序中：
+<pre>import _ &quot;net/http/pprof&quot;
+</pre>
+<p>如果应用尚未运行 HTTP 服务器，需要启动一个。将“net/http”和“log”加入导入列表，并在 main 函数中添加以下代码：
+<pre>go func() {
+	log.Println(http.ListenAndServe(&quot;localhost:6060&quot;, nil))
+}()
+</pre>
+<p>默认情况下，<a href="/pkg/runtime/pprof/#Profile">runtime/pprof.Profile</a> 中列出的全部分析数据（通过 <a href="#Handler">Handler</a> 提供）均可访问；本包还提供 <a href="#Cmdline">Cmdline</a>、<a href="#Profile">Profile</a>、<a href="#Symbol">Symbol</a> 和 <a href="#Trace">Trace</a> 分析端点。如果没有使用 DefaultServeMux，则必须将处理器注册到所使用的 mux 上。
+<h3 id="hdr-Parameters">参数</h3>
+<p>参数可以通过 GET 查询参数传入：
+<ul>
+<li>debug=N（所有分析数据）：响应格式；N = 0：二进制（默认），N &gt; 0：纯文本
+<li>gc=N（heap 分析）：N &gt; 0：分析前执行一次垃圾回收
+<li>seconds=N（allocs、block、goroutine、heap、mutex、threadcreate 分析）：返回增量分析数据
+<li>seconds=N（cpu（profile）、trace 分析）：采集指定时长的数据
+</ul>
+<h3 id="hdr-Usage_examples">用法示例</h3>
+<p>使用 pprof 工具查看堆分析数据：
+<pre>go tool pprof http://localhost:6060/debug/pprof/heap
+</pre>
+<p>或者查看 30 秒的 CPU 分析数据：
+<pre>go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+</pre>
+<p>或者在程序中调用 <a href="/pkg/runtime/#SetBlockProfileRate">runtime.SetBlockProfileRate</a> 后，查看 goroutine 阻塞分析数据：
+<pre>go tool pprof http://localhost:6060/debug/pprof/block
+</pre>
+<p>或者在程序中调用 <a href="/pkg/runtime/#SetMutexProfileFraction">runtime.SetMutexProfileFraction</a> 后，查看发生竞争的互斥锁由谁持有：
+<pre>go tool pprof http://localhost:6060/debug/pprof/mutex
+</pre>
+<p>本包还导出一个处理器，为“go tool trace”命令提供执行跟踪数据。采集 5 秒的执行跟踪：
+<pre>curl -o trace.out http://localhost:6060/debug/pprof/trace?seconds=5
+go tool trace trace.out
+</pre>
+<p>要查看所有可用的分析数据，请在浏览器中打开 <a href="http://localhost:6060/debug/pprof/">http://localhost:6060/debug/pprof/</a>。
+<p>关于这些功能的实际应用案例，请访问 <a href="/blog/pprof">https://go.dev/blog/pprof</a>。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Cmdline">func Cmdline(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Handler">func Handler(name string) http.Handler</a></dd>
+			
+				<dd><a href="#Index">func Index(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Profile">func Profile(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Symbol">func Symbol(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Trace">func Trace(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/pprof/pprof.go">pprof.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Cmdline">func <a href="/src/net/http/pprof/pprof.go?s=3418:3470#L100">Cmdline</a>
+				
+				
+			</h2>
+			<pre>func Cmdline(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Cmdline 返回正在运行程序的命令行，参数以 NUL 字节分隔。包初始化时将它注册到 /debug/pprof/cmdline。
+
+			
+		
+			
+			<h2 id="Handler">func <a href="/src/net/http/pprof/pprof.go?s=7811:7849#L234">Handler</a>
+				
+				
+			</h2>
+			<pre>func Handler(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+			<p>Handler 返回一个提供指定名称分析数据的 HTTP 处理器。可用的分析类型见 <a href="/pkg/runtime/pprof/#Profile">runtime/pprof.Profile</a>。
+
+			
+		
+			
+			<h2 id="Index">func <a href="/src/net/http/pprof/pprof.go?s=12770:12820#L378">Index</a>
+				
+				
+			</h2>
+			<pre>func Index(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Index 返回请求指定名称的 pprof 格式分析数据。例如，“/debug/pprof/heap”提供“heap”分析数据。对于“/debug/pprof/”请求，Index 返回列出所有可用分析数据的 HTML 页面。
+
+			
+		
+			
+			<h2 id="Profile">func <a href="/src/net/http/pprof/pprof.go?s=4584:4636#L134">Profile</a>
+				
+				
+			</h2>
+			<pre>func Profile(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Profile 返回 pprof 格式的 CPU 分析数据。采集时长由 GET 参数 seconds 指定，未指定时为 30 秒。包初始化时将它注册到 /debug/pprof/profile。
+
+			
+		
+			
+			<h2 id="Symbol">func <a href="/src/net/http/pprof/pprof.go?s=6521:6572#L186">Symbol</a>
+				
+				
+			</h2>
+			<pre>func Symbol(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Symbol 查找请求中列出的程序计数器，并返回程序计数器到函数名的映射表。包初始化时将它注册到 /debug/pprof/symbol。
+
+			
+		
+			
+			<h2 id="Trace">func <a href="/src/net/http/pprof/pprof.go?s=5585:5635#L160">Trace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Trace(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Trace 返回二进制形式的执行跟踪数据。跟踪时长由 GET 参数 seconds 指定，未指定时为 1 秒。包初始化时将它注册到 /debug/pprof/trace。
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

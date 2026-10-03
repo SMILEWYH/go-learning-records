@@ -1,0 +1,1365 @@
+<!--{
+  "Title": "sync package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package sync</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "sync"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">Overview</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">Index</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">Examples</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">Subdirectories</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="Click to show Overview section">Overview ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="Click to hide Overview section">Overview ▾</h2>
+				<p>Package sync provides basic synchronization primitives such as mutual
+exclusion locks. Other than the <a href="#Once">Once</a> and <a href="#WaitGroup">WaitGroup</a> types, most are intended
+for use by low-level library routines. Higher-level synchronization is
+better done via channels and communication.
+<p>Values containing the types defined in this package should not be copied.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Index section">Index ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Index section">Index ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#OnceFunc">func OnceFunc(f func()) func()</a></dd>
+			
+				<dd><a href="#OnceValue">func OnceValue[T any](f func() T) func() T</a></dd>
+			
+				<dd><a href="#OnceValues">func OnceValues[T1, T2 any](f func() (T1, T2)) func() (T1, T2)</a></dd>
+			
+			
+				
+				<dd><a href="#Cond">type Cond</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCond">func NewCond(l Locker) *Cond</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Broadcast">func (c *Cond) Broadcast()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Signal">func (c *Cond) Signal()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Wait">func (c *Cond) Wait()</a></dd>
+				
+			
+				
+				<dd><a href="#Locker">type Locker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Clear">func (m *Map) Clear()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.CompareAndDelete">func (m *Map) CompareAndDelete(key, old any) (deleted bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.CompareAndSwap">func (m *Map) CompareAndSwap(key, old, new any) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Delete">func (m *Map) Delete(key any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Load">func (m *Map) Load(key any) (value any, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.LoadAndDelete">func (m *Map) LoadAndDelete(key any) (value any, loaded bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.LoadOrStore">func (m *Map) LoadOrStore(key, value any) (actual any, loaded bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Range">func (m *Map) Range(f func(key, value any) bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Store">func (m *Map) Store(key, value any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Swap">func (m *Map) Swap(key, value any) (previous any, loaded bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Mutex">type Mutex</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.Lock">func (m *Mutex) Lock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.TryLock">func (m *Mutex) TryLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.Unlock">func (m *Mutex) Unlock()</a></dd>
+				
+			
+				
+				<dd><a href="#Once">type Once</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Once.Do">func (o *Once) Do(f func())</a></dd>
+				
+			
+				
+				<dd><a href="#Pool">type Pool</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pool.Get">func (p *Pool) Get() any</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pool.Put">func (p *Pool) Put(x any)</a></dd>
+				
+			
+				
+				<dd><a href="#RWMutex">type RWMutex</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.Lock">func (rw *RWMutex) Lock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RLock">func (rw *RWMutex) RLock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RLocker">func (rw *RWMutex) RLocker() Locker</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RUnlock">func (rw *RWMutex) RUnlock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.TryLock">func (rw *RWMutex) TryLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.TryRLock">func (rw *RWMutex) TryRLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.Unlock">func (rw *RWMutex) Unlock()</a></dd>
+				
+			
+				
+				<dd><a href="#WaitGroup">type WaitGroup</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Add">func (wg *WaitGroup) Add(delta int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Done">func (wg *WaitGroup) Done()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Go">func (wg *WaitGroup) Go(f func())</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Wait">func (wg *WaitGroup) Wait()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">(Expand All)</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Once">Once</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OnceValue">OnceValue</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OnceValues">OnceValues</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Pool">Pool</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WaitGroup">WaitGroup</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WaitGroup_addAndDone">WaitGroup (AddAndDone)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>Package files</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/sync/cond.go">cond.go</a>
+			
+				<a href="/src/sync/map.go">map.go</a>
+			
+				<a href="/src/sync/mutex.go">mutex.go</a>
+			
+				<a href="/src/sync/once.go">once.go</a>
+			
+				<a href="/src/sync/oncefunc.go">oncefunc.go</a>
+			
+				<a href="/src/sync/pool.go">pool.go</a>
+			
+				<a href="/src/sync/poolqueue.go">poolqueue.go</a>
+			
+				<a href="/src/sync/runtime.go">runtime.go</a>
+			
+				<a href="/src/sync/runtime2.go">runtime2.go</a>
+			
+				<a href="/src/sync/rwmutex.go">rwmutex.go</a>
+			
+				<a href="/src/sync/waitgroup.go">waitgroup.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="OnceFunc">func <a href="/src/sync/oncefunc.go?s=371:401#L1">OnceFunc</a>
+				
+				<span title="Added in Go 1.21">1.21</span>
+			</h2>
+			<pre>func OnceFunc(f func()) func()</pre>
+			<p>OnceFunc returns a function that invokes f only once. The returned function
+may be called concurrently.
+<p>If f panics, the returned function will panic with the same value on every call.
+
+			
+		
+			
+			<h2 id="OnceValue">func <a href="/src/sync/oncefunc.go?s=1175:1217#L36">OnceValue</a>
+				
+				
+			</h2>
+			<pre>func OnceValue[T <a href="/pkg/builtin/#any">any</a>](f func() <a href="#T">T</a>) func() <a href="#T">T</a></pre>
+			<p>OnceValue returns a function that invokes f only once and returns the value
+returned by f. The returned function may be called concurrently.
+<p>If f panics, the returned function will panic with the same value on every call.
+
+			
+
+
+<div id="example_OnceValue" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    <p>This example uses OnceValue to perform an &#34;expensive&#34; computation just once,
+even when used concurrently.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sync&#34;
+)
+
+func main() {
+	once := sync.OnceValue(func() int {
+		sum := 0
+		for i := range 1000 {
+			sum &#43;= i
+		}
+		fmt.Println(&#34;Computed once:&#34;, sum)
+		return sum
+	})
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			const want = 499500
+			got := once()
+			if got != want {
+				fmt.Println(&#34;want&#34;, want, &#34;got&#34;, got)
+			}
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Computed once: 499500
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="OnceValues">func <a href="/src/sync/oncefunc.go?s=1855:1917#L70">OnceValues</a>
+				
+				
+			</h2>
+			<pre>func OnceValues[T1, T2 <a href="/pkg/builtin/#any">any</a>](f func() (<a href="#T1">T1</a>, <a href="#T2">T2</a>)) func() (<a href="#T1">T1</a>, <a href="#T2">T2</a>)</pre>
+			<p>OnceValues returns a function that invokes f only once and returns the values
+returned by f. The returned function may be called concurrently.
+<p>If f panics, the returned function will panic with the same value on every call.
+
+			
+
+
+<div id="example_OnceValues" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    <p>This example uses OnceValues to read a file just once.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;sync&#34;
+)
+
+func main() {
+	once := sync.OnceValues(func() ([]byte, error) {
+		fmt.Println(&#34;Reading file once&#34;)
+		return os.ReadFile(&#34;example_test.go&#34;)
+	})
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			data, err := once()
+			if err != nil {
+				fmt.Println(&#34;error:&#34;, err)
+			}
+			_ = data // Ignore the data for this example
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Reading file once
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Cond">type <a href="/src/sync/cond.go?s=1391:1535#L27">Cond</a>
+				
+				
+			</h2>
+			<p>Cond implements a condition variable, a rendezvous point
+for goroutines waiting for or announcing the occurrence
+of an event.
+<p>Each Cond has an associated Locker L (often a <a href="#Mutex">*Mutex</a> or <a href="#RWMutex">*RWMutex</a>),
+which must be held when changing the condition and
+when calling the <a href="#Cond.Wait">Cond.Wait</a> method.
+<p>A Cond must not be copied after first use.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>, Cond arranges that
+a call to <a href="#Cond.Broadcast">Cond.Broadcast</a> or <a href="#Cond.Signal">Cond.Signal</a> “synchronizes before” any Wait call
+that it unblocks.
+<p>For many simple use cases, users will be better off using channels than a
+Cond (Broadcast corresponds to closing a channel, and Signal corresponds to
+sending on a channel).
+<p>For more on replacements for <a href="#Cond">sync.Cond</a>, see <a href="https://blogtitle.github.io/categories/concurrency/">Roberto Clapis&apos;s series on
+advanced concurrency patterns</a>, as well as <a href="https://drive.google.com/file/d/1nPdvhB0PutEJzdCq5ms6UI58dp50fcAN/view">Bryan Mills&apos;s talk on concurrency
+patterns</a>.
+
+			<pre>type Cond struct {
+
+<span id="Cond.L"></span>    <span class="comment">// L is held while observing or changing the condition</span>
+    L <a href="#Locker">Locker</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewCond">func <a href="/src/sync/cond.go?s=1582:1610#L38">NewCond</a>
+					
+					
+				</h3>
+				<pre>func NewCond(l <a href="#Locker">Locker</a>) *<a href="#Cond">Cond</a></pre>
+				<p>NewCond returns a new Cond with Locker l.
+
+				
+			
+
+			
+				<h3 id="Cond.Broadcast">func (*Cond) <a href="/src/sync/cond.go?s=3062:3088#L83">Broadcast</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Broadcast()</pre>
+				<p>Broadcast wakes all goroutines waiting on c.
+<p>It is allowed but not required for the caller to hold c.L during the call.
+The time it takes to run Broadcast is proportional to the number of waiting goroutines;
+be aware that holding the lock across a call to Broadcast
+will extend the amount of time that the lock is held.
+
+				
+			
+				<h3 id="Cond.Signal">func (*Cond) <a href="/src/sync/cond.go?s=2636:2659#L72">Signal</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Signal()</pre>
+				<p>Signal wakes one goroutine waiting on c, if there is any.
+<p>It is allowed but not required for the caller to hold c.L
+during the call.
+<p>Signal() does not affect goroutine scheduling priority; if other goroutines
+are attempting to lock c.L, they may be awoken before a &quot;waiting&quot; goroutine.
+
+				
+			
+				<h3 id="Cond.Wait">func (*Cond) <a href="/src/sync/cond.go?s=2180:2201#L57">Wait</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Wait()</pre>
+				<p>Wait atomically unlocks c.L and suspends execution
+of the calling goroutine. After later resuming execution,
+Wait locks c.L before returning. Unlike in other systems,
+Wait cannot return unless awoken by <a href="#Cond.Broadcast">Cond.Broadcast</a> or <a href="#Cond.Signal">Cond.Signal</a>.
+<p>Because c.L is not locked while Wait is waiting, the caller
+typically cannot assume that the condition is true when
+Wait returns. Instead, the caller should Wait in a loop:
+<pre>c.L.Lock()
+for !condition() {
+    c.Wait()
+}
+... make use of condition ...
+c.L.Unlock()
+</pre>
+
+				
+			
+		
+			
+			<h2 id="Locker">type <a href="/src/sync/mutex.go?s=1205:1248#L27">Locker</a>
+				
+				
+			</h2>
+			<p>A Locker represents an object that can be locked and unlocked.
+
+			<pre>type Locker interface {
+    Lock()
+    Unlock()
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Map">type <a href="/src/sync/map.go?s=1897:1958#L28">Map</a>
+				
+				<span title="Added in Go 1.9">1.9</span>
+			</h2>
+			<p>Map is like a Go map[any]any but is safe for concurrent use
+by multiple goroutines without additional locking or coordination.
+Loads, stores, and deletes run in amortized constant time.
+<p>The Map type is specialized. Most code should use a plain Go map instead,
+with separate locking or coordination, for better type safety and to make it
+easier to maintain other invariants along with the map content.
+<p>The Map type is optimized for two common use cases: (1) when the entry for a given
+key is only ever written once but read many times, as in caches that only grow,
+or (2) when multiple goroutines read, write, and overwrite entries for disjoint
+sets of keys. In these two cases, use of a Map may significantly reduce lock
+contention compared to a Go map paired with a separate <a href="#Mutex">Mutex</a> or <a href="#RWMutex">RWMutex</a>.
+<p>The zero Map is empty and ready for use. A Map must not be copied after first use.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>, Map arranges that a write operation
+“synchronizes before” any read operation that observes the effect of the write, where
+read and write operations are defined as follows.
+<a href="#Map.Load">Map.Load</a>, <a href="#Map.LoadAndDelete">Map.LoadAndDelete</a>, <a href="#Map.LoadOrStore">Map.LoadOrStore</a>, <a href="#Map.Swap">Map.Swap</a>, <a href="#Map.CompareAndSwap">Map.CompareAndSwap</a>,
+and <a href="#Map.CompareAndDelete">Map.CompareAndDelete</a> are read operations;
+<a href="#Map.Delete">Map.Delete</a>, <a href="#Map.LoadAndDelete">Map.LoadAndDelete</a>, <a href="#Map.Store">Map.Store</a>, and <a href="#Map.Swap">Map.Swap</a> are write operations;
+<a href="#Map.LoadOrStore">Map.LoadOrStore</a> is a write operation when it returns loaded set to false;
+<a href="#Map.CompareAndSwap">Map.CompareAndSwap</a> is a write operation when it returns swapped set to true;
+and <a href="#Map.CompareAndDelete">Map.CompareAndDelete</a> is a write operation when it returns deleted set to true.
+
+			<pre>type Map struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Map.Clear">func (*Map) <a href="/src/sync/map.go?s=2348:2369#L47">Clear</a>
+					
+					<span title="Added in Go 1.23">1.23</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Clear()</pre>
+				<p>Clear deletes all the entries, resulting in an empty Map.
+
+				
+			
+				<h3 id="Map.CompareAndDelete">func (*Map) <a href="/src/sync/map.go?s=3826:3885#L88">CompareAndDelete</a>
+					
+					<span title="Added in Go 1.20">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) CompareAndDelete(key, old <a href="/pkg/builtin/#any">any</a>) (deleted <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndDelete deletes the entry for key if its value is equal to old.
+The old value must be of a comparable type.
+<p>If there is no current value for key in the map, CompareAndDelete
+returns false (even if the old value is the nil interface value).
+
+				
+			
+				<h3 id="Map.CompareAndSwap">func (*Map) <a href="/src/sync/map.go?s=3452:3514#L79">CompareAndSwap</a>
+					
+					<span title="Added in Go 1.20">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) CompareAndSwap(key, old, new <a href="/pkg/builtin/#any">any</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>CompareAndSwap swaps the old and new values for key
+if the value stored in the map is equal to old.
+The old value must be of a comparable type.
+
+				
+			
+				<h3 id="Map.Delete">func (*Map) <a href="/src/sync/map.go?s=3019:3048#L66">Delete</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Delete(key <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Delete deletes the value for a key.
+If the key is not in the map, Delete does nothing.
+
+				
+			
+				<h3 id="Map.Load">func (*Map) <a href="/src/sync/map.go?s=2112:2160#L37">Load</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Load(key <a href="/pkg/builtin/#any">any</a>) (value <a href="/pkg/builtin/#any">any</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Load returns the value stored in the map for a key, or nil if no
+value is present.
+The ok result indicates whether value was found in the map.
+
+				
+			
+				<h3 id="Map.LoadAndDelete">func (*Map) <a href="/src/sync/map.go?s=2828:2889#L60">LoadAndDelete</a>
+					
+					<span title="Added in Go 1.15">1.15</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) LoadAndDelete(key <a href="/pkg/builtin/#any">any</a>) (value <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LoadAndDelete deletes the value for a key, returning the previous value if any.
+The loaded result reports whether the key was present.
+
+				
+			
+				<h3 id="Map.LoadOrStore">func (*Map) <a href="/src/sync/map.go?s=2578:2645#L54">LoadOrStore</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) LoadOrStore(key, value <a href="/pkg/builtin/#any">any</a>) (actual <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LoadOrStore returns the existing value for the key if present.
+Otherwise, it stores and returns the given value.
+The loaded result is true if the value was loaded, false if stored.
+
+				
+			
+				<h3 id="Map.Range">func (*Map) <a href="/src/sync/map.go?s=4576:4624#L103">Range</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Range(f func(key, value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Range calls f sequentially for each key and value present in the map.
+If f returns false, range stops the iteration.
+<p>Range does not necessarily correspond to any consistent snapshot of the Map&apos;s
+contents: no key will be visited more than once, but if the value for any key
+is stored or deleted concurrently (including by f), Range may reflect any
+mapping for that key from any point during the Range call. Range does not
+block other methods on the receiver; even f itself may call any method on m.
+<p>Range may be O(N) with the number of elements in the map even if f returns
+false after a constant number of calls.
+
+				
+			
+				<h3 id="Map.Store">func (*Map) <a href="/src/sync/map.go?s=2223:2258#L42">Store</a>
+					
+					<span title="Added in Go 1.9">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Store(key, value <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Store sets the value for a key.
+
+				
+			
+				<h3 id="Map.Swap">func (*Map) <a href="/src/sync/map.go?s=3202:3264#L72">Swap</a>
+					
+					<span title="Added in Go 1.20">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Swap(key, value <a href="/pkg/builtin/#any">any</a>) (previous <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Swap swaps the value for a key and returns the previous value if any.
+The loaded result reports whether the key was present.
+
+				
+			
+		
+			
+			<h2 id="Mutex">type <a href="/src/sync/mutex.go?s=1089:1137#L20">Mutex</a>
+				
+				
+			</h2>
+			<p>A Mutex is a mutual exclusion lock.
+The zero value for a Mutex is an unlocked mutex.
+<p>A Mutex must not be copied after first use.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>,
+the n&apos;th call to <a href="#Mutex.Unlock">Mutex.Unlock</a> “synchronizes before” the m&apos;th call to <a href="#Mutex.Lock">Mutex.Lock</a>
+for any n &lt; m.
+A successful call to <a href="#Mutex.TryLock">Mutex.TryLock</a> is equivalent to a call to Lock.
+A failed call to TryLock does not establish any “synchronizes before”
+relation at all.
+
+			<pre>type Mutex struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Mutex.Lock">func (*Mutex) <a href="/src/sync/mutex.go?s=1363:1385#L35">Lock</a>
+					
+					
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) Lock()</pre>
+				<p>Lock locks m.
+If the lock is already in use, the calling goroutine
+blocks until the mutex is available.
+
+				
+			
+				<h3 id="Mutex.TryLock">func (*Mutex) <a href="/src/sync/mutex.go?s=1629:1659#L44">TryLock</a>
+					
+					<span title="Added in Go 1.18">1.18</span>
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) TryLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryLock tries to lock m and reports whether it succeeded.
+<p>Note that while correct uses of TryLock do exist, they are rare,
+and use of TryLock is often a sign of a deeper problem
+in a particular use of mutexes.
+
+				
+			
+				<h3 id="Mutex.Unlock">func (*Mutex) <a href="/src/sync/mutex.go?s=1951:1975#L54">Unlock</a>
+					
+					
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) Unlock()</pre>
+				<p>Unlock unlocks m.
+It is a run-time error if m is not locked on entry to Unlock.
+<p>A locked <a href="#Mutex">Mutex</a> is not associated with a particular goroutine.
+It is allowed for one goroutine to lock a Mutex and then
+arrange for another goroutine to unlock it.
+
+				
+			
+		
+			
+			<h2 id="Once">type <a href="/src/sync/once.go?s=502:899#L10">Once</a>
+				
+				
+			</h2>
+			<p>Once is an object that will perform exactly one action.
+<p>A Once must not be copied after first use.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>,
+the return from f “synchronizes before”
+the return from any call of once.Do(f).
+
+			<pre>type Once struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Once" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sync&#34;
+)
+
+func main() {
+	var once sync.Once
+	onceBody := func() {
+		fmt.Println(&#34;Only once&#34;)
+	}
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			once.Do(onceBody)
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Only once
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Once.Do">func (*Once) <a href="/src/sync/once.go?s=1737:1764#L42">Do</a>
+					
+					
+				</h3>
+				<pre>func (o *<a href="#Once">Once</a>) Do(f func())</pre>
+				<p>Do calls the function f if and only if Do is being called for the
+first time for this instance of <a href="#Once">Once</a>. In other words, given
+<pre>var once Once
+</pre>
+<p>if once.Do(f) is called multiple times, only the first call will invoke f,
+even if f has a different value in each invocation. A new instance of
+Once is required for each function to execute.
+<p>Do is intended for initialization that must be run exactly once. Since f
+is niladic, it may be necessary to use a function literal to capture the
+arguments to a function to be invoked by Do:
+<pre>config.once.Do(func() { config.init(filename) })
+</pre>
+<p>Because no call to Do returns until the one call to f returns, if f causes
+Do to be called, it will deadlock.
+<p>If f panics, Do considers it to have returned; future calls of Do return
+without calling f.
+
+				
+			
+		
+			
+			<h2 id="Pool">type <a href="/src/sync/pool.go?s=1980:2440#L42">Pool</a>
+				
+				<span title="Added in Go 1.3">1.3</span>
+			</h2>
+			<p>A Pool is a set of temporary objects that may be individually saved and
+retrieved.
+<p>Any item stored in the Pool may be removed automatically at any time without
+notification. If the Pool holds the only reference when this happens, the
+item might be deallocated.
+<p>A Pool is safe for use by multiple goroutines simultaneously.
+<p>Pool&apos;s purpose is to cache allocated but unused items for later reuse,
+relieving pressure on the garbage collector. That is, it makes it easy to
+build efficient, thread-safe free lists. However, it is not suitable for all
+free lists.
+<p>An appropriate use of a Pool is to manage a group of temporary items
+silently shared among and potentially reused by concurrent independent
+clients of a package. Pool provides a way to amortize allocation overhead
+across many clients.
+<p>An example of good use of a Pool is in the fmt package, which maintains a
+dynamically-sized store of temporary output buffers. The store scales under
+load (when many goroutines are actively printing) and shrinks when
+quiescent.
+<p>On the other hand, a free list maintained as part of a short-lived object is
+not a suitable use for a Pool, since the overhead does not amortize well in
+that scenario. It is more efficient to have such objects implement their own
+free list.
+<p>A Pool must not be copied after first use.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>, a call to Put(x) “synchronizes before”
+a call to <a href="#Pool.Get">Pool.Get</a> returning that same value x.
+Similarly, a call to New returning x “synchronizes before”
+a call to Get returning that same value x.
+
+			<pre>type Pool struct {
+
+<span id="Pool.New"></span>    <span class="comment">// New optionally specifies a function to generate</span>
+    <span class="comment">// a value when Get would otherwise return nil.</span>
+    <span class="comment">// It may not be changed concurrently with calls to Get.</span>
+    New func() <a href="/pkg/builtin/#any">any</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Pool" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+	&#34;sync&#34;
+	&#34;time&#34;
+)
+
+var bufPool = sync.Pool{
+	New: func() any {
+		// The Pool&#39;s New function should generally only return pointer
+		// types, since a pointer can be put into the return interface
+		// value without an allocation:
+		return new(bytes.Buffer)
+	},
+}
+
+// timeNow is a fake version of time.Now for tests.
+func timeNow() time.Time {
+	return time.Unix(1136214245, 0)
+}
+
+func Log(w io.Writer, key, val string) {
+	b := bufPool.Get().(*bytes.Buffer)
+	b.Reset()
+	// Replace this with time.Now() in a real logger.
+	b.WriteString(timeNow().UTC().Format(time.RFC3339))
+	b.WriteByte(&#39; &#39;)
+	b.WriteString(key)
+	b.WriteByte(&#39;=&#39;)
+	b.WriteString(val)
+	w.Write(b.Bytes())
+	bufPool.Put(b)
+}
+
+func main() {
+	Log(os.Stdout, &#34;path&#34;, &#34;/search?q=flowers&#34;)
+}
+</textarea></div>
+        <div class="output"><pre>2006-01-02T15:04:05Z path=/search?q=flowers
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Pool.Get">func (*Pool) <a href="/src/sync/pool.go?s=4297:4321#L122">Get</a>
+					
+					<span title="Added in Go 1.3">1.3</span>
+				</h3>
+				<pre>func (p *<a href="#Pool">Pool</a>) Get() <a href="/pkg/builtin/#any">any</a></pre>
+				<p>Get selects an arbitrary item from the <a href="#Pool">Pool</a>, removes it from the
+Pool, and returns it to the caller.
+Get may choose to ignore the pool and treat it as empty.
+Callers should not assume any relation between values passed to <a href="#Pool.Put">Pool.Put</a> and
+the values returned by Get.
+<p>If Get would otherwise return nil and p.New is non-nil, Get returns
+the result of calling p.New.
+
+				
+			
+				<h3 id="Pool.Put">func (*Pool) <a href="/src/sync/pool.go?s=3549:3574#L90">Put</a>
+					
+					<span title="Added in Go 1.3">1.3</span>
+				</h3>
+				<pre>func (p *<a href="#Pool">Pool</a>) Put(x <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Put adds x to the pool.
+
+				
+			
+		
+			
+			<h2 id="RWMutex">type <a href="/src/sync/rwmutex.go?s=1518:1880#L29">RWMutex</a>
+				
+				
+			</h2>
+			<p>A RWMutex is a reader/writer mutual exclusion lock.
+The lock can be held by an arbitrary number of readers or a single writer.
+The zero value for a RWMutex is an unlocked mutex.
+<p>A RWMutex must not be copied after first use.
+<p>If any goroutine calls <a href="#RWMutex.Lock">RWMutex.Lock</a> while the lock is already held by
+one or more readers, concurrent calls to <a href="#RWMutex.RLock">RWMutex.RLock</a> will block until
+the writer has acquired (and released) the lock, to ensure that
+the lock eventually becomes available to the writer.
+Note that this prohibits recursive read-locking.
+A <a href="#RWMutex.RLock">RWMutex.RLock</a> cannot be upgraded into a <a href="#RWMutex.Lock">RWMutex.Lock</a>,
+nor can a <a href="#RWMutex.Lock">RWMutex.Lock</a> be downgraded into a <a href="#RWMutex.RLock">RWMutex.RLock</a>.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>,
+the n&apos;th call to <a href="#RWMutex.Unlock">RWMutex.Unlock</a> “synchronizes before” the m&apos;th call to Lock
+for any n &lt; m, just as for <a href="#Mutex">Mutex</a>.
+For any call to RLock, there exists an n such that
+the n&apos;th call to Unlock “synchronizes before” that call to RLock,
+and the corresponding call to <a href="#RWMutex.RUnlock">RWMutex.RUnlock</a> “synchronizes before”
+the n+1&apos;th call to Lock.
+
+			<pre>type RWMutex struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RWMutex.Lock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=4525:4550#L134">Lock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) Lock()</pre>
+				<p>Lock locks rw for writing.
+If the lock is already locked for reading or writing,
+Lock blocks until the lock is available.
+
+				
+			
+				<h3 id="RWMutex.RLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=2644:2670#L57">RLock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RLock()</pre>
+				<p>RLock locks rw for reading.
+<p>It should not be used for recursive read locking; a blocked Lock
+call excludes new readers from acquiring the lock. See the
+documentation on the <a href="#RWMutex">RWMutex</a> type.
+
+				
+			
+				<h3 id="RWMutex.RLocker">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=7404:7439#L230">RLocker</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RLocker() <a href="#Locker">Locker</a></pre>
+				<p>RLocker returns a <a href="#Locker">Locker</a> interface that implements
+the <a href="#Locker.Lock">Locker.Lock</a> and <a href="#Locker.Unlock">Locker.Unlock</a> methods by calling rw.RLock and rw.RUnlock.
+
+				
+			
+				<h3 id="RWMutex.RUnlock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=3770:3798#L104">RUnlock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RUnlock()</pre>
+				<p>RUnlock undoes a single <a href="#RWMutex.RLock">RWMutex.RLock</a> call;
+it does not affect other simultaneous readers.
+It is a run-time error if rw is not locked for reading
+on entry to RUnlock.
+
+				
+			
+				<h3 id="RWMutex.TryLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=5305:5338#L159">TryLock</a>
+					
+					<span title="Added in Go 1.18">1.18</span>
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) TryLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryLock tries to lock rw for writing and reports whether it succeeded.
+<p>Note that while correct uses of TryLock do exist, they are rare,
+and use of TryLock is often a sign of a deeper problem
+in a particular use of mutexes.
+
+				
+			
+				<h3 id="RWMutex.TryRLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=3203:3237#L77">TryRLock</a>
+					
+					<span title="Added in Go 1.18">1.18</span>
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) TryRLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryRLock tries to lock rw for reading and reports whether it succeeded.
+<p>Note that while correct uses of TryRLock do exist, they are rare,
+and use of TryRLock is often a sign of a deeper problem
+in a particular use of mutexes.
+
+				
+			
+				<h3 id="RWMutex.Unlock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=6128:6155#L191">Unlock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) Unlock()</pre>
+				<p>Unlock unlocks rw for writing. It is a run-time error if rw is
+not locked for writing on entry to Unlock.
+<p>As with Mutexes, a locked <a href="#RWMutex">RWMutex</a> is not associated with a particular
+goroutine. One goroutine may <a href="#RWMutex.RLock">RWMutex.RLock</a> (<a href="#RWMutex.Lock">RWMutex.Lock</a>) a RWMutex and then
+arrange for another goroutine to <a href="#RWMutex.RUnlock">RWMutex.RUnlock</a> (<a href="#RWMutex.Unlock">RWMutex.Unlock</a>) it.
+
+				
+			
+		
+			
+			<h2 id="WaitGroup">type <a href="/src/sync/waitgroup.go?s=1173:1379#L38">WaitGroup</a>
+				
+				
+			</h2>
+			<p>A WaitGroup is a counting semaphore typically used to wait
+for a group of goroutines or tasks to finish.
+<p>Typically, a main goroutine will start tasks, each in a new
+goroutine, by calling <a href="#WaitGroup.Go">WaitGroup.Go</a> and then wait for all tasks to
+complete by calling <a href="#WaitGroup.Wait">WaitGroup.Wait</a>. For example:
+<pre>var wg sync.WaitGroup
+wg.Go(task1)
+wg.Go(task2)
+wg.Wait()
+</pre>
+<p>A WaitGroup may also be used for tracking tasks without using Go to
+start new goroutines by using <a href="#WaitGroup.Add">WaitGroup.Add</a> and <a href="#WaitGroup.Done">WaitGroup.Done</a>.
+<p>The previous example can be rewritten using explicitly created
+goroutines along with Add and Done:
+<pre>var wg sync.WaitGroup
+wg.Add(1)
+go func() {
+	defer wg.Done()
+	task1()
+}()
+wg.Add(1)
+go func() {
+	defer wg.Done()
+	task2()
+}()
+wg.Wait()
+</pre>
+<p>This pattern is common in code that predates <a href="#WaitGroup.Go">WaitGroup.Go</a>.
+<p>A WaitGroup must not be copied after first use.
+
+			<pre>type WaitGroup struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_WaitGroup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example</span></p>
+    <p>This example fetches several URLs concurrently,
+using a WaitGroup to block until all the fetches are complete.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;sync&#34;
+)
+
+type httpPkg struct{}
+
+func (httpPkg) Get(url string) {}
+
+var http httpPkg
+
+func main() {
+	var wg sync.WaitGroup
+	var urls = []string{
+		&#34;http://www.golang.org/&#34;,
+		&#34;http://www.google.com/&#34;,
+		&#34;http://www.example.com/&#34;,
+	}
+	for _, url := range urls {
+		// Launch a goroutine to fetch the URL.
+		wg.Go(func() {
+			// Fetch the URL.
+			http.Get(url)
+		})
+	}
+	// Wait for all HTTP fetches to complete.
+	wg.Wait()
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_WaitGroup_addAndDone" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">Example (AddAndDone)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">Example (AddAndDone)</span></p>
+    <p>This example is equivalent to the main example, but uses Add/Done
+instead of Go.
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;sync&#34;
+)
+
+type httpPkg struct{}
+
+func (httpPkg) Get(url string) {}
+
+var http httpPkg
+
+func main() {
+	var wg sync.WaitGroup
+	var urls = []string{
+		&#34;http://www.golang.org/&#34;,
+		&#34;http://www.google.com/&#34;,
+		&#34;http://www.example.com/&#34;,
+	}
+	for _, url := range urls {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+		// Launch a goroutine to fetch the URL.
+		go func(url string) {
+			// Decrement the counter when the goroutine completes.
+			defer wg.Done()
+			// Fetch the URL.
+			http.Get(url)
+		}(url)
+	}
+	// Wait for all HTTP fetches to complete.
+	wg.Wait()
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="Run this code [shift-enter]">Run</button>
+          <button class="Button fmt" title="Format this code">Format</button>
+          
+            <button class="Button share" title="Share this code">Share</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="WaitGroup.Add">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=2329:2364#L67">Add</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Add(delta <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Add adds delta, which may be negative, to the <a href="#WaitGroup">WaitGroup</a> task counter.
+If the counter becomes zero, all goroutines blocked on <a href="#WaitGroup.Wait">WaitGroup.Wait</a> are released.
+If the counter goes negative, Add panics.
+<p>Callers should prefer <a href="#WaitGroup.Go">WaitGroup.Go</a>.
+<p>Note that calls with a positive delta that occur when the counter is zero
+must happen before a Wait. Calls with a negative delta, or calls with a
+positive delta that start when the counter is greater than zero, may happen
+at any time.
+Typically this means the calls to Add should execute before the statement
+creating the goroutine or other event to be waited for.
+If a WaitGroup is reused to wait for several independent sets of events,
+new Add calls must happen after all previous Wait calls have returned.
+See the WaitGroup example.
+
+				
+			
+				<h3 id="WaitGroup.Done">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=4977:5004#L145">Done</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Done()</pre>
+				<p>Done decrements the <a href="#WaitGroup">WaitGroup</a> task counter by one.
+It is equivalent to Add(-1).
+<p>Callers should prefer <a href="#WaitGroup.Go">WaitGroup.Go</a>.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>, a call to Done
+&quot;synchronizes before&quot; the return of any Wait call that it unblocks.
+
+				
+			
+				<h3 id="WaitGroup.Go">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=7516:7549#L226">Go</a>
+					
+					<span title="Added in Go 1.25">1.25</span>
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Go(f func())</pre>
+				<p>Go calls f in a new goroutine and adds that task to the <a href="#WaitGroup">WaitGroup</a>.
+When f returns, the task is removed from the WaitGroup.
+<p>The function f must not panic.
+<p>If the WaitGroup is empty, Go must happen before a <a href="#WaitGroup.Wait">WaitGroup.Wait</a>.
+Typically, this simply means Go is called to start tasks before Wait is called.
+If the WaitGroup is not empty, Go may happen at any time.
+This means a goroutine started by Go may itself call Go.
+If a WaitGroup is reused to wait for several independent sets of tasks,
+new Go calls must happen after all previous Wait calls have returned.
+<p>In the terminology of <a href="/ref/mem">the Go memory model</a>, the return from f
+&quot;synchronizes before&quot; the return of any Wait call that it unblocks.
+
+				
+			
+				<h3 id="WaitGroup.Wait">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=5081:5108#L150">Wait</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Wait()</pre>
+				<p>Wait blocks until the <a href="#WaitGroup">WaitGroup</a> task counter is zero.
+
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">Subdirectories</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">Name</th>
+				<th class="pkg-synopsis">Synopsis</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="atomic/">atomic</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms.
+					</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

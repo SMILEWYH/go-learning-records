@@ -1,0 +1,257 @@
+<!--{
+  "Title": "unsafe 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>unsafe 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "unsafe"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>unsafe 包包含绕过 Go 程序类型安全的操作。<p>导入 unsafe 的包可能不具备可移植性，也不受 Go 1 兼容性准则保护。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Alignof">func Alignof(x ArbitraryType) uintptr</a></dd>
+			
+				<dd><a href="#Offsetof">func Offsetof(x ArbitraryType) uintptr</a></dd>
+			
+				<dd><a href="#Sizeof">func Sizeof(x ArbitraryType) uintptr</a></dd>
+			
+				<dd><a href="#String">func String(ptr *byte, len IntegerType) string</a></dd>
+			
+				<dd><a href="#StringData">func StringData(str string) *byte</a></dd>
+			
+			
+				
+				<dd><a href="#ArbitraryType">type ArbitraryType</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Slice">func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SliceData">func SliceData(slice []ArbitraryType) *ArbitraryType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#IntegerType">type IntegerType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Pointer">type Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Add">func Add(ptr Pointer, len IntegerType) Pointer</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/unsafe/unsafe.go">unsafe.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Alignof">func <a href="/src/unsafe/unsafe.go?s=10070:10107#L209">Alignof</a>
+				
+				
+			</h2>
+			<pre>func Alignof(x <a href="#ArbitraryType">ArbitraryType</a>) <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+			<p>Alignof 接受任意类型的表达式 x，并返回假想变量 v 所需的对齐值，就好像 v 是通过 var v = x 声明的一样。它是满足 v 的地址对 m 取模始终为零的最大 m。此值与 <a href="/pkg/reflect/#TypeOf">reflect.TypeOf</a>(x).Align() 的返回值相同。有一种特殊情况：如果变量 s 是结构体类型，f 是该结构体中的字段，则 Alignof(s.f) 返回结构体中该类型字段所需的对齐值。此时它与 <a href="/pkg/reflect/#TypeOf">reflect.TypeOf</a>(s.f).FieldAlign() 的返回值相同。如果实参类型不具有可变大小，Alignof 的返回值是 Go 常量。（可变大小类型的定义见 <a href="#Sizeof">Sizeof</a> 的说明。）<h2 id="Offsetof">func <a href="/src/unsafe/unsafe.go?s=9266:9304#L196">Offsetof</a>
+				
+				
+			</h2>
+			<pre>func Offsetof(x <a href="#ArbitraryType">ArbitraryType</a>) <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+			<p>Offsetof 返回 x 所表示的字段在结构体中的偏移量；x 必须采用 structValue.field 的形式。换言之，它返回结构体起始位置与字段起始位置之间的字节数。如果实参 x 的类型不具有可变大小，Offsetof 的返回值是 Go 常量。（可变大小类型的定义见 <a href="#Sizeof">Sizeof</a> 的说明。）<h2 id="Sizeof">func <a href="/src/unsafe/unsafe.go?s=8800:8836#L188">Sizeof</a>
+				
+				
+			</h2>
+			<pre>func Sizeof(x <a href="#ArbitraryType">ArbitraryType</a>) <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+			<p>Sizeof 接受任意类型的表达式 x，并返回假想变量 v 的字节大小，就好像 v 是通过 var v = x 声明的一样。该大小不包括 x 可能引用的任何内存。例如，如果 x 是切片，Sizeof 返回切片描述符的大小，而不是切片所引用内存的大小；如果 x 是接口，Sizeof 返回接口值本身的大小，而不是接口中存储的值的大小。对于结构体，此大小包括字段对齐引入的所有填充。如果实参 x 的类型不具有可变大小，Sizeof 的返回值是 Go 常量。（如果类型是类型参数，或者是包含大小可变元素的数组或结构体类型，则该类型具有可变大小。）<h2 id="String">func <a href="/src/unsafe/unsafe.go?s=12077:12123#L254">String</a>
+				
+				
+			</h2>
+			<pre>func String(ptr *<a href="/pkg/builtin/#byte">byte</a>, len <a href="#IntegerType">IntegerType</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>String 返回一个字符串值，其底层字节从 ptr 开始，长度为 len。<p>len 实参必须具有整数类型或为无类型常量。常量 len 实参必须非负，且可以由 int 类型的值表示；如果它是无类型常量，则赋予其 int 类型。在运行时，如果 len 为负，或者 ptr 为 nil 而 len 不为零，将发生运行时 panic。<p>由于 Go 字符串不可变，只要返回的字符串值仍然存在，就不得修改传给 String 的字节。<h2 id="StringData">func <a href="/src/unsafe/unsafe.go?s=12357:12390#L261">StringData</a>
+				
+				
+			</h2>
+			<pre>func StringData(str <a href="/pkg/builtin/#string">string</a>) *<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>StringData 返回指向 str 底层字节的指针。对于空字符串，返回值未指定，可能为 nil。<p>由于 Go 字符串不可变，不得修改 StringData 返回的字节。<h2 id="ArbitraryType">type <a href="/src/unsafe/unsafe.go?s=544:566#L5">ArbitraryType</a>
+				
+				
+			</h2>
+			<p>此处的 ArbitraryType 仅用于文档说明，实际上并不是 unsafe 包的一部分。它代表任意 Go 表达式的类型。<pre>type ArbitraryType <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Slice">func <a href="/src/unsafe/unsafe.go?s=11128:11191#L233">Slice</a>
+					
+					
+				</h3>
+				<pre>func Slice(ptr *<a href="#ArbitraryType">ArbitraryType</a>, len <a href="#IntegerType">IntegerType</a>) []<a href="#ArbitraryType">ArbitraryType</a></pre>
+				<p>Slice 函数返回一个切片，其底层数组从 ptr 开始，长度和容量均为 len。Slice(ptr, len) 等价于<pre>(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
+</pre>
+<p>但有一种特殊情况例外：如果 ptr 为 nil 且 len 为零，则 Slice 返回 nil。<p>len 实参必须具有整数类型或为无类型常量。常量 len 实参必须非负，且可以由 int 类型的值表示；如果它是无类型常量，则赋予其 int 类型。在运行时，如果 len 为负，或者 ptr 为 nil 而 len 不为零，将发生运行时 panic。<h3 id="SliceData">func <a href="/src/unsafe/unsafe.go?s=11475:11527#L241">SliceData</a>
+					
+					
+				</h3>
+				<pre>func SliceData(slice []<a href="#ArbitraryType">ArbitraryType</a>) *<a href="#ArbitraryType">ArbitraryType</a></pre>
+				<p>SliceData 返回指向实参 slice 的底层数组的指针。<ul>
+<li>如果 cap(slice) &gt; 0，SliceData 返回 &amp;slice[:1][0]。<li>如果 slice == nil，SliceData 返回 nil。<li>否则，SliceData 返回指向未指定内存地址的非 nil 指针。</ul>
+
+				
+			
+
+			
+		
+			
+			<h2 id="IntegerType">type <a href="/src/unsafe/unsafe.go?s=723:743#L9">IntegerType</a>
+				
+				
+			</h2>
+			<p>此处的 IntegerType 仅用于文档说明，实际上并不是 unsafe 包的一部分。它代表任意整数类型。<pre>type IntegerType <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Pointer">type <a href="/src/unsafe/unsafe.go?s=7977:8004#L174">Pointer</a>
+				
+				
+			</h2>
+			<p>Pointer 表示指向任意类型的指针。Pointer 类型允许以下四种其他类型不具备的特殊操作：<ul>
+<li>任意类型的指针值都可以转换为 Pointer。<li>Pointer 可以转换为任意类型的指针值。<li>uintptr 可以转换为 Pointer。<li>Pointer 可以转换为 uintptr。</ul>
+<p>因此，Pointer 允许程序绕过类型系统并读写任意内存，使用时必须极其谨慎。<p>以下涉及 Pointer 的用法是有效的。不遵循这些用法的代码，现在很可能无效，或将来可能失效。即使以下有效用法也有重要的注意事项。<p>运行“go vet”可以帮助发现不符合这些用法的 Pointer 使用，但“go vet”没有报告问题并不保证代码有效。<p>（1）将 *T1 转换为 Pointer，再转换为 *T2。<p>只要 T2 不大于 T1，且两者具有等价的内存布局，此转换就允许将一种类型的数据重新解释为另一种类型的数据。例如 math.Float64bits 的实现：<pre>func Float64bits(f float64) uint64 {
+	return *(*uint64)(unsafe.Pointer(&amp;f))
+}
+</pre>
+<p>（2）将 Pointer 转换为 uintptr（但不再转回 Pointer）。<p>将 Pointer 转换为 uintptr，会得到以整数表示的所指向值的内存地址。此类 uintptr 的常见用途是打印地址。<p>通常，将 uintptr 转换回 Pointer 是无效的。<p>uintptr 是整数，不是引用。将 Pointer 转换为 uintptr 会创建一个不具有指针语义的整数值。即使 uintptr 保存着某个对象的地址，当对象移动时，垃圾回收器也不会更新该 uintptr 的值；该 uintptr 也不能阻止对象被回收。<p>剩余用法列出了从 uintptr 转换为 Pointer 的全部有效情形。<p>（3）将 Pointer 转换为 uintptr，进行算术运算，再转回 Pointer。<p>如果 p 指向一个已分配对象内部，可以将其转换为 uintptr、加上偏移量，再转换回 Pointer，从而在对象内部移动指针。<pre>p = unsafe.Pointer(uintptr(p) + offset)
+</pre>
+<p>此用法最常用于访问结构体字段或数组元素：<pre>// 等价于 f := unsafe.Pointer(&amp;s.f)
+f := unsafe.Pointer(uintptr(unsafe.Pointer(&amp;s)) + unsafe.Offsetof(s.f))
+
+// 等价于 e := unsafe.Pointer(&amp;x[i])
+e := unsafe.Pointer(uintptr(unsafe.Pointer(&amp;x[0])) + i*unsafe.Sizeof(x[0]))
+</pre>
+<p>以这种方式对指针加上或减去偏移量都是有效的。使用 &amp;^ 对指针取整也是有效的，通常用于对齐。无论哪种情况，结果都必须仍然指向原来已分配对象的内部。<p>与 C 不同，将指针前移到刚好越过原始分配区域末尾的位置是无效的：<pre>// 无效：end 指向已分配空间之外。
+var s thing
+end = unsafe.Pointer(uintptr(unsafe.Pointer(&amp;s)) + unsafe.Sizeof(s))
+
+// 无效：end 指向已分配空间之外。
+b := make([]byte, n)
+end = unsafe.Pointer(uintptr(unsafe.Pointer(&amp;b[0])) + uintptr(n))
+</pre>
+<p>注意，两次转换必须出现在同一个表达式中，中间只能有相关算术运算：<pre>// 无效：uintptr 不能先存入变量，
+// 再转换回 Pointer。
+u := uintptr(p)
+p = unsafe.Pointer(u + offset)
+</pre>
+<p>注意，指针必须指向一个已分配对象内部，因此不得为 nil。<pre>// 无效：转换 nil 指针
+u := unsafe.Pointer(nil)
+p := unsafe.Pointer(uintptr(u) + offset)
+</pre>
+<p>（4）在调用 <a href="/pkg/syscall/#Syscall">syscall.Syscall</a> 之类函数时，将 Pointer 转换为 uintptr。<p>syscall 包的 Syscall 函数会将其 uintptr 实参直接传给操作系统，操作系统可能根据调用的具体情况将其中一些重新解释为指针。也就是说，系统调用实现会隐式地将某些实参从 uintptr 转换回指针。<p>如果指针实参必须转换为 uintptr 才能用作实参，则转换必须直接出现在调用表达式中：<pre>syscall.Syscall(SYS_READ, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(n))
+</pre>
+<p>在调用由汇编实现的函数时，对于实参列表中转换为 uintptr 的 Pointer，编译器会确保其引用的已分配对象（如果存在）一直保留且不移动，直到调用完成；尽管仅从类型来看，该对象似乎在调用期间已不再需要。<p>为了让编译器识别此用法，转换必须出现在实参列表中：<pre>// 无效：uintptr 不能先存入变量，
+// 再在系统调用期间隐式转换回 Pointer。
+u := uintptr(unsafe.Pointer(p))
+syscall.Syscall(SYS_READ, uintptr(fd), u, uintptr(n))
+</pre>
+<p>（5）将 <a href="/pkg/reflect/#Value.Pointer">reflect.Value.Pointer</a> 或 <a href="/pkg/reflect/#Value.UnsafeAddr">reflect.Value.UnsafeAddr</a> 的返回结果从 uintptr 转换为 Pointer。<p>reflect 包中 Value 的 Pointer 和 UnsafeAddr 方法返回 uintptr，而不是 unsafe.Pointer，以防调用方在尚未导入 "unsafe" 时就将结果改为任意类型。不过，这意味着结果很脆弱，必须在调用后立即于同一个表达式中转换为 Pointer：<pre>p := (*int)(unsafe.Pointer(reflect.ValueOf(new(int)).Pointer()))
+</pre>
+<p>与上述情况一样，在转换之前存储结果是无效的：<pre>// 无效：uintptr 不能先存入变量，
+// 再转换回 Pointer。
+u := reflect.ValueOf(new(int)).Pointer()
+p := (*int)(unsafe.Pointer(u))
+</pre>
+<p>（6）将 <a href="/pkg/reflect/#SliceHeader">reflect.SliceHeader</a> 或 <a href="/pkg/reflect/#StringHeader">reflect.StringHeader</a> 的 Data 字段转换为 Pointer，或反向转换。<p>与上一种情况一样，reflect 的 SliceHeader 和 StringHeader 数据结构将 Data 字段声明为 uintptr，以防调用方在尚未导入 "unsafe" 时就将结果改为任意类型。不过，这意味着 SliceHeader 和 StringHeader 仅在解释实际切片值或字符串值的内容时才有效。<pre>var s string
+hdr := (*reflect.StringHeader)(unsafe.Pointer(&amp;s)) // 情形 1
+hdr.Data = uintptr(unsafe.Pointer(p))              // 情形 6（当前情形）
+hdr.Len = n
+</pre>
+<p>在此用法中，hdr.Data 实际上是引用字符串头部底层指针的另一种方式，而不是独立的 uintptr 变量。<p>一般而言，<a href="/pkg/reflect/#SliceHeader">reflect.SliceHeader</a> 和 <a href="/pkg/reflect/#StringHeader">reflect.StringHeader</a> 只应以指向实际切片或字符串的 *reflect.SliceHeader 和 *reflect.StringHeader 形式使用，绝不能作为普通结构体使用。程序不应声明或分配这些结构体类型的变量。<pre>// 无效：直接声明的头部不会将 Data 作为引用持有。
+var hdr reflect.StringHeader
+hdr.Data = uintptr(unsafe.Pointer(p))
+hdr.Len = n
+s := *(*string)(unsafe.Pointer(&amp;hdr)) // p 可能已经丢失
+</pre>
+
+			<pre>type Pointer *<a href="#ArbitraryType">ArbitraryType</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Add">func <a href="/src/unsafe/unsafe.go?s=10467:10513#L217">Add</a>
+					
+					
+				</h3>
+				<pre>func Add(ptr <a href="#Pointer">Pointer</a>, len <a href="#IntegerType">IntegerType</a>) <a href="#Pointer">Pointer</a></pre>
+				<p>Add 函数将 len 加到 ptr 上，并返回更新后的指针 <a href="#Pointer">Pointer</a>(uintptr(ptr) + uintptr(len))。len 实参必须具有整数类型或为无类型常量。常量 len 实参必须可以由 int 类型的值表示；如果它是无类型常量，则赋予其 int 类型。关于 Pointer 有效用法的规则仍然适用。</article>

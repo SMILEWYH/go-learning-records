@@ -1,0 +1,141 @@
+{{define "layout"}}
+
+<article class="Downloads Article">
+
+<h1>{{.title}}</h1>
+
+{{with .dl}}
+<p>
+下载适合你的系统的二进制发行版后，请按照<a href="/doc/install">安装说明</a>进行安装。
+</p>
+
+<p>
+如果从源码构建，请参阅<a href="/doc/install/source">源码安装说明</a>。
+</p>
+
+<p>
+有关 Go 版本的更多信息，请参阅<a href="/doc/devel/release.html">发布历史</a>。
+</p>
+
+<p>
+  自 Go 1.13 起，go 命令默认使用 Google 运营的 Go 模块镜像和校验和数据库下载并验证模块。
+  这些服务的隐私信息见 <a href="https://proxy.golang.org/privacy">https://proxy.golang.org/privacy</a>；
+  配置方法见 <a href="/cmd/go/">go 命令文档</a>，其中包括如何禁用这些服务器或改用其他服务器。
+</p>
+
+{{with .Featured}}
+<h2 id="featured">推荐下载</h2>
+<div class="downloadWrapper">
+{{range .}}
+{{template "download" .}}
+{{end}}
+{{end}}
+</div>
+
+<div style="clear: both;"></div>
+
+{{with .Stable}}
+<h2 id="stable">稳定版本</h2>
+{{template "download-releases" .}}
+{{end}}
+
+{{with .Unstable}}
+<h2 id="unstable">非稳定版本</h2>
+{{template "download-releases" .}}
+{{end}}
+
+{{with .Archive}}
+<div class="toggle" id="archive">
+  <div class="collapsed">
+    <h2 class="toggleButton" title="展开版本列表">历史版本 <span class="toggleText">展开</span></h2>
+  </div>
+  <div class="expanded">
+    <h2 class="toggleButton" title="收起版本列表">历史版本 <span class="toggleText">收起</span></h2>
+    {{template "download-releases" .}}
+  </div>
+</div>
+{{end}}
+{{end}}
+
+</article>
+
+{{end}}
+
+{{define "download-releases"}}
+{{range .}}
+<div class="toggle{{if .Visible}}Visible{{end}}" id="{{.Version}}">
+	<div class="collapsed">
+		<h3 class="toggleButton" title="展开此版本的下载文件">
+    <span>{{.Version}}</span>
+    <img class="toggleButton-img" src="/images/icons/arrow-down.svg" width="18" height="18" aria-hidden="true" />
+    <img class="toggleButton-img toggleButton-img-dark" src="/images/icons/arrow-down-dark.svg" width="18" height="18" aria-hidden="true" />
+    </h3>
+	</div>
+	<div class="expanded">
+		<h3 class="toggleButton" title="收起此版本的下载文件">
+    <span>{{.Version}}</span>
+    <img class="toggleButton-img" src="/images/icons/arrow-down.svg" width="18" height="18" aria-hidden="true" />
+    <img class="toggleButton-img toggleButton-img-dark" src="/images/icons/arrow-down-dark.svg" width="18" height="18" aria-hidden="true" />
+    </h3>
+		{{if .Stable}}{{else}}
+			<p>这是 Go 的<b>非稳定版本</b>，请谨慎使用。</p>
+			<p>如果已经安装 Go，可以运行以下命令安装此版本：</p>
+<pre>
+go install golang.org/dl/{{.Version}}@latest
+</pre>
+			<p>然后使用 <code>{{.Version}}</code> 命令代替 <code>go</code> 命令，即可使用 {{.Version}}。</p>
+		{{end}}
+		{{template "download-files" .}}
+	</div>
+</div>
+{{end}}
+{{end}}
+
+{{define "download-files"}}
+<div style="overflow:auto;">
+<table class="downloadtable">
+<thead>
+<tr class="first">
+  <th>文件名</th>
+  <th>类型</th>
+  <th>操作系统</th>
+  <th>架构</th>
+  <th>大小</th>
+  {{/* Use the checksum type of the first file for the column heading. */}}
+  <th>{{(index .Files 0).ChecksumType}} 校验和</th>
+</tr>
+</thead>
+{{if .SplitPortTable}}
+  {{range .Files}}{{if .PrimaryPort}}{{template "download-file" .}}{{end}}{{end}}
+
+  {{/* TODO(cbro): add a link to an explanatory doc page */}}
+  <tr class="first js-togglePorts" aria-expanded="false"><th colspan="6" class="first">其他平台</th></tr>
+  {{range .Files}}{{if not .PrimaryPort}}{{template "download-file" .}}{{end}}{{end}}
+{{else}}
+  {{range .Files}}{{template "download-file" .}}{{end}}
+{{end}}
+</table>
+</div>
+{{end}}
+
+{{define "download-file"}}
+<tr class="{{if .Highlight}}highlight{{end}} {{if not .PrimaryPort}}secondary{{end}}">
+  <td class="filename"><a class="download" href="{{.URL}}">{{.Filename}}</a></td>
+  <td>{{if eq .Kind "archive"}}压缩包{{else if eq .Kind "installer"}}安装程序{{else if eq .Kind "source"}}源码{{else}}{{.PrettyKind}}{{end}}</td>
+  <td>{{.PrettyOS}}</td>
+  <td>{{.PrettyArch}}</td>
+  <td>{{.PrettySize}}</td>
+  <td><tt>{{.PrettyChecksum}}</tt></td>
+</tr>
+{{end}}
+
+{{define "download"}}
+<a class="download downloadBox" href="{{.URL}}">
+<div class="platform">{{if eq .Platform "Source"}}源码{{else}}{{.Platform}}{{end}}</div>
+{{with .Requirements}}<div class="reqs">{{strings.ReplaceAll (strings.ReplaceAll (strings.ReplaceAll . "or later" "或更新版本") "Intel 64-bit processor" "Intel 64 位处理器") "Apple 64-bit processor" "Apple 64 位处理器"}}</div>{{end}}
+<div class="filename">
+  <img src="/images/icons/download.svg" aria-hidden="true" width="14" height="13" />
+  <span>{{.Filename}}</span>
+</div>
+</a>
+{{end}}

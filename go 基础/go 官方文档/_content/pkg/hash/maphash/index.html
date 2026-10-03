@@ -1,0 +1,614 @@
+<!--{
+  "Title": "hash/maphash 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>hash/maphash 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "hash/maphash"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>maphash 包提供作用于字节序列和可比较值的哈希函数。它还定义了 <a href="#Hasher">Hasher</a>，作为哈希函数与哈希表之间的接口。<p>这些哈希函数用于实现哈希表、布隆过滤器，以及其他需要将任意字符串或字节序列映射为均匀分布的无符号 64 位整数的数据结构。<p>哈希表或数据结构的每个不同实例都应使用自己的 <a href="#Seed">Seed</a>。<p>这些哈希函数不具备密码学安全性。（密码学用途请参见 crypto/sha256 和 crypto/sha512。）<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/maphash&#34;
+)
+
+func main() {
+	// Hash 的零值有效且可直接使用；
+	// 无须设置初始种子。
+	var h maphash.Hash
+
+	// 向哈希添加一个字符串，并打印当前哈希值。
+	h.WriteString(&#34;hello, &#34;)
+	fmt.Printf(&#34;%#x\n&#34;, h.Sum64())
+
+	// 追加更多数据（以字节数组的形式）。
+	h.Write([]byte{&#39;w&#39;, &#39;o&#39;, &#39;r&#39;, &#39;l&#39;, &#39;d&#39;})
+	fmt.Printf(&#34;%#x\n&#34;, h.Sum64())
+
+	// Reset 丢弃之前添加到 Hash 的所有数据，
+	// 但不改变其种子。
+	h.Reset()
+
+	// 使用 SetSeed 创建一个新的 Hash h2，
+	// 使其行为与 h 完全相同。
+	var h2 maphash.Hash
+	h2.SetSeed(h.Seed())
+
+	h.WriteString(&#34;same&#34;)
+	h2.WriteString(&#34;same&#34;)
+	fmt.Printf(&#34;%#x == %#x\n&#34;, h.Sum64(), h2.Sum64())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__bloomFilter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (BloomFilter)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (BloomFilter)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+// 本文件演示布隆过滤器。
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/maphash&#34;
+	&#34;math&#34;
+	&#34;math/bits&#34;
+)
+
+// BloomFilter 是布隆过滤器，它基于哈希，
+// 以节省空间的概率性方式表示一组 V 类型的值。
+//
+// 它提供两个操作：Insert 插入元素，Contains
+// 查询一个值是否属于该集合。
+//
+// 但与通常的集合不同，其大小不依赖
+// 元素数量。代价是：Contains 也允许对
+// 某些并不存在的元素报告 true。
+// 空间与准确率之间的权衡由
+// 构造时的参数决定。
+type BloomFilter[V any] struct {
+	hasher maphash.Hasher[V]
+	seeds  []maphash.Seed // 每个种子确定一个哈希函数
+	bytes  []byte         // 位向量
+}
+
+// NewBloomFilterComparable 为指定元素返回新的 BloomFilter，
+// 并使用它们通常的比较方式。
+func NewComparableBloomFilter[V comparable](n int, fpProb float64) *BloomFilter[V] {
+	return NewBloomFilter(maphash.ComparableHasher[V]{}, n, fpProb)
+}
+
+// NewBloomFilter 构造新的 BloomFilter，在假定哈希函数
+// 分布良好的情况下，能够以指定的假阳性概率
+// 容纳 n 个元素。
+func NewBloomFilter[V any](hasher maphash.Hasher[V], n int, fpProb float64) *BloomFilter[V] {
+	nbytes, nseeds := calibrate(n, fpProb)
+
+	seeds := make([]maphash.Seed, nseeds)
+	for i := range nseeds {
+		seeds[i] = maphash.MakeSeed()
+	}
+
+	return &amp;BloomFilter[V]{
+		hasher: hasher,
+		bytes:  make([]byte, nbytes),
+		seeds:  seeds,
+	}
+}
+
+func (f *BloomFilter[V]) Contains(v V) bool {
+	for _, seed := range f.seeds {
+		index, bit := f.locate(seed, v)
+		if f.bytes[index]&amp;bit == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (f *BloomFilter[V]) Insert(v V) {
+	for _, seed := range f.seeds {
+		index, bit := f.locate(seed, v)
+		f.bytes[index] |= bit
+	}
+}
+
+func (f *BloomFilter[V]) locate(seed maphash.Seed, v V) (uint64, byte) {
+	// 优化说明：对 hasher.Hash 的动态调用会导致 h
+	// 逃逸。可以使用 sync.Pool 来减轻
+	// 分配开销。
+	//
+	// 也可以为 maphash.Hasher 的特定实现
+	// 复制过滤器逻辑并进行专门化，
+	// 使编译器的逃逸分析能够确定
+	// hasher.Hash 调用实际上不会导致 h 逃逸。
+	var h maphash.Hash
+	h.SetSeed(seed)
+	f.hasher.Hash(&amp;h, v)
+	hash := h.Sum64()
+
+	index := reduce(hash, uint64(len(f.bytes)))
+	mask := byte(1 &lt;&lt; (hash % 8))
+	return index, mask
+}
+
+// reduce 将哈希映射到区间 [0, n) 中的值。
+// 参见 https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction
+func reduce(hash, n uint64) uint64 {
+	if n &gt; 1&lt;&lt;32-1 {
+		hi, _ := bits.Mul64(hash, n)
+		return hi
+	}
+	return hash &gt;&gt; 32 * n &gt;&gt; 32
+}
+
+func calibrate(n int, fpProb float64) (bytes, seeds int) {
+	// 依据 https://en.wikipedia.org/wiki/Bloom_filter：
+	// - k 为哈希函数的数量，
+	// - m 为位域的大小；
+	// - n 为已置位的位数。
+
+	if n == 0 {
+		return 1, 1
+	}
+
+	logFpProb := math.Log(fpProb)
+	m := -(float64(n) * logFpProb) / (math.Ln2 * math.Ln2)
+
+	// 向上取整到整字节。
+	// TODO(adonovan)：优化：向上取整到下一个分配大小
+	// 类别（参见 bytes.growSlice），再根据这个更大的大小，
+	// 计算所需种子数量（可能会更少）。
+	bytes = int(m) / 8
+	if float64(bytes*8) &lt; m {
+		bytes&#43;&#43;
+	}
+
+	k := -logFpProb / math.Ln2
+	seeds = max(int(math.Round(k)), 1)
+	return bytes, seeds
+}
+
+func main() {
+	// 创建一个针对 2 个元素优化的布隆过滤器，
+	// 假阳性率为十亿分之一。
+	//
+	// （如此低的概率需要较多空间：88 位和
+	// 30 个哈希函数。更常见的概率为 1–5%；
+	// 取 5% 时，只需 16 位和 4 个哈希函数。）
+	f := NewComparableBloomFilter[string](2, 1e-9)
+
+	// 插入两个元素。
+	f.Insert(&#34;apple&#34;)
+	f.Insert(&#34;banana&#34;)
+
+	// 检查元素是否存在。
+	//
+	// 没有插入 "cherry"，但 Contains 是概率性的，因此
+	// 此测试大约每运行十亿次，会有一次错误地报告
+	// Contains("cherry") = true。
+	for _, fruit := range []string{&#34;apple&#34;, &#34;banana&#34;, &#34;cherry&#34;} {
+		fmt.Printf(&#34;Contains(%q) = %v\n&#34;, fruit, f.Contains(fruit))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+Contains(&#34;apple&#34;) = true
+Contains(&#34;banana&#34;) = true
+Contains(&#34;cherry&#34;) = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Bytes">func Bytes(seed Seed, b []byte) uint64</a></dd>
+			
+				<dd><a href="#Comparable">func Comparable[T comparable](seed Seed, v T) uint64</a></dd>
+			
+				<dd><a href="#String">func String(seed Seed, s string) uint64</a></dd>
+			
+				<dd><a href="#WriteComparable">func WriteComparable[T comparable](h *Hash, x T)</a></dd>
+			
+			
+				
+				<dd><a href="#ComparableHasher">type ComparableHasher</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ComparableHasher.Equal">func (ComparableHasher[T]) Equal(x, y T) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ComparableHasher.Hash">func (ComparableHasher[T]) Hash(h *Hash, v T)</a></dd>
+				
+			
+				
+				<dd><a href="#Hash">type Hash</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.BlockSize">func (h *Hash) BlockSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Clone">func (h *Hash) Clone() (hash.Cloner, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Reset">func (h *Hash) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Seed">func (h *Hash) Seed() Seed</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.SetSeed">func (h *Hash) SetSeed(seed Seed)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Size">func (h *Hash) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Sum">func (h *Hash) Sum(b []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Sum64">func (h *Hash) Sum64() uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Write">func (h *Hash) Write(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.WriteByte">func (h *Hash) WriteByte(b byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.WriteString">func (h *Hash) WriteString(s string) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Hasher">type Hasher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Seed">type Seed</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeSeed">func MakeSeed() Seed</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__bloomFilter">包 (BloomFilter)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/hash/maphash/hasher.go">hasher.go</a>
+			
+				<a href="/src/hash/maphash/maphash.go">maphash.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Bytes">func <a href="/src/hash/maphash/maphash.go?s=1663:1701#L39">Bytes</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Bytes(seed <a href="#Seed">Seed</a>, b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Bytes 返回使用给定种子计算的 b 的哈希值。<p>Bytes 等价于以下操作，但更方便、更高效：<pre>var h Hash
+h.SetSeed(seed)
+h.Write(b)
+return h.Sum64()
+</pre>
+
+			
+		
+			
+			<h2 id="Comparable">func <a href="/src/hash/maphash/maphash.go?s=8646:8698#L290">Comparable</a>
+				
+				
+			</h2>
+			<pre>func Comparable[T <a href="/pkg/builtin/#comparable">comparable</a>](seed <a href="#Seed">Seed</a>, v <a href="#T">T</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Comparable 返回使用给定种子计算的可比较值 v 的哈希值，满足：如果 v1 == v2，则 Comparable(s, v1) == Comparable(s, v2)。如果 v != v，则结果哈希值随机分布。<h2 id="String">func <a href="/src/hash/maphash/maphash.go?s=2201:2240#L63">String</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func String(seed <a href="#Seed">Seed</a>, s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>String 返回使用给定种子计算的 s 的哈希值。<p>String 等价于以下操作，但更方便、更高效：<pre>var h Hash
+h.SetSeed(seed)
+h.WriteString(s)
+return h.Sum64()
+</pre>
+
+			
+		
+			
+			<h2 id="WriteComparable">func <a href="/src/hash/maphash/maphash.go?s=8811:8859#L296">WriteComparable</a>
+				
+				
+			</h2>
+			<pre>func WriteComparable[T <a href="/pkg/builtin/#comparable">comparable</a>](h *<a href="#Hash">Hash</a>, x <a href="#T">T</a>)</pre>
+			<p>WriteComparable 将 x 加入 h 要计算哈希的数据。<h2 id="ComparableHasher">type <a href="/src/hash/maphash/hasher.go?s=5598:5749#L124">ComparableHasher</a>
+				
+				
+			</h2>
+			<p>ComparableHasher 是 <a href="#Hasher">Hasher</a> 的一个实现，其 Equal(x, y) 方法与 x == y 保持一致。<p>ComparableHasher 仅对可比较类型有定义。类型系统不会阻止你实例化 ComparableHasher[any] 这样的类型；但仍不得向它的 Hash 或 Equal 方法传入不可比较的实参值。<pre>type ComparableHasher[T <a href="/pkg/builtin/#comparable">comparable</a>] struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ComparableHasher.Equal">func (ComparableHasher[T]) <a href="/src/hash/maphash/hasher.go?s=5823:5868#L129">Equal</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#ComparableHasher">ComparableHasher</a>[<a href="#T">T</a>]) Equal(x, y <a href="#T">T</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="ComparableHasher.Hash">func (ComparableHasher[T]) <a href="/src/hash/maphash/hasher.go?s=5751:5796#L128">Hash</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#ComparableHasher">ComparableHasher</a>[<a href="#T">T</a>]) Hash(h *<a href="#Hash">Hash</a>, v <a href="#T">T</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Hash">type <a href="/src/hash/maphash/maphash.go?s=3419:3688#L98">Hash</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<p>Hash 计算字节序列的带种子哈希值。<p>Hash 的零值是可直接使用的有效 Hash。零值 Hash 会在首次调用 Reset、Write、Seed、Clone 或 Sum64 方法期间为自己选择随机种子。要控制种子，请使用 SetSeed。<p>计算出的哈希值仅取决于初始种子和提供给 Hash 对象的字节序列，而不取决于提供这些字节的方式。例如，以下三个操作序列：<pre>h.Write([]byte{&apos;f&apos;,&apos;o&apos;,&apos;o&apos;})
+h.WriteByte(&apos;f&apos;); h.WriteByte(&apos;o&apos;); h.WriteByte(&apos;o&apos;)
+h.WriteString(&quot;foo&quot;)
+</pre>
+<p>效果完全相同。<p>这些哈希的设计目标是抗碰撞，即使对手能够控制被哈希的字节序列也是如此。<p>Hash 不能由多个 goroutine 安全地并发使用，但 Seed 可以。如果多个 goroutine 必须计算相同种子的哈希，每个 goroutine 都可以声明自己的 Hash，并以共同的 Seed 调用 SetSeed。<pre>type Hash struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Hash.BlockSize">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8268:8298#L278">BlockSize</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) BlockSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>BlockSize 返回 h 的块大小。<h3 id="Hash.Clone">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8357:8400#L281">Clone</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Clone() (<a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Cloner">Cloner</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Clone 实现 <a href="/pkg/hash/#Cloner">hash.Cloner</a>。<h3 id="Hash.Reset">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6822:6844#L216">Reset</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Reset()</pre>
+				<p>Reset 丢弃已添加到 h 的所有字节。（种子保持不变。）<h3 id="Hash.Seed">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6230:6256#L195">Seed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Seed() <a href="#Seed">Seed</a></pre>
+				<p>Seed 返回 h 的种子值。<h3 id="Hash.SetSeed">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6604:6637#L205">SetSeed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) SetSeed(seed <a href="#Seed">Seed</a>)</pre>
+				<p>SetSeed 将 h 设置为使用 seed，该种子必须由 <a href="#MakeSeed">MakeSeed</a> 或另一个 <a href="#Hash.Seed">Hash.Seed</a> 方法返回。种子相同的两个 <a href="#Hash">Hash</a> 对象行为完全相同。种子不同的两个 <a href="#Hash">Hash</a> 对象很可能具有不同的行为。此次调用之前添加到 h 的所有字节都会被丢弃。<h3 id="Hash.Size">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8191:8216#L275">Size</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回 h 的哈希值大小，即 8 字节。<h3 id="Hash.Sum">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=7952:7987#L261">Sum</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Sum(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Sum 将哈希当前的 64 位值追加到 b。此方法用于实现 <a href="/pkg/hash/#Hash">hash.Hash</a>。直接调用时，使用 <a href="#Hash.Sum64">Hash.Sum64</a> 更高效。<h3 id="Hash.Sum64">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=7442:7471#L239">Sum64</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Sum64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Sum64 返回 h 当前的 64 位值，它取决于 h 的种子，以及自上次调用 <a href="#Hash.Reset">Hash.Reset</a> 或 <a href="#Hash.SetSeed">Hash.SetSeed</a> 以来添加到 h 的字节序列。<p>Sum64 结果的所有位都接近均匀且独立分布，因此可以安全地通过位掩码、移位或模运算缩小取值范围。<h3 id="Hash.Write">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=4788:4831#L138">Write</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 b 加入 h 要计算哈希的字节序列。它总是写入整个 b，且从不失败；字节数和错误返回值用于实现 <a href="/pkg/io/#Writer">io.Writer</a>。<h3 id="Hash.WriteByte">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=4509:4547#L127">WriteByte</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) WriteByte(b <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteByte 将 b 加入 h 要计算哈希的字节序列。它从不失败；错误返回值用于实现 <a href="/pkg/io/#ByteWriter">io.ByteWriter</a>。<h3 id="Hash.WriteString">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=5737:5786#L170">WriteString</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) WriteString(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString 将 s 的字节加入 h 要计算哈希的字节序列。它总是写入整个 s，且从不失败；字节数和错误返回值用于实现 <a href="/pkg/io/#StringWriter">io.StringWriter</a>。<h2 id="Hasher">type <a href="/src/hash/maphash/hasher.go?s=5165:5233#L112">Hasher</a>
+				
+				
+			</h2>
+			<p>Hasher 定义基于哈希的容器与其元素之间的接口。它为 T 类型的值提供哈希函数和等价关系，使这些值能够插入哈希表及类似数据结构中。<p>当然，可比较类型本来就可以作为 Go 内建 map 类型的键，而 Hasher 也允许不可比较类型用作适当哈希表的键。即使对于可比较类型，Hasher 也可能有用，因为它可以定义不同于通常比较（==）的等价关系，例如对结构体指针按字段比较，或者像以下示例一样对字符串进行忽略大小写的比较：<pre>// CaseInsensitive 是一个 Hasher[string]，
+// 其等价关系忽略字母大小写。
+type CaseInsensitive struct{}
+
+func (CaseInsensitive) Hash(h *Hash, s string) {
+	h.WriteString(strings.ToLower(s))
+}
+
+func (CaseInsensitive) Equal(x, y string) bool {
+	// （这里避免使用 strings.EqualFold，因为它并非
+	// 对所有值都与 ToLower 保持一致。）
+	return strings.ToLower(x) == strings.ToLower(y)
+}
+</pre>
+<p>Hasher 还允许将值用于布隆过滤器等其他基于哈希的数据结构。<a href="#ComparableHasher">ComparableHasher</a> 类型使可比较类型能够方便地按通常的（==）等价关系用于这些数据结构。<h3 id="hdr-Hash_invariants">哈希不变量</h3>
+<p>如果两个值按 Equal(x, y) 的定义相等，则按照 Hash(h, x) 对 h 的影响所定义的哈希值也必须相同。<p>Hasher 在逻辑上必须无状态：Hash 和 Equal 方法的行为只能依赖实参。<h3 id="hdr-Writing_a_good_function">编写良好的函数</h3>
+<p>为数据类型定义哈希函数和等价关系时，可以先将该类型值的规范编码定义为一串元素，每个元素是数值、字符串、布尔值或指针。如果逻辑上相等的两个值即使表示方式不同，也具有相同的编码，那么该编码就是规范编码。例如，字符串的一种忽略大小写的规范编码是 <a href="/pkg/strings/#ToLower">strings.ToLower</a>。<p>定义编码后，Hasher 的 Hash 方法应通过一系列调用将值编码进 <a href="#Hash">Hash</a>：字节切片使用 <a href="#Hash.Write">Hash.Write</a>，字符串使用 <a href="#Hash.WriteString">Hash.WriteString</a>，字节使用 <a href="#Hash.WriteByte">Hash.WriteByte</a>，其他类型的元素使用 <a href="#WriteComparable">WriteComparable</a>。Hasher 的 Equal 方法应计算两个值的编码，然后比较对应元素，在发现第一处不匹配时返回 false。<p>Hash 方法可以丢弃信息，只要仍与前述定义下的 Equal 方法保持一致。例如，CaseInsensitive.Hash 的有效实现可以只检查字符串的第一个字母，甚至使用一个常量值。不过，哈希函数丢失的信息越多，哈希碰撞就越频繁，哈希表也越慢。<p>某些数据类型（例如集合）本质上无序：集合 {a, b, c} 等于集合 {c, b, a}。某些情况下，可以通过将元素按某种顺序排序，为集合定义规范编码。其他情况下，这可能因为需要分配内存而低效，或者因为不存在方便的顺序而不可行。对无序集合进行哈希的另一种方式是分别计算每个元素的哈希值，再使用 + 或 ^ 这类满足交换律（与顺序无关）的运算符组合所有元素的哈希值。<p>下面为一个假想 Set 类型定义的 Hash 方法展示了此做法：<pre>type Set[T comparable] struct{ ... }
+
+type setHasher[T comparable] struct{}
+
+func (setHasher[T]) Hash(hash *maphash.Hash, set *Set[T]) {
+	var accum uint64
+	for elem := range set.Elements() {
+		// 为元素初始化哈希器，
+		// 使用与外层哈希相同的种子。
+		var sub maphash.Hash
+		sub.SetSeed(hash.Seed())
+
+		// 计算元素的哈希。
+		maphash.WriteComparable(&amp;sub, elem)
+
+		// 将元素的哈希混入集合的哈希。
+		accum ^= sub.Sum64()
+	}
+	maphash.WriteComparable(hash, accum)
+}
+</pre>
+<p>在许多语言中，数据类型的哈希操作只是返回一个整数值。但这会让对手能够系统性地构造大量哈希值相同的值，降低哈希表的渐近性能，形成一种称为“哈希洪泛”的拒绝服务攻击。相比之下，将一系列值写入 <a href="#Hash">Hash</a> 来计算哈希，并为不同哈希表使用各不相同、不可预测的 <a href="#Seed">Seed</a>，可以缓解这种攻击。<p>实际上，Seed 从 2⁶⁴ 个不同的哈希函数中选出一个。上面的代码示例对元素的子 Hasher 调用 SetSeed，使其使用与 Set 自身相同的哈希函数，而不是随机的另一个。<pre>type Hasher[T <a href="/pkg/builtin/#any">any</a>] interface {
+    Hash(*<a href="#Hash">Hash</a>, <a href="#T">T</a>)
+    Equal(x, y <a href="#T">T</a>) <a href="/pkg/builtin/#bool">bool</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Seed">type <a href="/src/hash/maphash/maphash.go?s=1439:1469#L27">Seed</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<p>Seed 是一个随机值，用于选择 <a href="#Hash">Hash</a> 计算的具体哈希函数。如果两个 Hash 使用相同的 Seed，则对任意给定输入都会计算出相同的哈希值。如果两个 Hash 使用不同的 Seed，则对任意给定输入很可能计算出不同的哈希值。<p>Seed 必须通过调用 <a href="#MakeSeed">MakeSeed</a> 初始化。零值种子尚未初始化，不能用于 <a href="#Hash">Hash</a> 的 SetSeed 方法。<p>每个 Seed 值仅限于单个进程，不能序列化，也不能以其他方式在另一个进程中重新创建。<pre>type Seed struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MakeSeed">func <a href="/src/hash/maphash/maphash.go?s=7569:7589#L245">MakeSeed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func MakeSeed() <a href="#Seed">Seed</a></pre>
+				<p>MakeSeed 返回新的随机种子。</article>

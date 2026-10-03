@@ -1,0 +1,392 @@
+<!--{
+  "Title": "cmp package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package cmp</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "cmp"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package cmp provides types and functions related to comparing
+ordered values.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Compare">func Compare[T Ordered](x, y T) int</a></dd>
+			
+				<dd><a href="#Less">func Less[T Ordered](x, y T) bool</a></dd>
+			
+				<dd><a href="#Or">func Or[T comparable](vals ...T) T</a></dd>
+			
+			
+				
+				<dd><a href="#Ordered">type Ordered</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Compare">Compare</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Less">Less</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Or">Or</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Or_sort">Or (Sort)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/cmp/cmp.go">cmp.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Compare">func <a href="/src/cmp/cmp.go?s=1389:1424#L30">Compare</a>
+				
+				
+			</h2>
+			<pre>func Compare[T <a href="#Ordered">Ordered</a>](x, y <a href="#T">T</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Compare returns
+<pre>-1 if x is less than y,
+ 0 if x equals y,
++1 if x is greater than y.
+</pre>
+<p>For floating-point types, a NaN is considered less than any non-NaN,
+a NaN is considered equal to a NaN, and -0.0 is equal to 0.0.
+
+			
+
+
+<div id="example_Compare" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;cmp&#34;
+	&#34;fmt&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	fmt.Println(cmp.Compare(1, 2))
+	fmt.Println(cmp.Compare(&#34;a&#34;, &#34;aa&#34;))
+	fmt.Println(cmp.Compare(1.5, 1.5))
+	fmt.Println(cmp.Compare(math.NaN(), 1.0))
+}
+</textarea></div>
+        <div class="output"><pre>-1
+-1
+0
+-1
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Less">func <a href="/src/cmp/cmp.go?s=1069:1102#L18">Less</a>
+				
+				
+			</h2>
+			<pre>func Less[T <a href="#Ordered">Ordered</a>](x, y <a href="#T">T</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Less reports whether x is less than y.
+For floating-point types, a NaN is considered less than any non-NaN,
+and -0.0 is not less than (is equal to) 0.0.
+
+			
+
+
+<div id="example_Less" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;cmp&#34;
+	&#34;fmt&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	fmt.Println(cmp.Less(1, 2))
+	fmt.Println(cmp.Less(&#34;a&#34;, &#34;aa&#34;))
+	fmt.Println(cmp.Less(1.0, math.NaN()))
+	fmt.Println(cmp.Less(math.NaN(), 1.0))
+}
+</textarea></div>
+        <div class="output"><pre>true
+true
+false
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Or">func <a href="/src/cmp/cmp.go?s=1931:1965#L59">Or</a>
+				
+				
+			</h2>
+			<pre>func Or[T <a href="/pkg/builtin/#comparable">comparable</a>](vals ...<a href="#T">T</a>) <a href="#T">T</a></pre>
+			<p>Or returns the first of its arguments that is not equal to the zero value.
+If no argument is non-zero, it returns the zero value.
+
+			
+
+
+<div id="example_Or" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;cmp&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	// Suppose we have some user input
+	// that may or may not be an empty string
+	userInput1 := &#34;&#34;
+	userInput2 := &#34;some text&#34;
+
+	fmt.Println(cmp.Or(userInput1, &#34;default&#34;))
+	fmt.Println(cmp.Or(userInput2, &#34;default&#34;))
+	fmt.Println(cmp.Or(userInput1, userInput2, &#34;default&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>default
+some text
+some text
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Or_sort" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Sort)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Sort)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;cmp&#34;
+	&#34;fmt&#34;
+	&#34;slices&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	type Order struct {
+		Product  string
+		Customer string
+		Price    float64
+	}
+	orders := []Order{
+		{&#34;foo&#34;, &#34;alice&#34;, 1.00},
+		{&#34;bar&#34;, &#34;bob&#34;, 3.00},
+		{&#34;baz&#34;, &#34;carol&#34;, 4.00},
+		{&#34;foo&#34;, &#34;alice&#34;, 2.00},
+		{&#34;bar&#34;, &#34;carol&#34;, 1.00},
+		{&#34;foo&#34;, &#34;bob&#34;, 4.00},
+	}
+	// Sort by customer first, product second, and last by higher price
+	slices.SortFunc(orders, func(a, b Order) int {
+		return cmp.Or(
+			strings.Compare(a.Customer, b.Customer),
+			strings.Compare(a.Product, b.Product),
+			cmp.Compare(b.Price, a.Price),
+		)
+	})
+	for _, order := range orders {
+		fmt.Printf(&#34;%s %s %.2f\n&#34;, order.Product, order.Customer, order.Price)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>foo alice 2.00
+foo alice 1.00
+bar bob 3.00
+foo bob 4.00
+bar carol 1.00
+baz carol 4.00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Ordered">type <a href="/src/cmp/cmp.go?s=742:905#L8">Ordered</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Ordered is a constraint that permits any ordered type: any type
+that supports the operators &lt; &lt;= &gt;= &gt;.
+If future releases of Go add new ordered types,
+this constraint will be modified to include them.
+<p>Note that floating-point types may contain NaN (&quot;not-a-number&quot;) values.
+An operator such as == or &lt; will always report false when
+comparing a NaN value with any other value, NaN or not.
+See the <a href="#Compare">Compare</a> function for a consistent way to compare NaN values.
+
+			<pre>type Ordered interface {
+    ~<a href="/pkg/builtin/#int">int</a> | ~<a href="/pkg/builtin/#int8">int8</a> | ~<a href="/pkg/builtin/#int16">int16</a> | ~<a href="/pkg/builtin/#int32">int32</a> | ~<a href="/pkg/builtin/#int64">int64</a> |
+        ~<a href="/pkg/builtin/#uint">uint</a> | ~<a href="/pkg/builtin/#uint8">uint8</a> | ~<a href="/pkg/builtin/#uint16">uint16</a> | ~<a href="/pkg/builtin/#uint32">uint32</a> | ~<a href="/pkg/builtin/#uint64">uint64</a> | ~<a href="/pkg/builtin/#uintptr">uintptr</a> |
+        ~<a href="/pkg/builtin/#float32">float32</a> | ~<a href="/pkg/builtin/#float64">float64</a> |
+        ~<a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

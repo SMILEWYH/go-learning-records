@@ -1,0 +1,100 @@
+<!--{
+  "Title": "gofmt 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>gofmt 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Gofmt 用于格式化 Go 程序。它使用制表符缩进、空格对齐；对齐以编辑器使用等宽字体为前提。
+<p>未明确指定路径时，gofmt 处理标准输入。指定文件时，处理该文件；指定目录时，递归处理目录下所有 .go 文件，但忽略文件名以点开头的文件。默认情况下，gofmt 将格式化后的源码输出到标准输出。
+<p>用法：
+<pre>gofmt [flags] [path ...]
+</pre>
+<p>可用标志参数如下：
+<pre>-d
+	不将格式化后的源码写入标准输出。
+	如果文件格式与 gofmt 的格式不同，则将差异输出到标准输出。
+-e
+	输出所有错误，包括可能由其他错误引发的次生错误。
+-l
+	不将格式化后的源码写入标准输出。
+	如果文件格式与 gofmt 的格式不同，则将文件名输出到标准输出。
+-r rule
+	格式化前，先将重写规则应用于源代码。
+-s
+	尝试简化代码；如果指定了重写规则，先应用规则。
+-w
+	不将格式化后的源码写入标准输出。
+	如果文件格式与 gofmt 的格式不同，则用格式化后的版本覆盖文件。
+	如果覆盖过程中出错，会从自动备份中恢复原始文件。
+</pre>
+<p>调试支持：
+<pre>-cpuprofile filename
+	将 CPU 性能剖析数据写入指定文件。
+</pre>
+<p>-r 标志指定的重写规则必须是以下形式的字符串：
+<pre>pattern -&gt; replacement
+</pre>
+<p>pattern 和 replacement 都必须是有效的 Go 表达式。在 pattern 中，单个小写字母标识符作为通配符，匹配任意子表达式；匹配到的表达式会替换 replacement 中相同的标识符。
+<p>gofmt 从标准输入读取时，既接受完整的 Go 程序，也接受程序片段。程序片段必须是语法有效的声明列表、语句列表或表达式。格式化此类片段时，gofmt 会保留开头的缩进以及首尾空白，因此可以通过管道将 Go 程序的某一部分传给 gofmt，单独进行格式化。
+<h3 id="hdr-Examples">示例
+</h3>
+<p>检查文件中是否存在不必要的括号：
+<pre>gofmt -r &apos;(a) -&gt; a&apos; -l *.go
+</pre>
+<p>移除这些括号：
+<pre>gofmt -r &apos;(a) -&gt; a&apos; -w *.go
+</pre>
+<p>将整个包目录树中显式指定切片上界的写法改为省略上界：
+<pre>gofmt -r &apos;α[β:len(α)] -&gt; α[β:]&apos; -w $GOROOT/src
+</pre>
+<h3 id="hdr-The_simplify_command">简化命令
+</h3>
+<p>使用 -s 调用 gofmt 时，它会在可能的情况下进行下列源码转换。
+<pre>以下形式的数组、切片或映射复合字面量：
+	[]T{T{}, T{}}
+会简化为：
+	[]T{{}, {}}
+
+以下形式的切片表达式：
+	s[a:len(s)]
+会简化为：
+	s[a:]
+
+以下形式的 range 语句：
+	for x, _ = range v {...}
+会简化为：
+	for x = range v {...}
+
+以下形式的 range 语句：
+	for _ = range v {...}
+会简化为：
+	for range v {...}
+</pre>
+<p>这可能产生与较早 Go 版本不兼容的变更。
+<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/cmd/gofmt/doc.go?s=3085:3137#L94" style="float: left;">&#x261e;</a> <p>-r 的实现速度较慢。
+</li>
+		
+		<li><a href="/src/cmd/gofmt/doc.go?s=3138:3244#L95" style="float: left;">&#x261e;</a> <p>如果 -w 失败，恢复的原始文件可能丢失部分原有文件属性。
+</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

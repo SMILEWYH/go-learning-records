@@ -1,0 +1,594 @@
+<!--{
+  "Title": "path 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>path 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "path"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>path 包提供操作斜杠分隔路径的工具函数。<p>path 包应仅用于以正斜杠分隔的路径，例如 URL 中的路径。本包不处理带盘符或反斜杠的 Windows 路径；要操作操作系统路径，请使用 <a href="/pkg/path/filepath/">path/filepath</a> 包。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Base">func Base(path string) string</a></dd>
+			
+				<dd><a href="#Clean">func Clean(path string) string</a></dd>
+			
+				<dd><a href="#Dir">func Dir(path string) string</a></dd>
+			
+				<dd><a href="#Ext">func Ext(path string) string</a></dd>
+			
+				<dd><a href="#IsAbs">func IsAbs(path string) bool</a></dd>
+			
+				<dd><a href="#Join">func Join(elem ...string) string</a></dd>
+			
+				<dd><a href="#Match">func Match(pattern, name string) (matched bool, err error)</a></dd>
+			
+				<dd><a href="#Split">func Split(path string) (dir, file string)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Base">Base</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Clean">Clean</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Dir">Dir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Ext">Ext</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_IsAbs">IsAbs</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Join">Join</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Match">Match</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Split">Split</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/path/match.go">match.go</a>
+			
+				<a href="/src/path/path.go">path.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrBadPattern 表示模式的格式有误。<pre>var <span id="ErrBadPattern">ErrBadPattern</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;syntax error in pattern&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="Base">func <a href="/src/path/path.go?s=5036:5065#L182">Base</a>
+				
+				
+			</h2>
+			<pre>func Base(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Base 返回 path 的最后一个路径元素。提取最后一个元素前，会移除末尾的斜杠。如果路径为空，Base 返回 &quot;.&quot;。如果路径全部由斜杠组成，Base 返回 &quot;/&quot;。<div id="example_Base" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.Base(&#34;/a/b&#34;))
+	fmt.Println(path.Base(&#34;/&#34;))
+	fmt.Println(path.Base(&#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>b
+/
+.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Clean">func <a href="/src/path/path.go?s=2089:2119#L62">Clean</a>
+				
+				
+			</h2>
+			<pre>func Clean(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Clean 通过纯词法处理，返回与 path 等价的最短路径名。它反复应用以下规则，直到无法继续处理：<ol>
+<li>将连续的多个斜杠替换为一个斜杠。<li>移除每个 . 路径元素（当前目录）。<li>移除每个内部的 .. 路径元素（父目录），以及紧邻其前面的非 .. 元素。<li>移除从根开始的路径开头的 .. 元素，也就是将路径开头的 &quot;/..&quot; 替换为 &quot;/&quot;。</ol>
+<p>返回路径仅在它是根路径 &quot;/&quot; 时才以斜杠结尾。<p>如果此处理得到空字符串，则 Clean 返回字符串 &quot;.&quot;。<p>另见 Rob Pike 的《Lexical File Names in Plan 9 or Getting Dot-Dot Right》：<a href="https://9p.io/sys/doc/lexnames.html">https://9p.io/sys/doc/lexnames.html</a>。<div id="example_Clean" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	paths := []string{
+		&#34;a/c&#34;,
+		&#34;a//c&#34;,
+		&#34;a/c/.&#34;,
+		&#34;a/c/b/..&#34;,
+		&#34;../a/c&#34;,
+		&#34;../a/b/../././/c&#34;,
+		&#34;/../a/c&#34;,
+		&#34;/../a/b/../././/c&#34;,
+		&#34;&#34;,
+	}
+
+	for _, p := range paths {
+		fmt.Printf(&#34;Clean(%q) = %q\n&#34;, p, path.Clean(p))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Clean(&#34;a/c&#34;) = &#34;a/c&#34;
+Clean(&#34;a//c&#34;) = &#34;a/c&#34;
+Clean(&#34;a/c/.&#34;) = &#34;a/c&#34;
+Clean(&#34;a/c/b/..&#34;) = &#34;a/c&#34;
+Clean(&#34;../a/c&#34;) = &#34;../a/c&#34;
+Clean(&#34;../a/b/../././/c&#34;) = &#34;../a/c&#34;
+Clean(&#34;/../a/c&#34;) = &#34;/a/c&#34;
+Clean(&#34;/../a/b/../././/c&#34;) = &#34;/a/c&#34;
+Clean(&#34;&#34;) = &#34;.&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Dir">func <a href="/src/path/path.go?s=5928:5956#L213">Dir</a>
+				
+				
+			</h2>
+			<pre>func Dir(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Dir 返回 path 中除最后一个元素之外的部分，通常即路径的目录部分。使用 <a href="#Split">Split</a> 去掉最后一个元素后，会对路径执行 Clean 并移除末尾斜杠。如果路径为空，Dir 返回 &quot;.&quot;。如果路径由一串斜杠后跟若干非斜杠字节组成，Dir 返回单个斜杠。其他情况下，返回路径不以斜杠结尾。<div id="example_Dir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.Dir(&#34;/a/b/c&#34;))
+	fmt.Println(path.Dir(&#34;a/b/c&#34;))
+	fmt.Println(path.Dir(&#34;/a/&#34;))
+	fmt.Println(path.Dir(&#34;a/&#34;))
+	fmt.Println(path.Dir(&#34;/&#34;))
+	fmt.Println(path.Dir(&#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>/a/b
+a/b
+/a
+a
+/
+.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Ext">func <a href="/src/path/path.go?s=4670:4698#L169">Ext</a>
+				
+				
+			</h2>
+			<pre>func Ext(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Ext 返回 path 使用的文件扩展名。扩展名是 path 最后一个以斜杠分隔的元素中，从最后一个点开始的后缀；如果没有点，则为空。<div id="example_Ext" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.Ext(&#34;/a/b/c/bar.css&#34;))
+	fmt.Println(path.Ext(&#34;/&#34;))
+	fmt.Println(path.Ext(&#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>.css
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="IsAbs">func <a href="/src/path/path.go?s=5454:5482#L202">IsAbs</a>
+				
+				
+			</h2>
+			<pre>func IsAbs(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsAbs 报告路径是否为绝对路径。<div id="example_IsAbs" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.IsAbs(&#34;/dev/null&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Join">func <a href="/src/path/path.go?s=4136:4168#L145">Join</a>
+				
+				
+			</h2>
+			<pre>func Join(elem ...<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Join 将任意数量的路径元素用斜杠连接成单个路径。空元素会被忽略。结果会经过 Clean 处理。不过，如果实参列表为空或所有元素都为空，Join 返回空字符串。<div id="example_Join" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.Join(&#34;a&#34;, &#34;b&#34;, &#34;c&#34;))
+	fmt.Println(path.Join(&#34;a&#34;, &#34;b/c&#34;))
+	fmt.Println(path.Join(&#34;a/b&#34;, &#34;c&#34;))
+
+	fmt.Println(path.Join(&#34;a/b&#34;, &#34;../../../xyz&#34;))
+
+	fmt.Println(path.Join(&#34;&#34;, &#34;&#34;))
+	fmt.Println(path.Join(&#34;a&#34;, &#34;&#34;))
+	fmt.Println(path.Join(&#34;&#34;, &#34;a&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>a/b/c
+a/b/c
+a/b/c
+../xyz
+
+a
+a
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Match">func <a href="/src/path/match.go?s=1092:1150#L27">Match</a>
+				
+				
+			</h2>
+			<pre>func Match(pattern, name <a href="/pkg/builtin/#string">string</a>) (matched <a href="/pkg/builtin/#bool">bool</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Match 报告 name 是否匹配 shell 模式。模式语法如下：<pre>pattern:
+	{ term }
+term:
+	&apos;*&apos;         匹配任意长度的非 / 字符序列
+	&apos;?&apos;         匹配任意单个非 / 字符
+	&apos;[&apos; [ &apos;^&apos; ] { character-range } &apos;]&apos;
+	            字符类（必须非空）
+	c           匹配字符 c（c != &apos;*&apos;, &apos;?&apos;, &apos;\\&apos;, &apos;[&apos;）
+	&apos;\\&apos; c      匹配字符 c
+
+character-range:
+	c           匹配字符 c（c != &apos;\\&apos;, &apos;-&apos;, &apos;]&apos;）
+	&apos;\\&apos; c      匹配字符 c
+	lo &apos;-&apos; hi   匹配满足 lo &lt;= c &lt;= hi 的字符 c
+</pre>
+<p>Match 要求 pattern 匹配整个 name，而不只是其中的子串。唯一可能返回的错误是模式格式有误时的 <a href="#ErrBadPattern">ErrBadPattern</a>。<div id="example_Match" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	fmt.Println(path.Match(&#34;abc&#34;, &#34;abc&#34;))
+	fmt.Println(path.Match(&#34;a*&#34;, &#34;abc&#34;))
+	fmt.Println(path.Match(&#34;a*/b&#34;, &#34;a/c/b&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>true &lt;nil&gt;
+true &lt;nil&gt;
+false &lt;nil&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Split">func <a href="/src/path/path.go?s=3757:3799#L135">Split</a>
+				
+				
+			</h2>
+			<pre>func Split(path <a href="/pkg/builtin/#string">string</a>) (dir, file <a href="/pkg/builtin/#string">string</a>)</pre>
+			<p>Split 在 path 的最后一个斜杠之后将其分割为目录和文件名两部分。如果 path 中没有斜杠，Split 返回空 dir，并将 file 设为 path。返回值满足 path = dir+file。<div id="example_Split" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;path&#34;
+)
+
+func main() {
+	split := func(s string) {
+		dir, file := path.Split(s)
+		fmt.Printf(&#34;path.Split(%q) = dir: %q, file: %q\n&#34;, s, dir, file)
+	}
+	split(&#34;static/myfile.css&#34;)
+	split(&#34;myfile.css&#34;)
+	split(&#34;&#34;)
+}
+</textarea></div>
+        <div class="output"><pre>path.Split(&#34;static/myfile.css&#34;) = dir: &#34;static/&#34;, file: &#34;myfile.css&#34;
+path.Split(&#34;myfile.css&#34;) = dir: &#34;&#34;, file: &#34;myfile.css&#34;
+path.Split(&#34;&#34;) = dir: &#34;&#34;, file: &#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="filepath/">filepath</a>
+					</td>
+				
+					<td class="pkg-synopsis">filepath 包提供操作文件名路径的实用函数，其行为与目标操作系统定义的文件路径规则兼容。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

@@ -1,0 +1,444 @@
+<!--{
+  "Title": "text/tabwriter package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package tabwriter</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "text/tabwriter"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package tabwriter implements a write filter (tabwriter.Writer) that
+translates tabbed columns in input into properly aligned text.
+<p>The package is using the Elastic Tabstops algorithm described at
+<a href="http://nickgravgaard.com/elastictabstops/index.html">http://nickgravgaard.com/elastictabstops/index.html</a>.
+<p>The text/tabwriter package is frozen and is not accepting new features.
+
+				
+
+
+<div id="example__elastic" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Elastic)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Elastic)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	// Observe how the b&#39;s and the d&#39;s, despite appearing in the
+	// second cell of each line, belong to different columns.
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, &#39;.&#39;, tabwriter.AlignRight|tabwriter.Debug)
+	fmt.Fprintln(w, &#34;a\tb\tc&#34;)
+	fmt.Fprintln(w, &#34;aa\tbb\tcc&#34;)
+	fmt.Fprintln(w, &#34;aaa\t&#34;) // trailing tab
+	fmt.Fprintln(w, &#34;aaaa\tdddd\teeee&#34;)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>....a|..b|c
+...aa|.bb|cc
+..aaa|
+.aaaa|.dddd|eeee
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__trailingTab" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TrailingTab)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TrailingTab)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	// Observe that the third line has no trailing tab,
+	// so its final cell is not part of an aligned column.
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, &#39;-&#39;, tabwriter.AlignRight|tabwriter.Debug)
+	fmt.Fprintln(w, &#34;a\tb\taligned\t&#34;)
+	fmt.Fprintln(w, &#34;aa\tbb\taligned\t&#34;)
+	fmt.Fprintln(w, &#34;aaa\tbbb\tunaligned&#34;) // no trailing tab
+	fmt.Fprintln(w, &#34;aaaa\tbbbb\taligned\t&#34;)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>------a|------b|---aligned|
+-----aa|-----bb|---aligned|
+----aaa|----bbb|unaligned
+---aaaa|---bbbb|---aligned|
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(output io.Writer, minwidth, tabwidth, padding int, padchar byte, flags uint) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (b *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Init">func (b *Writer) Init(output io.Writer, minwidth, tabwidth, padding int, padchar byte, flags uint) *Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (b *Writer) Write(buf []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Writer_Init">Writer.Init</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__elastic">Package (Elastic)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__trailingTab">Package (TrailingTab)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/text/tabwriter/tabwriter.go">tabwriter.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Formatting can be controlled with these flags.
+
+				<pre>const (
+    <span class="comment">// Ignore html tags and treat entities (starting with &#39;&amp;&#39;</span>
+    <span class="comment">// and ending in &#39;;&#39;) as single characters (width = 1).</span>
+    <span id="FilterHTML">FilterHTML</span> <a href="/pkg/builtin/#uint">uint</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// Strip Escape characters bracketing escaped text segments</span>
+    <span class="comment">// instead of passing them through unchanged with the text.</span>
+    <span id="StripEscape">StripEscape</span>
+
+    <span class="comment">// Force right-alignment of cell content.</span>
+    <span class="comment">// Default is left-alignment.</span>
+    <span id="AlignRight">AlignRight</span>
+
+    <span class="comment">// Handle empty columns as if they were not present in</span>
+    <span class="comment">// the input in the first place.</span>
+    <span id="DiscardEmptyColumns">DiscardEmptyColumns</span>
+
+    <span class="comment">// Always use tabs for indentation columns (i.e., padding of</span>
+    <span class="comment">// leading empty cells on the left) independent of padchar.</span>
+    <span id="TabIndent">TabIndent</span>
+
+    <span class="comment">// Print a vertical bar (&#39;|&#39;) between columns (after formatting).</span>
+    <span class="comment">// Discarded columns appear as zero-width columns (&#34;||&#34;).</span>
+    <span id="Debug">Debug</span>
+)</pre>
+			
+				<p>To escape a text segment, bracket it with Escape characters.
+For instance, the tab in this string &quot;Ignore this tab: \xff\t\xff&quot;
+does not terminate a cell and constitutes a single character of
+width one for formatting purposes.
+<p>The value 0xff was chosen because it cannot appear in a valid UTF-8 sequence.
+
+				<pre>const <span id="Escape">Escape</span> = &#39;\xff&#39;</pre>
+			
+		
+		
+		
+		
+			
+			<h2 id="Writer">type <a href="/src/text/tabwriter/tabwriter.go?s=3841:4523#L80">Writer</a>
+				
+				
+			</h2>
+			<p>A Writer is a filter that inserts padding around tab-delimited
+columns in its input to align them in the output.
+<p>The Writer treats incoming bytes as UTF-8-encoded text consisting
+of cells terminated by horizontal (&apos;\t&apos;) or vertical (&apos;\v&apos;) tabs,
+and newline (&apos;\n&apos;) or formfeed (&apos;\f&apos;) characters; both newline and
+formfeed act as line breaks.
+<p>Tab-terminated cells in contiguous lines constitute a column. The
+Writer inserts padding as needed to make all cells in a column have
+the same width, effectively aligning the columns. It assumes that
+all characters have the same width, except for tabs for which a
+tabwidth must be specified. Column cells must be tab-terminated, not
+tab-separated: non-tab terminated trailing text at the end of a line
+forms a cell but that cell is not part of an aligned column.
+For instance, in this example (where | stands for a horizontal tab):
+<pre>aaaa|bbb|d
+aa  |b  |dd
+a   |
+aa  |cccc|eee
+</pre>
+<p>the b and c are in distinct columns (the b column is not contiguous
+all the way). The d and e are not in a column at all (there&apos;s no
+terminating tab, nor would the column be contiguous).
+<p>The Writer assumes that all Unicode code points have the same width;
+this may not be true in some fonts or if the string contains combining
+characters.
+<p>If <a href="#DiscardEmptyColumns">DiscardEmptyColumns</a> is set, empty columns that are terminated
+entirely by vertical (or &quot;soft&quot;) tabs are discarded. Columns
+terminated by horizontal (or &quot;hard&quot;) tabs are not affected by
+this flag.
+<p>If a Writer is configured to filter HTML, HTML tags and entities
+are passed through. The widths of tags and entities are
+assumed to be zero (tags) and one (entities) for formatting purposes.
+<p>A segment of text may be escaped by bracketing it with <a href="#Escape">Escape</a>
+characters. The tabwriter passes escaped text segments through
+unchanged. In particular, it does not interpret any tabs or line
+breaks within the segment. If the <a href="#StripEscape">StripEscape</a> flag is set, the
+Escape characters are stripped from the output; otherwise they
+are passed through as well. For the purpose of formatting, the
+width of the escaped text is always computed excluding the Escape
+characters.
+<p>The formfeed character acts like a newline but it also terminates
+all columns in the current line (effectively calling <a href="#Writer.Flush">Writer.Flush</a>). Tab-
+terminated cells in the next line start new columns. Unless found
+inside an HTML tag or inside an escaped text segment, formfeed
+characters appear as newlines in the output.
+<p>The Writer must buffer input internally, because proper spacing
+of one line may depend on the cells in future lines. Clients must
+call Flush when done calling <a href="#Writer.Write">Writer.Write</a>.
+
+			<pre>type Writer struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/text/tabwriter/tabwriter.go?s=18055:18154#L589">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, minwidth, tabwidth, padding <a href="/pkg/builtin/#int">int</a>, padchar <a href="/pkg/builtin/#byte">byte</a>, flags <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter allocates and initializes a new <a href="#Writer">Writer</a>.
+The parameters are the same as for the Init function.
+
+				
+			
+
+			
+				<h3 id="Writer.Flush">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=15348:15378#L478">Flush</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush should be called after the last call to <a href="#Writer.Write">Writer.Write</a> to ensure
+that any data buffered in the <a href="#Writer">Writer</a> is written to output. Any
+incomplete escape sequence at the end is considered
+complete for formatting purposes.
+
+				
+			
+				<h3 id="Writer.Init">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=8275:8381#L199">Init</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Init(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, minwidth, tabwidth, padding <a href="/pkg/builtin/#int">int</a>, padchar <a href="/pkg/builtin/#byte">byte</a>, flags <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Writer">Writer</a></pre>
+				<p>A <a href="#Writer">Writer</a> must be initialized with a call to Init. The first parameter (output)
+specifies the filter output. The remaining parameters control the formatting:
+<pre>minwidth	minimal cell width including any padding
+tabwidth	width of tab characters (equivalent number of spaces)
+padding		padding added to a cell before computing its width
+padchar		ASCII char used for padding
+		if padchar == &apos;\t&apos;, the Writer will assume that the
+		width of a &apos;\t&apos; in the formatted output is tabwidth,
+		and cells are left-aligned independent of align_left
+		(for correct-looking results, tabwidth must correspond
+		to the tab width in the viewer displaying the result)
+flags		formatting control
+</pre>
+
+				
+
+
+<div id="example_Writer_Init" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	w := new(tabwriter.Writer)
+
+	// Format in tab-separated columns with a tab stop of 8.
+	w.Init(os.Stdout, 0, 8, 0, &#39;\t&#39;, 0)
+	fmt.Fprintln(w, &#34;a\tb\tc\td\t.&#34;)
+	fmt.Fprintln(w, &#34;123\t12345\t1234567\t123456789\t.&#34;)
+	fmt.Fprintln(w)
+	w.Flush()
+
+	// Format right-aligned in space-separated columns of minimal width 5
+	// and at least one blank of padding (so wider column entries do not
+	// touch each other).
+	w.Init(os.Stdout, 5, 0, 1, &#39; &#39;, tabwriter.AlignRight)
+	fmt.Fprintln(w, &#34;a\tb\tc\td\t.&#34;)
+	fmt.Fprintln(w, &#34;123\t12345\t1234567\t123456789\t.&#34;)
+	fmt.Fprintln(w)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>a	b	c	d		.
+123	12345	1234567	123456789	.
+
+    a     b       c         d.
+  123 12345 1234567 123456789.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Writer.Write">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=16290:16343#L513">Write</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Write(buf []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write writes buf to the writer b.
+The only errors returned are ones encountered
+while writing to the underlying output stream.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

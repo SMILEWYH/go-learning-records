@@ -1,0 +1,570 @@
+<!--{
+  "Title": "io/ioutil 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>io/ioutil 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "io/ioutil"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ioutil 包实现一些 I/O 工具函数。<p>已弃用：从 Go 1.16 开始，相同功能已由 <a href="/pkg/io/">io</a> 或 <a href="/pkg/os/">os</a> 包提供，新代码应优先使用这些实现。详见各函数的文档。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#NopCloser">func NopCloser(r io.Reader) io.ReadCloser</a></dd>
+			
+				<dd><a href="#ReadAll">func ReadAll(r io.Reader) ([]byte, error)</a></dd>
+			
+				<dd><a href="#ReadDir">func ReadDir(dirname string) ([]fs.FileInfo, error)</a></dd>
+			
+				<dd><a href="#ReadFile">func ReadFile(filename string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#TempDir">func TempDir(dir, pattern string) (name string, err error)</a></dd>
+			
+				<dd><a href="#TempFile">func TempFile(dir, pattern string) (f *os.File, err error)</a></dd>
+			
+				<dd><a href="#WriteFile">func WriteFile(filename string, data []byte, perm fs.FileMode) error</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_ReadAll">ReadAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadDir">ReadDir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadFile">ReadFile</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TempDir">TempDir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TempDir_suffix">TempDir (Suffix)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TempFile">TempFile</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TempFile_suffix">TempFile (Suffix)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WriteFile">WriteFile</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/io/ioutil/ioutil.go">ioutil.go</a>
+			
+				<a href="/src/io/ioutil/tempfile.go">tempfile.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>Discard 是一个 io.Writer，它的所有 Write 调用都成功，但不做任何事情。<p>已弃用：从 Go 1.16 开始，此值就是 <a href="/pkg/io/#Discard">io.Discard</a>。<pre>var <span id="Discard">Discard</span> <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a> = <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Discard">Discard</a></pre>
+			
+		
+		
+			
+			<h2 id="NopCloser">func <a href="/src/io/ioutil/ioutil.go?s=3101:3142#L88">NopCloser</a>
+				
+				
+			</h2>
+			<pre>func NopCloser(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a></pre>
+			<p>NopCloser 包装提供的 Reader r，返回一个 Close 方法不执行任何操作的 ReadCloser。<p>已弃用：从 Go 1.16 开始，此函数仅调用 <a href="/pkg/io/#NopCloser">io.NopCloser</a>。<h2 id="ReadAll">func <a href="/src/io/ioutil/ioutil.go?s=863:904#L19">ReadAll</a>
+				
+				
+			</h2>
+			<pre>func ReadAll(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadAll 从 r 读取，直到遇到错误或 EOF，并返回读到的数据。调用成功时返回 err == nil，而不是 err == EOF。由于 ReadAll 的定义就是从 src 一直读取到 EOF，因此它不将 Read 返回的 EOF 视为需要报告的错误。<p>已弃用：从 Go 1.16 开始，此函数仅调用 <a href="/pkg/io/#ReadAll">io.ReadAll</a>。<div id="example_ReadAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;Go is a general-purpose language designed with systems programming in mind.&#34;)
+
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, b)
+
+}
+</textarea></div>
+        <div class="output"><pre>Go is a general-purpose language designed with systems programming in mind.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadDir">func <a href="/src/io/ioutil/ioutil.go?s=2592:2643#L66">ReadDir</a>
+				
+				
+			</h2>
+			<pre>func ReadDir(dirname <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadDir 读取 dirname 指定的目录，并返回目录内容的 fs.FileInfo 列表，按文件名排序。如果读取目录时发生错误，ReadDir 会返回错误且不返回任何目录条目。<p>已弃用：从 Go 1.16 开始，<a href="/pkg/os/#ReadDir">os.ReadDir</a> 是更高效、更正确的选择：它返回 <a href="/pkg/io/fs/#DirEntry">fs.DirEntry</a> 列表而不是 <a href="/pkg/io/fs/#FileInfo">fs.FileInfo</a> 列表，并且在读取目录途中发生错误时返回部分结果。<p>如果必须继续获取 <a href="/pkg/io/fs/#FileInfo">fs.FileInfo</a> 列表，仍可这样做：<pre>entries, err := os.ReadDir(dirname)
+if err != nil { ... }
+infos := make([]fs.FileInfo, 0, len(entries))
+for _, entry := range entries {
+	info, err := entry.Info()
+	if err != nil { ... }
+	infos = append(infos, info)
+}
+</pre>
+
+			
+
+
+<div id="example_ReadDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	files, err := ioutil.ReadDir(&#34;.&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name())
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadFile">func <a href="/src/io/ioutil/ioutil.go?s=1262:1308#L31">ReadFile</a>
+				
+				
+			</h2>
+			<pre>func ReadFile(filename <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadFile 读取 filename 指定的文件并返回内容。调用成功时返回 err == nil，而不是 err == EOF。由于 ReadFile 读取整个文件，因此它不将 Read 返回的 EOF 视为需要报告的错误。<p>已弃用：从 Go 1.16 开始，此函数仅调用 <a href="/pkg/os/#ReadFile">os.ReadFile</a>。<div id="example_ReadFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	content, err := ioutil.ReadFile(&#34;testdata/hello&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;File contents: %s&#34;, content)
+
+}
+</textarea></div>
+        <div class="output"><pre>File contents: Hello, Gophers!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TempDir">func <a href="/src/io/ioutil/tempfile.go?s=1696:1754#L33">TempDir</a>
+				
+				
+			</h2>
+			<pre>func TempDir(dir, pattern <a href="/pkg/builtin/#string">string</a>) (name <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>TempDir 在目录 dir 中创建新的临时目录。目录名通过在 pattern 末尾添加随机字符串生成。如果 pattern 包含 &quot;*&quot;，则随机字符串替换最后一个 &quot;*&quot;。TempDir 返回新目录的名称。如果 dir 为空字符串，则使用默认临时文件目录（参见 <a href="/pkg/os/#TempDir">os.TempDir</a>）。多个程序同时调用 TempDir 不会选择同一个目录。调用方有责任在不再需要时移除目录。<p>已弃用：从 Go 1.17 开始，此函数仅调用 <a href="/pkg/os/#MkdirTemp">os.MkdirTemp</a>。<div id="example_TempDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+)
+
+func main() {
+	content := []byte(&#34;temporary file&#39;s content&#34;)
+	dir, err := ioutil.TempDir(&#34;&#34;, &#34;example&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.RemoveAll(dir) // 清理
+
+	tmpfn := filepath.Join(dir, &#34;tmpfile&#34;)
+	if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_TempDir_suffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Suffix)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Suffix)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+)
+
+func main() {
+	parentDir := os.TempDir()
+	logsDir, err := ioutil.TempDir(parentDir, &#34;*-logs&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(logsDir) // 清理
+
+	// 如果需要，可以搜索所有名称以 *-logs 结尾的目录，
+	// 提前清理其中的日志。
+	globPattern := filepath.Join(parentDir, &#34;*-logs&#34;)
+	matches, err := filepath.Glob(globPattern)
+	if err != nil {
+		log.Fatalf(&#34;Failed to match %q: %v&#34;, globPattern, err)
+	}
+
+	for _, match := range matches {
+		if err := os.RemoveAll(match); err != nil {
+			log.Printf(&#34;Failed to remove %q: %v&#34;, match, err)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="TempFile">func <a href="/src/io/ioutil/tempfile.go?s=935:993#L16">TempFile</a>
+				
+				
+			</h2>
+			<pre>func TempFile(dir, pattern <a href="/pkg/builtin/#string">string</a>) (f *<a href="/pkg/os/">os</a>.<a href="/pkg/os/#File">File</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>TempFile 在目录 dir 中创建新的临时文件，以读写方式打开它，并返回所得的 *<a href="/pkg/os/#File">os.File</a>。文件名通过在 pattern 末尾添加随机字符串生成。如果 pattern 包含 &quot;*&quot;，则随机字符串替换最后一个 &quot;*&quot;。如果 dir 为空字符串，则使用默认临时文件目录（参见 <a href="/pkg/os/#TempDir">os.TempDir</a>）。多个程序同时调用 TempFile 不会选择同一个文件。调用方可以使用 f.Name() 获取文件的路径名，并有责任在不再需要时移除文件。<p>已弃用：从 Go 1.17 开始，此函数仅调用 <a href="/pkg/os/#CreateTemp">os.CreateTemp</a>。<div id="example_TempFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	content := []byte(&#34;temporary file&#39;s content&#34;)
+	tmpfile, err := ioutil.TempFile(&#34;&#34;, &#34;example&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(tmpfile.Name()) // 清理
+
+	if _, err := tmpfile.Write(content); err != nil {
+		log.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_TempFile_suffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Suffix)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Suffix)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	content := []byte(&#34;temporary file&#39;s content&#34;)
+	tmpfile, err := ioutil.TempFile(&#34;&#34;, &#34;example.*.txt&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer os.Remove(tmpfile.Name()) // 清理
+
+	if _, err := tmpfile.Write(content); err != nil {
+		tmpfile.Close()
+		log.Fatal(err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WriteFile">func <a href="/src/io/ioutil/ioutil.go?s=1665:1733#L42">WriteFile</a>
+				
+				
+			</h2>
+			<pre>func WriteFile(filename <a href="/pkg/builtin/#string">string</a>, data []<a href="/pkg/builtin/#byte">byte</a>, perm <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>WriteFile 将 data 写入 filename 指定的文件。如果文件不存在，则使用权限 perm（应用 umask 之前）创建；否则，写入前会截断文件，但不更改权限。<p>已弃用：从 Go 1.16 开始，此函数仅调用 <a href="/pkg/os/#WriteFile">os.WriteFile</a>。<div id="example_WriteFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io/ioutil&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	message := []byte(&#34;Hello, Gophers!&#34;)
+	err := ioutil.WriteFile(&#34;hello&#34;, message, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+	
+
+	
+
+
+
+
+</article>

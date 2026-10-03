@@ -1,0 +1,466 @@
+<!--{
+  "Title": "mime/multipart 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>mime/multipart 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "mime/multipart"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>multipart 包实现 RFC 2046 定义的 MIME 多部分内容解析。<p>此实现足以处理 HTTP（RFC 2388）以及常见浏览器生成的多部分消息体。<h3 id="hdr-Limits">限制</h3>
+<p>为防范恶意输入，本包对所处理的 MIME 数据大小设有限制。<p><a href="#Reader.NextPart">Reader.NextPart</a> 和 <a href="#Reader.NextRawPart">Reader.NextRawPart</a> 将单个部分中的首部数量限制为 10000，<a href="#Reader.ReadForm">Reader.ReadForm</a> 将所有 FileHeader 中的首部总数限制为 10000。可使用 GODEBUG=multipartmaxheaders=&lt;values&gt; 设置调整这些限制。<p>Reader.ReadForm 还将表单中的部分数量限制为 1000。可使用 GODEBUG=multipartmaxparts=&lt;value&gt; 设置调整此限制。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#FileContentDisposition">func FileContentDisposition(fieldname, filename string) string</a></dd>
+			
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FileHeader">type FileHeader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FileHeader.Open">func (fh *FileHeader) Open() (File, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Form">type Form</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Form.RemoveAll">func (f *Form) RemoveAll() error</a></dd>
+				
+			
+				
+				<dd><a href="#Part">type Part</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Part.Close">func (p *Part) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Part.FileName">func (p *Part) FileName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Part.FormName">func (p *Part) FormName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Part.Read">func (p *Part) Read(d []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r io.Reader, boundary string) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.NextPart">func (r *Reader) NextPart() (*Part, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.NextRawPart">func (r *Reader) NextRawPart() (*Part, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadForm">func (r *Reader) ReadForm(maxMemory int64) (*Form, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Boundary">func (w *Writer) Boundary() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.CreateFormField">func (w *Writer) CreateFormField(fieldname string) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.CreateFormFile">func (w *Writer) CreateFormFile(fieldname, filename string) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.CreatePart">func (w *Writer) CreatePart(header textproto.MIMEHeader) (io.Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.FormDataContentType">func (w *Writer) FormDataContentType() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.SetBoundary">func (w *Writer) SetBoundary(boundary string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.WriteField">func (w *Writer) WriteField(fieldname, value string) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewReader">NewReader</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/mime/multipart/formdata.go">formdata.go</a>
+			
+				<a href="/src/mime/multipart/multipart.go">multipart.go</a>
+			
+				<a href="/src/mime/multipart/readmimeheader.go">readmimeheader.go</a>
+			
+				<a href="/src/mime/multipart/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>如果消息的表单数据过大而无法处理，ReadForm 返回 ErrMessageTooLarge。<pre>var <span id="ErrMessageTooLarge">ErrMessageTooLarge</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;multipart: message too large&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="FileContentDisposition">func <a href="/src/mime/multipart/writer.go?s=4682:4744#L156">FileContentDisposition</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func FileContentDisposition(fieldname, filename <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>FileContentDisposition 使用给定字段名和文件名，返回 Content-Disposition 首部的值。<h2 id="File">type <a href="/src/mime/multipart/formdata.go?s=7586:7655#L277">File</a>
+				
+				
+			</h2>
+			<p>File 是访问 multipart 消息中文件部分的接口。其内容可以存储在内存或磁盘上。如果存储在磁盘上，File 的底层具体类型为 *os.File。<pre>type File interface {
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReaderAt">ReaderAt</a>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Seeker">Seeker</a>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Closer">Closer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FileHeader">type <a href="/src/mime/multipart/formdata.go?s=6753:6913#L246">FileHeader</a>
+				
+				
+			</h2>
+			<p>FileHeader 描述 multipart 请求中的文件部分。<pre>type FileHeader struct {
+<span id="FileHeader.Filename"></span>    Filename <a href="/pkg/builtin/#string">string</a>
+<span id="FileHeader.Header"></span>    Header   <a href="/pkg/net/textproto/">textproto</a>.<a href="/pkg/net/textproto/#MIMEHeader">MIMEHeader</a>
+<span id="FileHeader.Size"></span>    Size     <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// Go 1.9</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FileHeader.Open">func (*FileHeader) <a href="/src/mime/multipart/formdata.go?s=6977:7019#L258">Open</a>
+					
+					
+				</h3>
+				<pre>func (fh *<a href="#FileHeader">FileHeader</a>) Open() (<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 打开并返回 <a href="#FileHeader">FileHeader</a> 关联的 File。<h2 id="Form">type <a href="/src/mime/multipart/formdata.go?s=6269:6348#L224">Form</a>
+				
+				
+			</h2>
+			<p>Form 是已解析的 multipart 表单。其 File 部分存储在内存或磁盘上，可通过 <a href="#FileHeader">*FileHeader</a> 的 Open 方法访问。其 Value 部分存储为字符串。二者都以字段名为键。<pre>type Form struct {
+<span id="Form.Value"></span>    Value map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/builtin/#string">string</a>
+<span id="Form.File"></span>    File  map[<a href="/pkg/builtin/#string">string</a>][]*<a href="#FileHeader">FileHeader</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Form.RemoveAll">func (*Form) <a href="/src/mime/multipart/formdata.go?s=6417:6449#L230">RemoveAll</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Form">Form</a>) RemoveAll() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>RemoveAll 移除与 <a href="#Form">Form</a> 关联的所有临时文件。<h2 id="Part">type <a href="/src/mime/multipart/multipart.go?s=1387:2055#L42">Part</a>
+				
+				
+			</h2>
+			<p>Part 表示 multipart 消息体中的单个部分。<pre>type Part struct {
+    <span class="comment">// 正文的首部（如果存在），其键会按与 Go http.Request 首部</span>
+    <span class="comment">// 相同的方式规范化。</span>
+    <span class="comment">// 例如，"foo-bar" 的大小写会改为 "Foo-Bar"</span>
+<span id="Part.Header"></span>    Header <a href="/pkg/net/textproto/">textproto</a>.<a href="/pkg/net/textproto/#MIMEHeader">MIMEHeader</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Part.Close">func (*Part) <a href="/src/mime/multipart/multipart.go?s=9487:9515#L315">Close</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Part">Part</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+				<h3 id="Part.FileName">func (*Part) <a href="/src/mime/multipart/multipart.go?s=2690:2722#L81">FileName</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Part">Part</a>) FileName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>FileName 返回 <a href="#Part">Part</a> 的 Content-Disposition 首部中的 filename 参数。如果文件名非空，则会先经过 filepath.Base 处理（其行为取决于平台），然后再返回。<h3 id="Part.FormName">func (*Part) <a href="/src/mime/multipart/multipart.go?s=2191:2223#L66">FormName</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Part">Part</a>) FormName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>如果 p 的 Content-Disposition 类型为 &quot;form-data&quot;，FormName 返回 name 参数。否则返回空字符串。<h3 id="Part.Read">func (*Part) <a href="/src/mime/multipart/multipart.go?s=5390:5438#L174">Read</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Part">Part</a>) Read(d []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 读取一个部分的正文，即其首部之后、下一个部分（如果存在）开始之前的内容。<h2 id="Reader">type <a href="/src/mime/multipart/multipart.go?s=9707:10039#L323">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 是遍历 MIME 多部分消息体中各部分的迭代器。Reader 的底层解析器按需消费输入，不支持定位（seek）。<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/mime/multipart/multipart.go?s=3511:3563#L109">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, boundary <a href="/pkg/builtin/#string">string</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader 创建一个使用给定 MIME 边界、从 r 读取的新 multipart <a href="#Reader">Reader</a>。<p>边界通常来自消息的 &quot;Content-Type&quot; 首部中的 &quot;boundary&quot; 参数。可使用 <a href="/pkg/mime/#ParseMediaType">mime.ParseMediaType</a> 解析此类首部。<div id="example_NewReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;mime&#34;
+	&#34;mime/multipart&#34;
+	&#34;net/mail&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	msg := &amp;mail.Message{
+		Header: map[string][]string{
+			&#34;Content-Type&#34;: {&#34;multipart/mixed; boundary=foo&#34;},
+		},
+		Body: strings.NewReader(
+			&#34;--foo\r\nFoo: one\r\n\r\nA section\r\n&#34; &#43;
+				&#34;--foo\r\nFoo: two\r\n\r\nAnd another\r\n&#34; &#43;
+				&#34;--foo--\r\n&#34;),
+	}
+	mediaType, params, err := mime.ParseMediaType(msg.Header.Get(&#34;Content-Type&#34;))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if strings.HasPrefix(mediaType, &#34;multipart/&#34;) {
+		mr := multipart.NewReader(msg.Body, params[&#34;boundary&#34;])
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+			slurp, err := io.ReadAll(p)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf(&#34;Part %q: %q\n&#34;, p.Header.Get(&#34;Foo&#34;), slurp)
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Part &#34;one&#34;: &#34;A section&#34;
+Part &#34;two&#34;: &#34;And another&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Reader.NextPart">func (*Reader) <a href="/src/mime/multipart/multipart.go?s=10999:11041#L361">NextPart</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) NextPart() (*<a href="#Part">Part</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NextPart 返回 multipart 中的下一个部分或一个错误。没有更多部分时，返回 <a href="/pkg/io/#EOF">io.EOF</a> 错误。<p>有一种特殊情况：如果 &quot;Content-Transfer-Encoding&quot; 首部的值为 &quot;quoted-printable&quot;，则此首部会被隐藏，并在 Read 调用期间透明地解码正文。<h3 id="Reader.NextRawPart">func (*Reader) <a href="/src/mime/multipart/multipart.go?s=11362:11407#L370">NextRawPart</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) NextRawPart() (*<a href="#Part">Part</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NextRawPart 返回 multipart 中的下一个部分或一个错误。没有更多部分时，返回 <a href="/pkg/io/#EOF">io.EOF</a> 错误。<p>与 <a href="#Reader.NextPart">Reader.NextPart</a> 不同，它不会对 &quot;Content-Transfer-Encoding: quoted-printable&quot; 做特殊处理。<h3 id="Reader.ReadForm">func (*Reader) <a href="/src/mime/multipart/formdata.go?s=941:998#L22">ReadForm</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadForm(maxMemory <a href="/pkg/builtin/#int64">int64</a>) (*<a href="#Form">Form</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadForm 解析整个 multipart 消息，其中各部分的 Content-Disposition 为 &quot;form-data&quot;。它在内存中最多存储 maxMemory 字节加 10MB（为非文件部分预留）。无法存入内存的文件部分会存入磁盘临时文件。如果无法将所有非文件部分存入内存，则返回 <a href="#ErrMessageTooLarge">ErrMessageTooLarge</a>。<h2 id="Writer">type <a href="/src/mime/multipart/writer.go?s=326:401#L10">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 生成 multipart 消息。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/mime/multipart/writer.go?s=490:525#L18">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 返回一个采用随机边界、向 w 写入的新 multipart <a href="#Writer">Writer</a>。<h3 id="Writer.Boundary">func (*Writer) <a href="/src/mime/multipart/writer.go?s=641:675#L26">Boundary</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Boundary() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Boundary 返回 <a href="#Writer">Writer</a> 的边界。<h3 id="Writer.Close">func (*Writer) <a href="/src/mime/multipart/writer.go?s=5220:5250#L173">Close</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 完成 multipart 消息，并向输出写入末尾的边界结束行。<h3 id="Writer.CreateFormField">func (*Writer) <a href="/src/mime/multipart/writer.go?s=4333:4402#L147">CreateFormField</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) CreateFormField(fieldname <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CreateFormField 使用带有给定字段名的首部调用 <a href="#Writer.CreatePart">Writer.CreatePart</a>。<h3 id="Writer.CreateFormFile">func (*Writer) <a href="/src/mime/multipart/writer.go?s=3976:4054#L138">CreateFormFile</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) CreateFormFile(fieldname, filename <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CreateFormFile 是对 <a href="#Writer.CreatePart">Writer.CreatePart</a> 的便捷包装。它使用提供的字段名和文件名创建新的 form-data 首部。<h3 id="Writer.CreatePart">func (*Writer) <a href="/src/mime/multipart/writer.go?s=2426:2501#L88">CreatePart</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) CreatePart(header <a href="/pkg/net/textproto/">textproto</a>.<a href="/pkg/net/textproto/#MIMEHeader">MIMEHeader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>CreatePart 使用提供的首部创建新的 multipart 部分。该部分的正文应写入返回的 <a href="#Writer">Writer</a>。调用 CreatePart 之后，不得再向之前的任何部分写入。<h3 id="Writer.FormDataContentType">func (*Writer) <a href="/src/mime/multipart/writer.go?s=1746:1791#L65">FormDataContentType</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) FormDataContentType() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>FormDataContentType 返回使用此 <a href="#Writer">Writer</a> 的 Boundary 的 HTTP multipart/form-data 的 Content-Type。<h3 id="Writer.SetBoundary">func (*Writer) <a href="/src/mime/multipart/writer.go?s=974:1025#L36">SetBoundary</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) SetBoundary(boundary <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SetBoundary 使用显式值覆盖 <a href="#Writer">Writer</a> 默认随机生成的边界分隔符。<p>SetBoundary 必须在创建任何部分之前调用。边界只能包含特定的 ASCII 字符，必须非空，且长度最多为 70 字节。<h3 id="Writer.WriteField">func (*Writer) <a href="/src/mime/multipart/writer.go?s=4938:4996#L162">WriteField</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) WriteField(fieldname, value <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteField 调用 <a href="#Writer.CreateFormField">Writer.CreateFormField</a>，随后写入给定的值。</article>

@@ -1,0 +1,559 @@
+<!--{
+	"Title": "Go 汇编器快速指南",
+	"Path":  "/doc/asm"
+}-->
+
+<h2 id="introduction">Go 汇编器快速指南
+</h2>
+
+<p>本文简要介绍 <code>gc</code> Go 编译器使用的一种较为特殊的汇编语言形式，并非完整参考手册。
+</p>
+
+<p>Go 汇编器的输入风格源自 Plan 9 汇编器，其详细说明见<a href="https://9p.io/sys/doc/asm.html">这份文档</a>。如果打算编写汇编代码，即使其中许多内容只适用于 Plan 9，也应阅读该文档。本文概述相关语法、与该文档描述的差异，以及编写与 Go 交互的汇编代码时需要注意的特殊之处。
+</p>
+
+<p>理解 Go 汇编器最重要的一点是：它并不直接表示底层机器。有些细节与机器精确对应，有些则不对应。这是因为编译器工具集（参见<a href="https://9p.io/sys/doc/compiler.html">此说明</a>）在通常的处理流程中不需要独立的汇编阶段。编译器操作的是一种半抽象指令集，部分指令选择发生在代码生成之后。汇编器也处理这种半抽象形式，因此看到 <code>MOV</code> 之类的指令时，工具链实际生成的操作可能根本不是移动，而是清零或加载；也可能恰好对应同名机器指令。总体而言，机器专用操作通常直接表现为自身，而内存移动、子程序调用和返回等更通用的概念则更加抽象。具体细节因体系结构而异；对于描述不够精确之处，我们深表歉意，因为这些行为并没有完全明确的统一定义。
+</p>
+
+<p>汇编器程序解析这种半抽象指令集的描述，并将其转换为供链接器输入的指令。要了解某种体系结构（例如 amd64）的汇编指令形式，可以参考标准库源码中的大量示例，例如 <a href="/pkg/runtime/"><code>runtime</code></a> 和 <a href="/pkg/math/big/"><code>math/big</code></a> 包。也可以查看编译器生成的汇编代码，实际输出可能与下例不同：
+</p>
+
+<pre>
+$ cat x.go
+package main
+
+func main() {
+	println(3)
+}
+$ GOOS=linux GOARCH=amd64 go tool compile -S x.go        # or: go build -gcflags -S x.go
+"".main STEXT size=74 args=0x0 locals=0x10
+	0x0000 00000 (x.go:3)	TEXT	"".main(SB), $16-0
+	0x0000 00000 (x.go:3)	MOVQ	(TLS), CX
+	0x0009 00009 (x.go:3)	CMPQ	SP, 16(CX)
+	0x000d 00013 (x.go:3)	JLS	67
+	0x000f 00015 (x.go:3)	SUBQ	$16, SP
+	0x0013 00019 (x.go:3)	MOVQ	BP, 8(SP)
+	0x0018 00024 (x.go:3)	LEAQ	8(SP), BP
+	0x001d 00029 (x.go:3)	FUNCDATA	$0, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x001d 00029 (x.go:3)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x001d 00029 (x.go:3)	FUNCDATA	$2, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x001d 00029 (x.go:4)	PCDATA	$0, $0
+	0x001d 00029 (x.go:4)	PCDATA	$1, $0
+	0x001d 00029 (x.go:4)	CALL	runtime.printlock(SB)
+	0x0022 00034 (x.go:4)	MOVQ	$3, (SP)
+	0x002a 00042 (x.go:4)	CALL	runtime.printint(SB)
+	0x002f 00047 (x.go:4)	CALL	runtime.printnl(SB)
+	0x0034 00052 (x.go:4)	CALL	runtime.printunlock(SB)
+	0x0039 00057 (x.go:5)	MOVQ	8(SP), BP
+	0x003e 00062 (x.go:5)	ADDQ	$16, SP
+	0x0042 00066 (x.go:5)	RET
+	0x0043 00067 (x.go:5)	NOP
+	0x0043 00067 (x.go:3)	PCDATA	$1, $-1
+	0x0043 00067 (x.go:3)	PCDATA	$0, $-1
+	0x0043 00067 (x.go:3)	CALL	runtime.morestack_noctxt(SB)
+	0x0048 00072 (x.go:3)	JMP	0
+...
+</pre>
+
+<p><code>FUNCDATA</code> 和 <code>PCDATA</code> 指令包含垃圾回收器所需的信息，由编译器插入。
+</p>
+
+<p>要查看链接后实际进入二进制文件的内容，可以使用 <code>go tool objdump</code>：
+</p>
+
+<pre>
+$ go build -o x.exe x.go
+$ go tool objdump -s main.main x.exe
+TEXT main.main(SB) /tmp/x.go
+  x.go:3		0x10501c0		65488b0c2530000000	MOVQ GS:0x30, CX
+  x.go:3		0x10501c9		483b6110		CMPQ 0x10(CX), SP
+  x.go:3		0x10501cd		7634			JBE 0x1050203
+  x.go:3		0x10501cf		4883ec10		SUBQ $0x10, SP
+  x.go:3		0x10501d3		48896c2408		MOVQ BP, 0x8(SP)
+  x.go:3		0x10501d8		488d6c2408		LEAQ 0x8(SP), BP
+  x.go:4		0x10501dd		e86e45fdff		CALL runtime.printlock(SB)
+  x.go:4		0x10501e2		48c7042403000000	MOVQ $0x3, 0(SP)
+  x.go:4		0x10501ea		e8e14cfdff		CALL runtime.printint(SB)
+  x.go:4		0x10501ef		e8ec47fdff		CALL runtime.printnl(SB)
+  x.go:4		0x10501f4		e8d745fdff		CALL runtime.printunlock(SB)
+  x.go:5		0x10501f9		488b6c2408		MOVQ 0x8(SP), BP
+  x.go:5		0x10501fe		4883c410		ADDQ $0x10, SP
+  x.go:5		0x1050202		c3			RET
+  x.go:3		0x1050203		e83882ffff		CALL runtime.morestack_noctxt(SB)
+  x.go:3		0x1050208		ebb6			JMP main.main(SB)
+</pre>
+
+<h3 id="constants">常量
+</h3>
+
+<p>虽然 Go 汇编器参考了 Plan 9 汇编器，但它是独立的程序，因此存在一些差异。其中之一是常量求值。汇编器按照 Go 的运算符优先级解析常量表达式，而不是原版的类 C 优先级。因此，<code>3&amp;1&lt;&lt;2</code> 的结果为 4，而不是 0：它被解析为 <code>(3&amp;1)&lt;&lt;2</code>，而不是 <code>3&amp;(1&lt;&lt;2)</code>。此外，常量始终按照 64 位无符号整数求值。因此，<code>-2</code> 并不是整数负二，而是具有相同比特模式的 64 位无符号整数。这种区别通常影响不大，但为避免歧义，当除法或右移运算的右操作数最高位为 1 时，汇编器会拒绝该表达式。
+</p>
+
+<h3 id="symbols">符号
+</h3>
+
+<p>某些符号，例如 <code>R1</code> 或 <code>LR</code>，是预定义的寄存器名称，具体集合取决于体系结构。
+</p>
+
+<p>有四个预声明符号用于表示伪寄存器。它们并非真实寄存器，而是工具链维护的虚拟寄存器，例如虚拟帧指针。所有体系结构都使用相同的伪寄存器集合：
+</p>
+
+<ul>
+
+<li><code>FP</code>：帧指针，用于参数和局部变量。
+</li>
+
+<li><code>PC</code>：程序计数器，用于跳转和分支。
+</li>
+
+<li><code>SB</code>：静态基址指针，用于全局符号。
+</li>
+
+<li><code>SP</code>：栈指针，指向局部栈帧中的最高地址。
+</li>
+
+</ul>
+
+<p>所有用户定义的符号，都写成相对于伪寄存器 <code>FP</code>（参数和局部变量）或 <code>SB</code>（全局符号）的偏移形式。
+</p>
+
+<p>可以将 <code>SB</code> 伪寄存器视为内存的起点，因此 <code>foo(SB)</code> 表示符号 <code>foo</code> 在内存中的地址。这种形式用于命名全局函数和数据。在名称后添加 <code>&lt;&gt;</code>，例如 <span style="white-space: nowrap"><code>foo&lt;&gt;(SB)</code></span>，会使该名称仅在当前源文件中可见，类似于 C 文件中的顶层 <code>static</code> 声明。在名称后添加偏移量，表示相对于符号地址的偏移，因此 <code>foo+4(SB)</code> 表示 <code>foo</code> 起始地址之后 4 字节的位置。
+</p>
+
+<p><code>FP</code> 是用于引用函数参数的虚拟帧指针。编译器维护这个虚拟帧指针，以相对偏移引用栈上的参数。因此，<code>0(FP)</code> 表示第一个参数，<code>8(FP)</code> 表示第二个参数（在 64 位机器上），依此类推。不过，以这种方式引用参数时，必须在前面加上名称，例如 <code>first_arg+0(FP)</code> 和 <code>second_arg+8(FP)</code>。这里的偏移相对于帧指针，而 <code>SB</code> 中的偏移相对于符号地址，两者不同。汇编器强制要求这一约定，会拒绝单独的 <code>0(FP)</code> 和 <code>8(FP)</code>。名称本身不影响语义，但应当用它说明参数名。需要强调，<code>FP</code> 始终是伪寄存器，即使体系结构具有硬件帧指针，它也不是硬件寄存器。
+</p>
+
+<p>对于具有 Go 函数声明的汇编函数，<code>go</code> <code>vet</code> 会检查参数名和偏移是否匹配。在 32 位系统上，通过在名称后添加 <code>_lo</code> 或 <code>_hi</code> 区分 64 位值的低 32 位和高 32 位，例如 <code>arg_lo+0(FP)</code>、<code>arg_hi+4(FP)</code>。如果 Go 声明没有为返回值命名，汇编中预期的名称为 <code>ret</code>。
+</p>
+
+<p><code>SP</code> 是虚拟栈指针，用于引用栈帧内的局部变量和为函数调用准备的参数。它指向局部栈帧中的最高地址，因此引用应使用 [−framesize, 0) 范围内的负偏移，例如 <code>x-8(SP)</code>、<code>y-4(SP)</code>。
+</p>
+
+<p>在硬件寄存器也名为 <code>SP</code> 的体系结构上，通过名称前缀区分虚拟栈指针和硬件 <code>SP</code>。也就是说，<code>x-8(SP)</code> 和 <code>-8(SP)</code> 表示不同的内存位置：前者相对于虚拟栈指针伪寄存器，后者相对于硬件 <code>SP</code> 寄存器。
+</p>
+
+<p>在传统上将 <code>SP</code> 和 <code>PC</code> 作为带编号物理寄存器别名的机器上，Go 汇编器仍对这两个名称作特殊处理。例如，引用 <code>SP</code> 时像 <code>FP</code> 一样需要符号名称。要访问实际硬件寄存器，应使用真实的 <code>R</code> 名称。例如 ARM 上的硬件 <code>SP</code> 和 <code>PC</code> 分别通过 <code>R13</code> 和 <code>R15</code> 访问。
+</p>
+
+<p>分支和直接跳转始终写成相对 PC 的偏移，或跳转到标签的形式：
+</p>
+
+<pre>
+label:
+	MOVW $0, R1
+	JMP label
+</pre>
+
+<p>每个标签仅在其定义所在的函数内可见，因此，同一文件中的多个函数可以定义并使用相同的标签名。直接跳转和调用指令可以以 <code>name(SB)</code> 等代码符号为目标，但不能跳到 <code>name+4(SB)</code> 这样的符号偏移位置。
+</p>
+
+<p>指令、寄存器和汇编器指令始终使用大写字母，以提醒你汇编编程需要格外谨慎。例外是 ARM 上重命名的 <code>g</code> 寄存器。
+</p>
+
+<p>在 Go 目标文件和二进制文件中，符号的完整名称由包路径、句点和符号名组成，例如 <code>fmt.Printf</code> 或 <code>math/rand.Int</code>。汇编器的解析器将句点和斜杠视为标点，因此这些字符串不能直接用作标识符。汇编器允许在标识符中使用中点字符 U+00B7 和除法斜杠 U+2215，并将它们改写为普通句点和斜杠。因此，上述符号在汇编源文件中写作 <code>fmt·Printf</code> 和 <code>math∕rand·Int</code>。编译器使用 <code>-S</code> 输出的汇编清单直接显示句点和斜杠，不使用汇编源文件所要求的 Unicode 替代字符。
+</p>
+
+<p>大多数手写汇编文件不会在符号名中包含完整包路径，因为链接器会在任何以句点开头的名称前补上当前目标文件的包路径。例如，在 math/rand 包的汇编实现中，可以用 <code>·Int</code> 引用该包的 Int 函数。这避免了在包自己的源码中硬编码导入路径，便于将代码迁移到其他位置。
+</p>
+
+<h3 id="directives">汇编器指令
+</h3>
+
+<p>汇编器使用各种指令，将代码和数据绑定到符号名。下面是一个简单而完整的函数定义。<code>TEXT</code> 声明符号 <code>runtime·profileloop</code>，后续指令组成函数体。<code>TEXT</code> 块的最后一条指令必须是某种跳转，通常为 <code>RET</code> 伪指令；否则链接器会追加一条跳向自身的指令，因为不同 <code>TEXT</code> 块之间不会顺序贯穿执行。符号后面的参数依次是标志位（见下文）和常量形式的栈帧大小，后者也有下文说明的特殊语法：
+</p>
+
+<pre>
+TEXT runtime·profileloop(SB),NOSPLIT,$8
+	MOVQ	$runtime·profileloop1(SB), CX
+	MOVQ	CX, 0(SP)
+	CALL	runtime·externalthreadhandler(SB)
+	RET
+</pre>
+
+<p>通常，栈帧大小之后还要写参数大小，中间用减号分隔。这不是减法，只是一种特殊语法。<code>$24-8</code> 表示该函数具有 24 字节栈帧，并使用位于调用方栈帧中的 8 字节参数。如果 <code>TEXT</code> 未指定 <code>NOSPLIT</code>，就必须提供参数大小。对于具有 Go 声明的汇编函数，<code>go</code> <code>vet</code> 会检查参数大小是否正确。
+</p>
+
+<p>注意，符号名使用中点分隔各部分，并写成相对于静态基址伪寄存器 <code>SB</code> 的偏移形式。在 <code>runtime</code> 包的 Go 源码中，可以用简单名称 <code>profileloop</code> 调用该函数。
+</p>
+
+<p>全局数据符号由一系列用于初始化的 <code>DATA</code> 指令和紧随其后的 <code>GLOBL</code> 指令定义。每条 <code>DATA</code> 初始化相应内存的一部分，未显式初始化的内存会清零。<code>DATA</code> 的一般形式为：
+<pre>
+DATA	symbol+offset(SB)/width, value
+</pre>
+
+<p>它使用给定值，初始化符号内存中指定偏移和宽度的区域。同一符号的 <code>DATA</code> 指令必须按偏移递增的顺序书写。
+</p>
+
+<p><code>GLOBL</code> 将符号声明为全局符号。参数包括可选的标志位，以及声明为全局数据的大小。除非已经通过 <code>DATA</code> 初始化，否则初始值全为零。<code>GLOBL</code> 必须写在所有对应的 <code>DATA</code> 指令之后。
+</p>
+
+<p>例如：
+</p>
+
+<pre>
+DATA divtab&lt;&gt;+0x00(SB)/4, $0xf4f8fcff
+DATA divtab&lt;&gt;+0x04(SB)/4, $0xe6eaedf0
+...
+DATA divtab&lt;&gt;+0x3c(SB)/4, $0x81828384
+GLOBL divtab&lt;&gt;(SB), RODATA, $64
+
+GLOBL runtime·tlsoffset(SB), NOPTR, $4
+</pre>
+
+<p>这段代码声明并初始化了 <code>divtab&lt;&gt;</code>，一个由 4 字节整数构成的只读表，总大小为 64 字节；同时声明了 <code>runtime·tlsoffset</code>，一个不包含指针、隐式清零的 4 字节变量。
+</p>
+
+<p>这些指令可以有一个或两个参数。若有两个，第一个是标志位掩码，可以写为相加或按位或组合的数值表达式，也可以使用符号名称以便阅读。这些标志定义在标准 <code>#include</code> 文件 <code>textflag.h</code> 中，取值如下：
+</p>
+
+<ul>
+<li><code>NOPROF</code> = 1<br>用于 <code>TEXT</code>。不对标记的函数进行性能剖析。此标志已弃用。
+</li>
+<li><code>DUPOK</code> = 2<br>允许同一二进制文件中存在该符号的多个实例，链接器会选择其中一个使用。
+</li>
+<li><code>NOSPLIT</code> = 4<br>用于 <code>TEXT</code>。不插入检查是否需要分裂栈的前导代码。该函数及其所调用函数所需的栈空间，必须能够容纳在当前栈段剩余的空间内。用于保护栈分裂代码自身等底层例程。
+</li>
+<li><code>RODATA</code> = 8<br>用于 <code>DATA</code> 和 <code>GLOBL</code>。将数据放入只读区段。
+</li>
+<li><code>NOPTR</code> = 16<br>用于 <code>DATA</code> 和 <code>GLOBL</code>。数据不包含指针，因此无需垃圾回收器扫描。
+</li>
+<li><code>WRAPPER</code> = 32<br>用于 <code>TEXT</code>。表示包装函数，在判断 <code>recover</code> 是否有效时，不应把这一层视为导致 recover 失效的调用层。
+</li>
+<li><code>NEEDCTXT</code> = 64<br>用于 <code>TEXT</code>。表示闭包函数，会使用传入的上下文寄存器。
+</li>
+<li><code>LOCAL</code> = 128<br>该符号仅在当前动态共享对象内可见。
+</li>
+<li><code>TLSBSS</code> = 256<br>用于 <code>DATA</code> 和 <code>GLOBL</code>。将数据放入线程局部存储。
+</li>
+<li><code>NOFRAME</code> = 512<br>用于 <code>TEXT</code>。即使不是叶子函数，也不插入分配栈帧和保存、恢复返回地址的指令。仅对声明栈帧大小为 0 的函数有效。
+</li>
+<li><code>TOPFRAME</code> = 2048<br>用于 <code>TEXT</code>。表示调用栈最外层的函数，栈回溯应在此停止。
+</li>
+</ul>
+
+<h3 id="special-instructions">特殊指令
+</h3>
+
+<p><code>PCALIGN</code> 伪指令要求通过填充空操作指令，将下一条指令对齐到指定边界。
+</p>
+
+<p>目前支持 arm64、amd64、ppc64、loong64 和 riscv64。例如，下面的 <code>MOVD</code> 指令起始位置按 32 字节对齐：
+<pre>
+PCALIGN $32
+MOVD $2, R0
+</pre>
+</p>
+
+<h3 id="data-offsets">与 Go 类型和常量交互
+</h3>
+
+<p>如果包中存在 .s 文件，<code>go build</code> 会要求编译器生成名为 <code>go_asm.h</code> 的特殊头文件，供 .s 文件通过 <code>#include</code> 引入。它通过 <code>#define</code> 提供 Go 结构体字段偏移、结构体大小，以及当前包中大多数 Go <code>const</code> 声明对应的符号常量。Go 汇编代码应使用这些常量，避免假定 Go 类型的内存布局。这既提高可读性，也能适应 Go 类型定义或编译器布局规则的变化。
+</p>
+
+<p>常量名称采用 <code>const_<i>name</i></code> 形式。例如，对于 Go 声明 <code>const bufSize = 1024</code>，汇编代码可以使用 <code>const_bufSize</code> 引用其值。
+</p>
+
+<p>字段偏移采用 <code><i>type</i>_<i>field</i></code> 形式，结构体大小采用 <code><i>type</i>__size</code> 形式。例如，考虑以下 Go 定义：
+</p>
+
+<pre>
+type reader struct {
+	buf [bufSize]byte
+	r   int
+}
+</pre>
+
+<p>汇编代码可以通过 <code>reader__size</code> 引用结构体大小，通过 <code>reader_buf</code> 和 <code>reader_r</code> 引用两个字段的偏移。因此，如果寄存器 <code>R1</code> 保存着指向 <code>reader</code> 的指针，就可以用 <code>reader_r(R1)</code> 引用 <code>r</code> 字段。
+</p>
+
+<p>如果这些 <code>#define</code> 名称存在歧义，例如结构体中有一个名为 <code>_size</code> 的字段，<code>#include "go_asm.h"</code> 会因“redefinition of macro”（宏重定义）错误而失败。
+</p>
+
+<h3 id="runtime">与运行时协调
+</h3>
+
+<p>为了让垃圾回收正确运行，运行时必须知道所有全局数据和大多数栈帧中的指针位置。Go 编译器在编译 Go 源文件时会生成这些信息，但汇编程序必须显式定义。
+</p>
+
+<p>带有 <code>NOPTR</code> 标志的数据符号，被视为不包含指向运行时分配数据的指针。带有 <code>RODATA</code> 标志的数据符号位于只读内存中，因此隐含 <code>NOPTR</code>。总大小小于一个指针的数据符号，也隐含 <code>NOPTR</code>。汇编源文件不能定义包含指针的符号，这类符号必须在 Go 源文件中定义。即使没有 <code>DATA</code> 和 <code>GLOBL</code> 指令，汇编代码仍可按名称引用它。一个实用原则是：所有非 <code>RODATA</code> 符号都应在 Go 中定义，而不是在汇编中定义。
+</p>
+
+<p>每个函数还需要注解，说明参数、返回值和局部栈帧中存活指针的位置。如果汇编函数没有指针返回值，并且没有局部栈帧，或者没有函数调用，那么只需在同一包的 Go 源文件中为其提供函数声明。汇编函数名称不能包含包名部分，例如 <code>syscall</code> 包的 <code>Syscall</code> 函数，应在 <code>TEXT</code> 指令中使用 <code>·Syscall</code>，而不是等价的 <code>syscall·Syscall</code>。更复杂的情况需要显式注解，这些注解使用标准 <code>#include</code> 文件 <code>funcdata.h</code> 中定义的伪指令。
+</p>
+
+<p>如果函数既没有参数，也没有返回值，可以省略指针信息，通过 <code>TEXT</code> 上的参数大小标注 <code>$<i>n</i>-0</code> 表示。否则，即使汇编函数并不由 Go 直接调用，也必须在 Go 源文件中提供函数声明，以生成指针信息；该声明也能让 <code>go</code> <code>vet</code> 检查参数引用。函数入口处假定参数已初始化、返回值未初始化。如果在执行调用指令时，返回值中会包含存活指针，函数应先将返回值清零，再执行 <code>GO_RESULTS_INITIALIZED</code> 伪指令。它记录返回值已经初始化，需要在栈移动和垃圾回收时扫描。通常，让汇编函数不返回指针，或不包含调用指令会更简单；标准库中的汇编函数均未使用 <code>GO_RESULTS_INITIALIZED</code>。
+</p>
+
+<p>如果函数没有局部栈帧，可以省略指针信息，通过 <code>TEXT</code> 上的局部帧大小标注 <code>$0-<i>n</i></code> 表示。函数没有调用指令时，也可以省略。否则，局部栈帧不得包含指针，且汇编代码必须执行 <code>NO_LOCAL_POINTERS</code> 伪指令来确认这一点。由于栈扩缩容通过移动栈实现，任何函数调用期间栈指针都可能变化，因此连指向栈数据的指针也不能保存在局部变量中。
+</p>
+
+<p>汇编函数始终应提供 Go 函数声明，既用于提供参数和返回值的指针信息，也让 <code>go</code> <code>vet</code> 检查访问它们所用的偏移是否正确。
+</p>
+
+<h2 id="architectures">各体系结构的细节
+</h2>
+
+<p>逐一列出每种机器的所有指令和细节并不现实。要查看某种机器（例如 ARM）定义的指令，可以阅读该体系结构的 <code>obj</code> 支持库源码，位于 <code>src/cmd/internal/obj/arm</code>。其中的 <code>a.out.go</code> 文件包含一长串以 <code>A</code> 开头的常量，例如：
+</p>
+
+<pre>
+const (
+	AAND = obj.ABaseARM + obj.A_ARCHSPECIFIC + iota
+	AEOR
+	ASUB
+	ARSB
+	AADD
+	...
+</pre>
+
+<p>这就是该体系结构的汇编器和链接器所认识的指令及其拼写。列表中的每条指令都以大写 <code>A</code> 开头，因此 <code>AAND</code> 表示按位与指令 <code>AND</code>，在汇编源码中去掉前缀 <code>A</code>，写为 <code>AND</code>。枚举大体按字母顺序排列。定义在 <code>cmd/internal/obj</code> 中、与体系结构无关的 <code>AXXX</code> 表示无效指令。这些 <code>A</code> 名称的排列顺序与机器指令的实际编码无关，编码细节由 <code>cmd/internal/obj</code> 处理。
+</p>
+
+<p>386 和 AMD64 的指令都列在 <code>cmd/internal/obj/x86/a.out.go</code> 中。
+</p>
+
+<p>各种体系结构对常见寻址模式使用相同语法，例如 <code>(R1)</code> 表示寄存器间接寻址，<code>4(R1)</code> 表示带偏移的寄存器间接寻址，<code>$foo(SB)</code> 表示绝对地址。汇编器还支持各体系结构特有的部分寻址模式，但不一定全部支持。下面分别列出。
+</p>
+
+<p>从前面的示例可以看出，指令中的数据从左向右流动：<code>MOVQ</code> <code>$0,</code> <code>CX</code> 会清零 <code>CX</code>。即使某些体系结构的传统写法方向相反，也遵守这一规则。
+</p>
+
+<p>下面介绍各受支持体系结构中，与 Go 有关的一些关键细节。
+</p>
+
+<h3 id="x86">32 位 Intel 386
+</h3>
+
+<p>运行时指向 <code>g</code> 结构体的指针，通过 MMU 中一个对 Go 而言不作其他用途的寄存器值维护。在 runtime 包中，汇编代码可以包含 <code>go_tls.h</code>，使用其中依赖操作系统和体系结构的 <code>get_tls</code> 宏访问该寄存器。宏接收一个参数，用于指定将 <code>g</code> 指针加载到哪个寄存器。
+</p>
+
+<p>例如，使用 <code>CX</code> 加载 <code>g</code> 和 <code>m</code> 的指令序列如下：
+</p>
+
+<pre>
+#include "go_tls.h"
+#include "go_asm.h"
+...
+get_tls(CX)
+MOVL	g(CX), AX     // Move g into AX.
+MOVL	g_m(AX), BX   // Move g.m into BX.
+</pre>
+
+<p><a href="#amd64">amd64</a> 上也定义了 <code>get_tls</code> 宏。
+</p>
+
+<p>寻址模式：
+</p>
+
+<ul>
+
+<li><code>(DI)(BX*2)</code>：地址 <code>DI</code> 加 <code>BX*2</code> 所指的位置。
+</li>
+
+<li><code>64(DI)(BX*2)</code>：地址 <code>DI</code> 加 <code>BX*2</code> 再加 64 所指的位置。这些模式只允许 1、2、4、8 作为比例因子。
+</li>
+
+</ul>
+
+<p>使用编译器和汇编器的 <code>-dynlink</code> 或 <code>-shared</code> 模式时，必须假定对全局变量等固定内存位置的任何加载或存储都会覆盖 <code>CX</code>。因此，为安全兼容这些模式，汇编源码通常应避免使用 CX，除非只在相邻内存访问之间短暂使用。
+</p>
+
+<h3 id="amd64">64 位 Intel 386（即 amd64）
+</h3>
+
+<p>这两种体系结构在汇编器层面基本相同。64 位版本中访问 <code>m</code> 和 <code>g</code> 指针的汇编，与 32 位 386 相同，只是使用 <code>MOVQ</code>，而不是 <code>MOVL</code>：
+</p>
+
+<pre>
+get_tls(CX)
+MOVQ	g(CX), AX     // Move g into AX.
+MOVQ	g_m(AX), BX   // Move g.m into BX.
+</pre>
+
+<p><code>BP</code> 是由被调用方保存的寄存器。栈帧大小大于零时，汇编器会自动插入保存和恢复 <code>BP</code> 的指令。允许将 <code>BP</code> 用作通用寄存器，但可能干扰基于采样的性能剖析。
+</p>
+
+<h3 id="arm">ARM
+</h3>
+
+<p>编译器和链接器保留了寄存器 <code>R10</code> 和 <code>R11</code>。
+</p>
+
+<p><code>R10</code> 指向 <code>g</code>（goroutine）结构体。在汇编源码中，必须用 <code>g</code> 引用该指针；名称 <code>R10</code> 不会被识别。
+</p>
+
+<p>为便于开发者和编译器编写汇编，ARM 链接器允许通用寻址形式，以及 <code>DIV</code>、<code>MOD</code> 等可能无法用单条硬件指令表达的伪操作。链接器会将这些形式实现为多条指令，通常使用 <code>R11</code> 保存临时值。手写汇编可以使用 <code>R11</code>，但必须确保链接器不会同时用它实现函数中的其他指令。
+</p>
+
+<p>定义 <code>TEXT</code> 时，栈帧大小设为 <code>$-4</code>，表示这是一个入口处无需保存 <code>LR</code> 的叶子函数。
+</p>
+
+<p>名称 <code>SP</code> 始终表示前文的虚拟栈指针。访问硬件寄存器时，使用 <code>R13</code>。
+</p>
+
+<p>条件码的语法是在指令后添加句点和一到两个字母的代码，例如 <code>MOVW.EQ</code>。可以同时添加多个代码，例如 <code>MOVM.IA.W</code>，这些修饰符的顺序不影响含义。
+</p>
+
+<p>寻址模式：
+</p>
+
+<ul>
+
+<li><code>R0-&gt;16</code><br><code>R0&gt;&gt;16</code><br><code>R0&lt;&lt;16</code><br><code>R0@&gt;16</code>：<code>&lt;&lt;</code> 将 <code>R0</code> 左移 16 位。其他代码分别为 <code>-&gt;</code>（算术右移）、<code>&gt;&gt;</code>（逻辑右移）和 <code>@&gt;</code>（循环右移）。
+</li>
+
+<li><code>R0-&gt;R1</code><br><code>R0&gt;&gt;R1</code><br><code>R0&lt;&lt;R1</code><br><code>R0@&gt;R1</code>：<code>&lt;&lt;</code> 将 <code>R0</code> 左移 <code>R1</code> 指定的位数。其他代码分别为 <code>-&gt;</code>（算术右移）、<code>&gt;&gt;</code>（逻辑右移）和 <code>@&gt;</code>（循环右移）。
+</li>
+
+<li><code>[R0,g,R12-R15]</code>：用于多寄存器指令，表示包含 <code>R0</code>、<code>g</code> 以及 <code>R12</code> 至 <code>R15</code> 的寄存器集合。
+</li>
+
+<li><code>(R5, R6)</code>：目标寄存器对。
+</li>
+
+</ul>
+
+<h3 id="arm64">ARM64
+</h3>
+
+<p><code>R18</code> 是“平台寄存器”，在 Apple 平台上保留使用。为避免误用，命名为 <code>R18_PLATFORM</code>。编译器和链接器保留 <code>R27</code>、<code>R28</code>。<code>R29</code> 是帧指针，<code>R30</code> 是链接寄存器。
+</p>
+
+<p>指令修饰符通过句点附加在指令之后。仅有 <code>P</code>（后增量）和 <code>W</code>（前增量）两种，例如 <code>MOVW.P</code>、<code>MOVW.W</code>。
+</p>
+
+<p>寻址模式：
+</p>
+
+<ul>
+
+<li><code>R0-&gt;16</code><br><code>R0&gt;&gt;16</code><br><code>R0&lt;&lt;16</code><br><code>R0@&gt;16</code>：与 32 位 ARM 相同。
+</li>
+
+<li><code>$(8&lt;&lt;12)</code>：将立即数 <code>8</code> 左移 <code>12</code> 位。
+</li>
+
+<li><code>8(R0)</code>：将 <code>R0</code> 的值与 <code>8</code> 相加。
+</li>
+
+<li><code>(R2)(R0)</code>：地址 <code>R0</code> 加 <code>R2</code> 所指的位置。
+</li>
+
+<li><code>R0.UXTB</code><br><code>R0.UXTB&lt;&lt;imm</code>：<code>UXTB</code> 从 <code>R0</code> 的低位提取 8 位值，并零扩展到 <code>R0</code> 的宽度。<code>R0.UXTB&lt;&lt;imm</code> 将 <code>R0.UXTB</code> 的结果左移 <code>imm</code> 位，<code>imm</code> 可以为 0、1、2、3、4。其他扩展包括 <code>UXTH</code>（16 位）、<code>UXTW</code>（32 位）和 <code>UXTX</code>（64 位）。
+</li>
+
+<li><code>R0.SXTB</code><br><code>R0.SXTB&lt;&lt;imm</code>：<code>SXTB</code> 从 <code>R0</code> 的低位提取 8 位值，并符号扩展到 <code>R0</code> 的宽度。<code>R0.SXTB&lt;&lt;imm</code> 将 <code>R0.SXTB</code> 的结果左移 <code>imm</code> 位，<code>imm</code> 可以为 0、1、2、3、4。其他扩展包括 <code>SXTH</code>（16 位）、<code>SXTW</code>（32 位）和 <code>SXTX</code>（64 位）。
+</li>
+
+<li><code>(R5, R6)</code>：用于 <code>LDAXP</code>/<code>LDP</code>/<code>LDXP</code>/<code>STLXP</code>/<code>STP</code>/<code>STP</code> 的寄存器对。
+</li>
+
+</ul>
+
+<p>参考：<a href="/pkg/cmd/internal/obj/arm64">Go ARM64 汇编指令参考手册</a>。
+</p>
+
+<h3 id="ppc64">PPC64
+</h3>
+
+<p>GOARCH 为 ppc64 和 ppc64le 时使用此汇编器。
+</p>
+
+<p>参考：<a href="/pkg/cmd/internal/obj/ppc64">Go PPC64 汇编指令参考手册</a>。
+</p>
+
+<h3 id="s390x">IBM z/Architecture（即 s390x）
+</h3>
+
+<p><code>R10</code> 和 <code>R11</code> 是保留寄存器，汇编器在汇编某些指令时用它们保存临时值。
+</p>
+
+<p><code>R13</code> 指向 <code>g</code>（goroutine）结构体。必须通过 <code>g</code> 引用此寄存器，名称 <code>R13</code> 不会被识别。
+</p>
+
+<p><code>R15</code> 指向栈帧，通常只应通过虚拟寄存器 <code>SP</code> 和 <code>FP</code> 访问。
+</p>
+
+<p>多寄存器加载和存储指令作用于一段寄存器范围，通过起始和结束寄存器指定。例如，<code>LMG</code> <code>(R9),</code> <code>R5,</code> <code>R7</code> 会将 <code>0(R9)</code>、<code>8(R9)</code> 和 <code>16(R9)</code> 处的 64 位值，分别加载到 <code>R5</code>、<code>R6</code> 和 <code>R7</code>。
+</p>
+
+<p><code>MVC</code> 和 <code>XC</code> 等存储到存储指令，将长度写为第一个参数。例如，<code>XC</code> <code>$8,</code> <code>(R9),</code> <code>(R9)</code> 会清零 <code>R9</code> 指定地址处的 8 字节。
+</p>
+
+<p>如果向量指令接收长度或索引参数，该参数必须放在第一位。例如，<code>VLEIF</code> <code>$1,</code> <code>$16,</code> <code>V2</code> 会将数值 16 加载到 <code>V2</code> 的索引 1 位置。使用向量指令时，应确保运行环境支持它。机器既需要向量设施（设施列表中的第 129 位），也需要内核支持。如果缺少内核支持，向量指令不会产生效果，相当于 <code>NOP</code>。
+</p>
+
+<p>寻址模式：
+</p>
+
+<ul>
+
+<li><code>(R5)(R6*1)</code>：地址 <code>R5</code> 加 <code>R6</code> 所指的位置。这是一种类似 x86 的比例寻址模式，但唯一允许的比例因子是 <code>1</code>。
+</li>
+
+</ul>
+
+<h3 id="mips">MIPS、MIPS64
+</h3>
+
+<p>通用寄存器名为 <code>R0</code> 至 <code>R31</code>，浮点寄存器名为 <code>F0</code> 至 <code>F31</code>。
+</p>
+
+<p><code>R30</code> 保留用于指向 <code>g</code>，<code>R23</code> 用作临时寄存器。
+</p>
+
+<p>在 <code>TEXT</code> 指令中，MIPS 的栈帧大小设为 <code>$-4</code>，或 MIPS64 的栈帧大小设为 <code>$-8</code>，表示要求链接器不保存 <code>LR</code>。
+</p>
+
+<p><code>SP</code> 表示虚拟栈指针。访问硬件寄存器时，使用 <code>R29</code>。
+</p>
+
+<p>寻址模式：
+</p>
+
+<ul>
+
+<li><code>16(R1)</code>：地址 <code>R1</code> 加 16 所指的位置。
+</li>
+
+<li><code>(R1)</code>：<code>0(R1)</code> 的别名。
+</li>
+
+</ul>
+
+<p>汇编代码通过预定义的 <code>GOMIPS_hardfloat</code> 或 <code>GOMIPS_softfloat</code>，获知环境变量 <code>GOMIPS</code> 的值是 <code>hardfloat</code> 还是 <code>softfloat</code>。
+</p>
+
+<p>汇编代码通过预定义的 <code>GOMIPS64_hardfloat</code> 或 <code>GOMIPS64_softfloat</code>，获知环境变量 <code>GOMIPS64</code> 的值是 <code>hardfloat</code> 还是 <code>softfloat</code>。
+</p>
+
+<h3 id="riscv64">RISCV64
+</h3>
+
+<p>参考：<a href="/pkg/cmd/internal/obj/riscv">Go RISCV64 汇编指令参考手册</a>。
+</p>
+
+<h3 id="unsupported_opcodes">不受支持的操作码
+</h3>
+
+<p>汇编器主要为编译器提供支持，因此并非每种体系结构都定义了全部硬件指令：如果编译器不会生成某条指令，汇编器也可能不支持。需要使用缺失指令时，有两种办法。第一种是修改汇编器以支持该指令，这通常比较直接，但只有预计将来还会继续使用时才值得这样做。对于简单的一次性需求，也可以在 <code>TEXT</code> 中通过 <code>BYTE</code> 和 <code>WORD</code> 指令，将明确的数据字节写入指令流。下面展示 386 运行时如何定义 64 位原子加载函数。
+</p>
+
+<pre>
+// uint64 atomicload64(uint64 volatile* addr);
+// so actually
+// void atomicload64(uint64 *res, uint64 volatile *addr);
+TEXT runtime·atomicload64(SB), NOSPLIT, $0-12
+	MOVL	ptr+0(FP), AX
+	TESTL	$7, AX
+	JZ	2(PC)
+	MOVL	0, AX // crash with nil ptr deref
+	LEAL	ret_lo+4(FP), BX
+	// MOVQ (%EAX), %MM0
+	BYTE $0x0f; BYTE $0x6f; BYTE $0x00
+	// MOVQ %MM0, 0(%EBX)
+	BYTE $0x0f; BYTE $0x7f; BYTE $0x03
+	// EMMS
+	BYTE $0x0F; BYTE $0x77
+	RET
+</pre>

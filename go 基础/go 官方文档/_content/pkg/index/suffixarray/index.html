@@ -1,0 +1,208 @@
+<!--{
+  "Title": "index/suffixarray 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>index/suffixarray 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "index/suffixarray"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>suffixarray 包使用内存中的后缀数组，实现对数时间的子串查找。<p>用法示例：<pre>// 为一些数据创建索引
+index := suffixarray.New(data)
+
+// 查找字节切片 s
+offsets1 := index.Lookup(s, -1) // s 在 data 中出现的所有索引的列表
+offsets2 := index.Lookup(s, 3)  // s 在 data 中出现的至多 3 个索引的列表
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Index">type Index</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(data []byte) *Index</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Index.Bytes">func (x *Index) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Index.FindAllIndex">func (x *Index) FindAllIndex(r *regexp.Regexp, n int) (result [][]int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Index.Lookup">func (x *Index) Lookup(s []byte, n int) (result []int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Index.Read">func (x *Index) Read(r io.Reader) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Index.Write">func (x *Index) Write(w io.Writer) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Index_Lookup">Index.Lookup</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/index/suffixarray/sais.go">sais.go</a>
+			
+				<a href="/src/index/suffixarray/sais2.go">sais2.go</a>
+			
+				<a href="/src/index/suffixarray/suffixarray.go">suffixarray.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Index">type <a href="/src/index/suffixarray/suffixarray.go?s=834:927#L25">Index</a>
+				
+				
+			</h2>
+			<p>Index 实现用于快速查找子串的后缀数组。<pre>type Index struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/index/suffixarray/suffixarray.go?s=1650:1678#L66">New</a>
+					
+					
+				</h3>
+				<pre>func New(data []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#Index">Index</a></pre>
+				<p>New 为 data 创建一个新的 <a href="#Index">Index</a>。<a href="#Index">Index</a> 的创建时间为 O(N)，其中 N = len(data)。<h3 id="Index.Bytes">func (*Index) <a href="/src/index/suffixarray/suffixarray.go?s=5676:5706#L231">Bytes</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Index">Index</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes 返回用于创建索引的数据。不得修改这些数据。<h3 id="Index.FindAllIndex">func (*Index) <a href="/src/index/suffixarray/suffixarray.go?s=7450:7520#L285">FindAllIndex</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Index">Index</a>) FindAllIndex(r *<a href="/pkg/regexp/">regexp</a>.<a href="/pkg/regexp/#Regexp">Regexp</a>, n <a href="/pkg/builtin/#int">int</a>) (result [][]<a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FindAllIndex 返回正则表达式 r 的不重叠匹配的有序列表，其中每个匹配由一对索引表示，指定 x.Bytes() 中匹配的切片。如果 n &lt; 0，则按连续顺序返回所有匹配。否则，最多返回 n 个匹配，它们可能不是连续的。如果没有匹配，或者 n == 0，则结果为 nil。<h3 id="Index.Lookup">func (*Index) <a href="/src/index/suffixarray/suffixarray.go?s=6625:6679#L255">Lookup</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Index">Index</a>) Lookup(s []<a href="/pkg/builtin/#byte">byte</a>, n <a href="/pkg/builtin/#int">int</a>) (result []<a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Lookup 返回一个未排序的索引列表，至多包含 n 个索引，表示字节串 s 在被索引数据中出现的位置。如果 n &lt; 0，则返回所有出现位置。如果 s 为空、未找到 s 或 n == 0，则结果为 nil。查找时间为 O(log(N)*len(s) + len(result))，其中 N 为被索引数据的大小。<div id="example_Index_Lookup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;index/suffixarray&#34;
+)
+
+func main() {
+	index := suffixarray.New([]byte(&#34;banana&#34;))
+	offsets := index.Lookup([]byte(&#34;ana&#34;), -1)
+	for _, off := range offsets {
+		fmt.Println(off)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>1
+3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Index.Read">func (*Index) <a href="/src/index/suffixarray/suffixarray.go?s=4109:4148#L153">Read</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Index">Index</a>) Read(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Read 从 r 读取索引并存入 x；x 不得为 nil。<h3 id="Index.Write">func (*Index) <a href="/src/index/suffixarray/suffixarray.go?s=5157:5197#L203">Write</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Index">Index</a>) Write(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Write 将索引 x 写入 w。</article>

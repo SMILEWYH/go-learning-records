@@ -1,0 +1,308 @@
+<!--{
+  "Title": "embed package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package embed</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "embed"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package embed provides access to files embedded in the running Go program.
+<p>Go source files that import &quot;embed&quot; can use the //go:embed directive
+to initialize a variable of type string, []byte, or <a href="#FS">FS</a> with the contents of
+files read from the package directory or subdirectories at compile time.
+<p>For example, here are three ways to embed a file named hello.txt
+and then print its contents at run time.
+<p>Embedding one file into a string:
+<pre>import _ &quot;embed&quot;
+
+//go:embed hello.txt
+var s string
+print(s)
+</pre>
+<p>Embedding one file into a slice of bytes:
+<pre>import _ &quot;embed&quot;
+
+//go:embed hello.txt
+var b []byte
+print(string(b))
+</pre>
+<p>Embedded one or more files into a file system:
+<pre>import &quot;embed&quot;
+
+//go:embed hello.txt
+var f embed.FS
+data, _ := f.ReadFile(&quot;hello.txt&quot;)
+print(string(data))
+</pre>
+<h3 id="hdr-Directives">Directives</h3>
+<p>A //go:embed directive above a variable declaration specifies which files to embed,
+using one or more path.Match patterns.
+<p>The directive must immediately precede a line containing the declaration of a single variable.
+Only blank lines and ‘//’ line comments are permitted between the directive and the declaration.
+<p>The type of the variable must be a string type, or a slice of a byte type,
+or <a href="#FS">FS</a> (or an alias of <a href="#FS">FS</a>).
+<p>For example:
+<pre>package server
+
+import &quot;embed&quot;
+
+// content holds our static web server content.
+//go:embed image/* template/*
+//go:embed html/index.html
+var content embed.FS
+</pre>
+<p>The Go build system will recognize the directives and arrange for the declared variable
+(in the example above, content) to be populated with the matching files from the file system.
+<p>The //go:embed directive accepts multiple space-separated patterns for
+brevity, but it can also be repeated, to avoid very long lines when there are
+many patterns. The patterns are interpreted relative to the package directory
+containing the source file. The path separator is a forward slash, even on
+Windows systems. Patterns may not contain ‘.’ or ‘..’ or empty path elements,
+nor may they begin or end with a slash. To match everything in the current
+directory, use ‘*’ instead of ‘.’. To allow for naming files with spaces in
+their names, patterns can be written as Go double-quoted or back-quoted
+string literals.
+<p>If a pattern names a directory, all files in the subtree rooted at that directory are
+embedded (recursively), except that files with names beginning with ‘.’ or ‘_’
+are excluded. So the variable in the above example is almost equivalent to:
+<pre>// content is our static web server content.
+//go:embed image template html/index.html
+var content embed.FS
+</pre>
+<p>The difference is that ‘image/*’ embeds ‘image/.tempfile’ while ‘image’ does not.
+Neither embeds ‘image/dir/.tempfile’.
+<p>If a pattern begins with the prefix ‘all:’, then the rule for walking directories is changed
+to include those files beginning with ‘.’ or ‘_’. For example, ‘all:image’ embeds
+both ‘image/.tempfile’ and ‘image/dir/.tempfile’.
+<p>The //go:embed directive can be used with both exported and unexported variables,
+depending on whether the package wants to make the data available to other packages.
+It can only be used with variables at package scope, not with local variables.
+<p>Patterns must not match files outside the package&apos;s module, such as ‘.git/*’, symbolic links,
+&apos;vendor/&apos;, or any directories containing go.mod (these are separate modules).
+Patterns must not match files whose names include the special punctuation characters  &quot; * &lt; &gt; ? ` &apos; | / \ and :.
+Matches for empty directories are ignored. After that, each pattern in a //go:embed line
+must match at least one file or non-empty directory.
+<p>If any patterns are invalid or have invalid matches, the build will fail.
+<h3 id="hdr-Strings_and_Bytes">Strings and Bytes</h3>
+<p>The //go:embed line for a variable of type string or []byte can have only a single pattern,
+and that pattern can match only a single file. The string or []byte is initialized with
+the contents of that file.
+<p>The //go:embed directive requires importing &quot;embed&quot;, even when using a string or []byte.
+In source files that don&apos;t refer to <a href="#FS">embed.FS</a>, use a blank import (import _ &quot;embed&quot;).
+<h3 id="hdr-File_Systems">File Systems</h3>
+<p>For embedding a single file, a variable of type string or []byte is often best.
+The <a href="#FS">FS</a> type enables embedding a tree of files, such as a directory of static
+web server content, as in the example above.
+<p>FS implements the <a href="/pkg/io/fs/">io/fs</a> package&apos;s <a href="#FS">FS</a> interface, so it can be used with any package that
+understands file systems, including <a href="/pkg/net/http/">net/http</a>, <a href="/pkg/text/template/">text/template</a>, and <a href="/pkg/html/template/">html/template</a>.
+<p>For example, given the content variable in the example above, we can write:
+<pre>http.Handle(&quot;/static/&quot;, http.StripPrefix(&quot;/static/&quot;, http.FileServer(http.FS(content))))
+
+template.ParseFS(content, &quot;*.tmpl&quot;)
+</pre>
+<h3 id="hdr-Tools">Tools</h3>
+<p>To support tools that analyze Go packages, the patterns found in //go:embed lines
+are available in “go list” output. See the EmbedPatterns, TestEmbedPatterns,
+and XTestEmbedPatterns fields in the “go help list” output.
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;embed&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+)
+
+//go:embed internal/embedtest/testdata/*.txt
+var content embed.FS
+
+func main() {
+	mux := http.NewServeMux()
+	mux.Handle(&#34;/&#34;, http.FileServer(http.FS(content)))
+	err := http.ListenAndServe(&#34;:8080&#34;, mux)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#FS">type FS</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.Open">func (f FS) Open(name string) (fs.File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.ReadDir">func (f FS) ReadDir(name string) ([]fs.DirEntry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FS.ReadFile">func (f FS) ReadFile(name string) ([]byte, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/embed/embed.go">embed.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="FS">type <a href="/src/embed/embed.go?s=6119:7145#L141">FS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>An FS is a read-only collection of files, usually initialized with a //go:embed directive.
+When declared without a //go:embed directive, an FS is an empty file system.
+<p>An FS is a read-only value, so it is safe to use from multiple goroutines
+simultaneously and also safe to assign values of type FS to each other.
+<p>FS implements fs.FS, so it can be used with any package that understands
+file system interfaces, including net/http, text/template, and html/template.
+<p>See the package documentation for more details about initializing an FS.
+
+			<pre>type FS struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FS.Open">func (FS) <a href="/src/embed/embed.go?s=10301:10347#L283">Open</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open opens the named file for reading and returns it as an <a href="/pkg/io/fs/#File">fs.File</a>.
+<p>The returned file implements <a href="/pkg/io/#Seeker">io.Seeker</a> and <a href="/pkg/io/#ReaderAt">io.ReaderAt</a> when the file is not a directory.
+
+				
+			
+				<h3 id="FS.ReadDir">func (FS) <a href="/src/embed/embed.go?s=10631:10686#L295">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadDir reads and returns the entire named directory.
+
+				
+			
+				<h3 id="FS.ReadFile">func (FS) <a href="/src/embed/embed.go?s=11062:11111#L312">ReadFile</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f <a href="#FS">FS</a>) ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadFile reads and returns the content of the named file.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

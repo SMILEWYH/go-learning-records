@@ -1,0 +1,422 @@
+<!--{
+	"Title": "数据竞争检测器"
+}-->
+
+<h2 id="Introduction">
+简介
+</h2>
+
+<p>
+数据竞争是并发系统中最常见、也最难调试的缺陷之一。当两个 goroutine 并发访问同一变量，且至少有一次访问是写入，又没有适当同步时，就会发生数据竞争。详情参见<a href="/ref/mem/">Go 内存模型</a>。
+</p>
+
+<p>
+下面的数据竞争示例可能导致程序崩溃和内存损坏：
+</p>
+
+<pre>
+func main() {
+	c := make(chan bool)
+	m := make(map[string]string)
+	go func() {
+		m["1"] = "a" // First conflicting access.
+		c &lt;- true
+	}()
+	m["2"] = "b" // Second conflicting access.
+	&lt;-c
+	for k, v := range m {
+		fmt.Println(k, v)
+	}
+}
+</pre>
+
+<h2 id="Usage">
+用法
+</h2>
+
+<p>
+Go 内置了数据竞争检测器，帮助诊断这类缺陷。使用时，在 go 命令后添加 <code>-race</code> 标志：
+</p>
+
+<pre>
+$ go test -race mypkg    // to test the package
+$ go run -race mysrc.go  // to run the source file
+$ go build -race mycmd   // to build the command
+$ go install -race mypkg // to install the package
+</pre>
+
+<h2 id="Report_Format">
+报告格式
+</h2>
+
+<p>
+竞争检测器发现数据竞争后，会输出报告。报告包含冲突访问的调用栈，以及相关 goroutine 创建位置的调用栈。例如：
+</p>
+
+<pre>
+WARNING: DATA RACE
+Read by goroutine 185:
+  net.(*pollServer).AddFD()
+      src/net/fd_unix.go:89 +0x398
+  net.(*pollServer).WaitWrite()
+      src/net/fd_unix.go:247 +0x45
+  net.(*netFD).Write()
+      src/net/fd_unix.go:540 +0x4d4
+  net.(*conn).Write()
+      src/net/net.go:129 +0x101
+  net.func·060()
+      src/net/timeout_test.go:603 +0xaf
+
+Previous write by goroutine 184:
+  net.setWriteDeadline()
+      src/net/sockopt_posix.go:135 +0xdf
+  net.setDeadline()
+      src/net/sockopt_posix.go:144 +0x9c
+  net.(*conn).SetDeadline()
+      src/net/net.go:161 +0xe3
+  net.func·061()
+      src/net/timeout_test.go:616 +0x3ed
+
+Goroutine 185 (running) created at:
+  net.func·061()
+      src/net/timeout_test.go:609 +0x288
+
+Goroutine 184 (running) created at:
+  net.TestProlongTimeout()
+      src/net/timeout_test.go:618 +0x298
+  testing.tRunner()
+      src/testing/testing.go:301 +0xe8
+</pre>
+
+<h2 id="Options">
+选项
+</h2>
+
+<p>
+使用 <code>GORACE</code> 环境变量设置竞争检测器选项，格式如下：
+</p>
+
+<pre>
+GORACE="option1=val1 option2=val2"
+</pre>
+
+<p>
+可用选项包括：
+</p>
+
+<ul>
+<li>
+<code>log_path</code>（默认 <code>stderr</code>）：将报告写入名为 <code>log_path.<em>pid</em></code> 的文件。特殊名称 <code>stdout</code> 和 <code>stderr</code> 分别表示标准输出和标准错误。
+</li>
+
+<li>
+<code>exitcode</code>（默认 <code>66</code>）：检测到竞争后退出时使用的退出状态码。
+</li>
+
+<li>
+<code>strip_path_prefix</code>（默认 <code>""</code>）：从报告中的所有文件路径中移除该前缀，使报告更简洁。
+</li>
+
+<li>
+<code>history_size</code>（默认 <code>1</code>）：每个 goroutine 的内存访问历史长度为 <code>32K * 2**history_size elements</code>。增大该值可以避免报告中的“failed to restore the stack”（无法恢复调用栈）错误，但会增加内存用量。
+</li>
+
+<li>
+<code>halt_on_error</code>（默认 <code>0</code>）：控制是否在报告首个数据竞争后退出程序。
+</li>
+
+<li>
+<code>atexit_sleep_ms</code>（默认 <code>1000</code>）：退出前主 goroutine 的休眠时间，单位为毫秒。
+</li>
+</ul>
+
+<p>
+示例：
+</p>
+
+<pre>
+$ GORACE="log_path=/tmp/race/report strip_path_prefix=/my/go/sources/" go test -race
+</pre>
+
+<h2 id="Excluding_Tests">
+排除测试
+</h2>
+
+<p>
+使用 <code>-race</code> 构建时，<code>go</code> 命令会额外定义 <code>race</code> <a href="/pkg/go/build/#hdr-Build_Constraints">构建标签</a>。可以借此在启用竞争检测器时排除部分代码和测试。例如：
+</p>
+
+<pre>
+// +build !race
+
+package foo
+
+// The test contains a data race. See issue 123.
+func TestFoo(t *testing.T) {
+	// ...
+}
+
+// The test fails under the race detector due to timeouts.
+func TestBar(t *testing.T) {
+	// ...
+}
+
+// The test takes too long under the race detector.
+func TestBaz(t *testing.T) {
+	// ...
+}
+</pre>
+
+<h2 id="How_To_Use">
+使用方法
+</h2>
+
+<p>
+先使用竞争检测器运行测试（<code>go test -race</code>）。检测器只能发现运行时实际发生的竞争，无法检查未执行到的代码路径。如果测试覆盖不完整，可以在真实工作负载下运行使用 <code>-race</code> 构建的二进制程序，以发现更多竞争。
+</p>
+
+<h2 id="Typical_Data_Races">
+典型的数据竞争
+</h2>
+
+<p>
+下面是一些典型的数据竞争，都可以由竞争检测器发现。
+</p>
+
+<h3 id="Race_on_loop_counter">
+循环计数器的数据竞争
+</h3>
+
+<pre>
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(5)
+	var i int
+	for i = 0; i &lt; 5; i++ {
+		go func() {
+			fmt.Println(i) // Not the 'i' you are looking for.
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+</pre>
+
+<p>
+函数字面量中的 <code>i</code> 与循环使用的是同一个变量，因此 goroutine 对它的读取会与循环的自增操作发生竞争。（这个程序通常输出 55555，而不是 01234。）可以通过复制变量来修复：
+</p>
+
+<pre>
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(5)
+	var i int
+	for i = 0; i &lt; 5; i++ {
+		go func(j int) {
+			fmt.Println(j) // Good. Read local copy of the loop counter.
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+}
+</pre>
+
+<h3 id="Accidentally_shared_variable">
+意外共享的变量
+</h3>
+
+<pre>
+// ParallelWrite writes data to file1 and file2, returns the errors.
+func ParallelWrite(data []byte) chan error {
+	res := make(chan error, 2)
+	f1, err := os.Create("file1")
+	if err != nil {
+		res &lt;- err
+	} else {
+		go func() {
+			// This err is shared with the main goroutine,
+			// so the write races with the write below.
+			_, err = f1.Write(data)
+			res &lt;- err
+			f1.Close()
+		}()
+	}
+	f2, err := os.Create("file2") // The second conflicting write to err.
+	if err != nil {
+		res &lt;- err
+	} else {
+		go func() {
+			_, err = f2.Write(data)
+			res &lt;- err
+			f2.Close()
+		}()
+	}
+	return res
+}
+</pre>
+
+<p>
+修复方法是在各 goroutine 内声明新的变量，注意这里使用 <code>:=</code>：
+</p>
+
+<pre>
+			...
+			_, err := f1.Write(data)
+			...
+			_, err := f2.Write(data)
+			...
+</pre>
+
+<h3 id="Unprotected_global_variable">
+未保护的全局变量
+</h3>
+
+<p>
+多个 goroutine 调用下面的代码时，会在 <code>service</code> 映射上产生竞争。并发读写同一个 map 并不安全：
+</p>
+
+<pre>
+var service map[string]net.Addr
+
+func RegisterService(name string, addr net.Addr) {
+	service[name] = addr
+}
+
+func LookupService(name string) net.Addr {
+	return service[name]
+}
+</pre>
+
+<p>
+可以使用互斥锁保护访问，使代码安全：
+</p>
+
+<pre>
+var (
+	service   map[string]net.Addr
+	serviceMu sync.Mutex
+)
+
+func RegisterService(name string, addr net.Addr) {
+	serviceMu.Lock()
+	defer serviceMu.Unlock()
+	service[name] = addr
+}
+
+func LookupService(name string) net.Addr {
+	serviceMu.Lock()
+	defer serviceMu.Unlock()
+	return service[name]
+}
+</pre>
+
+<h3 id="Primitive_unprotected_variable">
+未保护的基本类型变量
+</h3>
+
+<p>
+基本类型变量（如 <code>bool</code>、<code>int</code>、<code>int64</code> 等）同样可能发生数据竞争，例如：
+</p>
+
+<pre>
+type Watchdog struct{ last int64 }
+
+func (w *Watchdog) KeepAlive() {
+	w.last = time.Now().UnixNano() // First conflicting access.
+}
+
+func (w *Watchdog) Start() {
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			// Second conflicting access.
+			if w.last &lt; time.Now().Add(-10*time.Second).UnixNano() {
+				fmt.Println("No keepalives for 10 seconds. Dying.")
+				os.Exit(1)
+			}
+		}
+	}()
+}
+</pre>
+
+<p>
+即使看似“无害”的数据竞争，也可能因为内存访问不是原子的、与编译器优化相互影响，或处理器内存访问重排序，而导致难以调试的问题。
+</p>
+
+<p>
+常见的修复方法是使用通道或互斥锁。如果希望保持无锁访问，也可以使用 <a href="/pkg/sync/atomic/"><code>sync/atomic</code></a> 包。
+</p>
+
+<pre>
+type Watchdog struct{ last int64 }
+
+func (w *Watchdog) KeepAlive() {
+	atomic.StoreInt64(&amp;w.last, time.Now().UnixNano())
+}
+
+func (w *Watchdog) Start() {
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			if atomic.LoadInt64(&amp;w.last) &lt; time.Now().Add(-10*time.Second).UnixNano() {
+				fmt.Println("No keepalives for 10 seconds. Dying.")
+				os.Exit(1)
+			}
+		}
+	}()
+}
+</pre>
+
+<h3 id="Unsynchronized_send_and_close_operations">
+未同步的发送和关闭操作
+</h3>
+
+<p>
+如下例所示，对同一个通道执行未同步的发送与关闭，也会产生竞争：
+</p>
+
+<pre>
+c := make(chan struct{}) // or buffered channel
+
+// The race detector cannot derive the happens before relation
+// for the following send and close operations. These two operations
+// are unsynchronized and happen concurrently.
+go func() { c &lt;- struct{}{} }()
+close(c)
+</pre>
+
+<p>
+根据 Go 内存模型，通道发送操作先发生于（happens before）与其对应的接收操作完成。要同步发送和关闭，可以通过接收操作确保发送在关闭之前完成：
+</p>
+
+<pre>
+c := make(chan struct{}) // or buffered channel
+
+go func() { c &lt;- struct{}{} }()
+&lt;-c
+close(c)
+</pre>
+
+<h2 id="Requirements">
+使用要求
+</h2>
+
+<p>
+竞争检测器要求启用 cgo；在非 Darwin 系统上，还需要安装 C 编译器。支持的平台包括 <code>linux/amd64</code>、<code>linux/ppc64le</code>、<code>linux/arm64</code>、<code>linux/s390x</code>、<code>linux/loong64</code>、<code>freebsd/amd64</code>、<code>netbsd/amd64</code>、<code>darwin/amd64</code>、<code>darwin/arm64</code> 和 <code>windows/amd64</code>。
+</p>
+
+<p>
+在 Windows 上，竞争检测器运行时依赖所安装 C 编译器的版本。从 Go 1.21 起，使用 <code>-race</code> 构建程序需要 C 编译器包含第 8 版或更新的 <code>mingw-w64</code> 运行时库。可以向 C 编译器传入 <code>--print-file-name libsynchronization.a</code> 参数来检查：符合要求的新编译器会输出该库的完整路径，旧编译器则只会原样输出参数。
+</p>
+
+<h2 id="Runtime_Overheads">
+运行时开销
+</h2>
+
+<p>
+竞争检测开销因程序而异。对于典型程序，内存用量可能增至原来的 5～10 倍，执行时间可能增至 2～20 倍。
+</p>
+
+<p>
+当前，竞争检测器会为每条 <code>defer</code> 和 <code>recover</code> 语句额外分配 8 字节，这些分配<a href="/issue/26813">直到 goroutine 退出才会回收</a>。因此，长期运行的 goroutine 如果不断执行 <code>defer</code> 和 <code>recover</code>，可能导致程序内存持续增长。这些额外分配不会出现在 <code>runtime.ReadMemStats</code> 或 <code>runtime/pprof</code> 的结果中。
+</p>

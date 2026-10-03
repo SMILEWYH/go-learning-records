@@ -1,0 +1,220 @@
+<!--{
+  "Title": "testing/fstest 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>testing/fstest 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "testing/fstest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>fstest 包提供测试文件系统实现及其使用方的支持。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#TestFS">func TestFS(fsys fs.FS, expected ...string) error</a></dd>
+			
+			
+				
+				<dd><a href="#MapFS">type MapFS</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Glob">func (fsys MapFS) Glob(pattern string) ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Lstat">func (fsys MapFS) Lstat(name string) (fs.FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Open">func (fsys MapFS) Open(name string) (fs.File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadDir">func (fsys MapFS) ReadDir(name string) ([]fs.DirEntry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadFile">func (fsys MapFS) ReadFile(name string) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.ReadLink">func (fsys MapFS) ReadLink(name string) (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Stat">func (fsys MapFS) Stat(name string) (fs.FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MapFS.Sub">func (fsys MapFS) Sub(dir string) (fs.FS, error)</a></dd>
+				
+			
+				
+				<dd><a href="#MapFile">type MapFile</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/testing/fstest/mapfs.go">mapfs.go</a>
+			
+				<a href="/src/testing/fstest/testfs.go">testfs.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="TestFS">func <a href="/src/testing/fstest/testfs.go?s=1232:1281#L29">TestFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func TestFS(fsys <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, expected ...<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>TestFS 测试文件系统实现。它遍历 fsys 中的整个文件树，打开并检查每个文件的行为是否正确。它不跟随符号链接，但如果文件系统实现了 <a href="/pkg/io/fs/#ReadLinkFS">fs.ReadLinkFS</a>，会检查符号链接的 Lstat 值。它还会检查文件系统是否至少包含预期的文件。有一个特殊情况：如果没有列出预期文件，则 fsys 必须为空。否则，fsys 至少必须包含列出的文件，也可以包含其他文件。不得在 TestFS 执行期间并发修改 fsys 的内容。<p>如果 TestFS 发现任何不正确的行为，它会返回第一个错误或一个错误列表。可使用 <a href="/pkg/errors/#Is">errors.Is</a> 或 <a href="/pkg/errors/#AsType">errors.AsType</a> 检查。<p>测试中的典型用法如下：<pre>if err := fstest.TestFS(myFS, &quot;file/that/should/be/present&quot;); err != nil {
+	t.Fatal(err)
+}
+</pre>
+
+			
+		
+		
+			
+			<h2 id="MapFS">type <a href="/src/testing/fstest/mapfs.go?s=1235:1265#L23">MapFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>MapFS 是一个用于测试的简单内存文件系统，以映射表示：键是路径名（Open 的实参），值是该路径所表示的文件、目录或符号链接的信息。<p>映射无须包含其中各文件的父目录；必要时会自动合成这些目录。不过，仍可以通过设置 <a href="#MapFile.Mode">MapFile.Mode</a> 的 <a href="/pkg/io/fs/#ModeDir">fs.ModeDir</a> 位来显式包含目录；这可能是精确控制目录的 <a href="/pkg/io/fs/#FileInfo">fs.FileInfo</a> 或创建空目录所必需的。<p>文件系统操作直接读取映射，因此可以按需编辑映射来改变文件系统。这意味着文件系统操作不得与映射修改并发执行，否则会发生竞态。另一方面，打开或读取目录需要遍历整个映射，因此 MapFS 通常应用于条目数或目录读取次数不超过几百的场景。<pre>type MapFS map[<a href="/pkg/builtin/#string">string</a>]*<a href="#MapFile">MapFile</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MapFS.Glob">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=7037:7093#L220">Glob</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Glob(pattern <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.Lstat">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=5314:5371#L160">Lstat</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Lstat(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Lstat 返回描述指定文件的 FileInfo。如果该文件是符号链接，返回的 FileInfo 描述该符号链接本身。Lstat 不会尝试跟随链接。<h3 id="MapFS.Open">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=1688:1740#L38">Open</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open 跟随所有符号链接后打开指定文件。<h3 id="MapFS.ReadDir">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6931:6992#L216">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.ReadFile">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6732:6787#L208">ReadFile</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.ReadLink">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=4796:4851#L146">ReadLink</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) ReadLink(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadLink 返回指定符号链接的目标。<h3 id="MapFS.Stat">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=6833:6889#L212">Stat</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Stat(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="MapFS.Sub">func (MapFS) <a href="/src/testing/fstest/mapfs.go?s=7221:7269#L230">Sub</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (fsys <a href="#MapFS">MapFS</a>) Sub(dir <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="MapFile">type <a href="/src/testing/fstest/mapfs.go?s=1318:1526#L26">MapFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>MapFile 描述 <a href="#MapFS">MapFS</a> 中的单个文件。<pre>type MapFile struct {
+<span id="MapFile.Data"></span>    Data    []<a href="/pkg/builtin/#byte">byte</a>      <span class="comment">// 文件内容或符号链接目标</span>
+<span id="MapFile.Mode"></span>    Mode    <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a> <span class="comment">// fs.FileInfo.Mode</span>
+<span id="MapFile.ModTime"></span>    ModTime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>   <span class="comment">// fs.FileInfo.ModTime</span>
+<span id="MapFile.Sys"></span>    Sys     <a href="/pkg/builtin/#any">any</a>         <span class="comment">// fs.FileInfo.Sys</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

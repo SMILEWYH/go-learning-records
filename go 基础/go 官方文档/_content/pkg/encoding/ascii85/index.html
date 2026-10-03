@@ -1,0 +1,182 @@
+<!--{
+  "Title": "encoding/ascii85 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package ascii85</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/ascii85"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>ascii85 包实现了 ascii85 数据编码，btoa 工具以及 Adobe 的 PostScript 和 PDF 文档格式都使用了这种编码。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Decode">func Decode(dst, src []byte, flush bool) (ndst, nsrc int, err error)</a></dd>
+			
+				<dd><a href="#Encode">func Encode(dst, src []byte) int</a></dd>
+			
+				<dd><a href="#MaxEncodedLen">func MaxEncodedLen(n int) int</a></dd>
+			
+				<dd><a href="#NewDecoder">func NewDecoder(r io.Reader) io.Reader</a></dd>
+			
+				<dd><a href="#NewEncoder">func NewEncoder(w io.Writer) io.WriteCloser</a></dd>
+			
+			
+				
+				<dd><a href="#CorruptInputError">type CorruptInputError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CorruptInputError.Error">func (e CorruptInputError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/ascii85/ascii85.go">ascii85.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Decode">func <a href="/src/encoding/ascii85/ascii85.go?s=4383:4451#L176">Decode</a>
+				
+				
+			</h2>
+			<pre>func Decode(dst, src []<a href="/pkg/builtin/#byte">byte</a>, flush <a href="/pkg/builtin/#bool">bool</a>) (ndst, nsrc <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Decode 将 src 解码到 dst，同时返回写入 dst 的字节数和从 src 消耗的字节数。如果 src 包含无效的 ascii85 数据，Decode 会返回成功写入的字节数和一个 <a href="#CorruptInputError">CorruptInputError</a>。Decode 会忽略 src 中的空白字符和控制字符。ascii85 编码的数据通常由 &lt;~ 和 ~&gt; 符号包裹。Decode 要求调用者已去除这些符号。
+<p>如果 flush 为 true，Decode 会假定 src 已到达输入流末尾，并完整处理它，而不会等待另一个 32 位块补齐。
+<p><a href="#NewDecoder">NewDecoder</a> 为 Decode 封装了一个 <a href="/pkg/io/#Reader">io.Reader</a> 接口。
+
+			
+		
+			
+			<h2 id="Encode">func <a href="/src/encoding/ascii85/ascii85.go?s=783:815#L17">Encode</a>
+				
+				
+			</h2>
+			<pre>func Encode(dst, src []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Encode 将 src 编码到 dst，最多写入 <a href="#MaxEncodedLen">MaxEncodedLen</a>(len(src)) 个字节，并返回实际写入的字节数。
+<p>该编码按 4 字节块处理，并对末尾的片段使用特殊编码，因此 Encode 不适合逐块处理大型数据流。此时应使用 <a href="#NewEncoder">NewEncoder</a>。
+<p>ascii85 编码的数据通常由 &lt;~ 和 ~&gt; 符号包裹。Encode 不会添加这些符号。
+
+			
+		
+			
+			<h2 id="MaxEncodedLen">func <a href="/src/encoding/ascii85/ascii85.go?s=1790:1819#L76">MaxEncodedLen</a>
+				
+				
+			</h2>
+			<pre>func MaxEncodedLen(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>MaxEncodedLen 返回 n 个源字节编码后的最大长度。
+
+			
+		
+			
+			<h2 id="NewDecoder">func <a href="/src/encoding/ascii85/ascii85.go?s=5634:5672#L233">NewDecoder</a>
+				
+				
+			</h2>
+			<pre>func NewDecoder(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+			<p>NewDecoder 构造一个新的 ascii85 流解码器。
+
+			
+		
+			
+			<h2 id="NewEncoder">func <a href="/src/encoding/ascii85/ascii85.go?s=2134:2177#L83">NewEncoder</a>
+				
+				
+			</h2>
+			<pre>func NewEncoder(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+			<p>NewEncoder 返回一个新的 ascii85 流编码器。写入所返回写入器的数据会先经过编码，再写入 w。ascii85 编码按 32 位块处理；完成写入后，调用者必须对返回的编码器调用 Close，以刷新末尾可能存在的不完整块。
+
+			
+		
+		
+			
+			<h2 id="CorruptInputError">type <a href="/src/encoding/ascii85/ascii85.go?s=3549:3577#L157">CorruptInputError</a>
+				
+				
+			</h2>
+			
+			<pre>type CorruptInputError <a href="/pkg/builtin/#int64">int64</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CorruptInputError.Error">func (CorruptInputError) <a href="/src/encoding/ascii85/ascii85.go?s=3579:3620#L159">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#CorruptInputError">CorruptInputError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

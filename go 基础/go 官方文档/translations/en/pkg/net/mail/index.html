@@ -1,0 +1,568 @@
+<!--{
+  "Title": "net/mail package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package mail</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/mail"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package mail implements parsing of mail messages.
+<p>For the most part, this package follows the syntax as specified by RFC 5322 and
+extended by RFC 6532.
+Notable divergences:
+<ul>
+<li>Obsolete address formats are not parsed, including addresses with
+embedded route information.
+<li>The full range of spacing (the CFWS syntax element) is not supported,
+such as breaking addresses across lines.
+<li>No unicode normalization is performed.
+<li>A leading From line is permitted, as in mbox format (RFC 4155).
+</ul>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#ParseDate">func ParseDate(date string) (time.Time, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Address">type Address</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseAddress">func ParseAddress(address string) (*Address, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseAddressList">func ParseAddressList(list string) ([]*Address, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Address.String">func (a *Address) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#AddressParser">type AddressParser</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#AddressParser.Parse">func (p *AddressParser) Parse(address string) (*Address, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AddressParser.ParseList">func (p *AddressParser) ParseList(list string) ([]*Address, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Header">type Header</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Header.AddressList">func (h Header) AddressList(key string) ([]*Address, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Header.Date">func (h Header) Date() (time.Time, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Header.Get">func (h Header) Get(key string) string</a></dd>
+				
+			
+				
+				<dd><a href="#Message">type Message</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReadMessage">func ReadMessage(r io.Reader) (msg *Message, err error)</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_ParseAddress">ParseAddress</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseAddressList">ParseAddressList</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ParseDate">ParseDate</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadMessage">ReadMessage</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/mail/message.go">message.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var <span id="ErrHeaderNotPresent">ErrHeaderNotPresent</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;mail: header not in message&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="ParseDate">func <a href="/src/net/mail/message.go?s=3744:3790#L138">ParseDate</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func ParseDate(date <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ParseDate parses an RFC 5322 date string.
+
+			
+
+
+<div id="example_ParseDate" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/mail&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	dateStr := &#34;Wed, 09 Oct 2024 09:55:06 -0700&#34;
+
+	t, err := mail.ParseDate(dateStr)
+	if err != nil {
+		log.Fatalf(&#34;Failed to parse date: %v&#34;, err)
+	}
+
+	fmt.Println(t.Format(time.RFC3339))
+
+}
+</textarea></div>
+        <div class="output"><pre>2024-10-09T09:55:06-07:00
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Address">type <a href="/src/net/mail/message.go?s=6417:6517#L221">Address</a>
+				
+				
+			</h2>
+			<p>Address represents a single mail address.
+An address such as &quot;Barry Gibbs &lt;bg@example.com&gt;&quot; is represented
+as Address{Name: &quot;Barry Gibbs&quot;, Address: &quot;bg@example.com&quot;}.
+
+			<pre>type Address struct {
+<span id="Address.Name"></span>    Name    <a href="/pkg/builtin/#string">string</a> <span class="comment">// Proper name; may be empty.</span>
+<span id="Address.Address"></span>    Address <a href="/pkg/builtin/#string">string</a> <span class="comment">// user@domain</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ParseAddress">func <a href="/src/net/mail/message.go?s=6605:6656#L227">ParseAddress</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func ParseAddress(address <a href="/pkg/builtin/#string">string</a>) (*<a href="#Address">Address</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseAddress parses a single RFC 5322 address, e.g. &quot;Barry Gibbs &lt;bg@example.com&gt;&quot;
+
+				
+
+
+<div id="example_ParseAddress" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/mail&#34;
+)
+
+func main() {
+	e, err := mail.ParseAddress(&#34;Alice &lt;alice@example.com&gt;&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(e.Name, e.Address)
+
+}
+</textarea></div>
+        <div class="output"><pre>Alice alice@example.com
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="ParseAddressList">func <a href="/src/net/mail/message.go?s=6785:6839#L232">ParseAddressList</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func ParseAddressList(list <a href="/pkg/builtin/#string">string</a>) ([]*<a href="#Address">Address</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseAddressList parses the given string as a list of addresses.
+
+				
+
+
+<div id="example_ParseAddressList" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/mail&#34;
+)
+
+func main() {
+	const list = &#34;Alice &lt;alice@example.com&gt;, Bob &lt;bob@example.com&gt;, Eve &lt;eve@example.com&gt;&#34;
+	emails, err := mail.ParseAddressList(list)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, v := range emails {
+		fmt.Println(v.Name, v.Address)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Alice alice@example.com
+Bob bob@example.com
+Eve eve@example.com
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Address.String">func (*Address) <a href="/src/net/mail/message.go?s=7783:7816#L257">String</a>
+					
+					
+				</h3>
+				<pre>func (a *<a href="#Address">Address</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String formats the address as a valid RFC 5322 address.
+If the address&apos;s name contains non-ASCII characters
+the name will be rendered according to RFC 2047.
+
+				
+			
+		
+			
+			<h2 id="AddressParser">type <a href="/src/net/mail/message.go?s=6946:7081#L237">AddressParser</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>An AddressParser is an RFC 5322 address parser.
+
+			<pre>type AddressParser struct {
+<span id="AddressParser.WordDecoder"></span>    <span class="comment">// WordDecoder optionally specifies a decoder for RFC 2047 encoded-words.</span>
+    WordDecoder *<a href="/pkg/mime/">mime</a>.<a href="/pkg/mime/#WordDecoder">WordDecoder</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AddressParser.Parse">func (*AddressParser) <a href="/src/net/mail/message.go?s=7190:7253#L244">Parse</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (p *<a href="#AddressParser">AddressParser</a>) Parse(address <a href="/pkg/builtin/#string">string</a>) (*<a href="#Address">Address</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse parses a single RFC 5322 address of the
+form &quot;Gogh Fir &lt;gf@example.com&gt;&quot; or &quot;foo@example.com&quot;.
+
+				
+			
+				<h3 id="AddressParser.ParseList">func (*AddressParser) <a href="/src/net/mail/message.go?s=7475:7541#L250">ParseList</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (p *<a href="#AddressParser">AddressParser</a>) ParseList(list <a href="/pkg/builtin/#string">string</a>) ([]*<a href="#Address">Address</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseList parses the given string as a list of comma-separated addresses
+of the form &quot;Gogh Fir &lt;gf@example.com&gt;&quot; or &quot;foo@example.com&quot;.
+
+				
+			
+		
+			
+			<h2 id="Header">type <a href="/src/net/mail/message.go?s=5309:5340#L186">Header</a>
+				
+				
+			</h2>
+			<p>A Header represents the key-value pairs in a mail message header.
+
+			<pre>type Header map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Header.AddressList">func (Header) <a href="/src/net/mail/message.go?s=6074:6133#L210">AddressList</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Header">Header</a>) AddressList(key <a href="/pkg/builtin/#string">string</a>) ([]*<a href="#Address">Address</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AddressList parses the named header field as a list of addresses.
+
+				
+			
+				<h3 id="Header.Date">func (Header) <a href="/src/net/mail/message.go?s=5852:5893#L201">Date</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Header">Header</a>) Date() (<a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Date parses the Date header field.
+
+				
+			
+				<h3 id="Header.Get">func (Header) <a href="/src/net/mail/message.go?s=5660:5698#L194">Get</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Header">Header</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Get gets the first value associated with the given key.
+It is case insensitive; CanonicalMIMEHeaderKey is used
+to canonicalize the provided key.
+If there are no values associated with the key, Get returns &quot;&quot;.
+To access multiple values of a key, or to use non-canonical keys,
+access the map directly.
+
+				
+			
+		
+			
+			<h2 id="Message">type <a href="/src/net/mail/message.go?s=1001:1057#L36">Message</a>
+				
+				
+			</h2>
+			<p>A Message represents a parsed mail message.
+
+			<pre>type Message struct {
+<span id="Message.Header"></span>    Header <a href="#Header">Header</a>
+<span id="Message.Body"></span>    Body   <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ReadMessage">func <a href="/src/net/mail/message.go?s=1201:1256#L44">ReadMessage</a>
+					
+					
+				</h3>
+				<pre>func ReadMessage(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (msg *<a href="#Message">Message</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadMessage reads a message from r.
+The headers are parsed, and the body of the message will be available
+for reading from msg.Body.
+
+				
+
+
+<div id="example_ReadMessage" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/mail&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	msg := `Date: Mon, 23 Jun 2015 11:40:36 -0400
+From: Gopher &lt;from@example.com&gt;
+To: Another Gopher &lt;to@example.com&gt;
+Subject: Gophers at Gophercon
+
+Message body
+`
+
+	r := strings.NewReader(msg)
+	m, err := mail.ReadMessage(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	header := m.Header
+	fmt.Println(&#34;Date:&#34;, header.Get(&#34;Date&#34;))
+	fmt.Println(&#34;From:&#34;, header.Get(&#34;From&#34;))
+	fmt.Println(&#34;To:&#34;, header.Get(&#34;To&#34;))
+	fmt.Println(&#34;Subject:&#34;, header.Get(&#34;Subject&#34;))
+
+	body, err := io.ReadAll(m.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s&#34;, body)
+
+}
+</textarea></div>
+        <div class="output"><pre>Date: Mon, 23 Jun 2015 11:40:36 -0400
+From: Gopher &lt;from@example.com&gt;
+To: Another Gopher &lt;to@example.com&gt;
+Subject: Gophers at Gophercon
+Message body
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

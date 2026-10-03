@@ -1,0 +1,143 @@
+<!--{
+  "Title": "link 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>link 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Link 通常通过“go tool link”调用，读取 main 包及其依赖的 Go 归档文件或目标文件，将它们链接成一个可执行二进制文件。
+<h3 id="hdr-Command_Line">命令行
+</h3>
+<p>用法：
+<pre>go tool link [flags] main.a
+</pre>
+<p>标志参数：
+<pre>-B note
+	使用 ELF 时，添加 ELF_NT_GNU_BUILD_ID 注记。
+	值应以 0x 开头，后接偶数个十六进制数字。
+	也可以传入 "gobuildid"，从 Go 构建 ID 派生 GNU 构建 ID。
+-E entry
+	设置入口符号名称。
+-H type
+	设置可执行文件格式。
+	默认根据 GOOS 和 GOARCH 推断。
+	在 Windows 上，-H windowsgui 生成 GUI 程序，而不是控制台程序。
+-I interpreter
+	设置要使用的 ELF 动态链接器。
+-L dir1 -L dir2
+	先在 $GOROOT/pkg/$GOOS_$GOARCH 中查找导入的包，
+	再依次搜索 dir1、dir2 等目录。
+-R quantum
+	设置地址对齐粒度。
+-T address
+	设置代码符号的起始地址。
+-V
+	输出链接器版本并退出。
+-X importpath.name=value
+	将 importpath 包中名为 name 的字符串变量设为 value。
+	仅当该变量在源码中未初始化，或初始化为常量字符串表达式时才有效。
+	如果初始化器调用了函数或引用其他变量，-X 不起作用。
+	注意，Go 1.5 之前，此选项使用两个单独的参数。
+-asan
+	链接时启用 C/C++ AddressSanitizer 支持。
+-aslr
+	在 Windows 上为 buildmode=c-shared 启用 ASLR，默认 true。
+-bindnow
+	将动态链接的 ELF 目标标记为立即进行函数绑定，默认 false。
+-buildid id
+	将 id 记录为 Go 工具链构建 ID。
+-buildmode mode
+	设置构建模式，默认为 exe。
+-c
+	转储调用图。
+-checklinkname=value
+	value 为 0 时，允许所有 go:linkname 指令。
+	value 为 1（默认值）时，只允许已知的一组广泛使用的 linkname。
+-compressdwarf
+	尽可能压缩 DWARF，默认 true。
+-cpuprofile file
+	将 CPU 性能剖析数据写入 file。
+-d
+	禁用动态可执行文件的生成。
+	两种情况下生成的代码相同；此选项只控制是否包含动态头部。
+	即使没有引用动态库，默认也会生成动态头部，
+	因为许多常见系统工具都假定该头部存在。
+-dumpdep
+	转储符号依赖图。
+-e
+	不限制报告的错误数量。
+-extar ar
+	设置外部归档程序，默认为 "ar"。
+	仅用于 -buildmode=c-archive。
+-extld linker
+	设置外部链接器，默认为 "clang" 或 "gcc"。
+-extldflags flags
+	设置传给外部链接器的标志参数，以空格分隔。
+-f
+	忽略待链接归档中的版本不匹配。
+-funcalign N
+	将函数对齐设置为 N 字节。
+-g
+	禁用 Go 包数据检查。
+-importcfg file
+	从 file 读取导入配置。
+	在文件中设置 packagefile、packageshlib，指定导入解析规则。
+-installsuffix suffix
+	从 $GOROOT/pkg/$GOOS_$GOARCH_suffix 查找包，
+	而不是从 $GOROOT/pkg/$GOOS_$GOARCH 查找。
+-k symbol
+	设置字段跟踪符号。设置 GOEXPERIMENT=fieldtrack 时使用。
+-libgcc file
+	设置编译器支持库的名称。
+	仅用于内部链接模式。
+	未设置时，默认值来自运行编译器的结果，编译器可通过 -extld 指定。
+	设为 "none" 表示不使用支持库。
+-linkmode mode
+	设置链接模式（internal、external、auto）。
+	各模式的含义见 cmd/cgo/doc.go。
+-linkshared
+	链接已安装的 Go 共享库，属于实验性功能。
+-memprofile file
+	将内存剖析数据写入 file。
+-memprofilerate rate
+	将 runtime.MemProfileRate 设为 rate。
+-msan
+	链接时启用 C/C++ MemorySanitizer 支持。
+-o file
+	将输出写入 file，默认为 a.out，在 Windows 上为 a.out.exe。
+-pluginpath path
+	用于导出的插件符号前缀的路径名。
+-r dir1:dir2:...
+	设置 ELF 动态链接器的搜索路径。
+-race
+	链接数据竞争检测库。
+-s
+	省略符号表和调试信息。
+	隐含 -w 标志，可用 -w=0 抵消。
+-tmpdir dir
+	将临时文件写入 dir。
+	仅在外部链接模式下使用临时文件。
+-v
+	输出链接器操作的追踪信息。
+-w
+	省略 DWARF 符号表。
+</pre>
+
+	
+
+	
+
+
+
+
+</article>

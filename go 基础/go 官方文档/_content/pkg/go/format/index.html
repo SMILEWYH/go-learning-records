@@ -1,0 +1,166 @@
+<!--{
+  "Title": "go/format 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/format 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/format"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>format 包实现 Go 源代码的标准格式化。<p>Go 源代码的格式化规则会随时间变化。因此，依赖一致格式的工具应执行特定版本的 gofmt 二进制程序，而不是使用本包。这样既能保持格式稳定，也不必在 gofmt 每次变化时重新编译工具。<p>例如，直接使用本包的提交前检查，会因各开发者使用的 Go 版本不同而表现不同，导致检查本身不可靠。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Node">func Node(dst io.Writer, fset *token.FileSet, node any) error</a></dd>
+			
+				<dd><a href="#Source">func Source(src []byte) ([]byte, error)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Node">Node</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/format/format.go">format.go</a>
+			
+				<a href="/src/go/format/internal.go">internal.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Node">func <a href="/src/go/format/format.go?s=1998:2059#L43">Node</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Node(dst <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, node <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Node 按规范的 gofmt 风格格式化 node，并将结果写入 dst。<p>node 的类型必须是 *<a href="/pkg/go/ast/#File">ast.File</a>、*<a href="/pkg/go/printer/#CommentedNode">printer.CommentedNode</a>、[]<a href="/pkg/go/ast/#Decl">ast.Decl</a>、[]<a href="/pkg/go/ast/#Stmt">ast.Stmt</a>，或可赋值给 <a href="/pkg/go/ast/#Expr">ast.Expr</a>、<a href="/pkg/go/ast/#Decl">ast.Decl</a>、<a href="/pkg/go/ast/#Spec">ast.Spec</a> 或 <a href="/pkg/go/ast/#Stmt">ast.Stmt</a>。Node 不会修改 node。对于表示部分源文件的节点，不会排序导入声明，例如节点既不是 *<a href="/pkg/go/ast/#File">ast.File</a>，也不是包装了 *<a href="/pkg/go/ast/#File">ast.File</a> 的 *<a href="/pkg/go/printer/#CommentedNode">printer.CommentedNode</a> 时。<p>此函数可能在全部结果写出之前提前返回，并报告格式化错误，例如 AST 不正确时。<div id="example_Node" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;go/format&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	const expr = &#34;(6&#43;2*3)/4&#34;
+
+	// parser.ParseExpr 解析实参并返回
+	// 对应的 ast.Node。
+	node, err := parser.ParseExpr(expr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 为 node 创建 FileSet。由于节点并非来自
+	// 真实源文件，fset 将为空。
+	fset := token.NewFileSet()
+
+	var buf bytes.Buffer
+	err = format.Node(&amp;buf, fset, node)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(buf.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>(6 + 2*3) / 4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Source">func <a href="/src/go/format/format.go?s=3585:3624#L91">Source</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Source(src []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Source 按规范的 gofmt 风格格式化 src，并返回结果或 I/O／语法错误。src 应当是语法正确的 Go 源文件，或一组 Go 声明或语句。<p>如果 src 只是部分源文件，结果会保留 src 开头和结尾的空白，并使用与 src 中第一个包含代码的行相同的缩进量。对于部分源文件，不会排序导入声明。</article>

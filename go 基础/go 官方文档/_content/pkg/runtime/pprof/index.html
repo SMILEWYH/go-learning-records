@@ -1,0 +1,328 @@
+<!--{
+  "Title": "runtime/pprof 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>runtime/pprof 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime/pprof"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>pprof 包按 pprof 可视化工具所需的格式写出运行时性能剖析数据。<h3 id="hdr-Profiling_a_Go_program">对 Go 程序进行性能剖析</h3>
+<p>对 Go 程序进行性能剖析的第一步是启用剖析。go test 内置了对使用标准 testing 包编写的基准测试进行性能剖析的支持。例如，以下命令运行当前目录中的基准测试，并将 CPU 和内存剖析数据分别写入 cpu.prof 和 mem.prof：<pre>go test -cpuprofile cpu.prof -memprofile mem.prof -bench .
+</pre>
+<p>要为独立程序添加同等的性能剖析支持，请在 main 函数中添加如下代码：<pre>var cpuprofile = flag.String(&quot;cpuprofile&quot;, &quot;&quot;, &quot;write cpu profile to `file`&quot;)
+var memprofile = flag.String(&quot;memprofile&quot;, &quot;&quot;, &quot;write memory profile to `file`&quot;)
+
+func main() {
+    flag.Parse()
+    if *cpuprofile != &quot;&quot; {
+        f, err := os.Create(*cpuprofile)
+        if err != nil {
+            log.Fatal(&quot;could not create CPU profile: &quot;, err)
+        }
+        defer f.Close() // 示例中省略错误处理
+        if err := pprof.StartCPUProfile(f); err != nil {
+            log.Fatal(&quot;could not start CPU profile: &quot;, err)
+        }
+        defer pprof.StopCPUProfile()
+    }
+
+    // ……程序的其余部分……
+
+    if *memprofile != &quot;&quot; {
+        f, err := os.Create(*memprofile)
+        if err != nil {
+            log.Fatal(&quot;could not create memory profile: &quot;, err)
+        }
+        defer f.Close() // 示例中省略错误处理
+        runtime.GC() // 获取最新统计信息
+        // Lookup("allocs") 创建与 go test -memprofile 类似的剖析数据。
+        // 也可以使用 Lookup("heap")，获取
+        // 以 inuse_space 为默认索引的剖析数据。
+        if err := pprof.Lookup(&quot;allocs&quot;).WriteTo(f, 0); err != nil {
+            log.Fatal(&quot;could not write memory profile: &quot;, err)
+        }
+    }
+}
+</pre>
+<p>性能剖析数据也有标准 HTTP 接口。添加以下导入会在 /debug/pprof/ URL 下注册处理器，用于下载实时剖析数据：<pre>import _ &quot;net/http/pprof&quot;
+</pre>
+<p>详情请参阅 net/http/pprof 包。<p>随后可以使用 pprof 工具将剖析数据可视化：<pre>go tool pprof cpu.prof
+</pre>
+<p>pprof 命令行提供了许多命令。常用命令包括 &quot;top&quot;，用于输出程序主要热点的摘要；以及 &quot;web&quot;，用于打开热点及其调用关系的交互式图表。使用 &quot;help&quot; 可查看所有 pprof 命令的信息。<p>有关 pprof 的更多信息，请参阅 <a href="https://github.com/google/pprof/blob/main/doc/README.md">https://github.com/google/pprof/blob/main/doc/README.md</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Do">func Do(ctx context.Context, labels LabelSet, f func(context.Context))</a></dd>
+			
+				<dd><a href="#ForLabels">func ForLabels(ctx context.Context, f func(key, value string) bool)</a></dd>
+			
+				<dd><a href="#Label">func Label(ctx context.Context, key string) (string, bool)</a></dd>
+			
+				<dd><a href="#SetGoroutineLabels">func SetGoroutineLabels(ctx context.Context)</a></dd>
+			
+				<dd><a href="#StartCPUProfile">func StartCPUProfile(w io.Writer) error</a></dd>
+			
+				<dd><a href="#StopCPUProfile">func StopCPUProfile()</a></dd>
+			
+				<dd><a href="#WithLabels">func WithLabels(ctx context.Context, labels LabelSet) context.Context</a></dd>
+			
+				<dd><a href="#WriteHeapProfile">func WriteHeapProfile(w io.Writer) error</a></dd>
+			
+			
+				
+				<dd><a href="#LabelSet">type LabelSet</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Labels">func Labels(args ...string) LabelSet</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Profile">type Profile</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lookup">func Lookup(name string) *Profile</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewProfile">func NewProfile(name string) *Profile</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Profiles">func Profiles() []*Profile</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Profile.Add">func (p *Profile) Add(value any, skip int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Profile.Count">func (p *Profile) Count() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Profile.Name">func (p *Profile) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Profile.Remove">func (p *Profile) Remove(value any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Profile.WriteTo">func (p *Profile) WriteTo(w io.Writer, debug int) error</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/pprof/elf.go">elf.go</a>
+			
+				<a href="/src/runtime/pprof/label.go">label.go</a>
+			
+				<a href="/src/runtime/pprof/map.go">map.go</a>
+			
+				<a href="/src/runtime/pprof/pe.go">pe.go</a>
+			
+				<a href="/src/runtime/pprof/pprof.go">pprof.go</a>
+			
+				<a href="/src/runtime/pprof/pprof_rusage.go">pprof_rusage.go</a>
+			
+				<a href="/src/runtime/pprof/proto.go">proto.go</a>
+			
+				<a href="/src/runtime/pprof/proto_other.go">proto_other.go</a>
+			
+				<a href="/src/runtime/pprof/protobuf.go">protobuf.go</a>
+			
+				<a href="/src/runtime/pprof/protomem.go">protomem.go</a>
+			
+				<a href="/src/runtime/pprof/runtime.go">runtime.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Do">func <a href="/src/runtime/pprof/runtime.go?s=1823:1893#L43">Do</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func Do(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, labels <a href="#LabelSet">LabelSet</a>, f func(<a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>))</pre>
+			<p>Do 复制父上下文，并将给定标签添加到父上下文的标签映射中，然后使用该上下文调用 f。在执行 f 期间创建的 goroutine 会继承扩充后的标签集。labels 中的每个键值对按给定顺序插入标签映射，覆盖相同键的已有值。扩充后的标签映射会在调用 f 期间生效，并在 f 返回后恢复。<h2 id="ForLabels">func <a href="/src/runtime/pprof/label.go?s=3976:4043#L131">ForLabels</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func ForLabels(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, f func(key, value <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>ForLabels 对上下文中设置的每个标签调用 f。函数 f 应返回 true 以继续迭代，或返回 false 以提前终止迭代。<h2 id="Label">func <a href="/src/runtime/pprof/label.go?s=3615:3673#L119">Label</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func Label(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, key <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Label 返回 ctx 中给定键对应的标签值，以及表示该标签是否存在的布尔值。<h2 id="SetGoroutineLabels">func <a href="/src/runtime/pprof/runtime.go?s=1239:1283#L31">SetGoroutineLabels</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func SetGoroutineLabels(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>)</pre>
+			<p>SetGoroutineLabels 将当前 goroutine 的标签设置为与 ctx 一致。新 goroutine 会继承创建它的 goroutine 的标签。这是比 <a href="#Do">Do</a> 更底层的 API，应尽可能使用后者。<h2 id="StartCPUProfile">func <a href="/src/runtime/pprof/pprof.go?s=29532:29571#L875">StartCPUProfile</a>
+				
+				
+			</h2>
+			<pre>func StartCPUProfile(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>StartCPUProfile 为当前进程启用 CPU 性能剖析。在剖析期间，剖析数据会先缓冲再写入 w。如果已启用剖析，StartCPUProfile 返回错误。<p>在类 Unix 系统上，对于使用 -buildmode=c-archive 或 -buildmode=c-shared 构建的 Go 代码，StartCPUProfile 默认无法正常工作。StartCPUProfile 依赖 SIGPROF 信号，但该信号会交给主程序的 SIGPROF 信号处理器（如果有），而不是 Go 使用的处理器。要使其生效，请针对 <a href="/pkg/syscall/#SIGPROF">syscall.SIGPROF</a> 调用 <a href="/pkg/os/signal/#Notify">os/signal.Notify</a>，但注意，这可能破坏主程序正在进行的性能剖析。<h2 id="StopCPUProfile">func <a href="/src/runtime/pprof/pprof.go?s=31558:31579#L937">StopCPUProfile</a>
+				
+				
+			</h2>
+			<pre>func StopCPUProfile()</pre>
+			<p>StopCPUProfile 停止当前的 CPU 性能剖析（如果有）。只有在剖析数据全部写入完成后，StopCPUProfile 才会返回。<h2 id="WithLabels">func <a href="/src/runtime/pprof/label.go?s=1373:1442#L46">WithLabels</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func WithLabels(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, labels <a href="#LabelSet">LabelSet</a>) <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a></pre>
+			<p>WithLabels 返回添加了给定标签的新 <a href="/pkg/context/#Context">context.Context</a>。标签会覆盖相同键的已有标签。<h2 id="WriteHeapProfile">func <a href="/src/runtime/pprof/pprof.go?s=19897:19937#L597">WriteHeapProfile</a>
+				
+				
+			</h2>
+			<pre>func WriteHeapProfile(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>WriteHeapProfile 是 <a href="#Lookup">Lookup</a>(&quot;heap&quot;).WriteTo(w, 0) 的简写。保留它是为了向后兼容。<h2 id="LabelSet">type <a href="/src/runtime/pprof/label.go?s=290:334#L6">LabelSet</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>LabelSet 是一组标签。<pre>type LabelSet struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Labels">func <a href="/src/runtime/pprof/label.go?s=2682:2718#L89">Labels</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func Labels(args ...<a href="/pkg/builtin/#string">string</a>) <a href="#LabelSet">LabelSet</a></pre>
+				<p>Labels 接收偶数个字符串，以表示键值对，并创建包含这些键值对的 <a href="#LabelSet">LabelSet</a>。标签会覆盖相同键的已有标签。目前只有 CPU 和 goroutine 剖析会使用标签信息。详情见 <a href="/golang.org/issue/23458">https://golang.org/issue/23458</a>。<h2 id="Profile">type <a href="/src/runtime/pprof/pprof.go?s=6809:6941#L163">Profile</a>
+				
+				
+			</h2>
+			<p>Profile 是栈轨迹的集合，展示导致某类事件（例如分配）发生的调用序列。包可以创建并维护自己的剖析数据；最常见的用途是跟踪必须显式关闭的资源，例如文件或网络连接。<p>Profile 的方法可以由多个 goroutine 同时调用。<p>每个 Profile 都有唯一的名称。以下是几个预定义的剖析类型：<pre>goroutine      - 当前所有 goroutine 的栈轨迹
+goroutineleak  - 所有泄漏的 goroutine 的栈轨迹
+allocs         - 所有历史内存分配的采样
+heap           - 存活对象内存分配的采样
+threadcreate   - 导致创建新操作系统线程的栈轨迹
+block          - 导致在同步原语上阻塞的栈轨迹
+mutex          - 存在争用的互斥锁持有者的栈轨迹
+</pre>
+<p>这些预定义的剖析数据会自行维护，显式调用 <a href="#Profile.Add">Profile.Add</a> 或 <a href="#Profile.Remove">Profile.Remove</a> 方法会引发 panic。<p>CPU 剖析不以 Profile 的形式提供。它有专用 API，即 <a href="#StartCPUProfile">StartCPUProfile</a> 和 <a href="#StopCPUProfile">StopCPUProfile</a> 函数，因为它在剖析期间会将输出以流的形式写入写入器。<h3 id="hdr-Heap_profile">堆剖析</h3>
+<p>堆剖析报告截至最近一次已完成垃圾回收时的统计信息；它省略更近的分配，以避免剖析结果偏离存活数据而偏向垃圾数据。如果尚未进行过垃圾回收，堆剖析会报告所有已知分配。这一例外主要有助于在未启用垃圾回收的情况下运行的程序，通常用于调试。<p>堆剖析既跟踪应用内存中所有存活对象的分配位置，也跟踪程序启动以来分配过的所有对象的分配位置。pprof 的 -inuse_space、-inuse_objects、-alloc_space 和 -alloc_objects 标志用于选择显示哪一类信息，默认为 -inuse_space（存活对象，按大小计量）。<h3 id="hdr-Allocs_profile">分配剖析</h3>
+<p>allocs 剖析与堆剖析相同，但将 pprof 的默认显示方式改为 -alloc_space，即程序启动以来累计分配的字节数（包括已被垃圾回收的字节）。<h3 id="hdr-Block_profile">阻塞剖析</h3>
+<p>阻塞剖析跟踪在同步原语上阻塞所花费的时间，例如 <a href="/pkg/sync/#Mutex">sync.Mutex</a>、<a href="/pkg/sync/#RWMutex">sync.RWMutex</a>、<a href="/pkg/sync/#WaitGroup">sync.WaitGroup</a>、<a href="/pkg/sync/#Cond">sync.Cond</a>，以及通道发送、接收和 select。<p>栈轨迹对应发生阻塞的位置（例如 <a href="/pkg/sync/#Mutex.Lock">sync.Mutex.Lock</a>）。<p>样本值对应在该栈轨迹处累计阻塞的时间，并受 <a href="/pkg/runtime/#SetBlockProfileRate">runtime.SetBlockProfileRate</a> 所指定的基于时间的采样控制。<h3 id="hdr-Mutex_profile">互斥锁剖析</h3>
+<p>互斥锁剖析跟踪互斥锁上的争用，例如 <a href="/pkg/sync/#Mutex">sync.Mutex</a>、<a href="/pkg/sync/#RWMutex">sync.RWMutex</a> 和运行时内部锁。<p>栈轨迹对应导致争用的临界区结束的位置。例如，某个锁被长时间持有，其他 goroutine 一直等待获取该锁，那么最终解锁时（即在 <a href="/pkg/sync/#Mutex.Unlock">sync.Mutex.Unlock</a> 处）就会报告争用。<p>样本值对应其他 goroutine 等待获取该锁而阻塞的大致累计时间，并受 <a href="/pkg/runtime/#SetMutexProfileFraction">runtime.SetMutexProfileFraction</a> 所指定的基于事件的采样控制。例如，如果调用方持锁 1 秒，同时另外 5 个 goroutine 在整整这 1 秒内都在等待获取该锁，那么其解锁调用栈将报告 5 秒的争用时间。<pre>type Profile struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Lookup">func <a href="/src/runtime/pprof/pprof.go?s=10457:10490#L288">Lookup</a>
+					
+					
+				</h3>
+				<pre>func Lookup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Profile">Profile</a></pre>
+				<p>Lookup 返回给定名称的剖析数据；如果不存在，则返回 nil。<h3 id="NewProfile">func <a href="/src/runtime/pprof/pprof.go?s=10039:10076#L270">NewProfile</a>
+					
+					
+				</h3>
+				<pre>func NewProfile(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Profile">Profile</a></pre>
+				<p>NewProfile 创建具有给定名称的新剖析数据。如果已存在同名剖析数据，NewProfile 会引发 panic。惯例是使用 &apos;import/path.&apos; 前缀，为每个包创建独立的命名空间。为了兼容读取 pprof 数据的各种工具，剖析名称不应包含空格。<h3 id="Profiles">func <a href="/src/runtime/pprof/pprof.go?s=10632:10658#L295">Profiles</a>
+					
+					
+				</h3>
+				<pre>func Profiles() []*<a href="#Profile">Profile</a></pre>
+				<p>Profiles 返回所有已知剖析数据的切片，按名称排序。<h3 id="Profile.Add">func (*Profile) <a href="/src/runtime/pprof/pprof.go?s=12067:12109#L343">Add</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Profile">Profile</a>) Add(value <a href="/pkg/builtin/#any">any</a>, skip <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Add 将当前执行栈添加到剖析数据中，并与 value 关联。Add 将 value 存储在内部映射中，因此 value 必须适合作为映射键，且在调用相应的 <a href="#Profile.Remove">Profile.Remove</a> 之前不会被垃圾回收。如果剖析数据中已经包含与 value 关联的栈，Add 会引发 panic。<p>skip 参数与 <a href="/pkg/runtime/#Caller">runtime.Caller</a> 的 skip 含义相同，用于控制栈轨迹的起始位置。传入 skip=0 时，栈轨迹从调用 Add 的函数开始。例如，给定以下执行栈：<pre>Add
+由 rpc.NewClient 调用
+由 mypkg.Run 调用
+由 main.main 调用
+</pre>
+<p>传入 skip=0 时，栈轨迹从 rpc.NewClient 内对 Add 的调用开始。传入 skip=1 时，栈轨迹从 mypkg.Run 内对 NewClient 的调用开始。<h3 id="Profile.Count">func (*Profile) <a href="/src/runtime/pprof/pprof.go?s=11135:11164#L317">Count</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Profile">Profile</a>) Count() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Count 返回剖析数据当前包含的执行栈数量。<h3 id="Profile.Name">func (*Profile) <a href="/src/runtime/pprof/pprof.go?s=11009:11040#L312">Name</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Profile">Profile</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回此剖析数据的名称；可以将该名称传给 <a href="#Lookup">Lookup</a>，再次取得此剖析数据。<h3 id="Profile.Remove">func (*Profile) <a href="/src/runtime/pprof/pprof.go?s=12767:12802#L369">Remove</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Profile">Profile</a>) Remove(value <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Remove 从剖析数据中移除与 value 关联的执行栈。如果剖析数据中不存在该值，则不进行任何操作。<h3 id="Profile.WriteTo">func (*Profile) <a href="/src/runtime/pprof/pprof.go?s=13658:13713#L390">WriteTo</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Profile">Profile</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, debug <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteTo 将 pprof 格式的剖析数据快照写入 w。如果向 w 写入时返回错误，WriteTo 就返回该错误；否则返回 nil。<p>debug 参数用于启用额外输出。传入 debug=0 时，会写出 gzip 压缩的 Protocol Buffers 数据，格式见 <a href="https://github.com/google/pprof/tree/main/proto#overview">https://github.com/google/pprof/tree/main/proto#overview</a>。传入 debug=1 时，会写出旧版文本格式，并附带将地址转换为函数名和行号的注释，以便开发者不借助工具即可阅读剖析数据。<p>预定义的剖析类型可能为其他 debug 值赋予特定含义。例如，输出 &quot;goroutine&quot; 剖析时，debug=2 表示以 Go 程序因未恢复的 panic 而终止时所用的形式输出 goroutine 栈。<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/runtime/pprof/pprof.go?s=3084:3239#L85" style="float: left;">&#x261e;</a> <p>剖析数据的质量取决于用于生成它们的内核支持。有关已知问题的详情，请参阅 <a href="/golang.org/issue/13841">https://golang.org/issue/13841</a>。</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

@@ -1,0 +1,1859 @@
+<!--{
+  "Title": "debug/dwarf 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>debug/dwarf 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "debug/dwarf"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>dwarf 包提供对从可执行文件加载的 DWARF 调试信息的访问，其定义见 DWARF 2.0 标准：<a href="http://dwarfstd.org/doc/dwarf-2.0.0.pdf">http://dwarfstd.org/doc/dwarf-2.0.0.pdf</a>。<h3 id="hdr-Security">安全性</h3>
+<p>本包未针对恶意输入进行安全加固，也不属于 <a href="/security/policy">https://go.dev/security/policy</a> 的适用范围。特别是，解析目标文件时只会进行基本验证。因此，解析不可信输入时应保持谨慎，因为解析格式错误的文件可能消耗大量资源，或引发 panic。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+			
+				
+				<dd><a href="#AddrType">type AddrType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ArrayType">type ArrayType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ArrayType.Size">func (t *ArrayType) Size() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ArrayType.String">func (t *ArrayType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Attr">type Attr</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Attr.GoString">func (a Attr) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Attr.String">func (i Attr) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BasicType">type BasicType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#BasicType.Basic">func (b *BasicType) Basic() *BasicType</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#BasicType.String">func (t *BasicType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#BoolType">type BoolType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CharType">type CharType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Class">type Class</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Class.GoString">func (i Class) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Class.String">func (i Class) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#CommonType">type CommonType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CommonType.Common">func (c *CommonType) Common() *CommonType</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CommonType.Size">func (c *CommonType) Size() int64</a></dd>
+				
+			
+				
+				<dd><a href="#ComplexType">type ComplexType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Data">type Data</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(abbrev, aranges, frame, info, line, pubnames, ranges, str []byte) (*Data, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.AddSection">func (d *Data) AddSection(name string, contents []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.AddTypes">func (d *Data) AddTypes(name string, types []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.LineReader">func (d *Data) LineReader(cu *Entry) (*LineReader, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.Ranges">func (d *Data) Ranges(e *Entry) ([][2]uint64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.Reader">func (d *Data) Reader() *Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Data.Type">func (d *Data) Type(off Offset) (Type, error)</a></dd>
+				
+			
+				
+				<dd><a href="#DecodeError">type DecodeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DecodeError.Error">func (e DecodeError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#DotDotDotType">type DotDotDotType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DotDotDotType.String">func (t *DotDotDotType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Entry">type Entry</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Entry.AttrField">func (e *Entry) AttrField(a Attr) *Field</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Entry.Val">func (e *Entry) Val(a Attr) any</a></dd>
+				
+			
+				
+				<dd><a href="#EnumType">type EnumType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#EnumType.String">func (t *EnumType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#EnumValue">type EnumValue</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Field">type Field</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FloatType">type FloatType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FuncType">type FuncType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncType.String">func (t *FuncType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#IntType">type IntType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LineEntry">type LineEntry</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LineFile">type LineFile</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LineReader">type LineReader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.Files">func (r *LineReader) Files() []*LineFile</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.Next">func (r *LineReader) Next(entry *LineEntry) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.Reset">func (r *LineReader) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.Seek">func (r *LineReader) Seek(pos LineReaderPos)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.SeekPC">func (r *LineReader) SeekPC(pc uint64, entry *LineEntry) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LineReader.Tell">func (r *LineReader) Tell() LineReaderPos</a></dd>
+				
+			
+				
+				<dd><a href="#LineReaderPos">type LineReaderPos</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Offset">type Offset</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PtrType">type PtrType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PtrType.String">func (t *PtrType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#QualType">type QualType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#QualType.Size">func (t *QualType) Size() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#QualType.String">func (t *QualType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.AddressSize">func (r *Reader) AddressSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ByteOrder">func (r *Reader) ByteOrder() binary.ByteOrder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Next">func (r *Reader) Next() (*Entry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.Seek">func (r *Reader) Seek(off Offset)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.SeekPC">func (r *Reader) SeekPC(pc uint64) (*Entry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.SkipChildren">func (r *Reader) SkipChildren()</a></dd>
+				
+			
+				
+				<dd><a href="#StructField">type StructField</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StructType">type StructType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StructType.Defn">func (t *StructType) Defn() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StructType.String">func (t *StructType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Tag">type Tag</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Tag.GoString">func (t Tag) GoString() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tag.String">func (i Tag) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TypedefType">type TypedefType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypedefType.Size">func (t *TypedefType) Size() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypedefType.String">func (t *TypedefType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#UcharType">type UcharType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UintType">type UintType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnspecifiedType">type UnspecifiedType</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnsupportedType">type UnsupportedType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnsupportedType.String">func (t *UnsupportedType) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#VoidType">type VoidType</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#VoidType.String">func (t *VoidType) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/debug/dwarf/attr_string.go">attr_string.go</a>
+			
+				<a href="/src/debug/dwarf/buf.go">buf.go</a>
+			
+				<a href="/src/debug/dwarf/class_string.go">class_string.go</a>
+			
+				<a href="/src/debug/dwarf/const.go">const.go</a>
+			
+				<a href="/src/debug/dwarf/entry.go">entry.go</a>
+			
+				<a href="/src/debug/dwarf/line.go">line.go</a>
+			
+				<a href="/src/debug/dwarf/open.go">open.go</a>
+			
+				<a href="/src/debug/dwarf/tag_string.go">tag_string.go</a>
+			
+				<a href="/src/debug/dwarf/type.go">type.go</a>
+			
+				<a href="/src/debug/dwarf/typeunit.go">typeunit.go</a>
+			
+				<a href="/src/debug/dwarf/unit.go">unit.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>当所查找的 PC 不被行表中的任何条目覆盖时，LineReader.ScanPC 返回 ErrUnknownPC 错误。<pre>var <span id="ErrUnknownPC">ErrUnknownPC</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;ErrUnknownPC&#34;)</pre>
+			
+		
+		
+		
+			
+			<h2 id="AddrType">type <a href="/src/debug/dwarf/type.go?s=2055:2090#L81">AddrType</a>
+				
+				
+			</h2>
+			<p>AddrType 表示机器地址类型。<pre>type AddrType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ArrayType">type <a href="/src/debug/dwarf/type.go?s=2584:2779#L104">ArrayType</a>
+				
+				
+			</h2>
+			<p>ArrayType 表示固定大小的数组类型。<pre>type ArrayType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="ArrayType.Type"></span>    Type          <a href="#Type">Type</a>
+<span id="ArrayType.StrideBitSize"></span>    StrideBitSize <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 若 &gt; 0，则为容纳每个元素所需的位数</span>
+<span id="ArrayType.Count"></span>    Count         <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 若 == -1，则表示不完整数组，例如 char x[]。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ArrayType.Size">func (*ArrayType) <a href="/src/debug/dwarf/type.go?s=2891:2923#L115">Size</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#ArrayType">ArrayType</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+				<h3 id="ArrayType.String">func (*ArrayType) <a href="/src/debug/dwarf/type.go?s=2781:2816#L111">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#ArrayType">ArrayType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Attr">type <a href="/src/debug/dwarf/const.go?s=308:324#L2">Attr</a>
+				
+				
+			</h2>
+			<p>Attr 标识 DWARF <a href="#Entry.Field">Entry.Field</a> 中的属性类型。<pre>type Attr <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="AttrSibling">AttrSibling</span>        <a href="#Attr">Attr</a> = 0x01
+    <span id="AttrLocation">AttrLocation</span>       <a href="#Attr">Attr</a> = 0x02
+    <span id="AttrName">AttrName</span>           <a href="#Attr">Attr</a> = 0x03
+    <span id="AttrOrdering">AttrOrdering</span>       <a href="#Attr">Attr</a> = 0x09
+    <span id="AttrByteSize">AttrByteSize</span>       <a href="#Attr">Attr</a> = 0x0B
+    <span id="AttrBitOffset">AttrBitOffset</span>      <a href="#Attr">Attr</a> = 0x0C
+    <span id="AttrBitSize">AttrBitSize</span>        <a href="#Attr">Attr</a> = 0x0D
+    <span id="AttrStmtList">AttrStmtList</span>       <a href="#Attr">Attr</a> = 0x10
+    <span id="AttrLowpc">AttrLowpc</span>          <a href="#Attr">Attr</a> = 0x11
+    <span id="AttrHighpc">AttrHighpc</span>         <a href="#Attr">Attr</a> = 0x12
+    <span id="AttrLanguage">AttrLanguage</span>       <a href="#Attr">Attr</a> = 0x13
+    <span id="AttrDiscr">AttrDiscr</span>          <a href="#Attr">Attr</a> = 0x15
+    <span id="AttrDiscrValue">AttrDiscrValue</span>     <a href="#Attr">Attr</a> = 0x16
+    <span id="AttrVisibility">AttrVisibility</span>     <a href="#Attr">Attr</a> = 0x17
+    <span id="AttrImport">AttrImport</span>         <a href="#Attr">Attr</a> = 0x18
+    <span id="AttrStringLength">AttrStringLength</span>   <a href="#Attr">Attr</a> = 0x19
+    <span id="AttrCommonRef">AttrCommonRef</span>      <a href="#Attr">Attr</a> = 0x1A
+    <span id="AttrCompDir">AttrCompDir</span>        <a href="#Attr">Attr</a> = 0x1B
+    <span id="AttrConstValue">AttrConstValue</span>     <a href="#Attr">Attr</a> = 0x1C
+    <span id="AttrContainingType">AttrContainingType</span> <a href="#Attr">Attr</a> = 0x1D
+    <span id="AttrDefaultValue">AttrDefaultValue</span>   <a href="#Attr">Attr</a> = 0x1E
+    <span id="AttrInline">AttrInline</span>         <a href="#Attr">Attr</a> = 0x20
+    <span id="AttrIsOptional">AttrIsOptional</span>     <a href="#Attr">Attr</a> = 0x21
+    <span id="AttrLowerBound">AttrLowerBound</span>     <a href="#Attr">Attr</a> = 0x22
+    <span id="AttrProducer">AttrProducer</span>       <a href="#Attr">Attr</a> = 0x25
+    <span id="AttrPrototyped">AttrPrototyped</span>     <a href="#Attr">Attr</a> = 0x27
+    <span id="AttrReturnAddr">AttrReturnAddr</span>     <a href="#Attr">Attr</a> = 0x2A
+    <span id="AttrStartScope">AttrStartScope</span>     <a href="#Attr">Attr</a> = 0x2C
+    <span id="AttrStrideSize">AttrStrideSize</span>     <a href="#Attr">Attr</a> = 0x2E
+    <span id="AttrUpperBound">AttrUpperBound</span>     <a href="#Attr">Attr</a> = 0x2F
+    <span id="AttrAbstractOrigin">AttrAbstractOrigin</span> <a href="#Attr">Attr</a> = 0x31
+    <span id="AttrAccessibility">AttrAccessibility</span>  <a href="#Attr">Attr</a> = 0x32
+    <span id="AttrAddrClass">AttrAddrClass</span>      <a href="#Attr">Attr</a> = 0x33
+    <span id="AttrArtificial">AttrArtificial</span>     <a href="#Attr">Attr</a> = 0x34
+    <span id="AttrBaseTypes">AttrBaseTypes</span>      <a href="#Attr">Attr</a> = 0x35
+    <span id="AttrCalling">AttrCalling</span>        <a href="#Attr">Attr</a> = 0x36
+    <span id="AttrCount">AttrCount</span>          <a href="#Attr">Attr</a> = 0x37
+    <span id="AttrDataMemberLoc">AttrDataMemberLoc</span>  <a href="#Attr">Attr</a> = 0x38
+    <span id="AttrDeclColumn">AttrDeclColumn</span>     <a href="#Attr">Attr</a> = 0x39
+    <span id="AttrDeclFile">AttrDeclFile</span>       <a href="#Attr">Attr</a> = 0x3A
+    <span id="AttrDeclLine">AttrDeclLine</span>       <a href="#Attr">Attr</a> = 0x3B
+    <span id="AttrDeclaration">AttrDeclaration</span>    <a href="#Attr">Attr</a> = 0x3C
+    <span id="AttrDiscrList">AttrDiscrList</span>      <a href="#Attr">Attr</a> = 0x3D
+    <span id="AttrEncoding">AttrEncoding</span>       <a href="#Attr">Attr</a> = 0x3E
+    <span id="AttrExternal">AttrExternal</span>       <a href="#Attr">Attr</a> = 0x3F
+    <span id="AttrFrameBase">AttrFrameBase</span>      <a href="#Attr">Attr</a> = 0x40
+    <span id="AttrFriend">AttrFriend</span>         <a href="#Attr">Attr</a> = 0x41
+    <span id="AttrIdentifierCase">AttrIdentifierCase</span> <a href="#Attr">Attr</a> = 0x42
+    <span id="AttrMacroInfo">AttrMacroInfo</span>      <a href="#Attr">Attr</a> = 0x43
+    <span id="AttrNamelistItem">AttrNamelistItem</span>   <a href="#Attr">Attr</a> = 0x44
+    <span id="AttrPriority">AttrPriority</span>       <a href="#Attr">Attr</a> = 0x45
+    <span id="AttrSegment">AttrSegment</span>        <a href="#Attr">Attr</a> = 0x46
+    <span id="AttrSpecification">AttrSpecification</span>  <a href="#Attr">Attr</a> = 0x47
+    <span id="AttrStaticLink">AttrStaticLink</span>     <a href="#Attr">Attr</a> = 0x48
+    <span id="AttrType">AttrType</span>           <a href="#Attr">Attr</a> = 0x49
+    <span id="AttrUseLocation">AttrUseLocation</span>    <a href="#Attr">Attr</a> = 0x4A
+    <span id="AttrVarParam">AttrVarParam</span>       <a href="#Attr">Attr</a> = 0x4B
+    <span id="AttrVirtuality">AttrVirtuality</span>     <a href="#Attr">Attr</a> = 0x4C
+    <span id="AttrVtableElemLoc">AttrVtableElemLoc</span>  <a href="#Attr">Attr</a> = 0x4D
+    <span class="comment">// 以下内容在 DWARF 3 中新增。</span>
+    <span id="AttrAllocated">AttrAllocated</span>     <a href="#Attr">Attr</a> = 0x4E
+    <span id="AttrAssociated">AttrAssociated</span>    <a href="#Attr">Attr</a> = 0x4F
+    <span id="AttrDataLocation">AttrDataLocation</span>  <a href="#Attr">Attr</a> = 0x50
+    <span id="AttrStride">AttrStride</span>        <a href="#Attr">Attr</a> = 0x51
+    <span id="AttrEntrypc">AttrEntrypc</span>       <a href="#Attr">Attr</a> = 0x52
+    <span id="AttrUseUTF8">AttrUseUTF8</span>       <a href="#Attr">Attr</a> = 0x53
+    <span id="AttrExtension">AttrExtension</span>     <a href="#Attr">Attr</a> = 0x54
+    <span id="AttrRanges">AttrRanges</span>        <a href="#Attr">Attr</a> = 0x55
+    <span id="AttrTrampoline">AttrTrampoline</span>    <a href="#Attr">Attr</a> = 0x56
+    <span id="AttrCallColumn">AttrCallColumn</span>    <a href="#Attr">Attr</a> = 0x57
+    <span id="AttrCallFile">AttrCallFile</span>      <a href="#Attr">Attr</a> = 0x58
+    <span id="AttrCallLine">AttrCallLine</span>      <a href="#Attr">Attr</a> = 0x59
+    <span id="AttrDescription">AttrDescription</span>   <a href="#Attr">Attr</a> = 0x5A
+    <span id="AttrBinaryScale">AttrBinaryScale</span>   <a href="#Attr">Attr</a> = 0x5B
+    <span id="AttrDecimalScale">AttrDecimalScale</span>  <a href="#Attr">Attr</a> = 0x5C
+    <span id="AttrSmall">AttrSmall</span>         <a href="#Attr">Attr</a> = 0x5D
+    <span id="AttrDecimalSign">AttrDecimalSign</span>   <a href="#Attr">Attr</a> = 0x5E
+    <span id="AttrDigitCount">AttrDigitCount</span>    <a href="#Attr">Attr</a> = 0x5F
+    <span id="AttrPictureString">AttrPictureString</span> <a href="#Attr">Attr</a> = 0x60
+    <span id="AttrMutable">AttrMutable</span>       <a href="#Attr">Attr</a> = 0x61
+    <span id="AttrThreadsScaled">AttrThreadsScaled</span> <a href="#Attr">Attr</a> = 0x62
+    <span id="AttrExplicit">AttrExplicit</span>      <a href="#Attr">Attr</a> = 0x63
+    <span id="AttrObjectPointer">AttrObjectPointer</span> <a href="#Attr">Attr</a> = 0x64
+    <span id="AttrEndianity">AttrEndianity</span>     <a href="#Attr">Attr</a> = 0x65
+    <span id="AttrElemental">AttrElemental</span>     <a href="#Attr">Attr</a> = 0x66
+    <span id="AttrPure">AttrPure</span>          <a href="#Attr">Attr</a> = 0x67
+    <span id="AttrRecursive">AttrRecursive</span>     <a href="#Attr">Attr</a> = 0x68
+    <span class="comment">// 以下内容在 DWARF 4 中新增。</span>
+    <span id="AttrSignature">AttrSignature</span>      <a href="#Attr">Attr</a> = 0x69
+    <span id="AttrMainSubprogram">AttrMainSubprogram</span> <a href="#Attr">Attr</a> = 0x6A
+    <span id="AttrDataBitOffset">AttrDataBitOffset</span>  <a href="#Attr">Attr</a> = 0x6B
+    <span id="AttrConstExpr">AttrConstExpr</span>      <a href="#Attr">Attr</a> = 0x6C
+    <span id="AttrEnumClass">AttrEnumClass</span>      <a href="#Attr">Attr</a> = 0x6D
+    <span id="AttrLinkageName">AttrLinkageName</span>    <a href="#Attr">Attr</a> = 0x6E
+    <span class="comment">// 以下内容在 DWARF 5 中新增。</span>
+    <span id="AttrStringLengthBitSize">AttrStringLengthBitSize</span>  <a href="#Attr">Attr</a> = 0x6F
+    <span id="AttrStringLengthByteSize">AttrStringLengthByteSize</span> <a href="#Attr">Attr</a> = 0x70
+    <span id="AttrRank">AttrRank</span>                 <a href="#Attr">Attr</a> = 0x71
+    <span id="AttrStrOffsetsBase">AttrStrOffsetsBase</span>       <a href="#Attr">Attr</a> = 0x72
+    <span id="AttrAddrBase">AttrAddrBase</span>             <a href="#Attr">Attr</a> = 0x73
+    <span id="AttrRnglistsBase">AttrRnglistsBase</span>         <a href="#Attr">Attr</a> = 0x74
+    <span id="AttrDwoName">AttrDwoName</span>              <a href="#Attr">Attr</a> = 0x76
+    <span id="AttrReference">AttrReference</span>            <a href="#Attr">Attr</a> = 0x77
+    <span id="AttrRvalueReference">AttrRvalueReference</span>      <a href="#Attr">Attr</a> = 0x78
+    <span id="AttrMacros">AttrMacros</span>               <a href="#Attr">Attr</a> = 0x79
+    <span id="AttrCallAllCalls">AttrCallAllCalls</span>         <a href="#Attr">Attr</a> = 0x7A
+    <span id="AttrCallAllSourceCalls">AttrCallAllSourceCalls</span>   <a href="#Attr">Attr</a> = 0x7B
+    <span id="AttrCallAllTailCalls">AttrCallAllTailCalls</span>     <a href="#Attr">Attr</a> = 0x7C
+    <span id="AttrCallReturnPC">AttrCallReturnPC</span>         <a href="#Attr">Attr</a> = 0x7D
+    <span id="AttrCallValue">AttrCallValue</span>            <a href="#Attr">Attr</a> = 0x7E
+    <span id="AttrCallOrigin">AttrCallOrigin</span>           <a href="#Attr">Attr</a> = 0x7F
+    <span id="AttrCallParameter">AttrCallParameter</span>        <a href="#Attr">Attr</a> = 0x80
+    <span id="AttrCallPC">AttrCallPC</span>               <a href="#Attr">Attr</a> = 0x81
+    <span id="AttrCallTailCall">AttrCallTailCall</span>         <a href="#Attr">Attr</a> = 0x82
+    <span id="AttrCallTarget">AttrCallTarget</span>           <a href="#Attr">Attr</a> = 0x83
+    <span id="AttrCallTargetClobbered">AttrCallTargetClobbered</span>  <a href="#Attr">Attr</a> = 0x84
+    <span id="AttrCallDataLocation">AttrCallDataLocation</span>     <a href="#Attr">Attr</a> = 0x85
+    <span id="AttrCallDataValue">AttrCallDataValue</span>        <a href="#Attr">Attr</a> = 0x86
+    <span id="AttrNoreturn">AttrNoreturn</span>             <a href="#Attr">Attr</a> = 0x87
+    <span id="AttrAlignment">AttrAlignment</span>            <a href="#Attr">Attr</a> = 0x88
+    <span id="AttrExportSymbols">AttrExportSymbols</span>        <a href="#Attr">Attr</a> = 0x89
+    <span id="AttrDeleted">AttrDeleted</span>              <a href="#Attr">Attr</a> = 0x8A
+    <span id="AttrDefaulted">AttrDefaulted</span>            <a href="#Attr">Attr</a> = 0x8B
+    <span id="AttrLoclistsBase">AttrLoclistsBase</span>         <a href="#Attr">Attr</a> = 0x8C
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Attr.GoString">func (Attr) <a href="/src/debug/dwarf/const.go?s=4470:4501#L131">GoString</a>
+					
+					
+				</h3>
+				<pre>func (a <a href="#Attr">Attr</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Attr.String">func (Attr) <a href="/src/debug/dwarf/attr_string.go?s=7957:7986#L250">String</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#Attr">Attr</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BasicType">type <a href="/src/debug/dwarf/type.go?s=1144:1244#L29">BasicType</a>
+				
+				
+			</h2>
+			<p>BasicType 保存所有基本类型共有的字段。<p>有关 BitSize、BitOffset 和 DataBitOffset 字段含义的详情，请参阅 <a href="#StructField">StructField</a> 文档。<pre>type BasicType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="BasicType.BitSize"></span>    BitSize       <a href="/pkg/builtin/#int64">int64</a>
+<span id="BasicType.BitOffset"></span>    BitOffset     <a href="/pkg/builtin/#int64">int64</a>
+<span id="BasicType.DataBitOffset"></span>    DataBitOffset <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// Go 1.18</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="BasicType.Basic">func (*BasicType) <a href="/src/debug/dwarf/type.go?s=1246:1284#L36">Basic</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#BasicType">BasicType</a>) Basic() *<a href="#BasicType">BasicType</a></pre>
+				
+				
+			
+				<h3 id="BasicType.String">func (*BasicType) <a href="/src/debug/dwarf/type.go?s=1299:1334#L38">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#BasicType">BasicType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BoolType">type <a href="/src/debug/dwarf/type.go?s=1968:2003#L76">BoolType</a>
+				
+				
+			</h2>
+			<p>BoolType 表示布尔类型。<pre>type BoolType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="CharType">type <a href="/src/debug/dwarf/type.go?s=1440:1475#L46">CharType</a>
+				
+				
+			</h2>
+			<p>CharType 表示有符号字符类型。<pre>type CharType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Class">type <a href="/src/debug/dwarf/entry.go?s=8062:8076#L273">Class</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Class 是属性值在 DWARF 4 中的类别。<p>一般而言，给定属性的值可以属于 DWARF 定义的若干可能类别之一，每种类别对该属性的解释略有不同。<p>DWARF 版本 4 对属性值类别的区分比早期版本更细。读取器会将早期 DWARF 版本中较粗的类别细分为适当的 DWARF 4 类别。例如，DWARF 2 对常量和所有类型的节偏移量都使用 &quot;constant&quot;，但对于 DWARF 2 文件中引用节偏移量的属性，读取器会将其规范化为某个 Class*Ptr 类别，即使这些类别直到 DWARF 3 才定义。<pre>type Class <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// ClassUnknown 表示 DWARF 类别未知的值。</span>
+    <span id="ClassUnknown">ClassUnknown</span> <a href="#Class">Class</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// ClassAddress 表示 uint64 类型的值，</span>
+    <span class="comment">// 它们是目标机器上的地址。</span>
+    <span id="ClassAddress">ClassAddress</span>
+
+    <span class="comment">// ClassBlock 表示 []byte 类型的值，</span>
+    <span class="comment">// 其解释方式取决于属性。</span>
+    <span id="ClassBlock">ClassBlock</span>
+
+    <span class="comment">// ClassConstant 表示 int64 类型的</span>
+    <span class="comment">// 常量值。此常量的解释方式取决于</span>
+    <span class="comment">// 属性。</span>
+    <span id="ClassConstant">ClassConstant</span>
+
+    <span class="comment">// ClassExprLoc 表示 []byte 类型的值，其中包含</span>
+    <span class="comment">// 编码后的 DWARF 表达式或位置描述。</span>
+    <span id="ClassExprLoc">ClassExprLoc</span>
+
+    <span class="comment">// ClassFlag 表示 bool 类型的值。</span>
+    <span id="ClassFlag">ClassFlag</span>
+
+    <span class="comment">// ClassLinePtr 表示 int64 类型的偏移量，</span>
+    <span class="comment">// 指向 "line" 节。</span>
+    <span id="ClassLinePtr">ClassLinePtr</span>
+
+    <span class="comment">// ClassLocListPtr 表示 int64 类型的偏移量，</span>
+    <span class="comment">// 指向 "loclist" 节。</span>
+    <span id="ClassLocListPtr">ClassLocListPtr</span>
+
+    <span class="comment">// ClassMacPtr 表示 int64 类型的偏移量，指向</span>
+    <span class="comment">// "mac" 节。</span>
+    <span id="ClassMacPtr">ClassMacPtr</span>
+
+    <span class="comment">// ClassRangeListPtr 表示 int64 类型的偏移量，指向</span>
+    <span class="comment">// "rangelist" 节。</span>
+    <span id="ClassRangeListPtr">ClassRangeListPtr</span>
+
+    <span class="comment">// ClassReference 表示 Offset 类型的偏移量，</span>
+    <span class="comment">// 指向 info 节中的 Entry（供 Reader.Seek 使用）。</span>
+    <span class="comment">// DWARF 规范将 ClassReference 和</span>
+    <span class="comment">// ClassReferenceSig 合并为 "reference" 类别。</span>
+    <span id="ClassReference">ClassReference</span>
+
+    <span class="comment">// ClassReferenceSig 表示 uint64 类型的</span>
+    <span class="comment">// 类型签名，引用某个类型 Entry。</span>
+    <span id="ClassReferenceSig">ClassReferenceSig</span>
+
+    <span class="comment">// ClassString 表示字符串值。如果</span>
+    <span class="comment">// 编译单元指定了 AttrUseUTF8 标志（强烈建议），</span>
+    <span class="comment">// 字符串值将采用 UTF-8 编码。</span>
+    <span class="comment">// 否则，编码方式未指定。</span>
+    <span id="ClassString">ClassString</span>
+
+    <span class="comment">// ClassReferenceAlt 表示 int64 类型的值，</span>
+    <span class="comment">// 它是另一个目标文件的 DWARF "info" 节</span>
+    <span class="comment">// 中的偏移量。</span>
+    <span id="ClassReferenceAlt">ClassReferenceAlt</span>
+
+    <span class="comment">// ClassStringAlt 表示 int64 类型的值，</span>
+    <span class="comment">// 它是另一个目标文件的 DWARF 字符串节</span>
+    <span class="comment">// 中的偏移量。</span>
+    <span id="ClassStringAlt">ClassStringAlt</span>
+
+    <span class="comment">// ClassAddrPtr 表示 int64 类型的偏移量，</span>
+    <span class="comment">// 指向 "addr" 节。</span>
+    <span id="ClassAddrPtr">ClassAddrPtr</span>
+
+    <span class="comment">// ClassLocList 表示 int64 类型的偏移量，</span>
+    <span class="comment">// 指向 "loclists" 节。</span>
+    <span id="ClassLocList">ClassLocList</span>
+
+    <span class="comment">// ClassRngList 表示 uint64 类型的偏移量，</span>
+    <span class="comment">// 相对于 "rnglists" 节的基准位置。</span>
+    <span id="ClassRngList">ClassRngList</span>
+
+    <span class="comment">// ClassRngListsPtr 表示 int64 类型的偏移量，</span>
+    <span class="comment">// 指向 "rnglists" 节。这些值用作</span>
+    <span class="comment">// ClassRngList 值的基准。</span>
+    <span id="ClassRngListsPtr">ClassRngListsPtr</span>
+
+    <span class="comment">// ClassStrOffsetsPtr 表示 int64 类型的</span>
+    <span class="comment">// 偏移量，指向 "str_offsets" 节。</span>
+    <span id="ClassStrOffsetsPtr">ClassStrOffsetsPtr</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Class.GoString">func (Class) <a href="/src/debug/dwarf/entry.go?s=10770:10802#L365">GoString</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (i <a href="#Class">Class</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Class.String">func (Class) <a href="/src/debug/dwarf/class_string.go?s=1187:1217#L27">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (i <a href="#Class">Class</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="CommonType">type <a href="/src/debug/dwarf/type.go?s=684:826#L14">CommonType</a>
+				
+				
+			</h2>
+			<p>CommonType 保存多种类型共有的字段。如果某个字段对于给定类型未知或不适用，则使用零值。<pre>type CommonType struct {
+<span id="CommonType.ByteSize"></span>    ByteSize <a href="/pkg/builtin/#int64">int64</a>  <span class="comment">// 此类型值的大小，单位为字节</span>
+<span id="CommonType.Name"></span>    Name     <a href="/pkg/builtin/#string">string</a> <span class="comment">// 可用于引用此类型的名称</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CommonType.Common">func (*CommonType) <a href="/src/debug/dwarf/type.go?s=828:869#L19">Common</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#CommonType">CommonType</a>) Common() *<a href="#CommonType">CommonType</a></pre>
+				
+				
+			
+				<h3 id="CommonType.Size">func (*CommonType) <a href="/src/debug/dwarf/type.go?s=884:917#L21">Size</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#CommonType">CommonType</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ComplexType">type <a href="/src/debug/dwarf/type.go?s=1887:1925#L71">ComplexType</a>
+				
+				
+			</h2>
+			<p>ComplexType 表示复数浮点类型。<pre>type ComplexType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Data">type <a href="/src/debug/dwarf/open.go?s=880:1345#L17">Data</a>
+				
+				
+			</h2>
+			<p>Data 表示从可执行文件（例如 ELF 或 Mach-O 可执行文件）加载的 DWARF 调试信息。<pre>type Data struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New">func <a href="/src/debug/dwarf/open.go?s=1882:1971#L53">New</a>
+					
+					
+				</h3>
+				<pre>func New(abbrev, aranges, frame, info, line, pubnames, ranges, str []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#Data">Data</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>New 返回用给定参数初始化的新 <a href="#Data">Data</a> 对象。调用方通常应使用相应包 <a href="/pkg/debug/elf/">debug/elf</a>、<a href="/pkg/debug/macho/">debug/macho</a> 或 <a href="/pkg/debug/pe/">debug/pe</a> 的 File 类型的 DWARF 方法，而不是直接调用此函数。<p>[]byte 参数是目标文件中相应调试节的数据；例如，对于 ELF 目标文件，abbrev 是 &quot;.debug_abbrev&quot; 节的内容。<h3 id="Data.AddSection">func (*Data) <a href="/src/debug/dwarf/open.go?s=3873:3934#L116">AddSection</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) AddSection(name <a href="/pkg/builtin/#string">string</a>, contents []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>AddSection 按名称添加另一个 DWARF 节。name 应为 DWARF 节名，例如 &quot;.debug_addr&quot;、&quot;.debug_str_offsets&quot; 等。此方式用于 DWARF 5 及更高版本新增的 DWARF 节。<h3 id="Data.AddTypes">func (*Data) <a href="/src/debug/dwarf/open.go?s=3546:3602#L108">AddTypes</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) AddTypes(name <a href="/pkg/builtin/#string">string</a>, types []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>AddTypes 向 DWARF 数据中添加一个 .debug_types 节。包含 DWARF 版本 4 调试信息的典型目标文件会有多个 .debug_types 节。name 仅用于错误报告，用来区分各个 .debug_types 节。<h3 id="Data.LineReader">func (*Data) <a href="/src/debug/dwarf/line.go?s=4593:4650#L133">LineReader</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) LineReader(cu *<a href="#Entry">Entry</a>) (*<a href="#LineReader">LineReader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>LineReader 为编译单元 cu 的行表返回一个新的读取器；cu 必须是标签为 <a href="#TagCompileUnit">TagCompileUnit</a> 的 <a href="#Entry">Entry</a>。<p>如果该编译单元没有行表，则返回 nil, nil。<h3 id="Data.Ranges">func (*Data) <a href="/src/debug/dwarf/entry.go?s=24583:24635#L937">Ranges</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) Ranges(e *<a href="#Entry">Entry</a>) ([][2]<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Ranges 返回 e 覆盖的 PC 范围，表示为由 [low,high) 对组成的切片。只有 <a href="#TagCompileUnit">TagCompileUnit</a>、<a href="#TagSubprogram">TagSubprogram</a> 等部分条目类型具有 PC 范围；对于其他类型，会返回 nil 且不返回错误。<h3 id="Data.Reader">func (*Data) <a href="/src/debug/dwarf/entry.go?s=19594:19625#L734">Reader</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) Reader() *<a href="#Reader">Reader</a></pre>
+				<p>Reader 为 <a href="#Data">Data</a> 返回新的 Reader。读取器定位在 DWARF “info”节的字节偏移量 0 处。<h3 id="Data.Type">func (*Data) <a href="/src/debug/dwarf/type.go?s=9258:9303#L365">Type</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Data">Data</a>) Type(off <a href="#Offset">Offset</a>) (<a href="#Type">Type</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Type 读取 DWARF “info”节中偏移量 off 处的类型。<h2 id="DecodeError">type <a href="/src/debug/dwarf/buf.go?s=3671:3743#L193">DecodeError</a>
+				
+				
+			</h2>
+			
+			<pre>type DecodeError struct {
+<span id="DecodeError.Name"></span>    Name   <a href="/pkg/builtin/#string">string</a>
+<span id="DecodeError.Offset"></span>    Offset <a href="#Offset">Offset</a>
+<span id="DecodeError.Err"></span>    Err    <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DecodeError.Error">func (DecodeError) <a href="/src/debug/dwarf/buf.go?s=3745:3780#L199">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#DecodeError">DecodeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="DotDotDotType">type <a href="/src/debug/dwarf/type.go?s=8268:8309#L322">DotDotDotType</a>
+				
+				
+			</h2>
+			<p>DotDotDotType 表示可变参数函数的 ... 参数。<pre>type DotDotDotType struct {
+    <a href="#CommonType">CommonType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DotDotDotType.String">func (*DotDotDotType) <a href="/src/debug/dwarf/type.go?s=8311:8350#L326">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#DotDotDotType">DotDotDotType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Entry">type <a href="/src/debug/dwarf/entry.go?s=6094:6281#L223">Entry</a>
+				
+				
+			</h2>
+			<p>Entry 是一组属性与值组成的有序对。<pre>type Entry struct {
+<span id="Entry.Offset"></span>    Offset   <a href="#Offset">Offset</a> <span class="comment">// Entry 在 DWARF info 中的偏移量</span>
+<span id="Entry.Tag"></span>    Tag      <a href="#Tag">Tag</a>    <span class="comment">// 标签（Entry 的种类）</span>
+<span id="Entry.Children"></span>    Children <a href="/pkg/builtin/#bool">bool</a>   <span class="comment">// Entry 后是否跟有子条目</span>
+<span id="Entry.Field"></span>    Field    []<a href="#Field">Field</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Entry.AttrField">func (*Entry) <a href="/src/debug/dwarf/entry.go?s=11342:11382#L385">AttrField</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (e *<a href="#Entry">Entry</a>) AttrField(a <a href="#Attr">Attr</a>) *<a href="#Field">Field</a></pre>
+				<p>AttrField 返回 <a href="#Entry">Entry</a> 中与属性 <a href="#Attr">Attr</a> 关联的 <a href="#Field">Field</a>；如果不存在该属性，则返回 nil。<h3 id="Entry.Val">func (*Entry) <a href="/src/debug/dwarf/entry.go?s=11120:11151#L376">Val</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Entry">Entry</a>) Val(a <a href="#Attr">Attr</a>) <a href="/pkg/builtin/#any">any</a></pre>
+				<p>Val 返回 <a href="#Entry">Entry</a> 中与属性 <a href="#Attr">Attr</a> 关联的值；如果不存在该属性，则返回 nil。<p>一种常见惯用法是将 nil 返回值检查与值是否具有预期动态类型的检查合并，例如：<pre>v, ok := e.Val(AttrSibling).(int64)
+</pre>
+
+				
+			
+		
+			
+			<h2 id="EnumType">type <a href="/src/debug/dwarf/type.go?s=7433:7509#L271">EnumType</a>
+				
+				
+			</h2>
+			<p>EnumType 表示枚举类型。其底层整数类型的唯一指示是 ByteSize（位于 <a href="#CommonType">CommonType</a> 中）。<pre>type EnumType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="EnumType.EnumName"></span>    EnumName <a href="/pkg/builtin/#string">string</a>
+<span id="EnumType.Val"></span>    Val      []*<a href="#EnumValue">EnumValue</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="EnumType.String">func (*EnumType) <a href="/src/debug/dwarf/type.go?s=7618:7652#L283">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#EnumType">EnumType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="EnumValue">type <a href="/src/debug/dwarf/type.go?s=7566:7616#L278">EnumValue</a>
+				
+				
+			</h2>
+			<p>EnumValue 表示单个枚举值。<pre>type EnumValue struct {
+<span id="EnumValue.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>
+<span id="EnumValue.Val"></span>    Val  <a href="/pkg/builtin/#int64">int64</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Field">type <a href="/src/debug/dwarf/entry.go?s=7249:7306#L253">Field</a>
+				
+				
+			</h2>
+			<p>Field 是 <a href="#Entry">Entry</a> 中的单个属性与值对。<p>值可以属于 DWARF 定义的若干“属性类别”之一。各类别对应的 Go 类型如下：<pre>DWARF 类别        Go 类型        Class
+-----------       -------        -----
+address           uint64         ClassAddress
+block             []byte         ClassBlock
+constant          int64          ClassConstant
+flag              bool           ClassFlag
+reference
+  指向 info       dwarf.Offset   ClassReference
+  指向类型单元    uint64         ClassReferenceSig
+string            string         ClassString
+exprloc           []byte         ClassExprLoc
+lineptr           int64          ClassLinePtr
+loclistptr        int64          ClassLocListPtr
+macptr            int64          ClassMacPtr
+rangelistptr      int64          ClassRangeListPtr
+</pre>
+<p>对于无法识别的属性或厂商自定义属性，<a href="#Class">Class</a> 可能为 <a href="#ClassUnknown">ClassUnknown</a>。<pre>type Field struct {
+<span id="Field.Attr"></span>    Attr  <a href="#Attr">Attr</a>
+<span id="Field.Val"></span>    Val   <a href="/pkg/builtin/#any">any</a>
+<span id="Field.Class"></span>    Class <a href="#Class">Class</a> <span class="comment">// Go 1.5</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FloatType">type <a href="/src/debug/dwarf/type.go?s=1790:1826#L66">FloatType</a>
+				
+				
+			</h2>
+			<p>FloatType 表示浮点类型。<pre>type FloatType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FuncType">type <a href="/src/debug/dwarf/type.go?s=7905:7977#L300">FuncType</a>
+				
+				
+			</h2>
+			<p>FuncType 表示函数类型。<pre>type FuncType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="FuncType.ReturnType"></span>    ReturnType <a href="#Type">Type</a>
+<span id="FuncType.ParamType"></span>    ParamType  []<a href="#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncType.String">func (*FuncType) <a href="/src/debug/dwarf/type.go?s=7979:8013#L306">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#FuncType">FuncType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="IntType">type <a href="/src/debug/dwarf/type.go?s=1617:1651#L56">IntType</a>
+				
+				
+			</h2>
+			<p>IntType 表示有符号整数类型。<pre>type IntType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LineEntry">type <a href="/src/debug/dwarf/line.go?s=1488:4152#L44">LineEntry</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>LineEntry 是 DWARF 行表中的一行。<pre>type LineEntry struct {
+<span id="LineEntry.Address"></span>    <span class="comment">// Address 是编译器生成的某条机器指令的</span>
+    <span class="comment">// 程序计数器值。此 LineEntry</span>
+    <span class="comment">// 适用于从 Address 起到下一个 LineEntry 的</span>
+    <span class="comment">// Address 之前为止的每条指令。</span>
+    Address <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="LineEntry.OpIndex"></span>    <span class="comment">// OpIndex 是 VLIW 指令中某个操作的</span>
+    <span class="comment">// 索引。第一个操作的索引为 0。对于</span>
+    <span class="comment">// 非 VLIW 架构，它始终为 0。Address 和</span>
+    <span class="comment">// OpIndex 共同组成操作指针，能够</span>
+    <span class="comment">// 引用指令流中的任意</span>
+    <span class="comment">// 单个操作。</span>
+    OpIndex <a href="/pkg/builtin/#int">int</a>
+
+<span id="LineEntry.File"></span>    <span class="comment">// File 是这些指令所对应的</span>
+    <span class="comment">// 源文件。</span>
+    File *<a href="#LineFile">LineFile</a>
+
+<span id="LineEntry.Line"></span>    <span class="comment">// Line 是这些指令所对应的源代码</span>
+    <span class="comment">// 行号。行号从 1 开始。如果无法将这些指令</span>
+    <span class="comment">// 归属于任何源代码行，</span>
+    <span class="comment">// 它可以为 0。</span>
+    Line <a href="/pkg/builtin/#int">int</a>
+
+<span id="LineEntry.Column"></span>    <span class="comment">// Column 是这些指令在源代码行中的</span>
+    <span class="comment">// 列号。列号从 1 开始。它可以</span>
+    <span class="comment">// 为 0，表示该行的“左边缘”。</span>
+    Column <a href="/pkg/builtin/#int">int</a>
+
+<span id="LineEntry.IsStmt"></span>    <span class="comment">// IsStmt 表示 Address 是建议设置断点的</span>
+    <span class="comment">// 位置，例如某一行、语句或</span>
+    <span class="comment">// 语句中某个独立部分的起点。</span>
+    IsStmt <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="LineEntry.BasicBlock"></span>    <span class="comment">// BasicBlock 表示 Address 是一个</span>
+    <span class="comment">// 基本块的起点。</span>
+    BasicBlock <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="LineEntry.PrologueEnd"></span>    <span class="comment">// PrologueEnd 表示 Address 是以下 PC 之一（可能有多个）：</span>
+    <span class="comment">// 在相应断点处，应在该 PC 暂停执行，</span>
+    <span class="comment">// 以表示进入所属函数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// DWARF 3 中加入。</span>
+    PrologueEnd <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="LineEntry.EpilogueBegin"></span>    <span class="comment">// EpilogueBegin 表示 Address 是以下 PC 之一（可能有多个）：</span>
+    <span class="comment">// 在相应断点处，应在该 PC 暂停执行，</span>
+    <span class="comment">// 以表示退出此函数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// DWARF 3 中加入。</span>
+    EpilogueBegin <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="LineEntry.ISA"></span>    <span class="comment">// ISA 是这些指令的指令集</span>
+    <span class="comment">// 架构。可能的 ISA 值应由</span>
+    <span class="comment">// 适用的 ABI 规范定义。</span>
+    <span class="comment">//</span>
+    <span class="comment">// DWARF 3 中加入。</span>
+    ISA <a href="/pkg/builtin/#int">int</a>
+
+<span id="LineEntry.Discriminator"></span>    <span class="comment">// Discriminator 是任意整数，标识这些指令</span>
+    <span class="comment">// 所属的块。它用于区分</span>
+    <span class="comment">// 源文件、行号和列号可能完全相同的</span>
+    <span class="comment">// 多个块。对于给定的源代码位置，如果仅有一个</span>
+    <span class="comment">// 块，则此值应为 0。</span>
+    <span class="comment">//</span>
+    <span class="comment">// DWARF 3 中加入。</span>
+    Discriminator <a href="/pkg/builtin/#int">int</a>
+
+<span id="LineEntry.EndSequence"></span>    <span class="comment">// EndSequence 表示 Address 是一段目标机器指令</span>
+    <span class="comment">// 序列结束后的第一个字节。如果</span>
+    <span class="comment">// 设置了此字段，则仅此字段和 Address 字段有意义。</span>
+    <span class="comment">// 行号表可以包含多个可能互不相交的</span>
+    <span class="comment">// 指令序列的信息。行表的最后一个条目</span>
+    <span class="comment">// 应始终设置 EndSequence。</span>
+    EndSequence <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LineFile">type <a href="/src/debug/dwarf/line.go?s=4225:4387#L123">LineFile</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>LineFile 是 DWARF 行表条目引用的源文件。<pre>type LineFile struct {
+<span id="LineFile.Name"></span>    Name   <a href="/pkg/builtin/#string">string</a>
+<span id="LineFile.Mtime"></span>    Mtime  <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// 由实现定义的修改时间，未知时为 0</span>
+<span id="LineFile.Length"></span>    Length <a href="/pkg/builtin/#int">int</a>    <span class="comment">// 文件长度，未知时为 0</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LineReader">type <a href="/src/debug/dwarf/line.go?s=593:1439#L10">LineReader</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>LineReader 从 DWARF “line”节中读取单个编译单元的一系列 <a href="#LineEntry">LineEntry</a> 结构体。LineEntry 按 PC 递增顺序出现，每个 <a href="#LineEntry">LineEntry</a> 提供从该 <a href="#LineEntry">LineEntry</a> 的 PC 起、到下一个 <a href="#LineEntry">LineEntry</a> 的 PC 之前为止的指令元数据。最后一个条目的 <a href="#LineEntry.EndSequence">LineEntry.EndSequence</a> 字段会被设置。<pre>type LineReader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LineReader.Files">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=19996:20036#L714">Files</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) Files() []*<a href="#LineFile">LineFile</a></pre>
+				<p>Files 返回此编译单元在行表当前位置处的文件名表。该编译单元中的属性（例如 <a href="#AttrDeclFile">AttrDeclFile</a>）可以引用文件名表。<p>条目 0 始终为 nil，因为文件索引 0 表示“无文件”。<p>编译单元的文件名表并非固定不变。Files 返回截至行表当前位置的文件表。与行表中更早位置的文件表相比，它可能包含更多条目，但已有条目永远不会改变。<h3 id="LineReader.Next">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=13769:13818#L471">Next</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) Next(entry *<a href="#LineEntry">LineEntry</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Next 将 *entry 设置为行表中的下一行，并移动到下一行。如果没有更多条目且行表正常终止，则返回 <a href="/pkg/io/#EOF">io.EOF</a>。<p>各行始终按 entry.Address 递增顺序排列，但 entry.Line 可以向前也可以向后变化。<h3 id="LineReader.Reset">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=18648:18676#L669">Reset</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) Reset()</pre>
+				<p>Reset 将行表读取器重新定位到行表开头。<h3 id="LineReader.Seek">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=18346:18390#L659">Seek</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) Seek(pos <a href="#LineReaderPos">LineReaderPos</a>)</pre>
+				<p>Seek 将行表读取器恢复到 <a href="#LineReader.Tell">LineReader.Tell</a> 返回的位置。<p>参数 pos 必须由针对此行表调用 <a href="#LineReader.Tell">LineReader.Tell</a> 得到。<h3 id="LineReader.SeekPC">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=20848:20910#L734">SeekPC</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) SeekPC(pc <a href="/pkg/builtin/#uint64">uint64</a>, entry *<a href="#LineEntry">LineEntry</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SeekPC 将 *entry 设置为包含 pc 的 <a href="#LineEntry">LineEntry</a>，并将读取器定位到行表中的下一个条目。必要时，它会向后定位以查找 pc。<p>如果此行表中没有任何条目覆盖 pc，SeekPC 返回 <a href="#ErrUnknownPC">ErrUnknownPC</a>。在这种情况下，*entry 和最终定位位置均未指定。<p>注意，DWARF 行表只允许顺序向前扫描。因此，最坏情况下所需时间与行表大小呈线性关系。如果调用方需要反复快速查找 PC，应为行表建立适当的索引。<h3 id="LineReader.Tell">func (*LineReader) <a href="/src/debug/dwarf/line.go?s=18039:18080#L651">Tell</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#LineReader">LineReader</a>) Tell() <a href="#LineReaderPos">LineReaderPos</a></pre>
+				<p>Tell 返回当前在行表中的位置。<h2 id="LineReaderPos">type <a href="/src/debug/dwarf/line.go?s=17703:17981#L639">LineReaderPos</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>LineReaderPos 表示行表中的一个位置。<pre>type LineReaderPos struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Offset">type <a href="/src/debug/dwarf/entry.go?s=11575:11593#L396">Offset</a>
+				
+				
+			</h2>
+			<p>Offset 表示 <a href="#Entry">Entry</a> 在 DWARF 信息中的位置。（参见 <a href="#Reader.Seek">Reader.Seek</a>。）<pre>type Offset <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PtrType">type <a href="/src/debug/dwarf/type.go?s=3169:3215#L130">PtrType</a>
+				
+				
+			</h2>
+			<p>PtrType 表示指针类型。<pre>type PtrType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="PtrType.Type"></span>    Type <a href="#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PtrType.String">func (*PtrType) <a href="/src/debug/dwarf/type.go?s=3217:3250#L135">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#PtrType">PtrType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="QualType">type <a href="/src/debug/dwarf/type.go?s=2334:2394#L93">QualType</a>
+				
+				
+			</h2>
+			<p>QualType 表示带有 C/C++ 的 &quot;const&quot;、&quot;restrict&quot; 或 &quot;volatile&quot; 限定符的类型。<pre>type QualType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="QualType.Qual"></span>    Qual <a href="/pkg/builtin/#string">string</a>
+<span id="QualType.Type"></span>    Type <a href="#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="QualType.Size">func (*QualType) <a href="/src/debug/dwarf/type.go?s=2474:2505#L101">Size</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#QualType">QualType</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+				<h3 id="QualType.String">func (*QualType) <a href="/src/debug/dwarf/type.go?s=2396:2430#L99">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#QualType">QualType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/debug/dwarf/entry.go?s=19094:19471#L721">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 可从 DWARF “info”节读取 <a href="#Entry">Entry</a> 结构体。<a href="#Entry">Entry</a> 结构体以树形排列。<a href="#Reader.Next">Reader.Next</a> 函数按树的前序遍历依次返回条目。如果条目有子条目，其 Children 字段为 true，后面紧跟子条目，并以 <a href="#Tag">Tag</a> 为 0 的 <a href="#Entry">Entry</a> 终止。<pre>type Reader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Reader.AddressSize">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=19762:19796#L742">AddressSize</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) AddressSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>AddressSize 返回当前编译单元中地址的大小，单位为字节。<h3 id="Reader.ByteOrder">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=19902:19947#L747">ByteOrder</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ByteOrder() <a href="/pkg/encoding/binary/">binary</a>.<a href="/pkg/encoding/binary/#ByteOrder">ByteOrder</a></pre>
+				<p>ByteOrder 返回当前编译单元的字节序。<h3 id="Reader.Next">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=21435:21474#L813">Next</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Next() (*<a href="#Entry">Entry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Next 从编码后的条目流中读取下一个条目。到达节末尾时，返回 nil, nil。如果当前偏移量无效，或该偏移量处的数据无法解码为有效的 <a href="#Entry">Entry</a>，则返回错误。<h3 id="Reader.Seek">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=20096:20129#L753">Seek</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) Seek(off <a href="#Offset">Offset</a>)</pre>
+				<p>Seek 将 <a href="#Reader">Reader</a> 定位到编码条目流中偏移量 off 处。可以用偏移量 0 表示第一个条目。<h3 id="Reader.SeekPC">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=23717:23767#L900">SeekPC</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) SeekPC(pc <a href="/pkg/builtin/#uint64">uint64</a>) (*<a href="#Entry">Entry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>SeekPC 返回包含 pc 的编译单元的 <a href="#Entry">Entry</a>，并将读取器定位到可读取该单元子条目的位置。如果没有任何单元覆盖 pc，SeekPC 返回 <a href="#ErrUnknownPC">ErrUnknownPC</a>，读取器位置未定义。<p>由于编译单元可以描述可执行文件的多个区域，最坏情况下 SeekPC 必须搜索所有编译单元中的全部范围。每次调用 SeekPC 都从上次调用所在的编译单元开始搜索，因此通常在查找一系列 PC 时，若它们已排序，速度会更快。如果调用方需要反复快速查找 PC，应使用 Ranges 方法建立适当的索引。<h3 id="Reader.SkipChildren">func (*Reader) <a href="/src/debug/dwarf/entry.go?s=22199:22230#L846">SkipChildren</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) SkipChildren()</pre>
+				<p>SkipChildren 跳过最近一次 <a href="#Reader.Next">Reader.Next</a> 返回的 <a href="#Entry">Entry</a> 所关联的子条目。如果该 <a href="#Entry">Entry</a> 没有子条目，或者尚未调用过 <a href="#Reader.Next">Reader.Next</a>，SkipChildren 不执行任何操作。<h2 id="StructField">type <a href="/src/debug/dwarf/type.go?s=6331:6583#L219">StructField</a>
+				
+				
+			</h2>
+			<p>StructField 表示结构体、联合体或 C++ 类类型中的字段。<h3 id="hdr-Bit_Fields">位域</h3>
+<p>BitSize、BitOffset 和 DataBitOffset 字段描述 C/C++ 的结构体、联合体或类类型中声明为位域的数据成员的位大小和偏移量。<p>BitSize 是位域中的位数。<p>如果 DataBitOffset 非零，它表示从外围实体（例如所属结构体、类或联合体）的起点到位域起点的位数。这对应 DWARF 4 引入的 DW_AT_data_bit_offset 属性。<p>如果 BitOffset 非零，它表示从容纳该位域的存储单元的最高有效位，到该位域最高有效位之间的位数。这里的“存储单元”是位域前面的类型名（对于字段 &quot;unsigned x:17&quot;，存储单元为 &quot;unsigned&quot;）。BitOffset 的值可能随系统字节序变化。BitOffset 对应 DW_AT_bit_offset 属性，该属性在 DWARF 4 中弃用，并在 DWARF 5 中移除。<p>DataBitOffset 和 BitOffset 至多有一个非零；只有 BitSize 非零时，DataBitOffset 或 BitOffset 才可能非零。C 编译器使用哪一种，取决于编译器版本年代及命令行选项。<p>下面给出一个 C/C++ 位域用法示例，以及预期的 DWARF 位偏移信息。考虑以下代码：<pre>struct S {
+	int q;
+	int j:5;
+	int k:6;
+	int m:5;
+	int n:8;
+} s;
+</pre>
+<p>对于以上代码，预期得到以下 DW_AT_bit_offset 值（使用 GCC 8）：<pre>       小端序   |    大端序
+                |
+&quot;j&quot;:     27     |     0
+&quot;k&quot;:     21     |     5
+&quot;m&quot;:     16     |     11
+&quot;n&quot;:     8      |     16
+</pre>
+<p>注意，上述偏移量完全相对于容纳 j、k、m、n 的存储单元；这些值不会随所属结构体中前面数据成员的大小而改变。<p>如果编译器输出 DW_AT_data_bit_offset，预期值为：<pre>&quot;j&quot;:     32
+&quot;k&quot;:     37
+&quot;m&quot;:     43
+&quot;n&quot;:     48
+</pre>
+<p>这里 &quot;j&quot; 的值 32 反映了该位域之前还有其他数据成员（记住，DW_AT_data_bit_offset 的值相对于所属结构体的起点）。因此，对于包含许多字段的结构体，DW_AT_data_bit_offset 的值可能相当大。<p>DWARF 也允许基本类型具有非零的位大小和位偏移量，因此基本类型也会记录这些信息，不过主流语言无法触发这种行为。<pre>type StructField struct {
+<span id="StructField.Name"></span>    Name          <a href="/pkg/builtin/#string">string</a>
+<span id="StructField.Type"></span>    Type          <a href="#Type">Type</a>
+<span id="StructField.ByteOffset"></span>    ByteOffset    <a href="/pkg/builtin/#int64">int64</a>
+<span id="StructField.ByteSize"></span>    ByteSize      <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 通常为零；普通字段请使用 Type.Size()</span>
+<span id="StructField.BitOffset"></span>    BitOffset     <a href="/pkg/builtin/#int64">int64</a>
+<span id="StructField.DataBitOffset"></span>    DataBitOffset <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// Go 1.18</span>
+<span id="StructField.BitSize"></span>    BitSize       <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 不是位域时为零</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StructType">type <a href="/src/debug/dwarf/type.go?s=3348:3563#L138">StructType</a>
+				
+				
+			</h2>
+			<p>StructType 表示结构体、联合体或 C++ 类类型。<pre>type StructType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="StructType.StructName"></span>    StructName <a href="/pkg/builtin/#string">string</a>
+<span id="StructType.Kind"></span>    Kind       <a href="/pkg/builtin/#string">string</a> <span class="comment">// &#34;struct&#34;, &#34;union&#34;, or &#34;class&#34;.</span>
+<span id="StructType.Field"></span>    Field      []*<a href="#StructField">StructField</a>
+<span id="StructType.Incomplete"></span>    Incomplete <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// 若为 true，则结构体、联合体或类已声明但尚未定义</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StructType.Defn">func (*StructType) <a href="/src/debug/dwarf/type.go?s=6825:6859#L243">Defn</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#StructType">StructType</a>) Defn() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="StructType.String">func (*StructType) <a href="/src/debug/dwarf/type.go?s=6585:6621#L229">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#StructType">StructType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Tag">type <a href="/src/debug/dwarf/const.go?s=6418:6433#L197">Tag</a>
+				
+				
+			</h2>
+			<p>Tag 是 <a href="#Entry">Entry</a> 的分类（类型）。<pre>type Tag <a href="/pkg/builtin/#uint32">uint32</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="TagArrayType">TagArrayType</span>              <a href="#Tag">Tag</a> = 0x01
+    <span id="TagClassType">TagClassType</span>              <a href="#Tag">Tag</a> = 0x02
+    <span id="TagEntryPoint">TagEntryPoint</span>             <a href="#Tag">Tag</a> = 0x03
+    <span id="TagEnumerationType">TagEnumerationType</span>        <a href="#Tag">Tag</a> = 0x04
+    <span id="TagFormalParameter">TagFormalParameter</span>        <a href="#Tag">Tag</a> = 0x05
+    <span id="TagImportedDeclaration">TagImportedDeclaration</span>    <a href="#Tag">Tag</a> = 0x08
+    <span id="TagLabel">TagLabel</span>                  <a href="#Tag">Tag</a> = 0x0A
+    <span id="TagLexDwarfBlock">TagLexDwarfBlock</span>          <a href="#Tag">Tag</a> = 0x0B
+    <span id="TagMember">TagMember</span>                 <a href="#Tag">Tag</a> = 0x0D
+    <span id="TagPointerType">TagPointerType</span>            <a href="#Tag">Tag</a> = 0x0F
+    <span id="TagReferenceType">TagReferenceType</span>          <a href="#Tag">Tag</a> = 0x10
+    <span id="TagCompileUnit">TagCompileUnit</span>            <a href="#Tag">Tag</a> = 0x11
+    <span id="TagStringType">TagStringType</span>             <a href="#Tag">Tag</a> = 0x12
+    <span id="TagStructType">TagStructType</span>             <a href="#Tag">Tag</a> = 0x13
+    <span id="TagSubroutineType">TagSubroutineType</span>         <a href="#Tag">Tag</a> = 0x15
+    <span id="TagTypedef">TagTypedef</span>                <a href="#Tag">Tag</a> = 0x16
+    <span id="TagUnionType">TagUnionType</span>              <a href="#Tag">Tag</a> = 0x17
+    <span id="TagUnspecifiedParameters">TagUnspecifiedParameters</span>  <a href="#Tag">Tag</a> = 0x18
+    <span id="TagVariant">TagVariant</span>                <a href="#Tag">Tag</a> = 0x19
+    <span id="TagCommonDwarfBlock">TagCommonDwarfBlock</span>       <a href="#Tag">Tag</a> = 0x1A
+    <span id="TagCommonInclusion">TagCommonInclusion</span>        <a href="#Tag">Tag</a> = 0x1B
+    <span id="TagInheritance">TagInheritance</span>            <a href="#Tag">Tag</a> = 0x1C
+    <span id="TagInlinedSubroutine">TagInlinedSubroutine</span>      <a href="#Tag">Tag</a> = 0x1D
+    <span id="TagModule">TagModule</span>                 <a href="#Tag">Tag</a> = 0x1E
+    <span id="TagPtrToMemberType">TagPtrToMemberType</span>        <a href="#Tag">Tag</a> = 0x1F
+    <span id="TagSetType">TagSetType</span>                <a href="#Tag">Tag</a> = 0x20
+    <span id="TagSubrangeType">TagSubrangeType</span>           <a href="#Tag">Tag</a> = 0x21
+    <span id="TagWithStmt">TagWithStmt</span>               <a href="#Tag">Tag</a> = 0x22
+    <span id="TagAccessDeclaration">TagAccessDeclaration</span>      <a href="#Tag">Tag</a> = 0x23
+    <span id="TagBaseType">TagBaseType</span>               <a href="#Tag">Tag</a> = 0x24
+    <span id="TagCatchDwarfBlock">TagCatchDwarfBlock</span>        <a href="#Tag">Tag</a> = 0x25
+    <span id="TagConstType">TagConstType</span>              <a href="#Tag">Tag</a> = 0x26
+    <span id="TagConstant">TagConstant</span>               <a href="#Tag">Tag</a> = 0x27
+    <span id="TagEnumerator">TagEnumerator</span>             <a href="#Tag">Tag</a> = 0x28
+    <span id="TagFileType">TagFileType</span>               <a href="#Tag">Tag</a> = 0x29
+    <span id="TagFriend">TagFriend</span>                 <a href="#Tag">Tag</a> = 0x2A
+    <span id="TagNamelist">TagNamelist</span>               <a href="#Tag">Tag</a> = 0x2B
+    <span id="TagNamelistItem">TagNamelistItem</span>           <a href="#Tag">Tag</a> = 0x2C
+    <span id="TagPackedType">TagPackedType</span>             <a href="#Tag">Tag</a> = 0x2D
+    <span id="TagSubprogram">TagSubprogram</span>             <a href="#Tag">Tag</a> = 0x2E
+    <span id="TagTemplateTypeParameter">TagTemplateTypeParameter</span>  <a href="#Tag">Tag</a> = 0x2F
+    <span id="TagTemplateValueParameter">TagTemplateValueParameter</span> <a href="#Tag">Tag</a> = 0x30
+    <span id="TagThrownType">TagThrownType</span>             <a href="#Tag">Tag</a> = 0x31
+    <span id="TagTryDwarfBlock">TagTryDwarfBlock</span>          <a href="#Tag">Tag</a> = 0x32
+    <span id="TagVariantPart">TagVariantPart</span>            <a href="#Tag">Tag</a> = 0x33
+    <span id="TagVariable">TagVariable</span>               <a href="#Tag">Tag</a> = 0x34
+    <span id="TagVolatileType">TagVolatileType</span>           <a href="#Tag">Tag</a> = 0x35
+    <span class="comment">// 以下内容在 DWARF 3 中新增。</span>
+    <span id="TagDwarfProcedure">TagDwarfProcedure</span>  <a href="#Tag">Tag</a> = 0x36
+    <span id="TagRestrictType">TagRestrictType</span>    <a href="#Tag">Tag</a> = 0x37
+    <span id="TagInterfaceType">TagInterfaceType</span>   <a href="#Tag">Tag</a> = 0x38
+    <span id="TagNamespace">TagNamespace</span>       <a href="#Tag">Tag</a> = 0x39
+    <span id="TagImportedModule">TagImportedModule</span>  <a href="#Tag">Tag</a> = 0x3A
+    <span id="TagUnspecifiedType">TagUnspecifiedType</span> <a href="#Tag">Tag</a> = 0x3B
+    <span id="TagPartialUnit">TagPartialUnit</span>     <a href="#Tag">Tag</a> = 0x3C
+    <span id="TagImportedUnit">TagImportedUnit</span>    <a href="#Tag">Tag</a> = 0x3D
+    <span id="TagMutableType">TagMutableType</span>     <a href="#Tag">Tag</a> = 0x3E <span class="comment">// 之后从 DWARF 中移除。</span>
+    <span id="TagCondition">TagCondition</span>       <a href="#Tag">Tag</a> = 0x3F
+    <span id="TagSharedType">TagSharedType</span>      <a href="#Tag">Tag</a> = 0x40
+    <span class="comment">// 以下内容在 DWARF 4 中新增。</span>
+    <span id="TagTypeUnit">TagTypeUnit</span>            <a href="#Tag">Tag</a> = 0x41
+    <span id="TagRvalueReferenceType">TagRvalueReferenceType</span> <a href="#Tag">Tag</a> = 0x42
+    <span id="TagTemplateAlias">TagTemplateAlias</span>       <a href="#Tag">Tag</a> = 0x43
+    <span class="comment">// 以下内容在 DWARF 5 中新增。</span>
+    <span id="TagCoarrayType">TagCoarrayType</span>       <a href="#Tag">Tag</a> = 0x44
+    <span id="TagGenericSubrange">TagGenericSubrange</span>   <a href="#Tag">Tag</a> = 0x45
+    <span id="TagDynamicType">TagDynamicType</span>       <a href="#Tag">Tag</a> = 0x46
+    <span id="TagAtomicType">TagAtomicType</span>        <a href="#Tag">Tag</a> = 0x47
+    <span id="TagCallSite">TagCallSite</span>          <a href="#Tag">Tag</a> = 0x48
+    <span id="TagCallSiteParameter">TagCallSiteParameter</span> <a href="#Tag">Tag</a> = 0x49
+    <span id="TagSkeletonUnit">TagSkeletonUnit</span>      <a href="#Tag">Tag</a> = 0x4A
+    <span id="TagImmutableType">TagImmutableType</span>     <a href="#Tag">Tag</a> = 0x4B
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Tag.GoString">func (Tag) <a href="/src/debug/dwarf/const.go?s=9085:9115#L274">GoString</a>
+					
+					
+				</h3>
+				<pre>func (t <a href="#Tag">Tag</a>) GoString() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Tag.String">func (Tag) <a href="/src/debug/dwarf/tag_string.go?s=3492:3520#L88">String</a>
+					
+					
+				</h3>
+				<pre>func (i <a href="#Tag">Tag</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Type">type <a href="/src/debug/dwarf/type.go?s=461:537#L5">Type</a>
+				
+				
+			</h2>
+			<p>按照惯例，Type 表示指向任意具体 Type 结构体（<a href="#CharType">CharType</a>、<a href="#StructType">StructType</a> 等）的指针。<pre>type Type interface {
+    Common() *<a href="#CommonType">CommonType</a>
+    String() <a href="/pkg/builtin/#string">string</a>
+    Size() <a href="/pkg/builtin/#int64">int64</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="TypedefType">type <a href="/src/debug/dwarf/type.go?s=8411:8461#L329">TypedefType</a>
+				
+				
+			</h2>
+			<p>TypedefType 表示命名类型。<pre>type TypedefType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="TypedefType.Type"></span>    Type <a href="#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypedefType.Size">func (*TypedefType) <a href="/src/debug/dwarf/type.go?s=8520:8554#L336">Size</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TypedefType">TypedefType</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+				<h3 id="TypedefType.String">func (*TypedefType) <a href="/src/debug/dwarf/type.go?s=8463:8500#L334">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#TypedefType">TypedefType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UcharType">type <a href="/src/debug/dwarf/type.go?s=1531:1567#L51">UcharType</a>
+				
+				
+			</h2>
+			<p>UcharType 表示无符号字符类型。<pre>type UcharType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UintType">type <a href="/src/debug/dwarf/type.go?s=1704:1739#L61">UintType</a>
+				
+				
+			</h2>
+			<p>UintType 表示无符号整数类型。<pre>type UintType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnspecifiedType">type <a href="/src/debug/dwarf/type.go?s=2178:2220#L86">UnspecifiedType</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>UnspecifiedType 表示隐式、未知、有歧义或不存在的类型。<pre>type UnspecifiedType struct {
+    <a href="#BasicType">BasicType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnsupportedType">type <a href="/src/debug/dwarf/type.go?s=8694:8746#L340">UnsupportedType</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<p>UnsupportedType 是遇到不受支持的类型时返回的占位类型。<pre>type UnsupportedType struct {
+    <a href="#CommonType">CommonType</a>
+<span id="UnsupportedType.Tag"></span>    Tag <a href="#Tag">Tag</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnsupportedType.String">func (*UnsupportedType) <a href="/src/debug/dwarf/type.go?s=8748:8789#L345">String</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (t *<a href="#UnsupportedType">UnsupportedType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="VoidType">type <a href="/src/debug/dwarf/type.go?s=3037:3073#L123">VoidType</a>
+				
+				
+			</h2>
+			<p>VoidType 表示 C 的 void 类型。<pre>type VoidType struct {
+    <a href="#CommonType">CommonType</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="VoidType.String">func (*VoidType) <a href="/src/debug/dwarf/type.go?s=3075:3109#L127">String</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#VoidType">VoidType</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

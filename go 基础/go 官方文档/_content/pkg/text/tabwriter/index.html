@@ -1,0 +1,353 @@
+<!--{
+  "Title": "text/tabwriter 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>text/tabwriter 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "text/tabwriter"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>tabwriter 包实现写入过滤器（tabwriter.Writer），将输入中以制表符划分的列转换为正确对齐的文本。<p>本包使用弹性制表位（Elastic Tabstops）算法，说明见 <a href="http://nickgravgaard.com/elastictabstops/index.html">http://nickgravgaard.com/elastictabstops/index.html</a>。<p>text/tabwriter 包已冻结，不再接受新功能。<div id="example__elastic" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Elastic)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Elastic)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	// 注意，虽然 b 和 d 都出现在每行的
+	// 第二个单元格中，但它们属于不同的列。
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, &#39;.&#39;, tabwriter.AlignRight|tabwriter.Debug)
+	fmt.Fprintln(w, &#34;a\tb\tc&#34;)
+	fmt.Fprintln(w, &#34;aa\tbb\tcc&#34;)
+	fmt.Fprintln(w, &#34;aaa\t&#34;) // 末尾有制表符
+	fmt.Fprintln(w, &#34;aaaa\tdddd\teeee&#34;)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>....a|..b|c
+...aa|.bb|cc
+..aaa|
+.aaaa|.dddd|eeee
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__trailingTab" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TrailingTab)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TrailingTab)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	// 注意，第三行末尾没有制表符，
+	// 因此最后一个单元格不属于对齐的列。
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, &#39;-&#39;, tabwriter.AlignRight|tabwriter.Debug)
+	fmt.Fprintln(w, &#34;a\tb\taligned\t&#34;)
+	fmt.Fprintln(w, &#34;aa\tbb\taligned\t&#34;)
+	fmt.Fprintln(w, &#34;aaa\tbbb\tunaligned&#34;) // 末尾没有制表符
+	fmt.Fprintln(w, &#34;aaaa\tbbbb\taligned\t&#34;)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>------a|------b|---aligned|
+-----aa|-----bb|---aligned|
+----aaa|----bbb|unaligned
+---aaaa|---bbbb|---aligned|
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(output io.Writer, minwidth, tabwidth, padding int, padchar byte, flags uint) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (b *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Init">func (b *Writer) Init(output io.Writer, minwidth, tabwidth, padding int, padchar byte, flags uint) *Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (b *Writer) Write(buf []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Writer_Init">Writer.Init</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__elastic">包 (Elastic)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__trailingTab">包 (TrailingTab)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/text/tabwriter/tabwriter.go">tabwriter.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>可使用这些标志控制格式。<pre>const (
+    <span class="comment">// 忽略 HTML 标签，将以 '&amp;' 开始、</span>
+    <span class="comment">// 以 ';' 结束的实体视为单个字符（宽度为 1）。</span>
+    <span id="FilterHTML">FilterHTML</span> <a href="/pkg/builtin/#uint">uint</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// 移除包围转义文本片段的 Escape 字符，</span>
+    <span class="comment">// 而不是使它们与文本一起原样通过。</span>
+    <span id="StripEscape">StripEscape</span>
+
+    <span class="comment">// 强制单元格内容右对齐。</span>
+    <span class="comment">// 默认左对齐。</span>
+    <span id="AlignRight">AlignRight</span>
+
+    <span class="comment">// 处理空列时，视为它们一开始就</span>
+    <span class="comment">// 未出现在输入中。</span>
+    <span id="DiscardEmptyColumns">DiscardEmptyColumns</span>
+
+    <span class="comment">// 无论 padchar 为何，缩进列都使用制表符，</span>
+    <span class="comment">// 即对左侧开头的空单元格进行填充。</span>
+    <span id="TabIndent">TabIndent</span>
+
+    <span class="comment">// 格式化后，在列之间打印竖线（'|'）。</span>
+    <span class="comment">// 被丢弃的列显示为零宽列（"||"）。</span>
+    <span id="Debug">Debug</span>
+)</pre>
+			
+				<p>要转义一段文本，请在其两端加上 Escape 字符。例如，字符串 &quot;Ignore this tab: \xff\t\xff&quot; 中的制表符不会终止单元格，在格式化时被视为宽度为 1 的单个字符。<p>选择 0xff 是因为它不会出现在有效的 UTF-8 序列中。<pre>const <span id="Escape">Escape</span> = &#39;\xff&#39;</pre>
+			
+		
+		
+		
+		
+			
+			<h2 id="Writer">type <a href="/src/text/tabwriter/tabwriter.go?s=3841:4523#L80">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 是一个过滤器，它在输入中由制表符分隔的列周围插入填充，以使这些列在输出中对齐。<p>Writer 将传入字节视为 UTF-8 编码文本，由以水平制表符（&apos;\t&apos;）、垂直制表符（&apos;\v&apos;）、换行符（&apos;\n&apos;）或换页符（&apos;\f&apos;）结束的单元格组成；换行符和换页符都起换行作用。<p>连续各行中以制表符结束的单元格构成一列。Writer 按需插入填充，使一列中所有单元格宽度相同，从而对齐各列。它假定所有字符宽度相同，但制表符除外，其宽度必须由 tabwidth 指定。列中的单元格必须由制表符终止，而不只是由制表符分隔：行末不以制表符结束的尾随文本会构成一个单元格，但该单元格不属于对齐的列。例如，以下示例中（| 表示水平制表符）：<pre>aaaa|bbb|d
+aa  |b  |dd
+a   |
+aa  |cccc|eee
+</pre>
+<p>b 和 c 属于不同的列（b 所在列并非一直连续）。d 和 e 完全不属于任何列（它们既没有终止制表符，所在列也不连续）。<p>Writer 假定所有 Unicode 码点具有相同宽度；对于某些字体，或字符串包含组合字符时，这一假设可能不成立。<p>如果设置了 <a href="#DiscardEmptyColumns">DiscardEmptyColumns</a>，则全部由垂直（“软”）制表符终止的空列会被丢弃。由水平（“硬”）制表符终止的列不受此标志影响。<p>如果将 Writer 配置为过滤 HTML，则 HTML 标签和实体会原样通过。格式化时，标签的宽度视为零，实体的宽度视为一。<p>可以在文本片段两端加上 <a href="#Escape">Escape</a> 字符来转义。tabwriter 会让转义后的文本片段原样通过，尤其不会解释其中的任何制表符或换行符。如果设置了 <a href="#StripEscape">StripEscape</a> 标志，则从输出中移除 Escape 字符；否则，这些字符也会原样通过。格式化时，转义文本的宽度始终不包括 Escape 字符。<p>换页符的作用类似换行符，但还会终止当前行中的所有列（实际上相当于调用 <a href="#Writer.Flush">Writer.Flush</a>）。下一行中以制表符结束的单元格将开始新的列。除非位于 HTML 标签或转义文本片段内，否则换页符在输出中显示为换行符。<p>Writer 必须在内部缓冲输入，因为某行正确的间距可能依赖后续行中的单元格。调用方完成 <a href="#Writer.Write">Writer.Write</a> 调用后必须调用 Flush。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/text/tabwriter/tabwriter.go?s=18055:18154#L589">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, minwidth, tabwidth, padding <a href="/pkg/builtin/#int">int</a>, padchar <a href="/pkg/builtin/#byte">byte</a>, flags <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 分配并初始化一个新的 <a href="#Writer">Writer</a>。参数与 Init 函数相同。<h3 id="Writer.Flush">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=15348:15378#L478">Flush</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>应在最后一次 <a href="#Writer.Write">Writer.Write</a> 调用之后调用 Flush，以确保 <a href="#Writer">Writer</a> 中缓冲的数据全部写入输出。格式化时，末尾任何不完整的转义序列均被视为完整。<h3 id="Writer.Init">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=8275:8381#L199">Init</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Init(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, minwidth, tabwidth, padding <a href="/pkg/builtin/#int">int</a>, padchar <a href="/pkg/builtin/#byte">byte</a>, flags <a href="/pkg/builtin/#uint">uint</a>) *<a href="#Writer">Writer</a></pre>
+				<p><a href="#Writer">Writer</a> 必须通过调用 Init 初始化。第一个参数 output 指定过滤器输出。其余参数控制格式：<pre>minwidth	单元格最小宽度，包含所有填充
+tabwidth	制表符宽度（等价的空格数）
+padding		计算单元格宽度前添加的填充量
+padchar		用于填充的 ASCII 字符
+		如果 padchar == &apos;\t&apos;，Writer 将假定格式化输出中
+		&apos;\t&apos; 的宽度为 tabwidth，且单元格一律左对齐，
+		与 align_left 无关
+		（为使结果显示正确，tabwidth 必须与查看器显示结果时
+		所采用的制表符宽度一致）
+flags		格式控制
+</pre>
+
+				
+
+
+<div id="example_Writer_Init" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;text/tabwriter&#34;
+)
+
+func main() {
+	w := new(tabwriter.Writer)
+
+	// 使用 8 个字符的制表位，格式化为以制表符分隔的列。
+	w.Init(os.Stdout, 0, 8, 0, &#39;\t&#39;, 0)
+	fmt.Fprintln(w, &#34;a\tb\tc\td\t.&#34;)
+	fmt.Fprintln(w, &#34;123\t12345\t1234567\t123456789\t.&#34;)
+	fmt.Fprintln(w)
+	w.Flush()
+
+	// 格式化为右对齐、以空格分隔的列，最小宽度为 5，
+	// 且至少填充一个空格（以免更宽的列内容
+	// 彼此紧挨）。
+	w.Init(os.Stdout, 5, 0, 1, &#39; &#39;, tabwriter.AlignRight)
+	fmt.Fprintln(w, &#34;a\tb\tc\td\t.&#34;)
+	fmt.Fprintln(w, &#34;123\t12345\t1234567\t123456789\t.&#34;)
+	fmt.Fprintln(w)
+	w.Flush()
+
+}
+</textarea></div>
+        <div class="output"><pre>a	b	c	d		.
+123	12345	1234567	123456789	.
+
+    a     b       c         d.
+  123 12345 1234567 123456789.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Writer.Write">func (*Writer) <a href="/src/text/tabwriter/tabwriter.go?s=16290:16343#L513">Write</a>
+					
+					
+				</h3>
+				<pre>func (b *<a href="#Writer">Writer</a>) Write(buf []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 buf 写入写入器 b。只会返回在写入底层输出流时遇到的错误。</article>

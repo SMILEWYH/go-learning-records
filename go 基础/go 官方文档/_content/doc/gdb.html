@@ -1,0 +1,509 @@
+<!--{
+	"Title": "使用 GDB 调试 Go 代码",
+	"Breadcrumb": true
+}-->
+
+<!--
+NOTE: In this document and others in this directory, the convention is to
+set fixed-width phrases with non-fixed-width spaces, as in
+<code>hello</code> <code>world</code>.
+Do not send CLs removing the interior tags from such phrases.
+-->
+
+<p>
+<i>
+以下说明适用于标准工具链（<code>gc</code> Go 编译器及其工具）。
+Gccgo 原生支持 gdb。
+</i>
+</p>
+<p>
+<i>
+调试使用标准工具链构建的 Go 程序时，<a href="https://github.com/go-delve/delve">Delve</a> 是比 GDB 更合适的选择。
+它对 Go 运行时、数据结构和表达式的理解都优于 GDB。
+Delve 目前支持 <code>amd64</code> 架构上的 Linux、OSX 和 Windows。
+最新的支持平台列表，请参阅<a href="https://github.com/go-delve/delve/tree/master/Documentation/installation"> Delve 文档</a>。
+</i>
+</p>
+
+<p>
+GDB 对 Go 程序的支持并不完善。
+Go 的栈管理、线程和运行时中的一些机制与 GDB 预期的执行模型存在较大差异，可能使调试器产生误判，给出错误结果，即使程序由 gccgo 编译也是如此。
+因此，虽然 GDB 在某些场景下有用（例如调试 Cgo 代码或运行时本身），但它并不是可靠的 Go 程序调试器，对大量使用并发的程序尤其如此。
+此外，这些问题解决起来很困难，也不是 Go 项目的优先事项。
+</p>
+
+<p>
+以下说明仅用于介绍在 GDB 能够正常工作的情况下如何使用它，并不能保证调试一定成功。
+
+除了本文的概述，你还可以查阅 <a href="https://sourceware.org/gdb/current/onlinedocs/gdb/">GDB 手册</a>。
+</p>
+
+<p>
+</p>
+
+<h2 id="Introduction">简介</h2>
+
+<p>
+在 Linux、macOS、FreeBSD 或 NetBSD 上使用 <code>gc</code> 工具链编译、链接 Go 程序时，生成的二进制文件会包含 DWARFv4 调试信息。
+较新的 GDB 调试器（&ge;7.5）可以使用这些信息检查正在运行的进程或核心转储文件。
+</p>
+
+<p>
+向链接器传入 <code>'-w'</code> 标志可以省略调试信息（例如，<code>go</code> <code>build</code> <code>-ldflags=-w</code> <code>prog.go</code>）。
+</p>
+
+<p>
+<code>gc</code> 编译器生成代码时会进行函数调用内联、将变量分配到寄存器等优化。
+这些优化有时会增加使用 <code>gdb</code> 调试的难度。
+如果需要禁用这些优化，请使用 <code>go</code> <code>build</code> <code>-gcflags=all="-N -l"</code> 构建程序。
+</p>
+
+<p>
+如果希望使用 gdb 检查核心转储，可以在支持此功能的系统中设置环境变量 <code>GOTRACEBACK=crash</code>，让程序崩溃时生成转储文件（更多信息见 <a href="/pkg/runtime/#hdr-Environment_Variables">runtime 包文档</a>）。
+</p>
+
+<h3 id="Common_Operations">常用操作</h3>
+
+<ul>
+<li>
+显示代码的文件名和行号、设置断点，以及反汇编：
+<pre>(gdb) <b>list</b>
+(gdb) <b>list <i>line</i></b>
+(gdb) <b>list <i>file.go</i>:<i>line</i></b>
+(gdb) <b>break <i>line</i></b>
+(gdb) <b>break <i>file.go</i>:<i>line</i></b>
+(gdb) <b>disas</b></pre>
+</li>
+<li>
+显示调用栈回溯并切换栈帧：
+<pre>(gdb) <b>bt</b>
+(gdb) <b>frame <i>n</i></b></pre>
+</li>
+<li>
+显示局部变量、参数和返回值的名称、类型及其在栈帧中的位置：
+<pre>(gdb) <b>info locals</b>
+(gdb) <b>info args</b>
+(gdb) <b>p variable</b>
+(gdb) <b>whatis variable</b></pre>
+</li>
+<li>
+显示全局变量的名称、类型和位置：
+<pre>(gdb) <b>info variables <i>regexp</i></b></pre>
+</li>
+</ul>
+
+
+<h3 id="Go_Extensions">Go 扩展</h3>
+
+<p>
+GDB 较新的扩展机制允许它为指定的二进制文件加载扩展脚本。
+工具链利用这一机制为 GDB 增加了一些命令，用于检查运行时代码的内部状态（例如 goroutine，轻量级协程），并以易读的格式显示内置的映射（map）、切片和通道类型。
+</p>
+
+<ul>
+<li>
+以易读格式显示字符串、切片、映射、通道或接口：
+<pre>(gdb) <b>p <i>var</i></b></pre>
+</li>
+<li>
+用于字符串、切片和映射的 $len() 与 $cap() 函数：
+<pre>(gdb) <b>p $len(<i>var</i>)</b></pre>
+</li>
+<li>
+将接口转换为其动态类型的函数：
+<pre>(gdb) <b>p $dtype(<i>var</i>)</b>
+(gdb) <b>iface <i>var</i></b></pre>
+<p class="detail"><b>已知问题：</b>如果接口值的动态类型的完整名称与简短名称不同，GDB 无法自动找到该动态类型。
+这在打印调用栈时很不方便，因为格式化打印器会退回到输出简短类型名和一个指针。</p>
+</li>
+<li>
+检查 goroutine：
+<pre>(gdb) <b>info goroutines</b>
+(gdb) <b>goroutine <i>n</i> <i>cmd</i></b>
+(gdb) <b>help goroutine</b></pre>
+例如：
+<pre>(gdb) <b>goroutine 12 bt</b></pre>
+将具体的 goroutine ID 替换为 <code>all</code>，就可以检查所有 goroutine。
+例如：
+<pre>(gdb) <b>goroutine all bt</b></pre>
+</li>
+</ul>
+
+<p>
+如果你想了解其工作原理或扩展其功能，可以查看 Go 源码发行包中的 <a
+href="/src/runtime/runtime-gdb.py">src/runtime/runtime-gdb.py</a>。
+它依赖一些特殊类型（<code>hash&lt;T,U&gt;</code>）和变量（<code>runtime.m</code> 与 <code>runtime.g</code>），
+链接器（<a href="/src/cmd/link/internal/ld/dwarf.go">src/cmd/link/internal/ld/dwarf.go</a>）会确保在 DWARF 信息中描述这些类型和变量。
+</p>
+
+<p>
+如果想查看调试信息的具体内容，可以运行 <code>objdump</code> <code>-W</code> <code>a.out</code>，浏览其中的 <code>.debug_*</code> 节。
+</p>
+
+
+<h3 id="Known_Issues">已知问题</h3>
+
+<ol>
+<li>字符串的格式化显示只对 string 类型生效，对基于它定义的类型不生效。</li>
+<li>运行时库中的 C 语言部分缺少类型信息。</li>
+<li>GDB 无法理解 Go 的名称限定规则，会把 <code>"fmt.Print"</code> 视为包含 <code>"."</code> 的无结构字面量，因此必须加上引号。
+对于 <code>pkg.(*MyType).Meth</code> 形式的方法名，它的处理问题更明显。
+</li>
+<li>从 Go 1.11 开始，调试信息默认会被压缩。
+较旧的 gdb（例如 MacOS 默认提供的版本）不支持这种压缩。
+可以使用 <code>go
+build -ldflags=-compressdwarf=false</code> 生成未压缩的调试信息。
+为方便使用，可以将 <code>-ldflags</code> 选项放入 <a href="/cmd/go/#hdr-Environment_variables"><code>GOFLAGS</code> 环境变量</a>中，这样就不必每次都指定它。
+</li>
+</ol>
+
+<h2 id="Tutorial">教程</h2>
+
+<p>
+本教程将检查 <a href="/pkg/regexp/">regexp</a> 包单元测试生成的二进制文件。
+要构建该文件，请切换到 <code>$GOROOT/src/regexp</code>，运行 <code>go</code> <code>test</code> <code>-c</code>。
+这会生成名为 <code>regexp.test</code> 的可执行文件。
+</p>
+
+
+<h3 id="Getting_Started">开始使用</h3>
+
+<p>
+启动 GDB，调试 <code>regexp.test</code>：
+</p>
+
+<pre>
+$ <b>gdb regexp.test</b>
+GNU gdb (GDB) 7.2-gg8
+Copyright (C) 2010 Free Software Foundation, Inc.
+License GPLv  3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+Type "show copying" and "show warranty" for licensing/warranty details.
+This GDB was configured as "x86_64-linux".
+
+Reading symbols from  /home/user/go/src/regexp/regexp.test...
+done.
+Loading Go Runtime support.
+(gdb)
+</pre>
+
+<p>
+“Loading Go Runtime support”消息表示 GDB 已从 <code>$GOROOT/src/runtime/runtime-gdb.py</code> 加载了扩展。
+</p>
+
+<p>
+为了帮助 GDB 找到 Go 运行时源码及配套的支持脚本，请通过 <code>'-d'</code> 标志传入 <code>$GOROOT</code> 的路径：
+</p>
+
+<pre>
+$ <b>gdb regexp.test -d $GOROOT</b>
+</pre>
+
+<p>
+如果 GDB 因某种原因仍然找不到该目录或脚本，可以手动让 gdb 加载它（假设 Go 源码位于 <code>~/go/</code>）：
+</p>
+
+<pre>
+(gdb) <b>source ~/go/src/runtime/runtime-gdb.py</b>
+Loading Go Runtime support.
+</pre>
+
+<h3 id="Inspecting_the_source">查看源码</h3>
+
+<p>
+使用 <code>"l"</code> 或 <code>"list"</code> 命令查看源码。
+</p>
+
+<pre>
+(gdb) <b>l</b>
+</pre>
+
+<p>
+向 <code>"list"</code> 传入函数名，可以列出指定部分的源码；函数名必须带上包名限定。
+</p>
+
+<pre>
+(gdb) <b>l main.main</b>
+</pre>
+
+<p>
+列出指定文件和行号附近的源码：
+</p>
+
+<pre>
+(gdb) <b>l regexp.go:1</b>
+(gdb) <i># Hit enter to repeat last command. Here, this lists next 10 lines.</i>
+</pre>
+
+
+<h3 id="Naming">名称表示</h3>
+
+<p>
+变量名和函数名必须使用所属的包名进行限定。
+<code>regexp</code> 包中的 <code>Compile</code> 函数在 GDB 中表示为 <code>'regexp.Compile'</code>。
+</p>
+
+<p>
+方法名必须使用其接收者类型的名称进行限定。
+例如，<code>*Regexp</code> 类型的 <code>String</code> 方法表示为 <code>'regexp.(*Regexp).String'</code>。
+</p>
+
+<p>
+遮蔽其他变量的变量，在调试信息中会自动附加数字后缀。
+闭包引用的变量则会显示为指针，并自动添加 '&amp;' 前缀。
+</p>
+
+<h3 id="Setting_breakpoints">设置断点</h3>
+
+<p>
+在 <code>TestFind</code> 函数处设置断点：
+</p>
+
+<pre>
+(gdb) <b>b 'regexp.TestFind'</b>
+Breakpoint 1 at 0x424908: file /home/user/go/src/regexp/find_test.go, line 148.
+</pre>
+
+<p>
+运行程序：
+</p>
+
+<pre>
+(gdb) <b>run</b>
+Starting program: /home/user/go/src/regexp/regexp.test
+
+Breakpoint 1, regexp.TestFind (t=0xf8404a89c0) at /home/user/go/src/regexp/find_test.go:148
+148	func TestFind(t *testing.T) {
+</pre>
+
+<p>
+程序已在断点处暂停。查看哪些 goroutine 正在运行，以及它们正在做什么：
+</p>
+
+<pre>
+(gdb) <b>info goroutines</b>
+  1  waiting runtime.gosched
+* 13  running runtime.goexit
+</pre>
+
+<p>
+带有 <code>*</code> 标记的是当前 goroutine。
+</p>
+
+<h3 id="Inspecting_the_stack">检查调用栈</h3>
+
+<p>
+查看程序暂停位置的调用栈：
+</p>
+
+<pre>
+(gdb) <b>bt</b>  <i># backtrace</i>
+#0  regexp.TestFind (t=0xf8404a89c0) at /home/user/go/src/regexp/find_test.go:148
+#1  0x000000000042f60b in testing.tRunner (t=0xf8404a89c0, test=0x573720) at /home/user/go/src/testing/testing.go:156
+#2  0x000000000040df64 in runtime.initdone () at /home/user/go/src/runtime/proc.c:242
+#3  0x000000f8404a89c0 in ?? ()
+#4  0x0000000000573720 in ?? ()
+#5  0x0000000000000000 in ?? ()
+</pre>
+
+<p>
+另一个 goroutine 的编号为 1，它停在 <code>runtime.gosched</code>，正阻塞等待从通道接收数据：
+</p>
+
+<pre>
+(gdb) <b>goroutine 1 bt</b>
+#0  0x000000000040facb in runtime.gosched () at /home/user/go/src/runtime/proc.c:873
+#1  0x00000000004031c9 in runtime.chanrecv (c=void, ep=void, selected=void, received=void)
+ at  /home/user/go/src/runtime/chan.c:342
+#2  0x0000000000403299 in runtime.chanrecv1 (t=void, c=void) at/home/user/go/src/runtime/chan.c:423
+#3  0x000000000043075b in testing.RunTests (matchString={void (struct string, struct string, bool *, error *)}
+ 0x7ffff7f9ef60, tests=  []testing.InternalTest = {...}) at /home/user/go/src/testing/testing.go:201
+#4  0x00000000004302b1 in testing.Main (matchString={void (struct string, struct string, bool *, error *)}
+ 0x7ffff7f9ef80, tests= []testing.InternalTest = {...}, benchmarks= []testing.InternalBenchmark = {...})
+at /home/user/go/src/testing/testing.go:168
+#5  0x0000000000400dc1 in main.main () at /home/user/go/src/regexp/_testmain.go:98
+#6  0x00000000004022e7 in runtime.mainstart () at /home/user/go/src/runtime/amd64/asm.s:78
+#7  0x000000000040ea6f in runtime.initdone () at /home/user/go/src/runtime/proc.c:243
+#8  0x0000000000000000 in ?? ()
+</pre>
+
+<p>
+栈帧显示，当前正在执行 <code>regexp.TestFind</code> 函数，与预期一致。
+</p>
+
+<pre>
+(gdb) <b>info frame</b>
+Stack level 0, frame at 0x7ffff7f9ff88:
+ rip = 0x425530 in regexp.TestFind (/home/user/go/src/regexp/find_test.go:148);
+    saved rip 0x430233
+ called by frame at 0x7ffff7f9ffa8
+ source language minimal.
+ Arglist at 0x7ffff7f9ff78, args: t=0xf840688b60
+ Locals at 0x7ffff7f9ff78, Previous frame's sp is 0x7ffff7f9ff88
+ Saved registers:
+  rip at 0x7ffff7f9ff80
+</pre>
+
+<p>
+<code>info</code> <code>locals</code> 命令会列出函数的所有局部变量及其值，但使用时需要留意：它也会尝试打印尚未初始化的变量。
+尚未初始化的切片可能导致 gdb 尝试打印大小任意的巨大数组。
+</p>
+
+<p>
+查看函数参数：
+</p>
+
+<pre>
+(gdb) <b>info args</b>
+t = 0xf840688b60
+</pre>
+
+<p>
+打印参数时，要留意它是指针（后面的 re 指向一个 <code>Regexp</code> 值；此处 t 指向 testing.T 值）。
+GDB 按传统 C 语言风格，把 <code>*</code> 错放在了类型名右侧，并添加了 Go 类型中不存在的 'struct' 关键字。
+</p>
+
+<pre>
+(gdb) <b>p re</b>
+(gdb) p t
+$1 = (struct testing.T *) 0xf840688b60
+(gdb) p t
+$1 = (struct testing.T *) 0xf840688b60
+(gdb) p *t
+$2 = {errors = "", failed = false, ch = 0xf8406f5690}
+(gdb) p *t-&gt;ch
+$3 = struct hchan&lt;*testing.T&gt;
+</pre>
+
+<p>
+这里的 <code>struct</code> <code>hchan&lt;*testing.T&gt;</code> 是通道在运行时内部的表示。
+该通道当前为空，否则 gdb 就会以易读格式显示其中的内容。
+</p>
+
+<p>
+向前单步执行：
+</p>
+
+<pre>
+(gdb) <b>n</b>  <i># execute next line</i>
+149             for _, test := range findTests {
+(gdb)    <i># enter is repeat</i>
+150                     re := MustCompile(test.pat)
+(gdb) <b>p test.pat</b>
+$4 = ""
+(gdb) <b>p re</b>
+$5 = (struct regexp.Regexp *) 0xf84068d070
+(gdb) <b>p *re</b>
+$6 = {expr = "", prog = 0xf840688b80, prefix = "", prefixBytes =  []uint8, prefixComplete = true,
+  prefixRune = 0, cond = 0 '\000', numSubexp = 0, longest = false, mu = {state = 0, sema = 0},
+  machine =  []*regexp.machine}
+(gdb) <b>p *re->prog</b>
+$7 = {Inst =  []regexp/syntax.Inst = {{Op = 5 '\005', Out = 0, Arg = 0, Rune =  []int}, {Op =
+    6 '\006', Out = 2, Arg = 0, Rune =  []int}, {Op = 4 '\004', Out = 0, Arg = 0, Rune =  []int}},
+  Start = 1, NumCap = 2}
+</pre>
+
+
+<p>
+使用 <code>"s"</code> 可以单步进入 <code>String</code> 函数调用：
+</p>
+
+<pre>
+(gdb) <b>s</b>
+regexp.(*Regexp).String (re=0xf84068d070, noname=void) at /home/user/go/src/regexp/regexp.go:97
+97      func (re *Regexp) String() string {
+</pre>
+
+<p>
+获取调用栈，确认当前执行位置：
+</p>
+
+<pre>
+(gdb) <b>bt</b>
+#0  regexp.(*Regexp).String (re=0xf84068d070, noname=void)
+    at /home/user/go/src/regexp/regexp.go:97
+#1  0x0000000000425615 in regexp.TestFind (t=0xf840688b60)
+    at /home/user/go/src/regexp/find_test.go:151
+#2  0x0000000000430233 in testing.tRunner (t=0xf840688b60, test=0x5747b8)
+    at /home/user/go/src/testing/testing.go:156
+#3  0x000000000040ea6f in runtime.initdone () at /home/user/go/src/runtime/proc.c:243
+....
+</pre>
+
+<p>
+查看源码：
+</p>
+
+<pre>
+(gdb) <b>l</b>
+92              mu      sync.Mutex
+93              machine []*machine
+94      }
+95
+96      // String returns the source text used to compile the regular expression.
+97      func (re *Regexp) String() string {
+98              return re.expr
+99      }
+100
+101     // Compile parses a regular expression and returns, if successful,
+</pre>
+
+<h3 id="Pretty_Printing">格式化显示</h3>
+
+<p>
+GDB 通过对类型名进行正则表达式匹配，触发格式化显示机制。下面以切片为例：
+</p>
+
+<pre>
+(gdb) <b>p utf</b>
+$22 =  []uint8 = {0 '\000', 0 '\000', 0 '\000', 0 '\000'}
+</pre>
+
+<p>
+切片、数组和字符串并不是 C 指针，因此 GDB 无法直接解释它们的下标操作。
+不过，可以通过查看运行时内部表示来访问元素（这里可以使用 Tab 补全）：
+</p>
+<pre>
+
+(gdb) <b>p slc</b>
+$11 =  []int = {0, 0}
+(gdb) <b>p slc-&gt;</b><i>&lt;TAB&gt;</i>
+array  slc    len
+(gdb) <b>p slc->array</b>
+$12 = (int *) 0xf84057af00
+(gdb) <b>p slc->array[1]</b>
+$13 = 0</pre>
+
+
+
+<p>
+扩展函数 $len 和 $cap 可用于字符串、数组和切片：
+</p>
+
+<pre>
+(gdb) <b>p $len(utf)</b>
+$23 = 4
+(gdb) <b>p $cap(utf)</b>
+$24 = 4
+</pre>
+
+<p>
+通道和映射属于“引用”类型，gdb 会把它们显示为类似 C++ 类型的指针，例如 <code>hash&lt;int,string&gt;*</code>。
+对指针解引用会触发格式化显示。
+</p>
+
+<p>
+接口在运行时中由指向类型描述符的指针和指向值的指针表示。
+Go 的 GDB 运行时扩展会解析这些信息，并自动对运行时类型触发格式化显示。
+扩展函数 <code>$dtype</code> 可以解析动态类型（以下示例取自 <code>regexp.go</code> 第 293 行处的断点）。
+</p>
+
+<pre>
+(gdb) <b>p i</b>
+$4 = {str = "cbb"}
+(gdb) <b>whatis i</b>
+type = regexp.input
+(gdb) <b>p $dtype(i)</b>
+$26 = (struct regexp.inputBytes *) 0xf8400b4930
+(gdb) <b>iface i</b>
+regexp.input: struct regexp.inputBytes *
+</pre>

@@ -1,0 +1,595 @@
+<!--{
+  "Title": "net/http/httptest 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>net/http/httptest 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/httptest"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>httptest 包提供 HTTP 测试辅助工具。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+			
+				<dd><a href="#NewRequest">func NewRequest(method, target string, body io.Reader) *http.Request</a></dd>
+			
+				<dd><a href="#NewRequestWithContext">func NewRequestWithContext(ctx context.Context, method, target string, body io.Reader) *http.Request</a></dd>
+			
+			
+				
+				<dd><a href="#ResponseRecorder">type ResponseRecorder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRecorder">func NewRecorder() *ResponseRecorder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Flush">func (rw *ResponseRecorder) Flush()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Header">func (rw *ResponseRecorder) Header() http.Header</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Result">func (rw *ResponseRecorder) Result() *http.Response</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.Write">func (rw *ResponseRecorder) Write(buf []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.WriteHeader">func (rw *ResponseRecorder) WriteHeader(code int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ResponseRecorder.WriteString">func (rw *ResponseRecorder) WriteString(str string) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Server">type Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewServer">func NewServer(handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTLSServer">func NewTLSServer(handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTestServer">func NewTestServer(t testing.TB, handler http.Handler) *Server</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewUnstartedServer">func NewUnstartedServer(handler http.Handler) *Server</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Certificate">func (s *Server) Certificate() *x509.Certificate</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Client">func (s *Server) Client() *http.Client</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Close">func (s *Server) Close()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.CloseClientConnections">func (s *Server) CloseClientConnections()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.Start">func (s *Server) Start()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Server.StartTLS">func (s *Server) StartTLS()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewTLSServer">NewTLSServer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ResponseRecorder">ResponseRecorder</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Server">Server</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Server_hTTP2">Server (HTTP2)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/httptest/httptest.go">httptest.go</a>
+			
+				<a href="/src/net/http/httptest/recorder.go">recorder.go</a>
+			
+				<a href="/src/net/http/httptest/server.go">server.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>DefaultRemoteAddr 是在 <a href="#ResponseRecorder">ResponseRecorder</a> 上未显式设置 DefaultRemoteAddr 时，RemoteAddr 返回的默认远端地址。
+<p class="TranslationNote">译注：上述原文注释与本版本结构体定义不一致；ResponseRecorder 没有 RemoteAddr 或 DefaultRemoteAddr 字段。这里保留原文说明，不应据此访问不存在的字段。</p><pre>const <span id="DefaultRemoteAddr">DefaultRemoteAddr</span> = &#34;1.2.3.4&#34;</pre>
+			
+		
+		
+		
+			
+			<h2 id="NewRequest">func <a href="/src/net/http/httptest/httptest.go?s=387:455#L9">NewRequest</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func NewRequest(method, target <a href="/pkg/builtin/#string">string</a>, body <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a></pre>
+			<p>NewRequest 使用 context.Background 包装 NewRequestWithContext。<h2 id="NewRequestWithContext">func <a href="/src/net/http/httptest/httptest.go?s=1417:1517#L36">NewRequestWithContext</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func NewRequestWithContext(ctx <a href="/pkg/context/">context</a>.<a href="/pkg/context/#Context">Context</a>, method, target <a href="/pkg/builtin/#string">string</a>, body <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a></pre>
+			<p>NewRequestWithContext 返回新的服务端入站 Request，适合传给 <a href="/pkg/net/http/#Handler">http.Handler</a> 进行测试。<p>target 是 RFC 7230 中的 request-target（请求目标），可以是路径或绝对 URL。如果是绝对 URL，就使用其中的主机名；否则使用 &quot;example.com&quot;。<p>如果 target 的协议方案为 &quot;https&quot;，TLS 字段会设为一个非 nil 的占位值。<p>Request.Proto 始终为 HTTP/1.1。<p>method 为空时表示 &quot;GET&quot;。<p>body 可以为 nil。如果 body 的类型是 <a href="/pkg/bytes/#Reader">bytes.Reader</a>、<a href="/pkg/strings/#Reader">strings.Reader</a>、<a href="/pkg/bytes/#Buffer">bytes.Buffer</a>，或其值是 <a href="/pkg/net/http/#NoBody">http.NoBody</a>，就会设置 Request.ContentLength。
+<p class="TranslationNote">译注：原文使用类型名称指代这些读取器；源码实际匹配的是 *bytes.Reader、*strings.Reader 和 *bytes.Buffer 指针类型。</p><p>为方便测试使用，NewRequest 遇到错误时会触发 panic；在测试场景中，这种行为是可以接受的。<p>如果要生成客户端 HTTP 请求，而非服务端请求，请使用 net/http 包中的 NewRequest 函数。<h2 id="ResponseRecorder">type <a href="/src/net/http/httptest/recorder.go?s=425:1390#L11">ResponseRecorder</a>
+				
+				
+			</h2>
+			<p>ResponseRecorder 实现 <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a>，记录对它的修改，以便测试随后检查。<pre>type ResponseRecorder struct {
+<span id="ResponseRecorder.Code"></span>    <span class="comment">// Code 是通过 WriteHeader 设置的 HTTP 响应状态码。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意，如果 Handler 从未调用 WriteHeader 或 Write，</span>
+    <span class="comment">// 此值最终可能是 0，而不是隐含的</span>
+    <span class="comment">// http.StatusOK。若要获得隐含值，请使用 Result</span>
+    <span class="comment">// 方法。</span>
+    Code <a href="/pkg/builtin/#int">int</a>
+
+<span id="ResponseRecorder.HeaderMap"></span>    <span class="comment">// HeaderMap 包含 Handler 显式设置的头字段。</span>
+    <span class="comment">// 它属于内部实现细节。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：HeaderMap 是为历史兼容性而保留的，</span>
+    <span class="comment">// 不应使用。要访问处理器返回的头字段，</span>
+    <span class="comment">// 请使用 Result 方法返回的 Response.Header 映射。</span>
+    HeaderMap <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Header">Header</a>
+
+<span id="ResponseRecorder.Body"></span>    <span class="comment">// Body 是接收 Handler 的 Write 调用所写数据的缓冲区。</span>
+    <span class="comment">// 如果为 nil，写入会被静默丢弃。</span>
+    Body *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>
+
+<span id="ResponseRecorder.Flushed"></span>    <span class="comment">// Flushed 表示 Handler 是否调用了 Flush。</span>
+    Flushed <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_ResponseRecorder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, &#34;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;&#34;)
+	}
+
+	req := httptest.NewRequest(&#34;GET&#34;, &#34;http://example.com/foo&#34;, nil)
+	w := httptest.NewRecorder()
+	handler(w, req)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	fmt.Println(resp.StatusCode)
+	fmt.Println(resp.Header.Get(&#34;Content-Type&#34;))
+	fmt.Println(string(body))
+
+}
+</textarea></div>
+        <div class="output"><pre>200
+text/html; charset=utf-8
+&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewRecorder">func <a href="/src/net/http/httptest/recorder.go?s=1450:1486#L41">NewRecorder</a>
+					
+					
+				</h3>
+				<pre>func NewRecorder() *<a href="#ResponseRecorder">ResponseRecorder</a></pre>
+				<p>NewRecorder 返回初始化完成的 <a href="#ResponseRecorder">ResponseRecorder</a>。<h3 id="ResponseRecorder.Flush">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=5153:5188#L171">Flush</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Flush()</pre>
+				<p>Flush 实现 <a href="/pkg/net/http/#Flusher">http.Flusher</a>。可通过 rw.Flushed 判断是否调用过 Flush。<h3 id="ResponseRecorder.Header">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=2050:2098#L57">Header</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Header() <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Header">Header</a></pre>
+				<p>Header 实现 <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a>，返回处理器可修改的响应头。要在处理器完成后检查已写出的响应头，请调用 <a href="#ResponseRecorder.Result">ResponseRecorder.Result</a>，查看返回的 Response 的 Header 字段。<h3 id="ResponseRecorder.Result">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=5901:5952#L193">Result</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Result() *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Response">Response</a></pre>
+				<p>Result 返回处理器生成的响应。<p>返回的 Response 至少填充 StatusCode、Header、Body，并可能填充 Trailer。未来可能填充更多字段，因此测试不应使用 DeepEqual 比较整个结果。<p>Response.Header 是第一次写入时响应头的快照；如果处理器从未写入，则是在调用 Result 时取得的快照。<p>保证 Response.Body 非 nil，且 Body.Read 不会返回 <a href="/pkg/io/#EOF">io.EOF</a> 以外的错误。<p>只能在处理器运行结束后调用 Result。<h3 id="ResponseRecorder.Write">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=2964:3022#L97">Write</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) Write(buf []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 实现 http.ResponseWriter。如果 rw.Body 非 nil，就将 buf 中的数据写入其中。<h3 id="ResponseRecorder.WriteHeader">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=4806:4855#L155">WriteHeader</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) WriteHeader(code <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>WriteHeader 实现 <a href="/pkg/net/http/#ResponseWriter">http.ResponseWriter</a>。<h3 id="ResponseRecorder.WriteString">func (*ResponseRecorder) <a href="/src/net/http/httptest/recorder.go?s=3356:3420#L111">WriteString</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (rw *<a href="#ResponseRecorder">ResponseRecorder</a>) WriteString(str <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString 实现 <a href="/pkg/io/#StringWriter">io.StringWriter</a>。如果 rw.Body 非 nil，就将 str 中的数据写入其中。<h2 id="Server">type <a href="/src/net/http/httptest/server.go?s=3748:5674#L102">Server</a>
+				
+				
+			</h2>
+			<p>Server 是用于 HTTP 端到端测试的 HTTP 服务器。<p>大多数测试应使用 <a href="#NewTestServer">NewTestServer</a> 创建服务器。<a href="#Server.Client">Server.Client</a> 返回向该测试服务器发送请求的客户端。<pre>// 创建测试服务器，并向它发送请求。
+server := httptest.NewTestServer(t, handler)
+resp, err := server.Client().Get("http://www.example.com/")
+</pre>
+<h3 id="hdr-Configuration">配置</h3>
+<p>测试可以在使用 Server 前修改其配置。一旦首次调用了 <a href="#Server.Client">Server.Client</a>、<a href="#Server.Start">Server.Start</a> 或 <a href="#Server.StartTLS">Server.StartTLS</a>，就不能再修改配置。<pre>// 使用之前先配置测试服务器。
+server := httptest.NewTestServer(t, handler)
+server.Config.MaxHeaderBytes = 1024
+resp, err := server.Client().Get("http://www.example.com/")
+</pre>
+<h3 id="hdr-Tests">测试行为</h3>
+<p>使用 <a href="#NewTestServer">NewTestServer</a> 创建的服务器会：<ul>
+<li>在服务器处理器触发 panic，且 panic 值不是 <a href="/pkg/net/http/#ErrAbortHandler">http.ErrAbortHandler</a> 时，将测试标记为失败。<li>注册 Cleanup 函数，在测试结束时关闭服务器。</ul>
+<p>通过其他方式创建的服务器，必须手动调用 <a href="#Server.Close">Server.Close</a> 关闭。<h3 id="hdr-In_Memory_Network">内存中的网络</h3>
+<p>Server 可以使用内存中的网络实现，也可以监听本地回环网络接口。大多数测试应使用内存网络，以避免端口耗尽等临时性网络问题；这种方式也适合与 <a href="/pkg/testing/synctest/">testing/synctest</a> 一起使用。<p>要使用内存网络，请通过 <a href="#NewTestServer">NewTestServer</a> 创建服务器，并且不要调用 <a href="#Server.Start">Server.Start</a> 或 <a href="#Server.StartTLS">Server.StartTLS</a>。<p>使用内存网络时，<a href="/pkg/net/http/#Client">http.Client</a>（由 <a href="#Server.Client">Server.Client</a> 返回）被配置为将所有请求发送到该服务器。无论目标地址或主机名是什么，HTTP 和 HTTPS 请求都会发送到该服务器。请求不必以 <a href="#Server.URL">Server.URL</a> 作为基础 URL。<pre>server := httptest.NewTestServer(t, handler)
+client := server.Client()
+
+// 这些请求都会发送到测试服务器。
+// https:// 请求在内存网络上使用 TLS。
+_, _ = client.Get("http://www.example.com/")
+_, _ = client.Get("https://go.dev/")
+_, _ = client.Get("http://10.0.0.1/")
+</pre>
+<p>使用内存网络时，不会设置 <a href="#Server.Listener">Server.Listener</a> 字段。<h3 id="hdr-Loopback_Network">回环网络</h3>
+<p>要监听回环接口，请调用 <a href="#Server.Start">Server.Start</a> 或 <a href="#Server.StartTLS">Server.StartTLS</a>。服务器会监听系统选择的端口。<p>回环服务器只提供一种协议：调用 <a href="#Server.Start">Server.Start</a> 启动时提供 HTTP，调用 <a href="#Server.StartTLS">Server.StartTLS</a> 启动时提供 HTTPS。<p>使用回环网络时，<a href="/pkg/net/http/#Client">http.Client</a>（由 <a href="#Server.Client">Server.Client</a> 返回）被配置为将主机名为 &quot;example.com&quot; 或 &quot;.example.com&quot; 子域的请求发送到该服务器。<p>也可以向服务器的回环地址发送请求。<a href="#Server.URL">Server.URL</a> 字段会设置为包含服务器地址的基础 URL。<pre>server := httptest.NewTestServer(t, handler)
+server.Start()
+client := server.Client()
+
+// 此请求发送到测试服务器。
+_, _ = server.Client().Get(server.URL + "/")
+
+// 此请求（使用 http.DefaultClient）也会发送到测试服务器，
+// 因为 server.URL 包含服务器的本地 IP 地址。
+_, _ = http.Get(server.URL + "/")
+</pre>
+
+			<pre>type Server struct {
+<span id="Server.URL"></span>    <span class="comment">// URL 是服务器的基础 URL，形式为 http://address:port，</span>
+    <span class="comment">// 末尾不带斜杠。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 首次调用 Client、Start 或 StartTLS 时会设置此字段。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于监听回环地址的服务器，该地址是服务器的</span>
+    <span class="comment">// 回环 IP 地址。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于使用内存网络的服务器，该地址为 "example.com"。</span>
+    <span class="comment">// 发往使用内存网络的服务器的请求可以使用任意地址，</span>
+    <span class="comment">// 不必使用此基础 URL。</span>
+    URL <a href="/pkg/builtin/#string">string</a>
+
+<span id="Server.Listener"></span>    <span class="comment">// Listener 是监听回环地址的服务器所使用的网络监听器。</span>
+    <span class="comment">// 对于使用内存网络的服务器，不设置此字段。</span>
+    Listener <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Listener">Listener</a>
+
+<span id="Server.EnableHTTP2"></span>    <span class="comment">// EnableHTTP2 控制服务器是否启用 HTTP/2。</span>
+    <span class="comment">// 必须在调用 Client、Start 或 StartTLS 之前设置。</span>
+    EnableHTTP2 <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.14</span>
+
+<span id="Server.TLS"></span>    <span class="comment">// TLS 是可选的 TLS 配置，启动 TLS 后会填入新的配置。</span>
+    <span class="comment">// 如果在尚未启动的服务器上、调用 StartTLS 之前设置此字段，</span>
+    <span class="comment">// 其中已有的字段会被复制到新配置中。</span>
+    TLS *<a href="/pkg/crypto/tls/">tls</a>.<a href="/pkg/crypto/tls/#Config">Config</a>
+
+<span id="Server.Config"></span>    <span class="comment">// 可以在调用 Client、Start 或 StartTLS 之前修改 Config。</span>
+    Config *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Server">Server</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Server" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, &#34;Hello, client&#34;)
+	}))
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, greeting)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, client
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Server_hTTP2" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (HTTP2)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (HTTP2)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;Hello, %s&#34;, r.Proto)
+	}))
+	ts.EnableHTTP2 = true
+	ts.StartTLS()
+	defer ts.Close()
+
+	res, err := ts.Client().Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s&#34;, greeting)
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello, HTTP/2.0
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewServer">func <a href="/src/net/http/httptest/server.go?s=8543:8587#L256">NewServer</a>
+					
+					
+				</h3>
+				<pre>func NewServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewServer 启动并返回新的 <a href="#Server">Server</a>，监听本地回环网络接口。它等价于先调用 <a href="#NewUnstartedServer">NewUnstartedServer</a>，再调用 <a href="#Server.Start">Server.Start</a>。<p>使用完毕后，调用方应调用 <a href="#Server.Close">Server.Close</a> 关闭服务器。<p>大多数用户应改用 <a href="#NewTestServer">NewTestServer</a>。详见 <a href="#Server">Server</a> 文档。<h3 id="NewTLSServer">func <a href="/src/net/http/httptest/server.go?s=14027:14074#L448">NewTLSServer</a>
+					
+					
+				</h3>
+				<pre>func NewTLSServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewTLSServer 启动并返回新的 <a href="#Server">Server</a>，使用 TLS 并监听本地回环网络接口。它等价于先调用 <a href="#NewUnstartedServer">NewUnstartedServer</a>，再调用 <a href="#Server.StartTLS">Server.StartTLS</a>。<p>使用完毕后，调用方应调用 <a href="#Server.Close">Server.Close</a> 关闭服务器。<p>大多数用户应改用 <a href="#NewTestServer">NewTestServer</a>。详见 <a href="#Server">Server</a> 文档。<div id="example_NewTLSServer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;net/http/httptest&#34;
+)
+
+func main() {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, &#34;Hello, client&#34;)
+	}))
+	defer ts.Close()
+
+	client := ts.Client()
+	res, err := client.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	greeting, err := io.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, greeting)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, client
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewTestServer">func <a href="/src/net/http/httptest/server.go?s=5979:6041#L167">NewTestServer</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func NewTestServer(t <a href="/pkg/testing/">testing</a>.<a href="/pkg/testing/#TB">TB</a>, handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewTestServer 为测试返回新的 <a href="#Server">Server</a>，默认使用内存网络实现。<p>如果 handler 为 nil，服务器会对所有请求返回 500 响应，不使用 <a href="/pkg/net/http/#DefaultServeMux">http.DefaultServeMux</a>。<p>更多细节见 <a href="#Server">Server</a> 文档。<h3 id="NewUnstartedServer">func <a href="/src/net/http/httptest/server.go?s=9066:9119#L272">NewUnstartedServer</a>
+					
+					
+				</h3>
+				<pre>func NewUnstartedServer(handler <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a>) *<a href="#Server">Server</a></pre>
+				<p>NewUnstartedServer 返回新的 <a href="#Server">Server</a>，监听本地回环网络接口，但不启动服务器。<p>修改服务器配置后，调用方应调用 <a href="#Server.Start">Server.Start</a> 或 <a href="#Server.StartTLS">Server.StartTLS</a>。<p>使用完毕后，调用方应调用 <a href="#Server.Close">Server.Close</a> 关闭服务器。<p>大多数用户应改用 <a href="#NewTestServer">NewTestServer</a>。详见 <a href="#Server">Server</a> 文档。<h3 id="Server.Certificate">func (*Server) <a href="/src/net/http/httptest/server.go?s=17387:17435#L558">Certificate</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Certificate() *<a href="/pkg/crypto/x509/">x509</a>.<a href="/pkg/crypto/x509/#Certificate">Certificate</a></pre>
+				<p>Certificate 返回服务器使用的证书；如果服务器未使用 TLS，则返回 nil。<h3 id="Server.Client">func (*Server) <a href="/src/net/http/httptest/server.go?s=17663:17701#L565">Client</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Client() *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Client">Client</a></pre>
+				<p>Client 返回配置为向该服务器发送请求的 HTTP 客户端。客户端会信任服务器的 TLS 测试证书，并在调用 <a href="#Server.Close">Server.Close</a> 时关闭空闲连接。<h3 id="Server.Close">func (*Server) <a href="/src/net/http/httptest/server.go?s=14311:14335#L460">Close</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Close()</pre>
+				<p>Close 关闭服务器，并阻塞等待服务器上所有尚未完成的请求结束。<h3 id="Server.CloseClientConnections">func (*Server) <a href="/src/net/http/httptest/server.go?s=16673:16714#L529">CloseClientConnections</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) CloseClientConnections()</pre>
+				<p>CloseClientConnections 关闭与测试服务器之间所有已打开的 HTTP 连接。<h3 id="Server.Start">func (*Server) <a href="/src/net/http/httptest/server.go?s=10053:10077#L309">Start</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) Start()</pre>
+				<p>Start 在本地回环网络接口上启动服务器。<p>服务器应由 <a href="#NewTestServer">NewTestServer</a> 或 <a href="#NewUnstartedServer">NewUnstartedServer</a> 创建。<h3 id="Server.StartTLS">func (*Server) <a href="/src/net/http/httptest/server.go?s=11877:11904#L374">StartTLS</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Server">Server</a>) StartTLS()</pre>
+				<p>StartTLS 在本地回环网络接口上的服务器上启动 TLS。<p>服务器应由 <a href="#NewTestServer">NewTestServer</a> 或 <a href="#NewUnstartedServer">NewUnstartedServer</a> 创建。</article>

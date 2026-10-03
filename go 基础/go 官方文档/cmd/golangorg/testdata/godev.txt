@@ -1,0 +1,156 @@
+GET https://go.dev/
+body contains 由 Google 支持的开源编程语言
+body contains <h2 class="WhoUses-headerH2">使用 Go 的企业</h2>
+
+GET https://go.dev/about
+redirect == https://pkg.go.dev/about
+
+GET https://go.dev/solutions/case-studies
+body contains Google 的 Go 实践
+
+GET https://go.dev/solutions/dropbox
+body contains Dropbox：开源我们的 Go 库
+
+GET https://go.dev/solutions/google/
+body ~ 也支撑了 Google 的许多项目。
+
+GET https://go.dev/solutions/chrome
+redirect == /solutions/google/chrome
+
+GET https://go.dev/solutions/coredata
+redirect == /solutions/google/coredata
+
+GET https://go.dev/solutions/firebase
+redirect == /solutions/google/firebase
+
+GET https://go.dev/solutions/sitereliability
+redirect == /solutions/google/sitereliability
+
+GET https://go.dev/solutions/americanexpress
+body contains <div class="Article-date">2019 年 12 月 19 日</div>
+
+GET https://go.dev/play/
+body contains Go 在线运行环境
+body contains 关于在线运行环境
+body contains Hello, 世界
+
+GET https://golang.google.cn/play/
+body contains Go 在线运行环境
+body contains 关于在线运行环境
+body contains Hello, 世界
+
+GET https://go.dev/play/p/asdfasdf
+body contains Go 在线运行环境
+body contains 关于在线运行环境
+
+GET https://golang.google.cn/play/p/asdfasdf
+code == 500
+body contains 抱歉，中国大陆无法查看在线运行环境中的共享代码片段。
+body !contains Go 在线运行环境
+body !contains 关于在线运行环境
+
+POST https://golang.google.cn/_/share
+code == 404
+
+GET https://golang.google.cn/_/share?id=asdfasdf
+code == 404
+
+GET https://golang.google.cn/play/p/asdfasdf.go
+code == 500
+body contains 抱歉，中国大陆无法查看在线运行环境中的共享代码片段。
+
+# These $GOROOT/*.md files should not serve.
+GET https://go.dev/CONTRIBUTING
+code == 404
+
+GET https://go.dev/README
+code == 404
+
+# $GOROOT/SECURITY.md should not serve either,
+# but on a case-insensitive file system,
+# https://go.dev/SECURITY is served from _content/security.html,
+# so we can't assert a 404.
+
+GET https://blog.go.dev/
+redirect == https://go.dev/blog/
+
+GET https://blog.go.dev/any
+redirect == https://go.dev/blog/any
+
+GET https://talks.go.dev/
+redirect == https://go.dev/talks/
+
+GET https://talks.go.dev/any
+redirect == https://go.dev/talks/any
+
+GET https://tour.go.dev/
+redirect == https://go.dev/tour/
+
+GET https://tour.go.dev/any
+redirect == https://go.dev/tour/any
+
+GET https://play.go.dev/
+redirect == https://go.dev/play/
+
+GET https://play.go.dev/any
+redirect == https://go.dev/play/any
+
+GET https://go.dev/play/foo
+redirect == /play/
+
+GET https://go.dev/play
+redirect == /play/
+
+GET https://go.dev/play/p
+redirect == /play/
+
+GET https://go.dev/play/p/
+redirect == /play/
+
+GET https://go.dev/security
+redirect == /security/
+
+GET https://go.dev/security/
+redirect == /doc/security/
+
+GET https://go.dev/doc/security/
+body contains 查找并修复已知漏洞
+
+GET https://go.dev/wiki/
+body contains Go Wiki: Wiki 首页
+body contains <i>本文属于 <a href="/wiki/">Go Wiki</a>。</i>
+
+GET https://go.dev/wiki/Comments
+body contains Go Wiki: 注释
+body contains <i>本文属于 <a href="/wiki/">Go Wiki</a>。</i>
+
+# These assertions should work both with the dummy docs in _content
+# and the real x/tools, since the deployment tests run them too.
+#
+# TODO(adonovan): when gopls/v0.20.0 is released, the new gopls/doc/ file
+# locations tree will allow the assertions below to pass with the actual
+# contents of x/tools as exercised by the deployment tests.
+# Until then, we must test against tip.golang.org.
+#
+# GET https://go.dev/gopls/
+# body contains Gopls: Home
+#
+# GET https://go.dev/gopls/settings
+# body contains Gopls: Settings
+
+GET https://tip.golang.org/gopls/
+body contains Gopls: The language server for Go
+
+GET https://tip.golang.org/gopls/settings
+body contains Gopls: Settings
+
+GET https://go.dev/pkg/cmd/go/?m=old
+redirect == /cmd/go/?m=old
+
+GET https://go.dev/pkg/slices/?m=old
+body !contains href="/cmp
+body contains href="/pkg/cmp/?m=old#Compare
+
+GET https://go.dev/cmd/link/internal/ld/?m=old
+body !contains href="/pkg/cmd
+body contains href="/cmd/link/internal/loader/?m=old#Loader

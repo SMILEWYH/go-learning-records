@@ -1,0 +1,708 @@
+<!--{
+	"Title": "Go 内存模型",
+	"Subtitle": "2022 年 6 月 6 日版本",
+	"Path": "/ref/mem"
+}-->
+
+<style>
+p.rule {
+  font-style: italic;
+}
+</style>
+
+<h2 id="introduction">引言</h2>
+
+<p>
+Go 内存模型规定了这样的条件：在什么情况下，一个 goroutine（轻量级协程）对某个变量的读取，能够保证观察到另一个 goroutine 对同一变量写入的值。
+</p>
+
+
+<h3 id="advice">建议</h3>
+
+<p>
+如果程序要修改由多个 goroutine 同时访问的数据，就必须将这些访问串行化。
+</p>
+
+<p>
+要将访问串行化，应使用通道操作或其他同步原语来保护数据，例如 <a href="/pkg/sync/"><code>sync</code></a> 和 <a href="/pkg/sync/atomic/"><code>sync/atomic</code></a> 包提供的同步原语。
+</p>
+
+<p>
+如果你必须读完本文余下的内容才能理解自己程序的行为，那就说明你把程序写得太取巧了。
+</p>
+
+<p>
+不要取巧。
+</p>
+
+<h3 id="overview">非形式化概述</h3>
+
+<p>
+Go 对待内存模型的方式与对待语言其他部分的方式基本一致：力求让语义简单、易懂且实用。本节概述这一思路，对大多数程序员来说已经足够。下一节将更形式化地规定内存模型。
+</p>
+
+<p>
+<em>数据竞争</em>是指：对某个内存位置的写入，与对同一位置的另一次读取或写入并发发生；但如果所涉及的所有访问都是 <code>sync/atomic</code> 包提供的原子数据访问，则不属于数据竞争。如前所述，我们强烈建议程序员使用适当的同步来避免数据竞争。在没有数据竞争的情况下，Go 程序的行为就像所有 goroutine 都在同一个处理器上交替执行一样。这一性质有时称为 DRF-SC：无数据竞争的程序以顺序一致的方式执行。
+</p>
+
+<p>
+虽然程序员应当编写没有数据竞争的 Go 程序，但 Go 实现处理数据竞争的方式也受到限制。实现始终可以选择报告数据竞争并终止程序。否则，对大小不超过一个机器字的内存位置的每次读取，都必须观察到某个实际写入该位置且尚未被覆盖的值，这个值也可能由并发执行的 goroutine 写入。这些限制使 Go 更接近 Java 或 JavaScript：大多数竞争只会产生有限的几种结果。而在 C 和 C++ 中，任何存在竞争的程序，其行为都完全未定义，编译器可以任意处理。Go 的做法旨在让出错的程序更可靠、更容易调试，同时仍然坚持：竞争就是错误，工具应当能够诊断并报告它们。
+</p>
+
+<h2 id="model">内存模型</h2>
+
+<p>
+下面对 Go 内存模型的形式化定义，紧密遵循 Hans-J. Boehm 和 Sarita V. Adve 在 PLDI 2008 发表的论文《<a href="https://dl.acm.org/doi/10.1145/1375581.1375591">C++ 并发内存模型基础</a>》中提出的方法。无数据竞争程序的定义，以及对这类程序的顺序一致性保证，都与该论文中的定义和保证等价。
+</p>
+
+<p>
+内存模型描述了对程序执行的要求。程序执行由各个 goroutine 的执行组成，而 goroutine 的执行又由内存操作组成。
+</p>
+
+<p>
+一个<i>内存操作</i>由以下四项信息建模：
+</p>
+<ul>
+	<li>操作种类，表明它是普通的数据读取、普通的数据写入，还是原子数据访问、互斥锁操作或通道操作等<i>同步操作</i>；</li>
+	<li>操作在程序中的位置；</li>
+	<li>所访问的内存位置或变量；以及</li>
+	<li>操作读取或写入的值。</li>
+</ul>
+<p>
+有些内存操作属于<i>读类操作</i>，包括读取、原子读取、互斥锁加锁和通道接收。另一些内存操作属于<i>写类操作</i>，包括写入、原子写入、互斥锁解锁、通道发送和通道关闭。还有一些操作，例如原子比较并交换，同时属于读类操作和写类操作。
+</p>
+
+<p>
+一次 <i>goroutine 执行</i>被建模为单个 goroutine 执行的一组内存操作。
+</p>
+
+<p>
+<b>要求 1</b>：给定从内存读取和写入内存的值，每个 goroutine 中的内存操作都必须对应于该 goroutine 的一次正确的顺序执行。该执行必须符合<i>程序顺序先于</i>关系：这一关系是由 <a href="/ref/spec">Go 语言规范</a>对 Go 的控制流结构以及<a href="/ref/spec#Order_of_evaluation">表达式求值顺序</a>规定的偏序要求。
+</p>
+
+<p>
+一次 Go <i>程序执行</i>被建模为一组 goroutine 执行，以及一个映射 <i>W</i>。该映射为每个读类操作指定它从哪个写类操作读取值。（同一个程序运行多次，可能产生不同的程序执行。）
+</p>
+
+<p>
+<b>要求 2</b>：对于给定的程序执行，将映射 <i>W</i> 限定在同步操作上时，它必须能够由这些同步操作的某个隐含全序来解释。该全序必须与程序顺序以及这些操作读取和写入的值相一致。
+</p>
+
+<p>
+<i>同步先于</i>关系是同步内存操作上的一个偏序，由 <i>W</i> 推导得出。如果一个同步读类内存操作 <i>r</i> 观察到一个同步写类内存操作 <i>w</i>（即 <i>W</i>(<i>r</i>) = <i>w</i>），那么 <i>w</i> 同步先于 <i>r</i>。非形式化地说，同步先于关系是上一段所述隐含全序的一个子集，只包含 <i>W</i> 直接观察到的信息。
+</p>
+
+<p>
+<i>先行发生</i>关系被定义为程序顺序先于关系与同步先于关系的并集的传递闭包。
+</p>
+
+<p>
+<b>要求 3</b>：对于内存位置上的一次普通（非同步）数据读取 <i>r</i>，设该内存位置为 <i>x</i>，则 <i>W</i>(<i>r</i>) 必须是一次写入 <i>w</i>，且这次写入对该读取是<i>可见的</i>。对 <i>r</i> 可见是指以下两项同时成立：
+</p>
+
+<ol>
+	<li><i>w</i> 先行发生于 <i>r</i>。</li>
+	<li><i>w</i> 不先行发生于任何满足以下条件的其他写入 <i>w'</i>：该写入访问同一位置 <i>x</i>，并且先行发生于 <i>r</i>。</li>
+</ol>
+
+<p>
+<i>读写数据竞争</i>发生在内存位置 <i>x</i> 上，由一个读类内存操作 <i>r</i>（访问 <i>x</i>）和一个写类内存操作 <i>w</i>（同样访问 <i>x</i>）组成。二者中至少有一个是非同步操作，而且二者无法通过先行发生关系确定先后顺序，也就是说，既不是 <i>r</i> 先行发生于 <i>w</i>，也不是 <i>w</i> 先行发生于 <i>r</i>。
+</p>
+
+<p>
+<i>写写数据竞争</i>发生在内存位置 <i>x</i> 上，由两个写类内存操作 <i>w</i> 和 <i>w'</i> 组成，它们都访问 <i>x</i>，其中至少有一个是非同步操作，而且二者无法通过先行发生关系确定先后顺序。
+</p>
+
+<p>
+注意，如果内存位置 <i>x</i> 上不存在读写或写写数据竞争，那么任意一次读取 <i>r</i>（访问 <i>x</i>）都只有唯一可能的 <i>W</i>(<i>r</i>)：即在先行发生顺序中紧邻它之前的那次写入 <i>w</i>。
+</p>
+
+<p>
+更一般地，可以证明：任何没有数据竞争的 Go 程序，也就是不存在任何包含读写或写写数据竞争的程序执行的程序，其结果都只能由各个 goroutine 执行的某种符合顺序一致性的交错方式来解释。（证明与上文引用的 Boehm 和 Adve 论文第 7 节相同。）这一性质称为 DRF-SC。
+</p>
+
+<p>
+这一形式化定义旨在与其他语言对无数据竞争程序提供的 DRF-SC 保证保持一致，这些语言包括 C、C++、Java、JavaScript、Rust 和 Swift。
+</p>
+
+<p>
+Go 语言中的某些操作，例如创建 goroutine 和分配内存，也起到同步操作的作用。这些操作对同步先于偏序的影响，记录在下文的“同步”一节中。各个包应当为自己提供的操作给出类似的文档说明。
+</p>
+
+<h2 id="restrictions">对包含数据竞争的程序的实现限制</h2>
+
+<p>
+上一节给出了无数据竞争的程序执行的形式化定义。本节以非形式化方式描述：对于确实存在数据竞争的程序，实现必须提供哪些语义。
+</p>
+
+<p>
+任何实现都可以在检测到数据竞争时报告该竞争，并停止执行程序。使用 ThreadSanitizer 的实现（通过“<code>go</code> <code>build</code> <code>-race</code>”启用）正是这样做的。
+</p>
+
+<p>
+对数组、结构体或复数的读取，可以实现为以任意顺序分别读取其各个组成部分，即数组元素、结构体字段或实部与虚部。同样，对数组、结构体或复数的写入，也可以实现为以任意顺序分别写入各个组成部分。
+</p>
+
+<p>
+对于一次读取 <i>r</i>，如果它访问的内存位置 <i>x</i> 所存储的值不大于一个机器字，那么它必须观察到某次写入 <i>w</i>，满足 <i>r</i> 不先行发生于 <i>w</i>，且不存在另一次写入 <i>w'</i>，使得 <i>w</i> 先行发生于 <i>w'</i>，同时 <i>w'</i> 又先行发生于 <i>r</i>。也就是说，每次读取都必须观察到某次先前发生或并发发生的写入所写入的值。
+</p>
+
+<p>
+此外，不允许观察到违背因果关系或“凭空产生”的写入。
+</p>
+
+<p>
+对于大于一个机器字的内存位置，建议但不强制要求其读取满足与单字大小的内存位置相同的语义，即观察到一次被允许的写入 <i>w</i>。出于性能考虑，实现也可以将较大的操作视为一组以未指定顺序执行的、每次处理一个机器字的独立操作。这意味着，多字数据结构上的竞争可能产生不一致的值，无法对应于任何一次完整的写入。当这些值依赖于内部的（指针，长度）或（指针，类型）二元组保持一致时，此类竞争还可能导致任意的内存破坏。在大多数 Go 实现中，接口值、映射、切片和字符串就可能存在这种情况。
+</p>
+
+<p>
+错误同步的示例见下文“错误的同步”一节。
+</p>
+
+<p>
+实现受到哪些限制，其示例见下文“错误的编译”一节。
+</p>
+
+<h2 id="synchronization">同步</h2>
+
+<h3 id="init">初始化</h3>
+
+<p>
+程序初始化在单个 goroutine 中运行，但这个 goroutine 可以创建其他 goroutine，让它们并发运行。
+</p>
+
+<p class="rule">
+如果包 <code>p</code> 导入了包 <code>q</code>，那么 <code>q</code> 的所有 <code>init</code> 函数完成，先行发生于 <code>p</code> 的任何初始化函数开始。
+</p>
+
+<p class="rule">
+所有 <code>init</code> 函数完成，同步先于函数 <code>main.main</code> 开始。
+</p>
+
+<h3 id="go">goroutine 的创建</h3>
+
+<p class="rule">
+启动新 goroutine 的 <code>go</code> 语句，同步先于该 goroutine 开始执行。
+</p>
+
+<p>
+例如，在下面的程序中：
+</p>
+
+<pre>
+var a string
+
+func f() {
+	print(a)
+}
+
+func hello() {
+	a = "hello, world"
+	go f()
+}
+</pre>
+
+<p>
+调用 <code>hello</code>，会在之后的某个时刻打印 <code>"hello, world"</code>，这个时刻也可能在 <code>hello</code> 返回之后。
+</p>
+
+<h3 id="goexit">goroutine 的销毁</h3>
+
+<p>
+一个 goroutine 的退出，并不保证同步先于程序中的任何事件。例如，在下面的程序中：
+</p>
+
+<pre>
+var a string
+
+func hello() {
+	go func() { a = "hello" }()
+	print(a)
+}
+</pre>
+
+<p>
+对 <code>a</code> 的赋值之后没有任何同步事件，因此不能保证其他 goroutine 能观察到这次赋值。实际上，采用激进优化的编译器可能会删除整条 <code>go</code> 语句。
+</p>
+
+<p>
+如果一个 goroutine 的执行效果必须能被另一个 goroutine 观察到，就应使用锁或通道通信等同步机制，建立相对的先后顺序。
+</p>
+
+<h3 id="chan">通道通信</h3>
+
+<p>
+通道通信是 goroutine 之间进行同步的主要方式。在某个通道上的每次发送，都与该通道上的一次相应接收匹配，而接收通常发生在另一个 goroutine 中。
+</p>
+
+<p class="rule">
+通道上的一次发送，同步先于该通道上相应接收的完成。
+</p>
+
+<p>
+下面的程序：
+</p>
+
+<pre>
+var c = make(chan int, 10)
+var a string
+
+func f() {
+	a = "hello, world"
+	c &lt;- 0
+}
+
+func main() {
+	go f()
+	&lt;-c
+	print(a)
+}
+</pre>
+
+<p>
+保证会打印 <code>"hello, world"</code>。对 <code>a</code> 的写入程序顺序先于向 <code>c</code> 发送；该发送同步先于从 <code>c</code> 进行的相应接收完成；而接收的完成又程序顺序先于 <code>print</code>。
+</p>
+
+<p class="rule">
+关闭通道，同步先于因通道已关闭而返回零值的接收。
+</p>
+
+<p>
+在上例中，将 <code>c &lt;- 0</code> 替换为 <code>close(c)</code>，得到的程序仍具有相同的行为保证。
+</p>
+
+<p class="rule">
+从无缓冲通道接收，同步先于该通道上相应发送的完成。
+</p>
+
+<p>
+下面的程序与前面的示例类似，但交换了发送和接收语句，并改用无缓冲通道：
+</p>
+
+<pre>
+var c = make(chan int)
+var a string
+
+func f() {
+	a = "hello, world"
+	&lt;-c
+}
+
+func main() {
+	go f()
+	c &lt;- 0
+	print(a)
+}
+</pre>
+
+<p>
+它也保证会打印 <code>"hello, world"</code>。对 <code>a</code> 的写入程序顺序先于从 <code>c</code> 接收；该接收同步先于向 <code>c</code> 进行的相应发送完成；而发送的完成又程序顺序先于 <code>print</code>。
+</p>
+
+<p>
+如果通道带有缓冲，例如 <code>c = make(chan int, 1)</code>，那么程序就不保证会打印 <code>"hello, world"</code>。（它可能打印空字符串、崩溃，或出现其他行为。）
+</p>
+
+<p class="rule">
+第 <i>k</i> 次从容量为 <i>C</i> 的通道接收，同步先于向该通道进行的第 <i>k</i>+<i>C</i> 次发送的完成。
+</p>
+
+<p>
+这条规则将上一条规则推广到了缓冲通道。它允许使用缓冲通道来建模计数信号量：通道中的元素数量对应正在使用资源的数量，通道容量对应允许同时使用资源的最大数量；发送一个元素表示获取信号量，接收一个元素表示释放信号量。这是限制并发数的一种常见写法。
+</p>
+
+<p>
+下面的程序为任务列表中的每一项启动一个 goroutine，但这些 goroutine 通过 <code>limit</code> 通道协调，以保证任何时刻最多只有三个 goroutine 正在运行任务函数。
+</p>
+
+<pre>
+var limit = make(chan int, 3)
+
+func main() {
+	for _, w := range work {
+		go func(w func()) {
+			limit &lt;- 1
+			w()
+			&lt;-limit
+		}(w)
+	}
+	select{}
+}
+</pre>
+
+<h3 id="locks">锁</h3>
+
+<p>
+<code>sync</code> 包实现了两种锁类型：<code>sync.Mutex</code> 和 <code>sync.RWMutex</code>。
+</p>
+
+<p class="rule">
+对于任意 <code>sync.Mutex</code> 或 <code>sync.RWMutex</code> 变量 <code>l</code>，以及 <i>n</i> &lt; <i>m</i>，第 <i>n</i> 次调用 <code>l.Unlock()</code>，同步先于第 <i>m</i> 次调用 <code>l.Lock()</code> 返回。
+</p>
+
+<p>
+下面的程序：
+</p>
+
+<pre>
+var l sync.Mutex
+var a string
+
+func f() {
+	a = "hello, world"
+	l.Unlock()
+}
+
+func main() {
+	l.Lock()
+	go f()
+	l.Lock()
+	print(a)
+}
+</pre>
+
+<p>
+保证会打印 <code>"hello, world"</code>。第一次调用 <code>l.Unlock()</code>（位于 <code>f</code> 中），同步先于第二次调用 <code>l.Lock()</code>（位于 <code>main</code> 中）返回，而这次返回又程序顺序先于 <code>print</code>。
+</p>
+
+<p class="rule">
+对于任意一次 <code>l.RLock</code> 调用，若它作用于 <code>sync.RWMutex</code> 变量 <code>l</code>，则存在某个 <i>n</i>，使得第 <i>n</i> 次调用 <code>l.Unlock</code> 同步先于这次 <code>l.RLock</code> 返回，并且与之匹配的 <code>l.RUnlock</code> 调用，同步先于第 <i>n</i>+1 次调用 <code>l.Lock</code> 返回。
+</p>
+
+<p class="rule">
+一次成功的 <code>l.TryLock</code>（或 <code>l.TryRLock</code>）调用，等价于一次 <code>l.Lock</code>（或 <code>l.RLock</code>）调用。失败的调用则完全没有同步效果。就内存模型而言，可以认为 <code>l.TryLock</code>（或 <code>l.TryRLock</code>）即使在互斥锁 <i>l</i> 未被锁定时，也可能返回 false。
+</p>
+
+<h3 id="once">一次性初始化（Once）</h3>
+
+<p>
+<code>sync</code> 包通过 <code>Once</code> 类型，提供了在多个 goroutine 存在时安全执行初始化的机制。多个线程可以执行 <code>once.Do(f)</code> 来处理同一个 <code>f</code>，但只有一个会运行 <code>f()</code>，其余调用会阻塞，直到 <code>f()</code> 返回。
+</p>
+
+<p class="rule">
+<code>f()</code> 由 <code>once.Do(f)</code> 调用一次，这次调用的完成，同步先于任何一次 <code>once.Do(f)</code> 调用返回。
+</p>
+
+<p>
+在下面的程序中：
+</p>
+
+<pre>
+var a string
+var once sync.Once
+
+func setup() {
+	a = "hello, world"
+}
+
+func doprint() {
+	once.Do(setup)
+	print(a)
+}
+
+func twoprint() {
+	go doprint()
+	go doprint()
+}
+</pre>
+
+<p>
+调用 <code>twoprint</code> 恰好会调用一次 <code>setup</code>。<code>setup</code> 函数会在任意一次 <code>print</code> 调用之前完成。因此，<code>"hello, world"</code> 会被打印两次。
+</p>
+
+<h3 id="atomic">原子值</h3>
+
+<p>
+<a href="/pkg/sync/atomic/"><code>sync/atomic</code></a> 包中的 API 统称为“原子操作”，可用于同步不同 goroutine 的执行。如果原子操作 <i>A</i> 的效果被原子操作 <i>B</i> 观察到，那么 <i>A</i> 同步先于 <i>B</i>。程序中执行的所有原子操作，其行为都如同按某个符合顺序一致性的顺序执行一样。
+</p>
+
+<p>
+上述定义的语义与 C++ 中具有顺序一致性的原子操作，以及 Java 中的 <code>volatile</code> 变量相同。
+</p>
+
+<h3 id="finalizer">终结器</h3>
+
+<p>
+<a href="/pkg/runtime/"><code>runtime</code></a> 包提供了 <code>SetFinalizer</code> 函数，用于为对象添加终结器；当程序无法再访问某个对象时，就会调用该对象的终结器。调用 <code>SetFinalizer(x, f)</code> 同步先于终结器调用 <code>f(x)</code>。
+</p>
+
+<h3 id="more">其他机制</h3>
+
+<p>
+<code>sync</code> 包还提供了其他同步抽象，包括<a href="/pkg/sync/#Cond">条件变量</a>、<a href="/pkg/sync/#Map">无锁映射</a>、<a href="/pkg/sync/#Pool">分配池</a>和<a href="/pkg/sync/#WaitGroup">等待组</a>。各自的文档都规定了它们在同步方面提供的保证。
+</p>
+
+<p>
+提供同步抽象的其他包，也应当在文档中说明它们提供的保证。
+</p>
+
+
+<h2 id="badsync">错误的同步</h2>
+
+<p>
+存在数据竞争的程序是不正确的，其执行可能不符合顺序一致性。尤其需要注意：一次读取 <i>r</i> 可能观察到任何一次写入 <i>w</i> 写入的值，只要该写入与 <i>r</i> 并发执行。即使出现这种情况，也不意味着发生在 <i>r</i> 之后的读取，就会观察到发生在 <i>w</i> 之前的写入。
+</p>
+
+<p>
+在下面的程序中：
+</p>
+
+<pre>
+var a, b int
+
+func f() {
+	a = 1
+	b = 2
+}
+
+func g() {
+	print(b)
+	print(a)
+}
+
+func main() {
+	go f()
+	g()
+}
+</pre>
+
+<p>
+<code>g</code> 有可能先打印 <code>2</code>，再打印 <code>0</code>。
+</p>
+
+<p>
+这一事实使一些常见写法失效。
+</p>
+
+<p>
+双重检查锁定试图避免同步开销。例如，前面的 <code>twoprint</code> 程序可能被错误地写成：
+</p>
+
+<pre>
+var a string
+var done bool
+
+func setup() {
+	a = "hello, world"
+	done = true
+}
+
+func doprint() {
+	if !done {
+		once.Do(setup)
+	}
+	print(a)
+}
+
+func twoprint() {
+	go doprint()
+	go doprint()
+}
+</pre>
+
+<p>
+但是，在 <code>doprint</code> 中，观察到对 <code>done</code> 的写入，并不保证就能观察到对 <code>a</code> 的写入。这个版本可能错误地打印空字符串，而不是 <code>"hello, world"</code>。
+</p>
+
+<p>
+另一种错误写法是忙等待某个值，例如：
+</p>
+
+<pre>
+var a string
+var done bool
+
+func setup() {
+	a = "hello, world"
+	done = true
+}
+
+func main() {
+	go setup()
+	for !done {
+	}
+	print(a)
+}
+</pre>
+
+<p>
+与前面一样，在 <code>main</code> 中，观察到对 <code>done</code> 的写入，并不保证就能观察到对 <code>a</code> 的写入，因此这个程序也可能打印空字符串。更糟的是，对 <code>done</code> 的写入甚至不保证最终能被 <code>main</code> 观察到，因为两个线程之间没有同步事件。<code>main</code> 中的循环不保证会结束。
+</p>
+
+<p>
+这类问题还有更隐蔽的变体，例如下面的程序。
+</p>
+
+<pre>
+type T struct {
+	msg string
+}
+
+var g *T
+
+func setup() {
+	t := new(T)
+	t.msg = "hello, world"
+	g = t
+}
+
+func main() {
+	go setup()
+	for g == nil {
+	}
+	print(g.msg)
+}
+</pre>
+
+<p>
+即使 <code>main</code> 观察到了 <code>g != nil</code> 并退出循环，也不能保证它会观察到 <code>g.msg</code> 初始化后的值。
+</p>
+
+<p>
+以上所有示例的解决方法都一样：使用显式同步。
+</p>
+
+<h2 id="badcompiler">错误的编译</h2>
+
+<p>
+Go 内存模型既约束 Go 程序，也约束编译器优化。有些对单线程程序有效的编译器优化，并不对所有 Go 程序都有效。特别是，编译器不得引入原程序中不存在的写入，不得让单次读取观察到多个值，也不得让单次写入写入多个值。
+</p>
+
+<p>
+以下所有示例都假定 `*p` 和 `*q` 指向多个 goroutine 都能访问的内存位置。
+</p>
+
+<p>
+不得向无数据竞争的程序引入数据竞争，这意味着不能将写入移出它所在的条件语句。例如，编译器不得将下面程序中的条件取反：
+</p>
+
+<pre>
+*p = 1
+if cond {
+	*p = 2
+}
+</pre>
+
+<p>
+也就是说，编译器不得将程序改写为：
+</p>
+
+<pre>
+*p = 2
+if !cond {
+	*p = 1
+}
+</pre>
+
+<p>
+如果 <code>cond</code> 为 false，同时另一个 goroutine 正在读取 <code>*p</code>，那么在原程序中，另一个 goroutine 只能观察到 <code>*p</code> 的某个先前值以及 <code>1</code>。而在改写后的程序中，它还可能观察到 <code>2</code>，这在原先是不可能的。
+</p>
+
+<p>
+不得引入数据竞争，也意味着不能假定循环会终止。例如，一般情况下，编译器不得将下面程序中对 <code>*p</code> 或 <code>*q</code> 的访问移到循环之前：
+</p>
+
+<pre>
+n := 0
+for e := list; e != nil; e = e.next {
+	n++
+}
+i := *p
+*q = 1
+</pre>
+
+<p>
+如果 <code>list</code> 指向一个有环链表，那么原程序永远不会访问 <code>*p</code> 或 <code>*q</code>，但改写后的程序会。（如果编译器能证明访问 `*p` 不会引发 panic，那么提前读取 `*p` 是安全的；而提前写入 `*q`，还要求编译器证明其他 goroutine 都无法访问 `*q`。）
+</p>
+
+<p>
+不得引入数据竞争，还意味着不能假定被调用的函数总会返回，或其中没有同步操作。例如，编译器不得将下面程序中对 <code>*p</code> 或 <code>*q</code> 的访问移到函数调用之前，至少在没有直接掌握 <code>f</code> 的确切行为时不得这样做：
+</p>
+
+<pre>
+f()
+i := *p
+*q = 1
+</pre>
+
+<p>
+如果该调用始终不返回，那么原程序同样永远不会访问 <code>*p</code> 或 <code>*q</code>，但改写后的程序会。而如果该调用包含同步操作，那么原程序可以在访问 <code>*p</code> 和 <code>*q</code> 之前建立先行发生关系中的边，改写后的程序却不能。
+</p>
+
+<p>
+不允许单次读取观察到多个值，意味着不能从共享内存重新加载局部变量。例如，编译器不得丢弃下面程序中的 <code>i</code>，然后再次从 <code>*p</code> 加载它：
+</p>
+
+<pre>
+i := *p
+if i &lt; 0 || i &gt;= len(funcs) {
+	panic("invalid function index")
+}
+... complex code ...
+// compiler must NOT reload i = *p here
+funcs[i]()
+</pre>
+
+<p>
+如果复杂代码需要很多寄存器，那么针对单线程程序的编译器可以丢弃 <code>i</code>，而不保存副本，然后重新执行 <code>i = *p</code>，紧接着再调用 <code>funcs[i]()</code>。Go 编译器不得这样做，因为 <code>*p</code> 的值可能已经改变。（编译器可以改为将 <code>i</code> 暂存到栈上。）
+</p>
+
+<p>
+不允许单次写入写入多个值，还意味着在写入某个局部变量之前，不能将准备写入该变量的内存用作临时存储。例如，编译器不得将下面程序中的 <code>*p</code> 用作临时存储：
+</p>
+
+<pre>
+*p = i + *p/2
+</pre>
+
+<p>
+也就是说，不得将程序改写为：
+</p>
+
+<pre>
+*p /= 2
+*p += i
+</pre>
+
+<p>
+如果 <code>i</code> 和 <code>*p</code> 的初始值都为 2，原代码执行的是 <code>*p = 3</code>，因此发生竞争的线程只能从 <code>*p</code> 读取到 2 或 3。改写后的代码先执行 <code>*p = 1</code>，再执行 <code>*p = 3</code>，使发生竞争的线程也能读取到 1。
+</p>
+
+<p>
+注意，C/C++ 编译器允许进行上述所有优化。如果 Go 编译器与 C/C++ 编译器共用后端，就必须注意禁用那些对 Go 无效的优化。
+</p>
+
+<p>
+注意，如果编译器能证明某个竞争不会影响程序在目标平台上的正确执行，那么禁止引入数据竞争的限制就不适用。例如，在几乎所有 CPU 上，将下面的代码：
+</p>
+
+<pre>
+n := 0
+for i := 0; i &lt; m; i++ {
+	n += *shared
+}
+</pre>
+
+改写为：
+
+<pre>
+n := 0
+local := *shared
+for i := 0; i &lt; m; i++ {
+	n += local
+}
+</pre>
+
+<p>
+是有效的，前提是能证明访问 <code>*shared</code> 不会出错，因为可能新增的这次读取不会影响任何已有的并发读取或写入。不过，这种改写不能用于源码到源码的转换器。
+</p>
+
+<h2 id="conclusion">结语</h2>
+
+<p>
+与几乎所有其他现代编程语言一样，Go 程序员编写的无数据竞争程序，可以依赖程序执行所具备的顺序一致性。
+</p>
+
+<p>
+对于存在数据竞争的程序，程序员和编译器都应记住这条建议：不要取巧。
+</p>

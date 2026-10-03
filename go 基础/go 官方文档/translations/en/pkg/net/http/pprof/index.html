@@ -1,0 +1,221 @@
+<!--{
+  "Title": "net/http/pprof package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package pprof</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/http/pprof"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package pprof serves via its HTTP server runtime profiling data
+in the format expected by the pprof visualization tool.
+<p>The package is typically only imported for the side effect of
+registering its HTTP handlers.
+The handled paths all begin with /debug/pprof/.
+As of Go 1.22, all the paths must be requested with GET.
+<p>To use pprof, link this package into your program:
+<pre>import _ &quot;net/http/pprof&quot;
+</pre>
+<p>If your application is not already running an http server, you
+need to start one. Add &quot;net/http&quot; and &quot;log&quot; to your imports and
+the following code to your main function:
+<pre>go func() {
+	log.Println(http.ListenAndServe(&quot;localhost:6060&quot;, nil))
+}()
+</pre>
+<p>By default, all the profiles listed in <a href="/pkg/runtime/pprof/#Profile">runtime/pprof.Profile</a> are
+available (via <a href="#Handler">Handler</a>), in addition to the <a href="#Cmdline">Cmdline</a>, <a href="#Profile">Profile</a>, <a href="#Symbol">Symbol</a>,
+and <a href="#Trace">Trace</a> profiles defined in this package.
+If you are not using DefaultServeMux, you will have to register handlers
+with the mux you are using.
+<h3 id="hdr-Parameters">Parameters</h3>
+<p>Parameters can be passed via GET query params:
+<ul>
+<li>debug=N (all profiles): response format: N = 0: binary (default), N &gt; 0: plaintext
+<li>gc=N (heap profile): N &gt; 0: run a garbage collection cycle before profiling
+<li>seconds=N (allocs, block, goroutine, heap, mutex, threadcreate profiles): return a delta profile
+<li>seconds=N (cpu (profile), trace profiles): profile for the given duration
+</ul>
+<h3 id="hdr-Usage_examples">Usage examples</h3>
+<p>Use the pprof tool to look at the heap profile:
+<pre>go tool pprof http://localhost:6060/debug/pprof/heap
+</pre>
+<p>Or to look at a 30-second CPU profile:
+<pre>go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+</pre>
+<p>Or to look at the goroutine blocking profile, after calling
+<a href="/pkg/runtime/#SetBlockProfileRate">runtime.SetBlockProfileRate</a> in your program:
+<pre>go tool pprof http://localhost:6060/debug/pprof/block
+</pre>
+<p>Or to look at the holders of contended mutexes, after calling
+<a href="/pkg/runtime/#SetMutexProfileFraction">runtime.SetMutexProfileFraction</a> in your program:
+<pre>go tool pprof http://localhost:6060/debug/pprof/mutex
+</pre>
+<p>The package also exports a handler that serves execution trace data
+for the &quot;go tool trace&quot; command. To collect a 5-second execution trace:
+<pre>curl -o trace.out http://localhost:6060/debug/pprof/trace?seconds=5
+go tool trace trace.out
+</pre>
+<p>To view all available profiles, open <a href="http://localhost:6060/debug/pprof/">http://localhost:6060/debug/pprof/</a>
+in your browser.
+<p>For a study of the facility in action, visit
+<a href="/blog/pprof">https://go.dev/blog/pprof</a>.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Cmdline">func Cmdline(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Handler">func Handler(name string) http.Handler</a></dd>
+			
+				<dd><a href="#Index">func Index(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Profile">func Profile(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Symbol">func Symbol(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+				<dd><a href="#Trace">func Trace(w http.ResponseWriter, r *http.Request)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/http/pprof/pprof.go">pprof.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Cmdline">func <a href="/src/net/http/pprof/pprof.go?s=3418:3470#L100">Cmdline</a>
+				
+				
+			</h2>
+			<pre>func Cmdline(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Cmdline responds with the running program&apos;s
+command line, with arguments separated by NUL bytes.
+The package initialization registers it as /debug/pprof/cmdline.
+
+			
+		
+			
+			<h2 id="Handler">func <a href="/src/net/http/pprof/pprof.go?s=7811:7849#L234">Handler</a>
+				
+				
+			</h2>
+			<pre>func Handler(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Handler">Handler</a></pre>
+			<p>Handler returns an HTTP handler that serves the named profile.
+Available profiles can be found in <a href="/pkg/runtime/pprof/#Profile">runtime/pprof.Profile</a>.
+
+			
+		
+			
+			<h2 id="Index">func <a href="/src/net/http/pprof/pprof.go?s=12770:12820#L378">Index</a>
+				
+				
+			</h2>
+			<pre>func Index(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Index responds with the pprof-formatted profile named by the request.
+For example, &quot;/debug/pprof/heap&quot; serves the &quot;heap&quot; profile.
+Index responds to a request for &quot;/debug/pprof/&quot; with an HTML page
+listing the available profiles.
+
+			
+		
+			
+			<h2 id="Profile">func <a href="/src/net/http/pprof/pprof.go?s=4584:4636#L134">Profile</a>
+				
+				
+			</h2>
+			<pre>func Profile(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Profile responds with the pprof-formatted cpu profile.
+Profiling lasts for duration specified in seconds GET parameter, or for 30 seconds if not specified.
+The package initialization registers it as /debug/pprof/profile.
+
+			
+		
+			
+			<h2 id="Symbol">func <a href="/src/net/http/pprof/pprof.go?s=6521:6572#L186">Symbol</a>
+				
+				
+			</h2>
+			<pre>func Symbol(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Symbol looks up the program counters listed in the request,
+responding with a table mapping program counters to function names.
+The package initialization registers it as /debug/pprof/symbol.
+
+			
+		
+			
+			<h2 id="Trace">func <a href="/src/net/http/pprof/pprof.go?s=5585:5635#L160">Trace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Trace(w <a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#ResponseWriter">ResponseWriter</a>, r *<a href="/pkg/net/http/">http</a>.<a href="/pkg/net/http/#Request">Request</a>)</pre>
+			<p>Trace responds with the execution trace in binary form.
+Tracing lasts for duration specified in seconds GET parameter, or for 1 second if not specified.
+The package initialization registers it as /debug/pprof/trace.
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

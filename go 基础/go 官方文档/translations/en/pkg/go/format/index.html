@@ -1,0 +1,206 @@
+<!--{
+  "Title": "go/format package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package format</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/format"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package format implements standard formatting of Go source.
+<p>Note that formatting of Go source code changes over time, so tools relying on
+consistent formatting should execute a specific version of the gofmt binary
+instead of using this package. That way, the formatting will be stable, and
+the tools won&apos;t need to be recompiled each time gofmt changes.
+<p>For example, pre-submit checks that use this package directly would behave
+differently depending on what Go version each developer uses, causing the
+check to be inherently fragile.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Node">func Node(dst io.Writer, fset *token.FileSet, node any) error</a></dd>
+			
+				<dd><a href="#Source">func Source(src []byte) ([]byte, error)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Node">Node</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/format/format.go">format.go</a>
+			
+				<a href="/src/go/format/internal.go">internal.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Node">func <a href="/src/go/format/format.go?s=1998:2059#L43">Node</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Node(dst <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, node <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Node formats node in canonical gofmt style and writes the result to dst.
+<p>The node type must be *<a href="/pkg/go/ast/#File">ast.File</a>, *<a href="/pkg/go/printer/#CommentedNode">printer.CommentedNode</a>, []<a href="/pkg/go/ast/#Decl">ast.Decl</a>,
+[]<a href="/pkg/go/ast/#Stmt">ast.Stmt</a>, or assignment-compatible to <a href="/pkg/go/ast/#Expr">ast.Expr</a>, <a href="/pkg/go/ast/#Decl">ast.Decl</a>, <a href="/pkg/go/ast/#Spec">ast.Spec</a>,
+or <a href="/pkg/go/ast/#Stmt">ast.Stmt</a>. Node does not modify node. Imports are not sorted for
+nodes representing partial source files (for instance, if the node is
+not an *<a href="/pkg/go/ast/#File">ast.File</a> or a *<a href="/pkg/go/printer/#CommentedNode">printer.CommentedNode</a> not wrapping an *<a href="/pkg/go/ast/#File">ast.File</a>).
+<p>The function may return early (before the entire result is written)
+and return a formatting error, for instance due to an incorrect AST.
+
+			
+
+
+<div id="example_Node" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;go/format&#34;
+	&#34;go/parser&#34;
+	&#34;go/token&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	const expr = &#34;(6&#43;2*3)/4&#34;
+
+	// parser.ParseExpr parses the argument and returns the
+	// corresponding ast.Node.
+	node, err := parser.ParseExpr(expr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create a FileSet for node. Since the node does not come
+	// from a real source file, fset will be empty.
+	fset := token.NewFileSet()
+
+	var buf bytes.Buffer
+	err = format.Node(&amp;buf, fset, node)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(buf.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>(6 + 2*3) / 4
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Source">func <a href="/src/go/format/format.go?s=3585:3624#L91">Source</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Source(src []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Source formats src in canonical gofmt style and returns the result
+or an (I/O or syntax) error. src is expected to be a syntactically
+correct Go source file, or a list of Go declarations or statements.
+<p>If src is a partial source file, the leading and trailing space of src
+is applied to the result (such that it has the same leading and trailing
+space as src), and the result is indented by the same amount as the first
+line of src containing code. Imports are not sorted for partial source files.
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

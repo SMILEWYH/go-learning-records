@@ -1,0 +1,1203 @@
+<!--{
+  "Title": "sync 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>sync 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "sync"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>sync 包提供互斥锁等基本同步原语。除 <a href="#Once">Once</a> 和 <a href="#WaitGroup">WaitGroup</a> 类型外，大多数原语面向底层库代码。更高层的同步更适合通过通道和通信实现。
+<p>包含本包所定义类型的值不应被复制。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#OnceFunc">func OnceFunc(f func()) func()</a></dd>
+			
+				<dd><a href="#OnceValue">func OnceValue[T any](f func() T) func() T</a></dd>
+			
+				<dd><a href="#OnceValues">func OnceValues[T1, T2 any](f func() (T1, T2)) func() (T1, T2)</a></dd>
+			
+			
+				
+				<dd><a href="#Cond">type Cond</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCond">func NewCond(l Locker) *Cond</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Broadcast">func (c *Cond) Broadcast()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Signal">func (c *Cond) Signal()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Cond.Wait">func (c *Cond) Wait()</a></dd>
+				
+			
+				
+				<dd><a href="#Locker">type Locker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Clear">func (m *Map) Clear()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.CompareAndDelete">func (m *Map) CompareAndDelete(key, old any) (deleted bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.CompareAndSwap">func (m *Map) CompareAndSwap(key, old, new any) (swapped bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Delete">func (m *Map) Delete(key any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Load">func (m *Map) Load(key any) (value any, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.LoadAndDelete">func (m *Map) LoadAndDelete(key any) (value any, loaded bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.LoadOrStore">func (m *Map) LoadOrStore(key, value any) (actual any, loaded bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Range">func (m *Map) Range(f func(key, value any) bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Store">func (m *Map) Store(key, value any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Swap">func (m *Map) Swap(key, value any) (previous any, loaded bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Mutex">type Mutex</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.Lock">func (m *Mutex) Lock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.TryLock">func (m *Mutex) TryLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Mutex.Unlock">func (m *Mutex) Unlock()</a></dd>
+				
+			
+				
+				<dd><a href="#Once">type Once</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Once.Do">func (o *Once) Do(f func())</a></dd>
+				
+			
+				
+				<dd><a href="#Pool">type Pool</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pool.Get">func (p *Pool) Get() any</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pool.Put">func (p *Pool) Put(x any)</a></dd>
+				
+			
+				
+				<dd><a href="#RWMutex">type RWMutex</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.Lock">func (rw *RWMutex) Lock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RLock">func (rw *RWMutex) RLock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RLocker">func (rw *RWMutex) RLocker() Locker</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.RUnlock">func (rw *RWMutex) RUnlock()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.TryLock">func (rw *RWMutex) TryLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.TryRLock">func (rw *RWMutex) TryRLock() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RWMutex.Unlock">func (rw *RWMutex) Unlock()</a></dd>
+				
+			
+				
+				<dd><a href="#WaitGroup">type WaitGroup</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Add">func (wg *WaitGroup) Add(delta int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Done">func (wg *WaitGroup) Done()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Go">func (wg *WaitGroup) Go(f func())</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WaitGroup.Wait">func (wg *WaitGroup) Wait()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Once">Once</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OnceValue">OnceValue</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OnceValues">OnceValues</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Pool">Pool</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WaitGroup">WaitGroup</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WaitGroup_addAndDone">WaitGroup (AddAndDone)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/sync/cond.go">cond.go</a>
+			
+				<a href="/src/sync/map.go">map.go</a>
+			
+				<a href="/src/sync/mutex.go">mutex.go</a>
+			
+				<a href="/src/sync/once.go">once.go</a>
+			
+				<a href="/src/sync/oncefunc.go">oncefunc.go</a>
+			
+				<a href="/src/sync/pool.go">pool.go</a>
+			
+				<a href="/src/sync/poolqueue.go">poolqueue.go</a>
+			
+				<a href="/src/sync/runtime.go">runtime.go</a>
+			
+				<a href="/src/sync/runtime2.go">runtime2.go</a>
+			
+				<a href="/src/sync/rwmutex.go">rwmutex.go</a>
+			
+				<a href="/src/sync/waitgroup.go">waitgroup.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="OnceFunc">func <a href="/src/sync/oncefunc.go?s=371:401#L1">OnceFunc</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<pre>func OnceFunc(f func()) func()</pre>
+			<p>OnceFunc 返回一个函数，它只调用 f 一次。返回的函数可以并发调用。
+<p>如果 f 触发 panic，则返回的函数每次被调用时都会以同一个值触发 panic。
+
+			
+		
+			
+			<h2 id="OnceValue">func <a href="/src/sync/oncefunc.go?s=1175:1217#L36">OnceValue</a>
+				
+				
+			</h2>
+			<pre>func OnceValue[T <a href="/pkg/builtin/#any">any</a>](f func() <a href="#T">T</a>) func() <a href="#T">T</a></pre>
+			<p>OnceValue 返回一个函数，它只调用 f 一次，并返回 f 的返回值。返回的函数可以并发调用。
+<p>如果 f 触发 panic，则返回的函数每次被调用时都会以同一个值触发 panic。
+
+			
+
+
+<div id="example_OnceValue" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例使用 OnceValue，确保即使并发使用，也只执行一次“高开销”计算。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sync&#34;
+)
+
+func main() {
+	once := sync.OnceValue(func() int {
+		sum := 0
+		for i := range 1000 {
+			sum &#43;= i
+		}
+		fmt.Println(&#34;Computed once:&#34;, sum)
+		return sum
+	})
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			const want = 499500
+			got := once()
+			if got != want {
+				fmt.Println(&#34;want&#34;, want, &#34;got&#34;, got)
+			}
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Computed once: 499500
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="OnceValues">func <a href="/src/sync/oncefunc.go?s=1855:1917#L70">OnceValues</a>
+				
+				
+			</h2>
+			<pre>func OnceValues[T1, T2 <a href="/pkg/builtin/#any">any</a>](f func() (<a href="#T1">T1</a>, <a href="#T2">T2</a>)) func() (<a href="#T1">T1</a>, <a href="#T2">T2</a>)</pre>
+			<p>OnceValues 返回一个函数，它只调用 f 一次，并返回 f 的各个返回值。返回的函数可以并发调用。
+<p>如果 f 触发 panic，则返回的函数每次被调用时都会以同一个值触发 panic。
+
+			
+
+
+<div id="example_OnceValues" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例使用 OnceValues，确保文件只读取一次。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"os"
+	"sync"
+)
+
+func main() {
+	once := sync.OnceValues(func() ([]byte, error) {
+		fmt.Println("Reading file once")
+		return os.ReadFile("example_test.go")
+	})
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			data, err := once()
+			if err != nil {
+				fmt.Println("error:", err)
+			}
+			_ = data // 此示例忽略数据
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Reading file once
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Cond">type <a href="/src/sync/cond.go?s=1391:1535#L27">Cond</a>
+				
+				
+			</h2>
+			<p>Cond 实现条件变量，为等待事件发生或通知事件已发生的 goroutine（轻量级协程）提供协调点。
+<p>每个 Cond 都关联一个 Locker L（通常为 <a href="#Mutex">*Mutex</a> 或 <a href="#RWMutex">*RWMutex</a>）。修改条件和调用 <a href="#Cond.Wait">Cond.Wait</a> 方法时，必须持有该锁。
+<p>Cond 首次使用后不得复制。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，Cond 保证：对 <a href="#Cond.Broadcast">Cond.Broadcast</a> 或 <a href="#Cond.Signal">Cond.Signal</a> 的调用“同步先于”它所解除阻塞的任何 Wait 调用。
+<p>对于许多简单场景，使用通道比使用 Cond 更合适：Broadcast 对应关闭通道，Signal 对应向通道发送值。
+<p>关于 <a href="#Cond">sync.Cond</a> 的替代方案，更多内容参见 <a href="https://blogtitle.github.io/categories/concurrency/">Roberto Clapis 的高级并发模式系列文章</a>，以及 <a href="https://drive.google.com/file/d/1nPdvhB0PutEJzdCq5ms6UI58dp50fcAN/view">Bryan Mills 关于并发模式的演讲</a>。
+
+			<pre>type Cond struct {
+
+<span id="Cond.L"></span>    <span class="comment">// 观察或更改条件时持有 L</span>
+    L <a href="#Locker">Locker</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewCond">func <a href="/src/sync/cond.go?s=1582:1610#L38">NewCond</a>
+					
+					
+				</h3>
+				<pre>func NewCond(l <a href="#Locker">Locker</a>) *<a href="#Cond">Cond</a></pre>
+				<p>NewCond 返回一个关联 Locker l 的新 Cond。
+
+				
+			
+
+			
+				<h3 id="Cond.Broadcast">func (*Cond) <a href="/src/sync/cond.go?s=3062:3088#L83">Broadcast</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Broadcast()</pre>
+				<p>Broadcast 唤醒所有正在 c 上等待的 goroutine。
+<p>调用方可以在调用时持有 c.L，但并非必须如此。Broadcast 的执行时间与等待中的 goroutine 数量成正比；请注意，调用 Broadcast 期间持有锁，会延长持锁时间。
+
+				
+			
+				<h3 id="Cond.Signal">func (*Cond) <a href="/src/sync/cond.go?s=2636:2659#L72">Signal</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Signal()</pre>
+				<p>Signal 唤醒一个正在 c 上等待的 goroutine（如果存在）。
+<p>调用方可以在调用时持有 c.L，但并非必须如此。
+<p>Signal() 不影响 goroutine 的调度优先级；如果其他 goroutine 正尝试锁定 c.L，它们可能先于某个“等待中”的 goroutine 被唤醒。
+
+				
+			
+				<h3 id="Cond.Wait">func (*Cond) <a href="/src/sync/cond.go?s=2180:2201#L57">Wait</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Cond">Cond</a>) Wait()</pre>
+				<p>Wait 原子地解锁 c.L，并挂起调用它的 goroutine。之后恢复执行时，Wait 会在返回前重新锁定 c.L。与其他系统不同，Wait 只有被 <a href="#Cond.Broadcast">Cond.Broadcast</a> 或 <a href="#Cond.Signal">Cond.Signal</a> 唤醒后才能返回。
+<p>由于 Wait 等待期间 c.L 未锁定，调用方通常不能假定 Wait 返回时条件一定成立。因此，调用方应在循环中调用 Wait：
+<pre>c.L.Lock()
+for !condition() {
+    c.Wait()
+}
+... make use of condition ...
+c.L.Unlock()
+</pre>
+
+				
+			
+		
+			
+			<h2 id="Locker">type <a href="/src/sync/mutex.go?s=1205:1248#L27">Locker</a>
+				
+				
+			</h2>
+			<p>Locker 表示一个可以加锁和解锁的对象。
+
+			<pre>type Locker interface {
+    Lock()
+    Unlock()
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Map">type <a href="/src/sync/map.go?s=1897:1958#L28">Map</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>Map 类似于 Go 的 map[any]any，但无需额外加锁或协调，就能安全地供多个 goroutine 并发使用。读取、存储和删除操作的摊还时间复杂度为常数。
+<p>Map 类型针对特定场景设计。大多数代码应使用普通 Go 映射，并单独进行加锁或协调，以获得更好的类型安全性，也便于在维护映射内容的同时维护其他不变量。
+<p>Map 类型针对两种常见场景优化：（1）某个键的条目只写入一次，但读取多次，例如只增不减的缓存；（2）多个 goroutine 对互不相交的键集合中的条目进行读、写和覆盖。在这两种情况下，与普通 Go 映射配合单独的 <a href="#Mutex">Mutex</a> 或 <a href="#RWMutex">RWMutex</a> 相比，Map 可能显著减少锁竞争。
+<p>Map 的零值为空且可直接使用。Map 首次使用后不得复制。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，Map 保证写操作“同步先于”任何观察到该写操作效果的读操作。这里的读写操作定义如下：<a href="#Map.Load">Map.Load</a>、<a href="#Map.LoadAndDelete">Map.LoadAndDelete</a>、<a href="#Map.LoadOrStore">Map.LoadOrStore</a>、<a href="#Map.Swap">Map.Swap</a>、<a href="#Map.CompareAndSwap">Map.CompareAndSwap</a> 和 <a href="#Map.CompareAndDelete">Map.CompareAndDelete</a> 是读操作；<a href="#Map.Delete">Map.Delete</a>、<a href="#Map.LoadAndDelete">Map.LoadAndDelete</a>、<a href="#Map.Store">Map.Store</a> 和 <a href="#Map.Swap">Map.Swap</a> 是写操作；<a href="#Map.LoadOrStore">Map.LoadOrStore</a> 在返回的 loaded 为 false 时是写操作；<a href="#Map.CompareAndSwap">Map.CompareAndSwap</a> 在返回的 swapped 为 true 时是写操作；<a href="#Map.CompareAndDelete">Map.CompareAndDelete</a> 在返回的 deleted 为 true 时是写操作。
+
+			<pre>type Map struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Map.Clear">func (*Map) <a href="/src/sync/map.go?s=2348:2369#L47">Clear</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Clear()</pre>
+				<p>Clear 删除所有条目，使 Map 变为空。
+
+				
+			
+				<h3 id="Map.CompareAndDelete">func (*Map) <a href="/src/sync/map.go?s=3826:3885#L88">CompareAndDelete</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) CompareAndDelete(key, old <a href="/pkg/builtin/#any">any</a>) (deleted <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>如果 key 对应的值等于 old，CompareAndDelete 会删除该条目。old 必须具有可比较类型。
+<p>如果映射中当前没有 key 对应的值，CompareAndDelete 返回 false，即使 old 是 nil 接口值也一样。
+
+				
+			
+				<h3 id="Map.CompareAndSwap">func (*Map) <a href="/src/sync/map.go?s=3452:3514#L79">CompareAndSwap</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) CompareAndSwap(key, old, new <a href="/pkg/builtin/#any">any</a>) (swapped <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>如果映射中 key 对应的值等于 old，CompareAndSwap 会将其替换为 new。old 必须具有可比较类型。
+
+				
+			
+				<h3 id="Map.Delete">func (*Map) <a href="/src/sync/map.go?s=3019:3048#L66">Delete</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Delete(key <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Delete 删除 key 对应的值。如果映射中没有该键，Delete 不执行任何操作。
+
+				
+			
+				<h3 id="Map.Load">func (*Map) <a href="/src/sync/map.go?s=2112:2160#L37">Load</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Load(key <a href="/pkg/builtin/#any">any</a>) (value <a href="/pkg/builtin/#any">any</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Load 返回映射中 key 对应的值；如果不存在，则返回 nil。返回值 ok 表示是否在映射中找到了该值。
+
+				
+			
+				<h3 id="Map.LoadAndDelete">func (*Map) <a href="/src/sync/map.go?s=2828:2889#L60">LoadAndDelete</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) LoadAndDelete(key <a href="/pkg/builtin/#any">any</a>) (value <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LoadAndDelete 删除 key 对应的值，并返回之前的值（如果存在）。返回值 loaded 表示该键原先是否存在。
+
+				
+			
+				<h3 id="Map.LoadOrStore">func (*Map) <a href="/src/sync/map.go?s=2578:2645#L54">LoadOrStore</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) LoadOrStore(key, value <a href="/pkg/builtin/#any">any</a>) (actual <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>如果 key 已存在，LoadOrStore 返回其已有的值；否则，存储并返回给定的值。如果值是读取到的，返回值 loaded 为 true；如果是新存入的，则为 false。
+
+				
+			
+				<h3 id="Map.Range">func (*Map) <a href="/src/sync/map.go?s=4576:4624#L103">Range</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Range(f func(key, value <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Range 针对映射中的每个键和值依次调用 f。如果 f 返回 false，则停止迭代。
+<p>Range 不一定对应 Map 内容的某个一致快照：每个键最多访问一次，但如果某个键的值被并发存储或删除（包括由 f 执行），Range 可能反映该键在 Range 调用期间任意时刻的映射关系。Range 不会阻塞对接收者其他方法的调用；即使 f 本身也可以调用 m 的任意方法。
+<p>即使 f 在调用常数次后就返回 false，Range 的复杂度仍可能为 O(N)，其中 N 为映射中的元素数量。
+
+				
+			
+				<h3 id="Map.Store">func (*Map) <a href="/src/sync/map.go?s=2223:2258#L42">Store</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Store(key, value <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Store 设置 key 对应的值。
+
+				
+			
+				<h3 id="Map.Swap">func (*Map) <a href="/src/sync/map.go?s=3202:3264#L72">Swap</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Swap(key, value <a href="/pkg/builtin/#any">any</a>) (previous <a href="/pkg/builtin/#any">any</a>, loaded <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Swap 替换 key 对应的值，并返回之前的值（如果存在）。返回值 loaded 表示该键原先是否存在。
+
+				
+			
+		
+			
+			<h2 id="Mutex">type <a href="/src/sync/mutex.go?s=1089:1137#L20">Mutex</a>
+				
+				
+			</h2>
+			<p>Mutex 是互斥锁。Mutex 的零值是一把未锁定的互斥锁。
+<p>Mutex 首次使用后不得复制。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，对于任意 n &lt; m，第 n 次 <a href="#Mutex.Unlock">Mutex.Unlock</a> 调用“同步先于”第 m 次 <a href="#Mutex.Lock">Mutex.Lock</a> 调用。成功的 <a href="#Mutex.TryLock">Mutex.TryLock</a> 调用等价于一次 Lock 调用。失败的 TryLock 调用不会建立任何“同步先于”关系。
+
+			<pre>type Mutex struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Mutex.Lock">func (*Mutex) <a href="/src/sync/mutex.go?s=1363:1385#L35">Lock</a>
+					
+					
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) Lock()</pre>
+				<p>Lock 锁定 m。如果锁已被占用，调用方 goroutine 会阻塞，直到互斥锁可用。
+
+				
+			
+				<h3 id="Mutex.TryLock">func (*Mutex) <a href="/src/sync/mutex.go?s=1629:1659#L44">TryLock</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) TryLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryLock 尝试锁定 m，并报告是否成功。
+<p>注意，虽然确实存在适合使用 TryLock 的场景，但这类场景很少；使用 TryLock 往往表明互斥锁的使用方式存在更深层的问题。
+
+				
+			
+				<h3 id="Mutex.Unlock">func (*Mutex) <a href="/src/sync/mutex.go?s=1951:1975#L54">Unlock</a>
+					
+					
+				</h3>
+				<pre>func (m *<a href="#Mutex">Mutex</a>) Unlock()</pre>
+				<p>Unlock 解锁 m。如果进入 Unlock 时 m 未锁定，会发生运行时错误。
+<p>已锁定的 <a href="#Mutex">Mutex</a> 不与特定 goroutine 绑定。允许一个 goroutine 锁定 Mutex，再安排另一个 goroutine 将其解锁。
+
+				
+			
+		
+			
+			<h2 id="Once">type <a href="/src/sync/once.go?s=502:899#L10">Once</a>
+				
+				
+			</h2>
+			<p>Once 是只执行一次操作的对象。
+<p>Once 首次使用后不得复制。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，f 的返回“同步先于”任意 once.Do(f) 调用的返回。
+
+			<pre>type Once struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Once" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;sync&#34;
+)
+
+func main() {
+	var once sync.Once
+	onceBody := func() {
+		fmt.Println(&#34;Only once&#34;)
+	}
+	done := make(chan bool)
+	for range 10 {
+		go func() {
+			once.Do(onceBody)
+			done &lt;- true
+		}()
+	}
+	for range 10 {
+		&lt;-done
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Only once
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Once.Do">func (*Once) <a href="/src/sync/once.go?s=1737:1764#L42">Do</a>
+					
+					
+				</h3>
+				<pre>func (o *<a href="#Once">Once</a>) Do(f func())</pre>
+				<p>当且仅当针对这个 <a href="#Once">Once</a> 实例首次调用 Do 时，Do 才会调用函数 f。换言之，给定
+<pre>var once Once
+</pre>
+<p>如果多次调用 once.Do(f)，只有第一次调用会执行 f，即使每次调用时 f 的值不同也是如此。每个需要执行的函数都需要单独的 Once 实例。
+<p>Do 用于必须且只能执行一次的初始化。由于 f 不接受参数，可能需要使用函数字面量捕获要由 Do 调用的函数所需的参数：
+<pre>config.once.Do(func() { config.init(filename) })
+</pre>
+<p>由于任何 Do 调用都要等那一次 f 调用返回后才会返回，如果 f 导致再次调用同一个 Once 的 Do，就会发生死锁。
+<p>如果 f 触发 panic，Do 会将其视为已返回；此后调用 Do 会直接返回，不再调用 f。
+
+				
+			
+		
+			
+			<h2 id="Pool">type <a href="/src/sync/pool.go?s=1980:2440#L42">Pool</a>
+				
+				<span title="自 Go 1.3 起提供">1.3</span>
+			</h2>
+			<p>Pool 是一组可分别存入和取出的临时对象。
+<p>存入 Pool 的任何对象都可能随时被自动移除，且不发出通知。如果此时只有 Pool 持有该对象的引用，对象就可能被释放。
+<p>多个 goroutine 同时使用 Pool 是安全的。
+<p>Pool 用于缓存已分配但未使用的对象，以便之后复用，从而减轻垃圾回收器的压力。也就是说，它便于构建高效、线程安全的空闲对象列表。但它并不适用于所有空闲对象列表。
+<p>Pool 适合管理一组临时对象，这些对象在包的多个独立并发使用方之间共享和复用，使用方无需感知这一过程。Pool 提供了一种在多个使用方之间摊销分配开销的方式。
+<p>fmt 包是合理使用 Pool 的一个例子：它维护一个大小动态变化的临时输出缓冲区存储池。该存储池在负载增加时（大量 goroutine 正在执行输出）扩张，并在空闲时收缩。
+<p>另一方面，作为短生命周期对象一部分而维护的空闲对象列表，不适合使用 Pool，因为这种情况下无法有效摊销开销。让此类对象自行实现空闲对象列表更高效。
+<p>Pool 首次使用后不得复制。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，Put(x) 调用“同步先于”返回同一个值 x 的 <a href="#Pool.Get">Pool.Get</a> 调用。同样，返回 x 的 New 调用“同步先于”返回同一个值 x 的 Get 调用。
+
+			<pre>type Pool struct {
+
+<span id="Pool.New"></span>    <span class="comment">// New 可以指定一个函数，用于在 Get 原本会返回 nil 时</span>
+    <span class="comment">// 生成一个值。</span>
+    <span class="comment">// 不得在调用 Get 的同时并发修改此字段。</span>
+    New func() <a href="/pkg/builtin/#any">any</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Pool" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"io"
+	"os"
+	"sync"
+	"time"
+)
+
+var bufPool = sync.Pool{
+	New: func() any {
+		// Pool 的 New 函数通常只应返回指针
+		// 类型，因为指针可以放入返回的接口值中，
+		// 而无需分配内存：
+		return new(bytes.Buffer)
+	},
+}
+
+// timeNow 是供测试使用的 time.Now 替身。
+func timeNow() time.Time {
+	return time.Unix(1136214245, 0)
+}
+
+func Log(w io.Writer, key, val string) {
+	b := bufPool.Get().(*bytes.Buffer)
+	b.Reset()
+	// 在实际日志记录器中，应将其替换为 time.Now()。
+	b.WriteString(timeNow().UTC().Format(time.RFC3339))
+	b.WriteByte(' ')
+	b.WriteString(key)
+	b.WriteByte('=')
+	b.WriteString(val)
+	w.Write(b.Bytes())
+	bufPool.Put(b)
+}
+
+func main() {
+	Log(os.Stdout, "path", "/search?q=flowers")
+}
+</textarea></div>
+        <div class="output"><pre>2006-01-02T15:04:05Z path=/search?q=flowers
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Pool.Get">func (*Pool) <a href="/src/sync/pool.go?s=4297:4321#L122">Get</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (p *<a href="#Pool">Pool</a>) Get() <a href="/pkg/builtin/#any">any</a></pre>
+				<p>Get 从 <a href="#Pool">Pool</a> 中选取任意一个对象，将其移除并返回给调用方。Get 可以选择忽略池中的对象，将池视为空。调用方不应假定传给 <a href="#Pool.Put">Pool.Put</a> 的值与 Get 返回的值之间存在任何关系。
+<p>如果 Get 原本会返回 nil，且 p.New 非 nil，则 Get 返回调用 p.New 的结果。
+
+				
+			
+				<h3 id="Pool.Put">func (*Pool) <a href="/src/sync/pool.go?s=3549:3574#L90">Put</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (p *<a href="#Pool">Pool</a>) Put(x <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Put 将 x 加入池中。
+
+				
+			
+		
+			
+			<h2 id="RWMutex">type <a href="/src/sync/rwmutex.go?s=1518:1880#L29">RWMutex</a>
+				
+				
+			</h2>
+			<p>RWMutex 是读写互斥锁。该锁可以由任意数量的读者持有，也可以由单个写者持有。RWMutex 的零值是一把未锁定的锁。
+<p>RWMutex 首次使用后不得复制。
+<p>如果一个或多个读者已持有锁，此时某个 goroutine 调用 <a href="#RWMutex.Lock">RWMutex.Lock</a>，那么并发调用 <a href="#RWMutex.RLock">RWMutex.RLock</a> 会阻塞，直到该写者获得并释放锁，以确保写者最终能够获得锁。注意，这意味着不能递归获取读锁。不能将 <a href="#RWMutex.RLock">RWMutex.RLock</a> 升级为 <a href="#RWMutex.Lock">RWMutex.Lock</a>，也不能将 <a href="#RWMutex.Lock">RWMutex.Lock</a> 降级为 <a href="#RWMutex.RLock">RWMutex.RLock</a>。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，对于任意 n &lt; m，第 n 次 <a href="#RWMutex.Unlock">RWMutex.Unlock</a> 调用“同步先于”第 m 次 Lock 调用，与 <a href="#Mutex">Mutex</a> 相同。对于任意一次 RLock 调用，都存在一个 n，使第 n 次 Unlock 调用“同步先于”该 RLock 调用，而对应的 <a href="#RWMutex.RUnlock">RWMutex.RUnlock</a> 调用“同步先于”第 n+1 次 Lock 调用。
+
+			<pre>type RWMutex struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RWMutex.Lock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=4525:4550#L134">Lock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) Lock()</pre>
+				<p>Lock 为写入锁定 rw。如果锁已被读者或写者持有，Lock 会阻塞，直到锁可用。
+
+				
+			
+				<h3 id="RWMutex.RLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=2644:2670#L57">RLock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RLock()</pre>
+				<p>RLock 为读取锁定 rw。
+<p>不应使用 RLock 递归获取读锁；阻塞中的 Lock 调用会阻止新读者获得锁。参见 <a href="#RWMutex">RWMutex</a> 类型的文档。
+
+				
+			
+				<h3 id="RWMutex.RLocker">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=7404:7439#L230">RLocker</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RLocker() <a href="#Locker">Locker</a></pre>
+				<p>RLocker 返回一个 <a href="#Locker">Locker</a> 接口，通过调用 rw.RLock 和 rw.RUnlock 实现 <a href="#Locker.Lock">Locker.Lock</a> 和 <a href="#Locker.Unlock">Locker.Unlock</a> 方法。
+
+				
+			
+				<h3 id="RWMutex.RUnlock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=3770:3798#L104">RUnlock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) RUnlock()</pre>
+				<p>RUnlock 解除一次 <a href="#RWMutex.RLock">RWMutex.RLock</a> 调用所获取的读锁，不影响其他并发读者。如果进入 RUnlock 时 rw 未被读锁锁定，会发生运行时错误。
+
+				
+			
+				<h3 id="RWMutex.TryLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=5305:5338#L159">TryLock</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) TryLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryLock 尝试为写入锁定 rw，并报告是否成功。
+<p>注意，虽然确实存在适合使用 TryLock 的场景，但这类场景很少；使用 TryLock 往往表明互斥锁的使用方式存在更深层的问题。
+
+				
+			
+				<h3 id="RWMutex.TryRLock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=3203:3237#L77">TryRLock</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) TryRLock() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>TryRLock 尝试为读取锁定 rw，并报告是否成功。
+<p>注意，虽然确实存在适合使用 TryRLock 的场景，但这类场景很少；使用 TryRLock 往往表明互斥锁的使用方式存在更深层的问题。
+
+				
+			
+				<h3 id="RWMutex.Unlock">func (*RWMutex) <a href="/src/sync/rwmutex.go?s=6128:6155#L191">Unlock</a>
+					
+					
+				</h3>
+				<pre>func (rw *<a href="#RWMutex">RWMutex</a>) Unlock()</pre>
+				<p>Unlock 解除 rw 的写锁。如果进入 Unlock 时 rw 未被写锁锁定，会发生运行时错误。
+<p>与 Mutex 一样，已锁定的 <a href="#RWMutex">RWMutex</a> 不与特定 goroutine 绑定。一个 goroutine 可以对 RWMutex 调用 <a href="#RWMutex.RLock">RWMutex.RLock</a>（或 <a href="#RWMutex.Lock">RWMutex.Lock</a>），再安排另一个 goroutine 调用 <a href="#RWMutex.RUnlock">RWMutex.RUnlock</a>（或 <a href="#RWMutex.Unlock">RWMutex.Unlock</a>）将其解锁。
+
+				
+			
+		
+			
+			<h2 id="WaitGroup">type <a href="/src/sync/waitgroup.go?s=1173:1379#L38">WaitGroup</a>
+				
+				
+			</h2>
+			<p>WaitGroup 是计数信号量，通常用于等待一组 goroutine 或任务完成。
+<p>通常，主 goroutine 调用 <a href="#WaitGroup.Go">WaitGroup.Go</a>，将各个任务分别放到新的 goroutine 中执行，然后调用 <a href="#WaitGroup.Wait">WaitGroup.Wait</a> 等待所有任务完成。例如：
+<pre>var wg sync.WaitGroup
+wg.Go(task1)
+wg.Go(task2)
+wg.Wait()
+</pre>
+<p>也可以通过 <a href="#WaitGroup.Add">WaitGroup.Add</a> 和 <a href="#WaitGroup.Done">WaitGroup.Done</a> 跟踪任务，而不使用 Go 启动新的 goroutine。
+<p>前面的示例可以改写为显式创建 goroutine，并配合 Add 和 Done 使用：
+<pre>var wg sync.WaitGroup
+wg.Add(1)
+go func() {
+	defer wg.Done()
+	task1()
+}()
+wg.Add(1)
+go func() {
+	defer wg.Done()
+	task2()
+}()
+wg.Wait()
+</pre>
+<p>这种写法常见于 <a href="#WaitGroup.Go">WaitGroup.Go</a> 引入之前的代码。
+<p>WaitGroup 首次使用后不得复制。
+
+			<pre>type WaitGroup struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_WaitGroup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例并发获取多个 URL，并使用 WaitGroup 阻塞等待，直到所有获取操作完成。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"sync"
+)
+
+type httpPkg struct{}
+
+func (httpPkg) Get(url string) {}
+
+var http httpPkg
+
+func main() {
+	var wg sync.WaitGroup
+	var urls = []string{
+		"http://www.golang.org/",
+		"http://www.google.com/",
+		"http://www.example.com/",
+	}
+	for _, url := range urls {
+		// 启动 goroutine 来获取 URL。
+		wg.Go(func() {
+			// 获取 URL。
+			http.Get(url)
+		})
+	}
+	// 等待所有 HTTP 获取操作完成。
+	wg.Wait()
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_WaitGroup_addAndDone" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (AddAndDone)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (AddAndDone)</span></p>
+    <p>本示例与主示例等价，但使用 Add/Done 代替 Go。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"sync"
+)
+
+type httpPkg struct{}
+
+func (httpPkg) Get(url string) {}
+
+var http httpPkg
+
+func main() {
+	var wg sync.WaitGroup
+	var urls = []string{
+		"http://www.golang.org/",
+		"http://www.google.com/",
+		"http://www.example.com/",
+	}
+	for _, url := range urls {
+		// 递增 WaitGroup 计数器。
+		wg.Add(1)
+		// 启动 goroutine 来获取 URL。
+		go func(url string) {
+			// goroutine 完成时递减计数器。
+			defer wg.Done()
+			// 获取 URL。
+			http.Get(url)
+		}(url)
+	}
+	// 等待所有 HTTP 获取操作完成。
+	wg.Wait()
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="WaitGroup.Add">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=2329:2364#L67">Add</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Add(delta <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>Add 将 delta（可以为负数）加到 <a href="#WaitGroup">WaitGroup</a> 的任务计数器上。如果计数器变为零，所有阻塞在 <a href="#WaitGroup.Wait">WaitGroup.Wait</a> 上的 goroutine 都会被释放。如果计数器变为负数，Add 会触发 panic。
+<p>调用方应优先使用 <a href="#WaitGroup.Go">WaitGroup.Go</a>。
+<p>注意，当计数器为零时，以正 delta 调用 Add 必须发生在 Wait 之前。以负 delta 调用 Add，或在计数器大于零时开始的正 delta 调用，可以发生在任意时刻。通常这意味着，应先调用 Add，再执行创建 goroutine 或其他待等待事件的语句。如果重复使用 WaitGroup 来等待多组独立事件，新的 Add 调用必须发生在之前所有 Wait 调用返回之后。参见 WaitGroup 示例。
+
+				
+			
+				<h3 id="WaitGroup.Done">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=4977:5004#L145">Done</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Done()</pre>
+				<p>Done 将 <a href="#WaitGroup">WaitGroup</a> 的任务计数器减一，等价于 Add(-1)。
+<p>调用方应优先使用 <a href="#WaitGroup.Go">WaitGroup.Go</a>。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，Done 调用“同步先于”它所解除阻塞的任何 Wait 调用的返回。
+
+				
+			
+				<h3 id="WaitGroup.Go">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=7516:7549#L226">Go</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Go(f func())</pre>
+				<p>Go 在新的 goroutine 中调用 f，并将该任务加入 <a href="#WaitGroup">WaitGroup</a>。f 返回时，从 WaitGroup 中移除该任务。
+<p>函数 f 不得触发 panic。
+<p>如果 WaitGroup 为空，Go 必须发生在 <a href="#WaitGroup.Wait">WaitGroup.Wait</a> 之前。通常只需先调用 Go 启动任务，再调用 Wait。如果 WaitGroup 非空，Go 可以发生在任意时刻。这意味着由 Go 启动的 goroutine 本身也可以调用 Go。如果重复使用 WaitGroup 来等待多组独立任务，新的 Go 调用必须发生在之前所有 Wait 调用返回之后。
+<p>按照 <a href="/ref/mem">Go 内存模型</a>的术语，f 的返回“同步先于”它所解除阻塞的任何 Wait 调用的返回。
+
+				
+			
+				<h3 id="WaitGroup.Wait">func (*WaitGroup) <a href="/src/sync/waitgroup.go?s=5081:5108#L150">Wait</a>
+					
+					
+				</h3>
+				<pre>func (wg *<a href="#WaitGroup">WaitGroup</a>) Wait()</pre>
+				<p>Wait 阻塞，直到 <a href="#WaitGroup">WaitGroup</a> 的任务计数器为零。
+
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="atomic/">atomic</a>
+					</td>
+				
+					<td class="pkg-synopsis">atomic 包提供底层的原子内存操作原语，可用于实现同步算法。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

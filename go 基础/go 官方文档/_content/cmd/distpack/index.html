@@ -1,0 +1,34 @@
+<!--{
+  "Title": "distpack 命令",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>distpack 命令
+</h1>
+
+
+
+
+	
+		
+		<p>Distpack 创建 Go 发行版的 tgz 和 zip 文件，并将下列内容写入 GOROOT/pkg/distpack：
+<ul>
+<li>针对当前 GOOS 和 GOARCH 的二进制发行包（tgz 或 zip）
+<li>与 GOOS/GOARCH 无关的源码发行包
+<li>以模块形式发布的发行版所需的 mod、info 和 zip 文件，供 go 命令的 GOTOOLCHAIN 功能使用。
+</ul>
+<p>Distpack 通常由 make.bash 的 -distpack 标志调用。可以使用以下命令交叉编译 goos/goarch 对应的发行版：
+<pre>GOOS=goos GOARCH=goarch ./make.bash -distpack
+</pre>
+<p>验证模块下载能否由 go 命令使用：
+<pre>./make.bash -distpack
+mkdir -p /tmp/goproxy/golang.org/toolchain/
+ln -sf $(pwd)/../pkg/distpack /tmp/goproxy/golang.org/toolchain/@v
+GOPROXY=file:///tmp/goproxy GOTOOLCHAIN=$(sed 1q ../VERSION) gotip version
+</pre>
+<p>当已有较早发布的 Go 版本可用时，可以用它替换 gotip。不能使用 make.bash 刚构建的版本，因为它知道自己已经是该版本，会跳过下载。
+</article>

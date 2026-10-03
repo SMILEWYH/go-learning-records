@@ -1,0 +1,319 @@
+<!--{
+  "Title": "image/draw 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>image/draw 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "image/draw"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>draw 包提供图像合成功能。<p>本包的介绍见《Go image/draw 包》：<a href="/golang.org/doc/articles/image_draw.html">https://golang.org/doc/articles/image_draw.html</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Draw">func Draw(dst Image, r image.Rectangle, src image.Image, sp image.Point, op Op)</a></dd>
+			
+				<dd><a href="#DrawMask">func DrawMask(dst Image, r image.Rectangle, src image.Image, sp image.Point, mask image.Image, mp image.Point, op Op)</a></dd>
+			
+			
+				
+				<dd><a href="#Drawer">type Drawer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Image">type Image</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Op">type Op</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Op.Draw">func (op Op) Draw(dst Image, r image.Rectangle, src image.Image, sp image.Point)</a></dd>
+				
+			
+				
+				<dd><a href="#Quantizer">type Quantizer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RGBA64Image">type RGBA64Image</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Drawer_floydSteinberg">Drawer (FloydSteinberg)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/image/draw/draw.go">draw.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Draw">func <a href="/src/image/draw/draw.go?s=3226:3305#L100">Draw</a>
+				
+				
+			</h2>
+			<pre>func Draw(dst <a href="#Image">Image</a>, r <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Rectangle">Rectangle</a>, src <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, sp <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Point">Point</a>, op <a href="#Op">Op</a>)</pre>
+			<p>Draw 以 nil 掩码调用 <a href="#DrawMask">DrawMask</a>。<h2 id="DrawMask">func <a href="/src/image/draw/draw.go?s=3547:3664#L106">DrawMask</a>
+				
+				
+			</h2>
+			<pre>func DrawMask(dst <a href="#Image">Image</a>, r <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Rectangle">Rectangle</a>, src <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, sp <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Point">Point</a>, mask <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, mp <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Point">Point</a>, op <a href="#Op">Op</a>)</pre>
+			<p>DrawMask 将 dst 中的 r.Min 与 src 中的 sp 及 mask 中的 mp 对齐，然后用 Porter-Duff 合成结果替换 dst 中的矩形 r。nil 掩码视为完全不透明。<h2 id="Drawer">type <a href="/src/image/draw/draw.go?s=1743:1965#L50">Drawer</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Drawer 包含 <a href="#Draw">Draw</a> 方法。<pre>type Drawer interface {
+    <span class="comment">// Draw 将 dst 中的 r.Min 与 src 中的 sp 对齐，随后用</span>
+    <span class="comment">// 将 src 绘制到 dst 上所得的结果替换 dst 中的矩形 r。</span>
+    Draw(dst <a href="#Image">Image</a>, r <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Rectangle">Rectangle</a>, src <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, sp <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Point">Point</a>)
+}</pre>
+
+			
+
+			
+				<p>FloydSteinberg 是一个 <a href="#Drawer">Drawer</a>，使用带 Floyd-Steinberg 误差扩散的 <a href="#Src">Src</a> <a href="#Op">Op</a> 操作。<pre>var <span id="FloydSteinberg">FloydSteinberg</span> <a href="#Drawer">Drawer</a> = floydSteinberg{}</pre>
+			
+
+			
+
+
+<div id="example_Drawer_floydSteinberg" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (FloydSteinberg)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (FloydSteinberg)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;image&#34;
+	&#34;image/color&#34;
+	&#34;image/draw&#34;
+	&#34;math&#34;
+)
+
+func main() {
+	const width = 130
+	const height = 50
+
+	im := image.NewGray(image.Rectangle{Max: image.Point{X: width, Y: height}})
+	for x := 0; x &lt; width; x&#43;&#43; {
+		for y := 0; y &lt; height; y&#43;&#43; {
+			dist := math.Sqrt(math.Pow(float64(x-width/2), 2)/3&#43;math.Pow(float64(y-height/2), 2)) / (height / 1.5) * 255
+			var gray uint8
+			if dist &gt; 255 {
+				gray = 255
+			} else {
+				gray = uint8(dist)
+			}
+			im.SetGray(x, y, color.Gray{Y: 255 - gray})
+		}
+	}
+	pi := image.NewPaletted(im.Bounds(), []color.Color{
+		color.Gray{Y: 255},
+		color.Gray{Y: 160},
+		color.Gray{Y: 70},
+		color.Gray{Y: 35},
+		color.Gray{Y: 0},
+	})
+
+	draw.FloydSteinberg.Draw(pi, im.Bounds(), im, image.Point{})
+	shade := []string{&#34; &#34;, &#34;░&#34;, &#34;▒&#34;, &#34;▓&#34;, &#34;█&#34;}
+	for i, p := range pi.Pix {
+		fmt.Print(shade[p])
+		if (i&#43;1)%width == 0 {
+			fmt.Print(&#34;\n&#34;)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="Image">type <a href="/src/image/draw/draw.go?s=572:639#L11">Image</a>
+				
+				
+			</h2>
+			<p>Image 是带有 Set 方法的 image.Image，该方法用于修改单个像素。<pre>type Image interface {
+    <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>
+    Set(x, y <a href="/pkg/builtin/#int">int</a>, c <a href="/pkg/image/color/">color</a>.<a href="/pkg/image/color/#Color">Color</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Op">type <a href="/src/image/draw/draw.go?s=1351:1362#L34">Op</a>
+				
+				
+			</h2>
+			<p>Op 是 Porter-Duff 合成运算符。<pre>type Op <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// Over 指定“(src in mask) over dst”。</span>
+    <span id="Over">Over</span> <a href="#Op">Op</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span class="comment">// Src 指定“src in mask”。</span>
+    <span id="Src">Src</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Op.Draw">func (Op) <a href="/src/image/draw/draw.go?s=1568:1648#L45">Draw</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (op <a href="#Op">Op</a>) Draw(dst <a href="#Image">Image</a>, r <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Rectangle">Rectangle</a>, src <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, sp <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Point">Point</a>)</pre>
+				<p>Draw 通过以此 <a href="#Op">Op</a> 调用 Draw 函数来实现 <a href="#Drawer">Drawer</a> 接口。<h2 id="Quantizer">type <a href="/src/image/draw/draw.go?s=1082:1304#L27">Quantizer</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Quantizer 为图像生成调色板。<pre>type Quantizer interface {
+    <span class="comment">// Quantize 向 p 中追加至多 cap(p) - len(p) 种颜色，并返回</span>
+    <span class="comment">// 更新后的调色板，该调色板适合用于将 m 转换为调色板图像。</span>
+    Quantize(p <a href="/pkg/image/color/">color</a>.<a href="/pkg/image/color/#Palette">Palette</a>, m <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>) <a href="/pkg/image/color/">color</a>.<a href="/pkg/image/color/#Palette">Palette</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RGBA64Image">type <a href="/src/image/draw/draw.go?s=918:1034#L20">RGBA64Image</a>
+				
+				<span title="自 Go 1.17 起提供">1.17</span>
+			</h2>
+			<p>RGBA64Image 在 <a href="#Image">Image</a> 和 <a href="/pkg/image/#RGBA64Image">image.RGBA64Image</a> 两个接口的基础上增加了 SetRGBA64 方法，用于修改单个像素。SetRGBA64 等价于调用 Set，但可以避免将具体颜色类型转换为 <a href="/pkg/image/color/#Color">color.Color</a> 接口类型时产生的内存分配。<pre>type RGBA64Image interface {
+    <a href="/pkg/image/">image</a>.<a href="/pkg/image/#RGBA64Image">RGBA64Image</a>
+    Set(x, y <a href="/pkg/builtin/#int">int</a>, c <a href="/pkg/image/color/">color</a>.<a href="/pkg/image/color/#Color">Color</a>)
+    SetRGBA64(x, y <a href="/pkg/builtin/#int">int</a>, c <a href="/pkg/image/color/">color</a>.<a href="/pkg/image/color/#RGBA64">RGBA64</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

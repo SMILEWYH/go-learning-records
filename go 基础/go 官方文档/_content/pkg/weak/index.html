@@ -1,0 +1,113 @@
+<!--{
+  "Title": "weak 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>weak 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "weak"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>weak 包提供安全地弱引用内存的方式，也就是在引用内存的同时不阻止其被回收。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Pointer">type Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Make">func Make[T any](ptr *T) Pointer[T]</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Value">func (p Pointer[T]) Value() *T</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/weak/doc.go">doc.go</a>
+			
+				<a href="/src/weak/pointer.go">pointer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Pointer">type <a href="/src/weak/pointer.go?s=2877:3057#L50">Pointer</a>
+				
+				
+			</h2>
+			<p>Pointer 是指向 T 类型值的弱指针。<p>与普通指针一样，Pointer 可以引用对象的任何部分，例如结构体字段或数组元素。仅由弱指针指向的对象不被视为可达；一旦对象变得不可达，<a href="#Pointer.Value">Pointer.Value</a> 就可能返回 nil。<p>弱指针主要用于实现缓存、规范化映射（如 unique 包），以及将不同值的生命周期关联起来（例如通过键为弱指针的映射）。<p>两个 Pointer 值相等，当且仅当用于创建它们的指针相等。即使创建弱引用时所用指针引用的对象已被回收，这一性质仍然成立。如果创建多个弱指针，分别指向同一对象内的不同偏移位置（例如同一结构体的不同字段），这些指针将不相等。换言之，弱指针对应的是对象及其内部偏移，而不只是地址。如果创建弱指针后，对象变得不可达，随后又因终结器而复活，那么该弱指针与对象复活后创建的弱指针不相等。<p>用 nil 指针调用 <a href="#Make">Make</a> 会返回一个弱指针，其 <a href="#Pointer.Value">Pointer.Value</a> 始终返回 nil。Pointer 的零值行为等同于向 <a href="#Make">Make</a> 传入 nil 创建的弱指针，并与这类指针相等。<p>不保证 <a href="#Pointer.Value">Pointer.Value</a> 最终会返回 nil。对象一旦变得不可达，<a href="#Pointer.Value">Pointer.Value</a> 就可能返回 nil。存储在全局变量中的值，或可通过从全局变量开始追踪指针找到的值，都是可达的。函数实参或接收者可能在函数最后一次提及它的位置之后变得不可达。为确保 <a href="#Pointer.Value">Pointer.Value</a> 不返回 nil，应在对象必须保持可达的最后一个位置之后，将指向该对象的指针传给 <a href="/pkg/runtime/#KeepAlive">runtime.KeepAlive</a> 函数。<p>注意，由于不保证 <a href="#Pointer.Value">Pointer.Value</a> 最终会返回 nil，即使对象已不再被引用，运行时也允许通过将多个对象合并到同一个分配槽中来节省空间。如果这种分配中不再被引用的对象始终与一个仍被引用的对象处于同一批次，其弱指针可能永远不会变成 nil。通常，这种批量分配只发生在很小（约 16 字节或更小）且不含指针的对象上。<pre>type Pointer[T <a href="/pkg/builtin/#any">any</a>] struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Make">func <a href="/src/weak/pointer.go?s=3130:3165#L58">Make</a>
+					
+					
+				</h3>
+				<pre>func Make[T <a href="/pkg/builtin/#any">any</a>](ptr *<a href="#T">T</a>) <a href="#Pointer">Pointer</a>[<a href="#T">T</a>]</pre>
+				<p>Make 从指向某个 T 类型值的指针创建弱指针。<h3 id="Pointer.Value">func (Pointer[T]) <a href="/src/weak/pointer.go?s=3717:3747#L75">Value</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>[<a href="#T">T</a>]) Value() *<a href="#T">T</a></pre>
+				<p>Value 返回创建该弱指针时使用的原始指针。如果原始指针指向的值已被垃圾回收器回收，则返回 nil。如果弱指针指向带有终结器的对象，那么只要该对象的终结器被加入执行队列，Value 就会返回 nil。</article>

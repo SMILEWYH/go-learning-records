@@ -1,0 +1,127 @@
+<!--{
+  "Title": "crypto/hmac package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package hmac</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/hmac"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package hmac implements the Keyed-Hash Message Authentication Code (HMAC) as
+defined in U.S. Federal Information Processing Standards Publication 198.
+An HMAC is a cryptographic hash that uses a key to sign a message.
+The receiver verifies the hash by recomputing it using the same key.
+<p>Receivers should be careful to use Equal to compare MACs in order to avoid
+timing side-channels:
+<pre>// ValidMAC reports whether messageMAC is a valid HMAC tag for message.
+func ValidMAC(message, messageMAC, key []byte) bool {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	expectedMAC := mac.Sum(nil)
+	return hmac.Equal(messageMAC, expectedMAC)
+}
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Equal">func Equal(mac1, mac2 []byte) bool</a></dd>
+			
+				<dd><a href="#New">func New(h func() hash.Hash, key []byte) hash.Hash</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/hmac/hmac.go">hmac.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Equal">func <a href="/src/crypto/hmac/hmac.go?s=2006:2040#L50">Equal</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func Equal(mac1, mac2 []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Equal compares two MACs for equality without leaking timing information.
+
+			
+		
+			
+			<h2 id="New">func <a href="/src/crypto/hmac/hmac.go?s=1346:1396#L29">New</a>
+				
+				
+			</h2>
+			<pre>func New(h func() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>, key []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a></pre>
+			<p>New returns a new HMAC hash using the given <a href="/pkg/hash/#Hash">hash.Hash</a> type and key.
+New functions like <a href="/pkg/crypto/sha256/#New">crypto/sha256.New</a> can be used as h.
+h must return a new Hash every time it is called.
+Note that unlike other hash implementations in the standard library,
+the returned Hash does not implement <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>
+or <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a>.
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

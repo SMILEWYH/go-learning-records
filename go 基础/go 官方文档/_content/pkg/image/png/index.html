@@ -1,0 +1,431 @@
+<!--{
+  "Title": "image/png 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>image/png 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "image/png"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>png 包实现 PNG 图像的解码器和编码器。<p>PNG 规范位于 <a href="https://www.w3.org/TR/PNG/">https://www.w3.org/TR/PNG/</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Decode">func Decode(r io.Reader) (image.Image, error)</a></dd>
+			
+				<dd><a href="#DecodeConfig">func DecodeConfig(r io.Reader) (image.Config, error)</a></dd>
+			
+				<dd><a href="#Encode">func Encode(w io.Writer, m image.Image) error</a></dd>
+			
+			
+				
+				<dd><a href="#CompressionLevel">type CompressionLevel</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Encoder">type Encoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Encode">func (enc *Encoder) Encode(w io.Writer, m image.Image) error</a></dd>
+				
+			
+				
+				<dd><a href="#EncoderBuffer">type EncoderBuffer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#EncoderBufferPool">type EncoderBufferPool</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FormatError">type FormatError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatError.Error">func (e FormatError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnsupportedError">type UnsupportedError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnsupportedError.Error">func (e UnsupportedError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Decode">Decode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Encode">Encode</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/image/png/paeth.go">paeth.go</a>
+			
+				<a href="/src/image/png/reader.go">reader.go</a>
+			
+				<a href="/src/image/png/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Decode">func <a href="/src/image/png/reader.go?s=25072:25117#L959">Decode</a>
+				
+				
+			</h2>
+			<pre>func Decode(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Decode 从 r 读取 PNG 图像，并以 <a href="/pkg/image/#Image">image.Image</a> 的形式返回。返回的 Image 类型取决于 PNG 内容。<div id="example_Decode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/base64&#34;
+	&#34;fmt&#34;
+	&#34;image/color&#34;
+	&#34;image/png&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+const gopher = `iVBORw0KGgoAAAANSUhEUgAAAEsAAAA8CAAAAAALAhhPAAAFfUlEQVRYw62XeWwUVRzHf2&#43;OPbo9d7tsWyiyaZti6eWGAhISoIGKECEKCAiJJkYTiUgTMYSIosYYBBIUIxoSPIINEBDi2VhwkQrVsj1ESgu9doHWdrul7ba73WNm3vOPtsseM9MdwvvrzTs&#43;8/t95ze/33sI5BqiabU6m9En8oNjduLnAEDLUsQXFF8tQ5oxK3vmnNmDSMtrncks9Hhtt/qeWZapHb1ha3UqYSWVl2ZmpWgaXMXGohQAvmeop3bjTRtv6SgaK/Pb9/bFzUrYslbFAmHPp&#43;3WhAYdr&#43;7GN/YnpN46Opv55VDsJkoEpMrY/vO2BIYQ6LLvm0ThY3MzDzzeSJeeWNyTkgnIE5ePKsvKlcg/0T9QMzXalwXMlj54z4c0rh/mzEfr&#43;FgWEz2w6uk8dkzFAgcARAgNp1ZYef8bH2AgvuStbc2/i6CiWGj98y2tw2l4FAXKkQBIf&#43;exyRnteY83LfEwDQAYCoK&#43;P6bxkZm/0966LxcAAILHB56kgD95PPxltuYcMtFTWw/FKkY/6Opf3GGd9ZF&#43;Qp6mzJxzuRSractOmJrH1u8XTvWFHINNkLQLMR&#43;XHXvfPPHw967raE1xxwtA36IMRfkAAG29/7mLuQcb2WOnsJReZGfpiHsSBX81cvMKywYZHhX5hFPtOqPGWZCXnhWGAu6lX91ElKXSalcLXu3UaOXVay57ZSe5f6Gpx7J2MXAsi7EqSp09b/MirKSyJfnfEEgeDjl8FgDAfvewP03zZ&#43;AJ0m9aFRM8eEHBDRKjfcreDXnZdQuAxXpT2NRJ7xl3UkLBhuVGU16gZiGOgZmrSbRdqkILuL/yYoSXHHkl9KXgqNu3PB8oRg0geC5vFmLjad6mUyTKLmF3OtraWDIfACyXqmephaDABawfpi6tqqBZytfQMqOz6S09iWXhktrRaB8Xz4Yi/8gyABDm5NVe6qq/3VzPrcjELWrebVuyY2T7ar4zQyybUCtsQ5Es1FGaZVrRVQwAgHGW2ZCRZshI5bGQi7HesyE972pOSeMM0dSktlzxRdrlqb3Osa6CCS8IJoQQQgBAbTAa5l5epO34rJszibJI8rxLfGzcp1dRosutGeb2VDNgqYrwTiPNsLxXiPi3dz7LiS1WBRBDBOnqEjyy3aQb&#43;/bLiJzz9dIkscVBBLxMfSEac7kO4Fpkngi0ruNBeSOal&#43;u8jgOuqPz12nryMLCniEjtOOOmpt&#43;KEIqsEdocJjYXwrh9OZqWJQyPCTo67LNS/TdxLAv6R5ZNK9npEjbYdT33gRo4o5oTqR34R&#43;OmaSzDBWsAIPhuRcgyoteNi9gF0KzNYWVItPf2TLoXEg&#43;7isNC7uJkgo1iQWOfRSP9NR11RtbZZ3OMG/VhL6jvx&#43;J1m87&#43;RCfJChAtEBQkSBX2PnSiihc/Twh3j0h7qdYQAoRVsRGmq7HU2QRbaxVGa1D6nIOqaIWRjyRZpHMQKWKpZM5feA&#43;lzC4ZFultV8S6T0mzQGhQohi5I8iw&#43;CsqBSxhFMuwyLgSwbghGb0AiIKkSDmGZVmJSiKihsiyOAUs70UkywooYP0bii9GdH4sfr1UNysd3fUyLLMQN&#43;rsmo3grHl9VNJHbbwxoa47Vw5gupIqrZcjPh9R4Nye3nRDk199V&#43;aetmvVtDRE8/&#43;cbgAAgMIWGb3UA0MGLE9SCbWX670TDy1y98c3D27eppUjsZ6fql3jcd5rUe7&#43;ZIlLNQny3Rd&#43;E5Tct3WVhTM5RBCEdiEK0b6B&#43;/ca2gYU393nFj/n1AygRQxPIUA043M42u85&#43;z2SnssKrPl8Mx76NL3E6eXc3be7OD&#43;H4WHbJkKI8AU8irbITQjZ&#43;0hQcPEgId/Fn/pl9crKH02&#43;5o2b9T/eMx7pKoskYgAAAABJRU5ErkJggg==`
+
+// gopherPNG 解码 gopher 常量中以 base64 编码的图像数据字符串，从而创建一个 io.Reader。
+func gopherPNG() io.Reader { return base64.NewDecoder(base64.StdEncoding, strings.NewReader(gopher)) }
+
+func main() {
+	// 本示例使用 png.Decode，它只能解码 PNG 图像。
+	// 也可以考虑使用通用的 image.Decode，它可以识别并解码任何已注册的图像格式。
+	img, err := png.Decode(gopherPNG())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	levels := []string{&#34; &#34;, &#34;░&#34;, &#34;▒&#34;, &#34;▓&#34;, &#34;█&#34;}
+
+	for y := img.Bounds().Min.Y; y &lt; img.Bounds().Max.Y; y&#43;&#43; {
+		for x := img.Bounds().Min.X; x &lt; img.Bounds().Max.X; x&#43;&#43; {
+			c := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
+			level := c.Y / 51 // 51 * 5 = 255
+			if level == 5 {
+				level--
+			}
+			fmt.Print(levels[level])
+		}
+		fmt.Print(&#34;\n&#34;)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="DecodeConfig">func <a href="/src/image/png/reader.go?s=25577:25629#L983">DecodeConfig</a>
+				
+				
+			</h2>
+			<pre>func DecodeConfig(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="/pkg/image/">image</a>.<a href="/pkg/image/#Config">Config</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>DecodeConfig 返回 PNG 图像的颜色模型和尺寸，而不解码整个图像。<h2 id="Encode">func <a href="/src/image/png/writer.go?s=14223:14268#L578">Encode</a>
+				
+				
+			</h2>
+			<pre>func Encode(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, m <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Encode 以 PNG 格式将图像 m 写入 w。任何 Image 都可以编码，但对于并非 <a href="/pkg/image/#NRGBA">image.NRGBA</a> 的图像，编码可能有损。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<div id="example_Encode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;image&#34;
+	&#34;image/color&#34;
+	&#34;image/png&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const width, height = 256, 256
+
+	// 创建具有给定宽度和高度的彩色图像。
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+
+	for y := 0; y &lt; height; y&#43;&#43; {
+		for x := 0; x &lt; width; x&#43;&#43; {
+			img.Set(x, y, color.NRGBA{
+				R: uint8((x &#43; y) &amp; 255),
+				G: uint8((x &#43; y) &lt;&lt; 1 &amp; 255),
+				B: uint8((x &#43; y) &lt;&lt; 2 &amp; 255),
+				A: 255,
+			})
+		}
+	}
+
+	f, err := os.Create(&#34;image.png&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := png.Encode(f, img); err != nil {
+		f.Close()
+		log.Fatal(err)
+	}
+
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="CompressionLevel">type <a href="/src/image/png/writer.go?s=1210:1235#L45">CompressionLevel</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>CompressionLevel 表示压缩级别。<pre>type CompressionLevel <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="DefaultCompression">DefaultCompression</span> <a href="#CompressionLevel">CompressionLevel</a> = 0
+    <span id="NoCompression">NoCompression</span>      <a href="#CompressionLevel">CompressionLevel</a> = -1
+    <span id="BestSpeed">BestSpeed</span>          <a href="#CompressionLevel">CompressionLevel</a> = -2
+    <span id="BestCompression">BestCompression</span>    <a href="#CompressionLevel">CompressionLevel</a> = -3
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Encoder">type <a href="/src/image/png/writer.go?s=328:527#L9">Encoder</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>Encoder 配置 PNG 图像编码。<pre>type Encoder struct {
+<span id="Encoder.CompressionLevel"></span>    CompressionLevel <a href="#CompressionLevel">CompressionLevel</a>
+
+<span id="Encoder.BufferPool"></span>    <span class="comment">// BufferPool 可选地指定一个缓冲池，在编码图像时</span>
+    <span class="comment">// 从中获取临时的 EncoderBuffer。</span>
+    BufferPool <a href="#EncoderBufferPool">EncoderBufferPool</a> <span class="comment">// Go 1.9</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Encoder.Encode">func (*Encoder) <a href="/src/image/png/writer.go?s=14535:14595#L588">Encode</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Encode(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, m <a href="/pkg/image/">image</a>.<a href="/pkg/image/#Image">Image</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Encode 以 PNG 格式将图像 m 写入 w。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<h2 id="EncoderBuffer">type <a href="/src/image/png/writer.go?s=860:886#L26">EncoderBuffer</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>EncoderBuffer 保存编码 PNG 图像时使用的缓冲区。<pre>type EncoderBuffer encoder</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="EncoderBufferPool">type <a href="/src/image/png/writer.go?s=714:793#L20">EncoderBufferPool</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<p>EncoderBufferPool 是一个接口，用于获取和归还 <a href="#EncoderBuffer">EncoderBuffer</a> 结构体的临时实例。编码多幅图像时，可使用它复用缓冲区。<pre>type EncoderBufferPool interface {
+    Get() *<a href="#EncoderBuffer">EncoderBuffer</a>
+    Put(*<a href="#EncoderBuffer">EncoderBuffer</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FormatError">type <a href="/src/image/png/reader.go?s=2457:2480#L118">FormatError</a>
+				
+				
+			</h2>
+			<p>FormatError 表示输入不是有效的 PNG。<pre>type FormatError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FormatError.Error">func (FormatError) <a href="/src/image/png/reader.go?s=2482:2517#L120">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#FormatError">FormatError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnsupportedError">type <a href="/src/image/png/reader.go?s=2713:2741#L125">UnsupportedError</a>
+				
+				
+			</h2>
+			<p>UnsupportedError 表示输入使用了有效但尚未实现的 PNG 特性。<pre>type UnsupportedError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnsupportedError.Error">func (UnsupportedError) <a href="/src/image/png/reader.go?s=2743:2783#L127">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#UnsupportedError">UnsupportedError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

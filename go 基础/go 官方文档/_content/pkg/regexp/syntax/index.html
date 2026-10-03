@@ -1,0 +1,662 @@
+<!--{
+  "Title": "regexp/syntax 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>regexp/syntax 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "regexp/syntax"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>syntax 包将正则表达式解析为语法树，并将语法树编译成程序。大多数正则表达式使用者会使用 <a href="/pkg/regexp/">regexp</a> 包提供的功能（例如 <a href="/pkg/regexp/#Compile">regexp.Compile</a> 和 <a href="/pkg/regexp/#Match">regexp.Match</a>），而不是本包。<h3 id="hdr-Syntax">语法</h3>
+<p>使用 <a href="#Perl">Perl</a> 标志解析时，本包支持的正则表达式语法如下。向 <a href="#Parse">Parse</a> 传入其他标志可以禁用部分语法。<p>单个字符：<pre>.              任意字符，可以包含换行符（标志 s=true）
+[xyz]          字符类
+[^xyz]         取反的字符类
+\d             Perl 字符类
+\D             取反的 Perl 字符类
+[[:alpha:]]    ASCII 字符类
+[[:^alpha:]]   取反的 ASCII 字符类
+\pN            Unicode 字符类（单字母名称）
+\p{Greek}      Unicode 字符类
+\PN            取反的 Unicode 字符类（单字母名称）
+\P{Greek}      取反的 Unicode 字符类
+</pre>
+<p>组合：<pre>xy             x 后接 y
+x|y            x 或 y（优先 x）
+</pre>
+<p>重复：<pre>x*             零个或多个 x，优先更多
+x+             一个或多个 x，优先更多
+x?             零个或一个 x，优先一个
+x{n,m}         n、n+1、… 或 m 个 x，优先更多
+x{n,}          n 个或更多 x，优先更多
+x{n}           恰好 n 个 x
+x*?            零个或多个 x，优先更少
+x+?            一个或多个 x，优先更少
+x??            零个或一个 x，优先零个
+x{n,m}?        n、n+1、… 或 m 个 x，优先更少
+x{n,}?         n 个或更多 x，优先更少
+x{n}?          恰好 n 个 x
+</pre>
+<p>实现限制：计数形式 x{n,m}、x{n,} 和 x{n} 不允许最小或最大重复次数超过 1000。不限定次数的重复不受此限制。<p>分组：<pre>(re)           带编号的捕获组（子匹配）
+(?P&lt;name&gt;re)   带名称和编号的捕获组（子匹配）
+(?&lt;name&gt;re)    带名称和编号的捕获组（子匹配）
+(?:re)         非捕获组
+(?flags)       设置当前组内的标志；不捕获
+(?flags:re)    设置 re 内的标志；不捕获
+
+标志的语法是 xyz（设置）、-xyz（清除）或 xy-z（设置 xy，清除 z）。可用标志如下：
+
+i              不区分大小写（默认为 false）
+m              多行模式：^ 和 $ 除匹配文本开头/结尾外，还匹配行首/行尾（默认为 false）
+s              让 . 匹配 \n（默认为 false）
+U              非贪婪：交换 x* 与 x*?、x+ 与 x+? 等的含义（默认为 false）
+</pre>
+<p>空字符串：<pre>^              位于文本开头，或行首（标志 m=true）
+$              位于文本结尾（类似 \z 而不是 \Z），或行尾（标志 m=true）
+\A             位于文本开头
+\b             位于 ASCII 单词边界（一侧是 \w，另一侧是 \W、\A 或 \z）
+\B             不位于 ASCII 单词边界
+\z             位于文本结尾
+</pre>
+<p>转义序列：<pre>\a             响铃符(== \007)
+\f             换页符(== \014)
+\t             水平制表符(== \011)
+\n             换行符(== \012)
+\r             回车符(== \015)
+\v             垂直制表符(== \013)
+\*             字面字符 *，其中 * 可以是任意标点字符
+\123           八进制字符编码（最多三位）
+\x7F           十六进制字符编码（恰好两位）
+\x{10FFFF}     十六进制字符编码
+\Q...\E        字面文本 ...，即使 ... 包含标点
+</pre>
+<p>字符类元素：<pre>x              单个字符
+A-Z            字符范围（含两端）
+\d             Perl 字符类
+[:foo:]        ASCII 字符类 foo
+\p{Foo}        Unicode 字符类 Foo
+\pF            Unicode 字符类 F（单字母名称）
+</pre>
+<p>用作字符类元素的具名字符类：<pre>[\d]           数字 (== \d)
+[^\d]          非数字 (== \D)
+[\D]           非数字 (== \D)
+[^\D]          非“非数字” (== \d)
+[[:name:]]     字符类中的具名 ASCII 类 (== [:name:])
+[^[:name:]]    取反字符类中的具名 ASCII 类 (== [:^name:])
+[\p{Name}]     字符类中的具名 Unicode 属性 (== \p{Name})
+[^\p{Name}]    取反字符类中的具名 Unicode 属性 (== \P{Name})
+</pre>
+<p>Perl 字符类（均仅限 ASCII）：<pre>\d             数字 (== [0-9])
+\D             非数字 (== [^0-9])
+\s             空白字符 (== [\t\n\f\r ])
+\S             非空白字符 (== [^\t\n\f\r ])
+\w             单词字符 (== [0-9A-Za-z_])
+\W             非单词字符 (== [^0-9A-Za-z_])
+</pre>
+<p>ASCII 字符类：<pre>[[:alnum:]]    字母或数字 (== [0-9A-Za-z])
+[[:alpha:]]    字母 (== [A-Za-z])
+[[:ascii:]]    ASCII (== [\x00-\x7F])
+[[:blank:]]    空白 (== [\t ])
+[[:cntrl:]]    控制字符 (== [\x00-\x1F\x7F])
+[[:digit:]]    数字 (== [0-9])
+[[:graph:]]    图形字符 (== [!-~] == [A-Za-z0-9!&quot;#$%&amp;&apos;()*+,\-./:;&lt;=&gt;?@[\\\]^_`{|}~])
+[[:lower:]]    小写字母 (== [a-z])
+[[:print:]]    可打印字符 (== [ -~] == [ [:graph:]])
+[[:punct:]]    标点 (== [!-/:-@[-`{-~])
+[[:space:]]    空白字符 (== [\t\n\v\f\r ])
+[[:upper:]]    大写字母 (== [A-Z])
+[[:word:]]     单词字符 (== [0-9A-Za-z_])
+[[:xdigit:]]   十六进制数字 (== [0-9A-Fa-f])
+</pre>
+<p>Unicode 字符类包括 <a href="/pkg/unicode/#Categories">unicode.Categories</a>、<a href="/pkg/unicode/#CategoryAliases">unicode.CategoryAliases</a> 和 <a href="/pkg/unicode/#Scripts">unicode.Scripts</a> 中的类。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#IsWordChar">func IsWordChar(r rune) bool</a></dd>
+			
+			
+				
+				<dd><a href="#EmptyOp">type EmptyOp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#EmptyOpContext">func EmptyOpContext(r1, r2 rune) EmptyOp</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e *Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#ErrorCode">type ErrorCode</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorCode.String">func (e ErrorCode) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Flags">type Flags</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Inst">type Inst</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Inst.MatchEmptyWidth">func (i *Inst) MatchEmptyWidth(before rune, after rune) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Inst.MatchRune">func (i *Inst) MatchRune(r rune) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Inst.MatchRunePos">func (i *Inst) MatchRunePos(r rune) int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Inst.String">func (i *Inst) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#InstOp">type InstOp</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InstOp.String">func (i InstOp) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Op">type Op</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Op.String">func (i Op) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Prog">type Prog</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Compile">func Compile(re *Regexp) (*Prog, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Prog.Prefix">func (p *Prog) Prefix() (prefix string, complete bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Prog.StartCond">func (p *Prog) StartCond() EmptyOp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Prog.String">func (p *Prog) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Regexp">type Regexp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parse">func Parse(s string, flags Flags) (*Regexp, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.CapNames">func (re *Regexp) CapNames() []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Equal">func (x *Regexp) Equal(y *Regexp) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.MaxCap">func (re *Regexp) MaxCap() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.Simplify">func (re *Regexp) Simplify() *Regexp</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Regexp.String">func (re *Regexp) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/regexp/syntax/compile.go">compile.go</a>
+			
+				<a href="/src/regexp/syntax/doc.go">doc.go</a>
+			
+				<a href="/src/regexp/syntax/op_string.go">op_string.go</a>
+			
+				<a href="/src/regexp/syntax/parse.go">parse.go</a>
+			
+				<a href="/src/regexp/syntax/perl_groups.go">perl_groups.go</a>
+			
+				<a href="/src/regexp/syntax/prog.go">prog.go</a>
+			
+				<a href="/src/regexp/syntax/regexp.go">regexp.go</a>
+			
+				<a href="/src/regexp/syntax/simplify.go">simplify.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="IsWordChar">func <a href="/src/regexp/syntax/prog.go?s=2235:2263#L98">IsWordChar</a>
+				
+				
+			</h2>
+			<pre>func IsWordChar(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsWordChar 报告在求值 \b 和 \B 零宽断言时，r 是否被视为“单词字符”。这些断言仅支持 ASCII：单词字符为 [A-Za-z0-9_]。<h2 id="EmptyOp">type <a href="/src/regexp/syntax/prog.go?s=1096:1114#L53">EmptyOp</a>
+				
+				
+			</h2>
+			<p>EmptyOp 指定一种零宽断言，或多种零宽断言的组合。<pre>type EmptyOp <a href="/pkg/builtin/#uint8">uint8</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="EmptyBeginLine">EmptyBeginLine</span> <a href="#EmptyOp">EmptyOp</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+    <span id="EmptyEndLine">EmptyEndLine</span>
+    <span id="EmptyBeginText">EmptyBeginText</span>
+    <span id="EmptyEndText">EmptyEndText</span>
+    <span id="EmptyWordBoundary">EmptyWordBoundary</span>
+    <span id="EmptyNoWordBoundary">EmptyNoWordBoundary</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+				<h3 id="EmptyOpContext">func <a href="/src/regexp/syntax/prog.go?s=1519:1559#L70">EmptyOpContext</a>
+					
+					
+				</h3>
+				<pre>func EmptyOpContext(r1, r2 <a href="/pkg/builtin/#rune">rune</a>) <a href="#EmptyOp">EmptyOp</a></pre>
+				<p>EmptyOpContext 返回在 rune r1 和 r2 之间的位置成立的零宽断言。传入 r1 == -1 表示该位置位于文本开头。传入 r2 == -1 表示该位置位于文本结尾。<h2 id="Error">type <a href="/src/regexp/syntax/parse.go?s=343:393#L7">Error</a>
+				
+				
+			</h2>
+			<p>Error 描述正则表达式解析失败的情况，并给出导致错误的表达式。<pre>type Error struct {
+<span id="Error.Code"></span>    Code <a href="#ErrorCode">ErrorCode</a>
+<span id="Error.Expr"></span>    Expr <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (*Error) <a href="/src/regexp/syntax/parse.go?s=395:425#L12">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ErrorCode">type <a href="/src/regexp/syntax/parse.go?s=572:593#L17">ErrorCode</a>
+				
+				
+			</h2>
+			<p>ErrorCode 描述正则表达式解析失败的原因。<pre>type ErrorCode <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+				
+				<pre>const (
+    <span class="comment">// 意外错误</span>
+    <span id="ErrInternalError">ErrInternalError</span> <a href="#ErrorCode">ErrorCode</a> = &#34;regexp/syntax: internal error&#34;
+
+    <span class="comment">// 解析错误</span>
+    <span id="ErrInvalidCharClass">ErrInvalidCharClass</span>      <a href="#ErrorCode">ErrorCode</a> = &#34;invalid character class&#34;
+    <span id="ErrInvalidCharRange">ErrInvalidCharRange</span>      <a href="#ErrorCode">ErrorCode</a> = &#34;invalid character class range&#34;
+    <span id="ErrInvalidEscape">ErrInvalidEscape</span>         <a href="#ErrorCode">ErrorCode</a> = &#34;invalid escape sequence&#34;
+    <span id="ErrInvalidNamedCapture">ErrInvalidNamedCapture</span>   <a href="#ErrorCode">ErrorCode</a> = &#34;invalid named capture&#34;
+    <span id="ErrInvalidPerlOp">ErrInvalidPerlOp</span>         <a href="#ErrorCode">ErrorCode</a> = &#34;invalid or unsupported Perl syntax&#34;
+    <span id="ErrInvalidRepeatOp">ErrInvalidRepeatOp</span>       <a href="#ErrorCode">ErrorCode</a> = &#34;invalid nested repetition operator&#34;
+    <span id="ErrInvalidRepeatSize">ErrInvalidRepeatSize</span>     <a href="#ErrorCode">ErrorCode</a> = &#34;invalid repeat count&#34;
+    <span id="ErrInvalidUTF8">ErrInvalidUTF8</span>           <a href="#ErrorCode">ErrorCode</a> = &#34;invalid UTF-8&#34;
+    <span id="ErrMissingBracket">ErrMissingBracket</span>        <a href="#ErrorCode">ErrorCode</a> = &#34;missing closing ]&#34;
+    <span id="ErrMissingParen">ErrMissingParen</span>          <a href="#ErrorCode">ErrorCode</a> = &#34;missing closing )&#34;
+    <span id="ErrMissingRepeatArgument">ErrMissingRepeatArgument</span> <a href="#ErrorCode">ErrorCode</a> = &#34;missing argument to repetition operator&#34;
+    <span id="ErrTrailingBackslash">ErrTrailingBackslash</span>     <a href="#ErrorCode">ErrorCode</a> = &#34;trailing backslash at end of expression&#34;
+    <span id="ErrUnexpectedParen">ErrUnexpectedParen</span>       <a href="#ErrorCode">ErrorCode</a> = &#34;unexpected )&#34;
+    <span id="ErrNestingDepth">ErrNestingDepth</span>          <a href="#ErrorCode">ErrorCode</a> = &#34;expression nests too deeply&#34;
+    <span id="ErrLarge">ErrLarge</span>                 <a href="#ErrorCode">ErrorCode</a> = &#34;expression too large&#34;
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ErrorCode.String">func (ErrorCode) <a href="/src/regexp/syntax/parse.go?s=1690:1724#L41">String</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#ErrorCode">ErrorCode</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Flags">type <a href="/src/regexp/syntax/parse.go?s=1837:1854#L46">Flags</a>
+				
+				
+			</h2>
+			<p>Flags 控制解析器行为，并记录正则表达式上下文的信息。<pre>type Flags <a href="/pkg/builtin/#uint16">uint16</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="FoldCase">FoldCase</span>      <a href="#Flags">Flags</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 不区分大小写的匹配</span>
+    <span id="Literal">Literal</span>                         <span class="comment">// 将模式作为字面字符串处理</span>
+    <span id="ClassNL">ClassNL</span>                         <span class="comment">// 允许 [^a-z] 和 [[:space:]] 等字符类匹配换行符</span>
+    <span id="DotNL">DotNL</span>                           <span class="comment">// 允许 . 匹配换行符</span>
+    <span id="OneLine">OneLine</span>                         <span class="comment">// 使 ^ 和 $ 仅匹配文本开头和结尾</span>
+    <span id="NonGreedy">NonGreedy</span>                       <span class="comment">// 使重复运算符默认为非贪婪</span>
+    <span id="PerlX">PerlX</span>                           <span class="comment">// 允许 Perl 扩展</span>
+    <span id="UnicodeGroups">UnicodeGroups</span>                   <span class="comment">// 允许用 \p{Han}、\P{Han} 表示 Unicode 组及其取反</span>
+    <span id="WasDollar">WasDollar</span>                       <span class="comment">// 正则表达式中的 OpEndText 原为 $，而不是 \z</span>
+    <span id="Simple">Simple</span>                          <span class="comment">// 正则表达式不包含计数重复</span>
+
+    <span id="MatchNL">MatchNL</span> = <a href="#ClassNL">ClassNL</a> | <a href="#DotNL">DotNL</a>
+
+    <span id="Perl">Perl</span>        = <a href="#ClassNL">ClassNL</a> | <a href="#OneLine">OneLine</a> | <a href="#PerlX">PerlX</a> | <a href="#UnicodeGroups">UnicodeGroups</a> <span class="comment">// 尽可能接近 Perl</span>
+    <span id="POSIX">POSIX</span> <a href="#Flags">Flags</a> = 0                                         <span class="comment">// POSIX 语法</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Inst">type <a href="/src/regexp/syntax/prog.go?s=2539:2696#L105">Inst</a>
+				
+				
+			</h2>
+			<p>Inst 是正则表达式程序中的一条指令。<pre>type Inst struct {
+<span id="Inst.Op"></span>    Op   <a href="#InstOp">InstOp</a>
+<span id="Inst.Out"></span>    Out  <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// 除 InstMatch、InstFail 外均使用</span>
+<span id="Inst.Arg"></span>    Arg  <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// InstAlt, InstAltMatch, InstCapture, InstEmptyWidth</span>
+<span id="Inst.Rune"></span>    Rune []<a href="/pkg/builtin/#rune">rune</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Inst.MatchEmptyWidth">func (*Inst) <a href="/src/regexp/syntax/prog.go?s=5948:6008#L256">MatchEmptyWidth</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#Inst">Inst</a>) MatchEmptyWidth(before <a href="/pkg/builtin/#rune">rune</a>, after <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>MatchEmptyWidth 报告该指令是否匹配 rune before 和 after 之间的空字符串。仅应在 i.Op == <a href="#InstEmptyWidth">InstEmptyWidth</a> 时调用。<h3 id="Inst.MatchRune">func (*Inst) <a href="/src/regexp/syntax/prog.go?s=4444:4481#L185">MatchRune</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#Inst">Inst</a>) MatchRune(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>MatchRune 报告该指令是否匹配（并消耗）r。仅应在 i.Op == <a href="#InstRune">InstRune</a> 时调用。<h3 id="Inst.MatchRunePos">func (*Inst) <a href="/src/regexp/syntax/prog.go?s=4811:4850#L194">MatchRunePos</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (i *<a href="#Inst">Inst</a>) MatchRunePos(r <a href="/pkg/builtin/#rune">rune</a>) <a href="/pkg/builtin/#int">int</a></pre>
+				<p>MatchRunePos 检查该指令是否匹配（并消耗）r。如果匹配，返回匹配的 rune 对的索引（当 len(i.Rune) == 1 时，为单个 rune 的索引）；否则返回 -1。仅应在 i.Op == <a href="#InstRune">InstRune</a> 时调用 MatchRunePos。<h3 id="Inst.String">func (*Inst) <a href="/src/regexp/syntax/prog.go?s=6431:6461#L274">String</a>
+					
+					
+				</h3>
+				<pre>func (i *<a href="#Inst">Inst</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="InstOp">type <a href="/src/regexp/syntax/prog.go?s=537:554#L15">InstOp</a>
+				
+				
+			</h2>
+			<p>InstOp 是指令的操作码。<pre>type InstOp <a href="/pkg/builtin/#uint8">uint8</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="InstAlt">InstAlt</span> <a href="#InstOp">InstOp</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="InstAltMatch">InstAltMatch</span>
+    <span id="InstCapture">InstCapture</span>
+    <span id="InstEmptyWidth">InstEmptyWidth</span>
+    <span id="InstMatch">InstMatch</span>
+    <span id="InstFail">InstFail</span>
+    <span id="InstNop">InstNop</span>
+    <span id="InstRune">InstRune</span>
+    <span id="InstRune1">InstRune1</span>
+    <span id="InstRuneAny">InstRuneAny</span>
+    <span id="InstRuneAnyNotNL">InstRuneAnyNotNL</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InstOp.String">func (InstOp) <a href="/src/regexp/syntax/prog.go?s=913:944#L45">String</a>
+					
+					<span title="自 Go 1.3 起提供">1.3</span>
+				</h3>
+				<pre>func (i <a href="#InstOp">InstOp</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Op">type <a href="/src/regexp/syntax/regexp.go?s=907:920#L23">Op</a>
+				
+				
+			</h2>
+			<p>Op 是单个正则表达式运算符。<pre>type Op <a href="/pkg/builtin/#uint8">uint8</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="OpNoMatch">OpNoMatch</span>        <a href="#Op">Op</a> = 1 + <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 不匹配任何字符串</span>
+    <span id="OpEmptyMatch">OpEmptyMatch</span>                   <span class="comment">// 匹配空字符串</span>
+    <span id="OpLiteral">OpLiteral</span>                      <span class="comment">// 匹配 Runes 序列</span>
+    <span id="OpCharClass">OpCharClass</span>                    <span class="comment">// 将 Runes 解释为范围对列表并匹配</span>
+    <span id="OpAnyCharNotNL">OpAnyCharNotNL</span>                 <span class="comment">// 匹配换行符以外的任意字符</span>
+    <span id="OpAnyChar">OpAnyChar</span>                      <span class="comment">// 匹配任意字符</span>
+    <span id="OpBeginLine">OpBeginLine</span>                    <span class="comment">// 匹配行首的空字符串</span>
+    <span id="OpEndLine">OpEndLine</span>                      <span class="comment">// 匹配行尾的空字符串</span>
+    <span id="OpBeginText">OpBeginText</span>                    <span class="comment">// 匹配文本开头的空字符串</span>
+    <span id="OpEndText">OpEndText</span>                      <span class="comment">// 匹配文本结尾的空字符串</span>
+    <span id="OpWordBoundary">OpWordBoundary</span>                 <span class="comment">// 匹配单词边界 `\b`</span>
+    <span id="OpNoWordBoundary">OpNoWordBoundary</span>               <span class="comment">// 匹配非单词边界 `\B`</span>
+    <span id="OpCapture">OpCapture</span>                      <span class="comment">// 索引为 Cap、可选名称为 Name 的捕获子表达式</span>
+    <span id="OpStar">OpStar</span>                         <span class="comment">// 匹配 Sub[0] 零次或多次</span>
+    <span id="OpPlus">OpPlus</span>                         <span class="comment">// 匹配 Sub[0] 一次或多次</span>
+    <span id="OpQuest">OpQuest</span>                        <span class="comment">// 匹配 Sub[0] 零次或一次</span>
+    <span id="OpRepeat">OpRepeat</span>                       <span class="comment">// 匹配 Sub[0] 至少 Min 次，至多 Max 次（Max == -1 表示无限制）</span>
+    <span id="OpConcat">OpConcat</span>                       <span class="comment">// 匹配 Subs 的串联</span>
+    <span id="OpAlternate">OpAlternate</span>                    <span class="comment">// 匹配 Subs 中的任一分支</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Op.String">func (Op) <a href="/src/regexp/syntax/op_string.go?s=1041:1068#L32">String</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (i <a href="#Op">Op</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Prog">type <a href="/src/regexp/syntax/prog.go?s=370:496#L8">Prog</a>
+				
+				
+			</h2>
+			<p>Prog 是已编译的正则表达式程序。<pre>type Prog struct {
+<span id="Prog.Inst"></span>    Inst   []<a href="#Inst">Inst</a>
+<span id="Prog.Start"></span>    Start  <a href="/pkg/builtin/#int">int</a> <span class="comment">// 起始指令的索引</span>
+<span id="Prog.NumCap"></span>    NumCap <a href="/pkg/builtin/#int">int</a> <span class="comment">// re 中 InstCapture 指令的数量</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Compile">func <a href="/src/regexp/syntax/compile.go?s=1857:1896#L61">Compile</a>
+					
+					
+				</h3>
+				<pre>func Compile(re *<a href="#Regexp">Regexp</a>) (*<a href="#Prog">Prog</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Compile 将正则表达式编译为可执行程序。该正则表达式应已被简化（由 re.Simplify 返回）。<h3 id="Prog.Prefix">func (*Prog) <a href="/src/regexp/syntax/prog.go?s=3340:3394#L140">Prefix</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Prog">Prog</a>) Prefix() (prefix <a href="/pkg/builtin/#string">string</a>, complete <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Prefix 返回一个字面字符串，该正则表达式的所有匹配都必须以它开头。如果此前缀就是完整匹配，complete 为 true。<h3 id="Prog.StartCond">func (*Prog) <a href="/src/regexp/syntax/prog.go?s=3968:4002#L159">StartCond</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Prog">Prog</a>) StartCond() <a href="#EmptyOp">EmptyOp</a></pre>
+				<p>StartCond 返回任意匹配开头必须成立的零宽条件。如果不可能匹配，则返回 ^EmptyOp(0)。<h3 id="Prog.String">func (*Prog) <a href="/src/regexp/syntax/prog.go?s=2698:2728#L112">String</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Prog">Prog</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Regexp">type <a href="/src/regexp/syntax/regexp.go?s=383:807#L8">Regexp</a>
+				
+				
+			</h2>
+			<p>Regexp 是正则表达式语法树中的节点。<pre>type Regexp struct {
+<span id="Regexp.Op"></span>    Op       <a href="#Op">Op</a> <span class="comment">// 运算符</span>
+<span id="Regexp.Flags"></span>    Flags    <a href="#Flags">Flags</a>
+<span id="Regexp.Sub"></span>    Sub      []*<a href="#Regexp">Regexp</a>  <span class="comment">// 子表达式（如果有）</span>
+<span id="Regexp.Sub0"></span>    Sub0     [1]*<a href="#Regexp">Regexp</a> <span class="comment">// 用于较短 Sub 的存储空间</span>
+<span id="Regexp.Rune"></span>    Rune     []<a href="/pkg/builtin/#rune">rune</a>     <span class="comment">// 匹配的 rune，用于 OpLiteral、OpCharClass</span>
+<span id="Regexp.Rune0"></span>    Rune0    [2]<a href="/pkg/builtin/#rune">rune</a>    <span class="comment">// 用于较短 Rune 的存储空间</span>
+<span id="Regexp.Min"></span>    Min, Max <a href="/pkg/builtin/#int">int</a>        <span class="comment">// OpRepeat 的最小值、最大值</span>
+<span id="Regexp.Cap"></span>    Cap      <a href="/pkg/builtin/#int">int</a>        <span class="comment">// OpCapture 的捕获索引</span>
+<span id="Regexp.Name"></span>    Name     <a href="/pkg/builtin/#string">string</a>     <span class="comment">// OpCapture 的捕获名称</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Parse">func <a href="/src/regexp/syntax/parse.go?s=24542:24592#L877">Parse</a>
+					
+					
+				</h3>
+				<pre>func Parse(s <a href="/pkg/builtin/#string">string</a>, flags <a href="#Flags">Flags</a>) (*<a href="#Regexp">Regexp</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 根据指定的 Flags 解析正则表达式字符串 s，并返回正则表达式语法树。语法说明见包级注释。<h3 id="Regexp.CapNames">func (*Regexp) <a href="/src/regexp/syntax/regexp.go?s=11619:11656#L441">CapNames</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) CapNames() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>CapNames 遍历正则表达式，查找捕获组的名称。<h3 id="Regexp.Equal">func (*Regexp) <a href="/src/regexp/syntax/regexp.go?s=2573:2611#L54">Equal</a>
+					
+					
+				</h3>
+				<pre>func (x *<a href="#Regexp">Regexp</a>) Equal(y *<a href="#Regexp">Regexp</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal 报告 x 和 y 是否具有相同的结构。<h3 id="Regexp.MaxCap">func (*Regexp) <a href="/src/regexp/syntax/regexp.go?s=11378:11408#L427">MaxCap</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) MaxCap() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>MaxCap 遍历正则表达式，查找最大的捕获索引。<h3 id="Regexp.Simplify">func (*Regexp) <a href="/src/regexp/syntax/simplify.go?s=690:726#L4">Simplify</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) Simplify() *<a href="#Regexp">Regexp</a></pre>
+				<p>Simplify 返回与 re 等价的正则表达式，但消除计数重复，并执行其他简化，例如将 /(?:a+)+/ 改写为 /a+/。结果正则表达式能正确执行，但由于捕获括号可能被复制或移除，其字符串表示不会产生相同的语法树。例如，/(x){1,2}/ 简化后为 /(x)(x)?/，但两对括号都捕获为 $1。返回的正则表达式可能与原表达式共享结构，也可能就是原表达式本身。<h3 id="Regexp.String">func (*Regexp) <a href="/src/regexp/syntax/regexp.go?s=10361:10394#L374">String</a>
+					
+					
+				</h3>
+				<pre>func (re *<a href="#Regexp">Regexp</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

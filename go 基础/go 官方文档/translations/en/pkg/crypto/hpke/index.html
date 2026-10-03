@@ -1,0 +1,872 @@
+<!--{
+  "Title": "crypto/hpke package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package hpke</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/hpke"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package hpke implements Hybrid Public Key Encryption (HPKE) as defined in
+<a href="https://www.rfc-editor.org/rfc/rfc9180.html">RFC 9180</a>.
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// In this example, we use MLKEM768-X25519 as the KEM, HKDF-SHA256 as the</span>
+<span class="comment">// KDF, and AES-256-GCM as the AEAD to encrypt a single message from a</span>
+<span class="comment">// sender to a recipient using the one-shot API.</span>
+
+kem, kdf, aead := MLKEM768X25519(), HKDFSHA256(), AES256GCM()
+
+<span class="comment">// Recipient side</span>
+var (
+    recipientPrivateKey PrivateKey
+    publicKeyBytes      []byte
+)
+{
+    k, err := kem.GenerateKey()
+    if err != nil {
+        panic(err)
+    }
+    recipientPrivateKey = k
+    publicKeyBytes = k.PublicKey().Bytes()
+}
+
+<span class="comment">// Sender side</span>
+var ciphertext []byte
+{
+    publicKey, err := kem.NewPublicKey(publicKeyBytes)
+    if err != nil {
+        panic(err)
+    }
+
+    message := []byte(&#34;|-()-|&#34;)
+    ct, err := Seal(publicKey, kdf, aead, []byte(&#34;example&#34;), message)
+    if err != nil {
+        panic(err)
+    }
+
+    ciphertext = ct
+}
+
+<span class="comment">// Recipient side</span>
+{
+    plaintext, err := Open(recipientPrivateKey, kdf, aead, []byte(&#34;example&#34;), ciphertext)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf(&#34;Decrypted message: %s\n&#34;, plaintext)
+}
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">Decrypted message: |-()-|
+</pre>
+      
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Open">func Open(k PrivateKey, kdf KDF, aead AEAD, info, ciphertext []byte) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Seal">func Seal(pk PublicKey, kdf KDF, aead AEAD, info, plaintext []byte) ([]byte, error)</a></dd>
+			
+			
+				
+				<dd><a href="#AEAD">type AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AES128GCM">func AES128GCM() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AES256GCM">func AES256GCM() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ChaCha20Poly1305">func ChaCha20Poly1305() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ExportOnly">func ExportOnly() AEAD</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewAEAD">func NewAEAD(id uint16) (AEAD, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#KDF">type KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA256">func HKDFSHA256() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA384">func HKDFSHA384() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HKDFSHA512">func HKDFSHA512() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewKDF">func NewKDF(id uint16) (KDF, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE128">func SHAKE128() KDF</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE256">func SHAKE256() KDF</a></dd>
+				
+				
+			
+				
+				<dd><a href="#KEM">type KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DHKEM">func DHKEM(curve ecdh.Curve) KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM1024">func MLKEM1024() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM1024P384">func MLKEM1024P384() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768">func MLKEM768() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768P256">func MLKEM768P256() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MLKEM768X25519">func MLKEM768X25519() KEM</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewKEM">func NewKEM(id uint16) (KEM, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDHKEMPrivateKey">func NewDHKEMPrivateKey(priv ecdh.KeyExchanger) (PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewHybridPrivateKey">func NewHybridPrivateKey(pq crypto.Decapsulator, t ecdh.KeyExchanger) (PrivateKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMLKEMPrivateKey">func NewMLKEMPrivateKey(priv crypto.Decapsulator) (PrivateKey, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDHKEMPublicKey">func NewDHKEMPublicKey(pub *ecdh.PublicKey) (PublicKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewHybridPublicKey">func NewHybridPublicKey(pq crypto.Encapsulator, t *ecdh.PublicKey) (PublicKey, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMLKEMPublicKey">func NewMLKEMPublicKey(pub crypto.Encapsulator) (PublicKey, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Recipient">type Recipient</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewRecipient">func NewRecipient(enc []byte, k PrivateKey, kdf KDF, aead AEAD, info []byte) (*Recipient, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Recipient.Export">func (r *Recipient) Export(exporterContext string, length int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Recipient.Open">func (r *Recipient) Open(aad, ciphertext []byte) ([]byte, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Sender">type Sender</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSender">func NewSender(pk PublicKey, kdf KDF, aead AEAD, info []byte) (enc []byte, s *Sender, err error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Sender.Export">func (s *Sender) Export(exporterContext string, length int) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Sender.Seal">func (s *Sender) Seal(aad, plaintext []byte) ([]byte, error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/hpke/aead.go">aead.go</a>
+			
+				<a href="/src/crypto/hpke/aead_fips140v1.26.go">aead_fips140v1.26.go</a>
+			
+				<a href="/src/crypto/hpke/hpke.go">hpke.go</a>
+			
+				<a href="/src/crypto/hpke/kdf.go">kdf.go</a>
+			
+				<a href="/src/crypto/hpke/kem.go">kem.go</a>
+			
+				<a href="/src/crypto/hpke/pq.go">pq.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Open">func <a href="/src/crypto/hpke/hpke.go?s=7352:7436#L214">Open</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Open(k <a href="#PrivateKey">PrivateKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info, ciphertext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Open instantiates a single-use HPKE receiving HPKE context like <a href="#NewRecipient">NewRecipient</a>,
+and then decrypts the provided ciphertext like <a href="#Recipient.Open">Recipient.Open</a> (with no aad).
+ciphertext must be the concatenation of the encapsulated key and the actual ciphertext.
+
+			
+		
+			
+			<h2 id="Seal">func <a href="/src/crypto/hpke/hpke.go?s=5917:6000#L173">Seal</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<pre>func Seal(pk <a href="#PublicKey">PublicKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info, plaintext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Seal instantiates a single-use HPKE sending HPKE context like <a href="#NewSender">NewSender</a>,
+and then encrypts the provided plaintext like <a href="#Sender.Seal">Sender.Seal</a> (with no aad).
+Seal returns the concatenation of the encapsulated key and the ciphertext.
+
+			
+		
+		
+			
+			<h2 id="AEAD">type <a href="/src/crypto/hpke/aead.go?s=366:473#L7">AEAD</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>The AEAD is one of the three components of an HPKE ciphersuite, implementing
+symmetric encryption.
+
+			<pre>type AEAD interface {
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AES128GCM">func <a href="/src/crypto/hpke/aead.go?s=1107:1128#L34">AES128GCM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func AES128GCM() <a href="#AEAD">AEAD</a></pre>
+				<p>AES128GCM returns an AES-128-GCM AEAD implementation.
+
+				
+			
+				<h3 id="AES256GCM">func <a href="/src/crypto/hpke/aead.go?s=1208:1229#L37">AES256GCM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func AES256GCM() <a href="#AEAD">AEAD</a></pre>
+				<p>AES256GCM returns an AES-256-GCM AEAD implementation.
+
+				
+			
+				<h3 id="ChaCha20Poly1305">func <a href="/src/crypto/hpke/aead.go?s=1320:1348#L40">ChaCha20Poly1305</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func ChaCha20Poly1305() <a href="#AEAD">AEAD</a></pre>
+				<p>ChaCha20Poly1305 returns a ChaCha20Poly1305 AEAD implementation.
+
+				
+			
+				<h3 id="ExportOnly">func <a href="/src/crypto/hpke/aead.go?s=1616:1638#L46">ExportOnly</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func ExportOnly() <a href="#AEAD">AEAD</a></pre>
+				<p>ExportOnly returns a placeholder AEAD implementation that cannot encrypt or
+decrypt, but only export secrets with <a href="#Sender.Export">Sender.Export</a> or <a href="#Recipient.Export">Recipient.Export</a>.
+<p>When this is used, <a href="#Sender.Seal">Sender.Seal</a> and <a href="#Recipient.Open">Recipient.Open</a> return errors.
+
+				
+			
+				<h3 id="NewAEAD">func <a href="/src/crypto/hpke/aead.go?s=694:731#L18">NewAEAD</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewAEAD(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#AEAD">AEAD</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewAEAD returns the AEAD implementation for the given AEAD ID.
+<p>Applications are encouraged to use specific implementations like <a href="#AES128GCM">AES128GCM</a>
+or <a href="#ChaCha20Poly1305">ChaCha20Poly1305</a> instead, unless runtime agility is required.
+
+				
+			
+
+			
+		
+			
+			<h2 id="KDF">type <a href="/src/crypto/hpke/kdf.go?s=395:752#L10">KDF</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>The KDF is one of the three components of an HPKE ciphersuite, implementing
+key derivation.
+
+			<pre>type KDF interface {
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="HKDFSHA256">func <a href="/src/crypto/hpke/kdf.go?s=1396:1417#L41">HKDFSHA256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA256() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA256 returns an HKDF-SHA256 KDF implementation.
+
+				
+			
+				<h3 id="HKDFSHA384">func <a href="/src/crypto/hpke/kdf.go?s=1498:1519#L44">HKDFSHA384</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA384() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA384 returns an HKDF-SHA384 KDF implementation.
+
+				
+			
+				<h3 id="HKDFSHA512">func <a href="/src/crypto/hpke/kdf.go?s=1600:1621#L47">HKDFSHA512</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func HKDFSHA512() <a href="#KDF">KDF</a></pre>
+				<p>HKDFSHA512 returns an HKDF-SHA512 KDF implementation.
+
+				
+			
+				<h3 id="NewKDF">func <a href="/src/crypto/hpke/kdf.go?s=949:984#L23">NewKDF</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewKDF(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#KDF">KDF</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewKDF returns the KDF implementation for the given KDF ID.
+<p>Applications are encouraged to use specific implementations like <a href="#HKDFSHA256">HKDFSHA256</a>
+instead, unless runtime agility is required.
+
+				
+			
+				<h3 id="SHAKE128">func <a href="/src/crypto/hpke/kdf.go?s=3293:3312#L95">SHAKE128</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func SHAKE128() <a href="#KDF">KDF</a></pre>
+				<p>SHAKE128 returns a SHAKE128 KDF implementation.
+
+				
+			
+				<h3 id="SHAKE256">func <a href="/src/crypto/hpke/kdf.go?s=3389:3408#L100">SHAKE256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func SHAKE256() <a href="#KDF">KDF</a></pre>
+				<p>SHAKE256 returns a SHAKE256 KDF implementation.
+
+				
+			
+
+			
+		
+			
+			<h2 id="KEM">type <a href="/src/crypto/hpke/kem.go?s=365:1053#L7">KEM</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>A KEM is a Key Encapsulation Mechanism, one of the three components of an
+HPKE ciphersuite.
+
+			<pre>type KEM interface {
+    <span class="comment">// ID returns the HPKE KEM identifier.</span>
+    ID() <a href="/pkg/builtin/#uint16">uint16</a>
+
+    <span class="comment">// GenerateKey generates a new key pair.</span>
+    GenerateKey() (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPublicKey deserializes a public key from bytes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// It implements DeserializePublicKey, as defined in RFC 9180.</span>
+    NewPublicKey([]<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPrivateKey deserializes a private key from bytes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// It implements DeserializePrivateKey, as defined in RFC 9180.</span>
+    NewPrivateKey([]<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// DeriveKeyPair derives a key pair from the given input keying material.</span>
+    <span class="comment">//</span>
+    <span class="comment">// It implements DeriveKeyPair, as defined in RFC 9180.</span>
+    DeriveKeyPair(ikm []<a href="/pkg/builtin/#byte">byte</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DHKEM">func <a href="/src/crypto/hpke/kem.go?s=4294:4326#L137">DHKEM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func DHKEM(curve <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#Curve">Curve</a>) <a href="#KEM">KEM</a></pre>
+				<p>DHKEM returns a KEM implementing one of
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>depending on curve.
+
+				
+			
+				<h3 id="MLKEM1024">func <a href="/src/crypto/hpke/pq.go?s=10704:10724#L384">MLKEM1024</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM1024() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM1024 returns a KEM implementing ML-KEM-1024 from draft-ietf-hpke-pq.
+
+				
+			
+				<h3 id="MLKEM1024P384">func <a href="/src/crypto/hpke/pq.go?s=2153:2177#L77">MLKEM1024P384</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM1024P384() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM1024P384 returns a KEM implementing MLKEM1024-P384 from draft-ietf-hpke-pq.
+
+				
+			
+				<h3 id="MLKEM768">func <a href="/src/crypto/hpke/pq.go?s=10171:10190#L365">MLKEM768</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768 returns a KEM implementing ML-KEM-768 from draft-ietf-hpke-pq.
+
+				
+			
+				<h3 id="MLKEM768P256">func <a href="/src/crypto/hpke/pq.go?s=1546:1569#L54">MLKEM768P256</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768P256() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768P256 returns a KEM implementing MLKEM768-P256 from draft-ietf-hpke-pq.
+
+				
+			
+				<h3 id="MLKEM768X25519">func <a href="/src/crypto/hpke/pq.go?s=943:968#L31">MLKEM768X25519</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func MLKEM768X25519() <a href="#KEM">KEM</a></pre>
+				<p>MLKEM768X25519 returns a KEM implementing MLKEM768-X25519 (a.k.a. X-Wing)
+from draft-ietf-hpke-pq.
+
+				
+			
+				<h3 id="NewKEM">func <a href="/src/crypto/hpke/kem.go?s=1265:1300#L36">NewKEM</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewKEM(id <a href="/pkg/builtin/#uint16">uint16</a>) (<a href="#KEM">KEM</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewKEM returns the KEM implementation for the given KEM ID.
+<p>Applications are encouraged to use specific implementations like <a href="#DHKEM">DHKEM</a> or
+<a href="#MLKEM768X25519">MLKEM768X25519</a> instead, unless runtime agility is required.
+
+				
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/hpke/kem.go?s=2776:3240#L81">PrivateKey</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>A PrivateKey is an instantiation of a KEM (one of the three components of
+an HPKE ciphersuite) with a decapsulation key (i.e. the secret key).
+<p>A PrivateKey is usually obtained from a method of the corresponding <a href="#KEM">KEM</a>,
+such as <a href="#KEM.GenerateKey">KEM.GenerateKey</a> or <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a>.
+
+			<pre>type PrivateKey interface {
+    <span class="comment">// KEM returns the instantiated KEM.</span>
+    KEM() <a href="#KEM">KEM</a>
+
+    <span class="comment">// Bytes returns the private key as the output of SerializePrivateKey, as</span>
+    <span class="comment">// defined in RFC 9180.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Note that for X25519 this might not match the input to NewPrivateKey.</span>
+    <span class="comment">// This is a requirement of RFC 9180, Section 7.1.2.</span>
+    Bytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// PublicKey returns the corresponding PublicKey.</span>
+    PublicKey() <a href="#PublicKey">PublicKey</a>
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDHKEMPrivateKey">func <a href="/src/crypto/hpke/kem.go?s=7866:7933#L267">NewDHKEMPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewDHKEMPrivateKey(priv <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#KeyExchanger">KeyExchanger</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewDHKEMPrivateKey returns a PrivateKey implementing
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>depending on the underlying curve of priv (<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>, <a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>,
+<a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>, or <a href="/pkg/crypto/ecdh/#P521">ecdh.P521</a>).
+<p>This function is meant for applications that already have an instantiated
+crypto/ecdh private key, or another implementation of a <a href="/pkg/crypto/ecdh/#KeyExchanger">ecdh.KeyExchanger</a>
+(e.g. a hardware key). Otherwise, applications should use the
+<a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> method of <a href="#DHKEM">DHKEM</a>.
+
+				
+			
+				<h3 id="NewHybridPrivateKey">func <a href="/src/crypto/hpke/pq.go?s=6541:6630#L234">NewHybridPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewHybridPrivateKey(pq <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Decapsulator">Decapsulator</a>, t <a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#KeyExchanger">KeyExchanger</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewHybridPrivateKey returns a PrivateKey implementing
+<ul>
+<li>MLKEM768-X25519 (a.k.a. X-Wing)
+<li>MLKEM768-P256
+<li>MLKEM1024-P384
+</ul>
+<p>from draft-ietf-hpke-pq, depending on the underlying curve of t
+(<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>, <a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>, or <a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>) and the type of pq.Encapsulator()
+(either *<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> or *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>).
+<p>This function is meant for applications that already have instantiated
+crypto/ecdh and crypto/mlkem private keys, or another implementation of a
+<a href="/pkg/crypto/ecdh/#KeyExchanger">ecdh.KeyExchanger</a> and <a href="/pkg/crypto/#Decapsulator">crypto.Decapsulator</a> (e.g. a hardware key).
+Otherwise, applications should use the <a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> method of e.g.
+<a href="#MLKEM768X25519">MLKEM768X25519</a>.
+
+				
+			
+				<h3 id="NewMLKEMPrivateKey">func <a href="/src/crypto/hpke/pq.go?s=12964:13033#L471">NewMLKEMPrivateKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewMLKEMPrivateKey(priv <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Decapsulator">Decapsulator</a>) (<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewMLKEMPrivateKey returns a KEMPrivateKey implementing
+<ul>
+<li>ML-KEM-768
+<li>ML-KEM-1024
+</ul>
+<p>from draft-ietf-hpke-pq, depending on the type of priv.Encapsulator()
+(either *<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> or *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>).
+<p>This function is meant for applications that already have an instantiated
+crypto/mlkem private key. Otherwise, applications should use the
+<a href="#KEM.NewPrivateKey">KEM.NewPrivateKey</a> method of e.g. <a href="#MLKEM768">MLKEM768</a>.
+
+				
+			
+
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/hpke/kem.go?s=2279:2491#L66">PublicKey</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>A PublicKey is an instantiation of a KEM (one of the three components of an
+HPKE ciphersuite) with an encapsulation key (i.e. the public key).
+<p>A PublicKey is usually obtained from a method of the corresponding <a href="#KEM">KEM</a> or
+<a href="#PrivateKey">PrivateKey</a>, such as <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> or <a href="#PrivateKey.PublicKey">PrivateKey.PublicKey</a>.
+
+			<pre>type PublicKey interface {
+    <span class="comment">// KEM returns the instantiated KEM.</span>
+    KEM() <a href="#KEM">KEM</a>
+
+    <span class="comment">// Bytes returns the public key as the output of SerializePublicKey.</span>
+    Bytes() []<a href="/pkg/builtin/#byte">byte</a>
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDHKEMPublicKey">func <a href="/src/crypto/hpke/kem.go?s=5908:5970#L194">NewDHKEMPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewDHKEMPublicKey(pub *<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PublicKey">PublicKey</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewDHKEMPublicKey returns a PublicKey implementing
+<ul>
+<li>DHKEM(P-256, HKDF-SHA256)
+<li>DHKEM(P-384, HKDF-SHA384)
+<li>DHKEM(P-521, HKDF-SHA512)
+<li>DHKEM(X25519, HKDF-SHA256)
+</ul>
+<p>depending on the underlying curve of pub (<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>, <a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>,
+<a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>, or <a href="/pkg/crypto/ecdh/#P521">ecdh.P521</a>).
+<p>This function is meant for applications that already have an instantiated
+crypto/ecdh public key. Otherwise, applications should use the
+<a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> method of <a href="#DHKEM">DHKEM</a>.
+
+				
+			
+				<h3 id="NewHybridPublicKey">func <a href="/src/crypto/hpke/pq.go?s=3510:3595#L132">NewHybridPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewHybridPublicKey(pq <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Encapsulator">Encapsulator</a>, t *<a href="/pkg/crypto/ecdh/">ecdh</a>.<a href="/pkg/crypto/ecdh/#PublicKey">PublicKey</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewHybridPublicKey returns a PublicKey implementing one of
+<ul>
+<li>MLKEM768-X25519 (a.k.a. X-Wing)
+<li>MLKEM768-P256
+<li>MLKEM1024-P384
+</ul>
+<p>from draft-ietf-hpke-pq, depending on the underlying curve of t
+(<a href="/pkg/crypto/ecdh/#X25519">ecdh.X25519</a>, <a href="/pkg/crypto/ecdh/#P256">ecdh.P256</a>, or <a href="/pkg/crypto/ecdh/#P384">ecdh.P384</a>) and the type of pq (either
+*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> or *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>).
+<p>This function is meant for applications that already have instantiated
+crypto/ecdh and crypto/mlkem public keys. Otherwise, applications should use
+the <a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> method of e.g. <a href="#MLKEM768X25519">MLKEM768X25519</a>.
+
+				
+			
+				<h3 id="NewMLKEMPublicKey">func <a href="/src/crypto/hpke/pq.go?s=11608:11674#L420">NewMLKEMPublicKey</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewMLKEMPublicKey(pub <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#Encapsulator">Encapsulator</a>) (<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewMLKEMPublicKey returns a KEMPublicKey implementing
+<ul>
+<li>ML-KEM-768
+<li>ML-KEM-1024
+</ul>
+<p>from draft-ietf-hpke-pq, depending on the type of pub
+(*<a href="/pkg/crypto/mlkem/#EncapsulationKey768">mlkem.EncapsulationKey768</a> or *<a href="/pkg/crypto/mlkem/#EncapsulationKey1024">mlkem.EncapsulationKey1024</a>).
+<p>This function is meant for applications that already have an instantiated
+crypto/mlkem public key. Otherwise, applications should use the
+<a href="#KEM.NewPublicKey">KEM.NewPublicKey</a> method of e.g. <a href="#MLKEM768">MLKEM768</a>.
+
+				
+			
+
+			
+		
+			
+			<h2 id="Recipient">type <a href="/src/crypto/hpke/hpke.go?s=1137:1172#L29">Recipient</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Recipient is a receiving HPKE context. It is instantiated with a specific KEM
+decapsulation key (i.e. the secret key), and it is stateful, incrementing the
+nonce counter for each successful <a href="#Recipient.Open">Recipient.Open</a> call.
+
+			<pre>type Recipient struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewRecipient">func <a href="/src/crypto/hpke/hpke.go?s=4895:4991#L144">NewRecipient</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewRecipient(enc []<a href="/pkg/builtin/#byte">byte</a>, k <a href="#PrivateKey">PrivateKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#Recipient">Recipient</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewRecipient returns a receiving HPKE context for the provided KEM
+decapsulation key (i.e. the secret key), and using the ciphersuite defined by
+the combination of KEM, KDF, and AEAD.
+<p>The enc parameter must have been produced by a matching sending HPKE context
+with the corresponding KEM encapsulation key. The info parameter is
+additional public information that must match between sender and recipient.
+
+				
+			
+
+			
+				<h3 id="Recipient.Export">func (*Recipient) <a href="/src/crypto/hpke/hpke.go?s=7864:7942#L229">Export</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (r *<a href="#Recipient">Recipient</a>) Export(exporterContext <a href="/pkg/builtin/#string">string</a>, length <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Export produces a secret value derived from the shared key between sender and
+recipient. length must be at most 65,535.
+
+				
+			
+				<h3 id="Recipient.Open">func (*Recipient) <a href="/src/crypto/hpke/hpke.go?s=6808:6872#L199">Open</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (r *<a href="#Recipient">Recipient</a>) Open(aad, ciphertext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Open decrypts the provided ciphertext, optionally binding to the additional
+public data aad, or returns an error if decryption fails.
+<p>Open uses incrementing counters for each successful call, and must be called
+in the same order as Seal on the sending side.
+
+				
+			
+		
+			
+			<h2 id="Sender">type <a href="/src/crypto/hpke/hpke.go?s=881:913#L22">Sender</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Sender is a sending HPKE context. It is instantiated with a specific KEM
+encapsulation key (i.e. the public key), and it is stateful, incrementing the
+nonce counter for each <a href="#Sender.Seal">Sender.Seal</a> call.
+
+			<pre>type Sender struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewSender">func <a href="/src/crypto/hpke/hpke.go?s=4110:4206#L125">NewSender</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func NewSender(pk <a href="#PublicKey">PublicKey</a>, kdf <a href="#KDF">KDF</a>, aead <a href="#AEAD">AEAD</a>, info []<a href="/pkg/builtin/#byte">byte</a>) (enc []<a href="/pkg/builtin/#byte">byte</a>, s *<a href="#Sender">Sender</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewSender returns a sending HPKE context for the provided KEM encapsulation
+key (i.e. the public key), and using the ciphersuite defined by the
+combination of KEM, KDF, and AEAD.
+<p>The info parameter is additional public information that must match between
+sender and recipient.
+<p>The returned enc ciphertext can be used to instantiate a matching receiving
+HPKE context with the corresponding KEM decapsulation key.
+
+				
+			
+
+			
+				<h3 id="Sender.Export">func (*Sender) <a href="/src/crypto/hpke/hpke.go?s=6322:6397#L187">Export</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (s *<a href="#Sender">Sender</a>) Export(exporterContext <a href="/pkg/builtin/#string">string</a>, length <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Export produces a secret value derived from the shared key between sender and
+recipient. length must be at most 65,535.
+
+				
+			
+				<h3 id="Sender.Seal">func (*Sender) <a href="/src/crypto/hpke/hpke.go?s=5441:5501#L161">Seal</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (s *<a href="#Sender">Sender</a>) Seal(aad, plaintext []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Seal encrypts the provided plaintext, optionally binding to the additional
+public data aad.
+<p>Seal uses incrementing counters for each call, and Open on the receiving side
+must be called in the same order as Seal.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

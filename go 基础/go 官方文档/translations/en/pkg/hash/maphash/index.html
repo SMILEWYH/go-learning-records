@@ -1,0 +1,817 @@
+<!--{
+  "Title": "hash/maphash package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package maphash</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "hash/maphash"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package maphash provides hash functions on byte sequences and comparable values.
+It also defines <a href="#Hasher">Hasher</a>, the interface between a hash function and a hash table.
+<p>These hash functions are intended to be used to implement hash
+tables, Bloom filters, and other data structures that need to map
+arbitrary strings or byte sequences to a uniform distribution on
+unsigned 64-bit integers.
+<p>Each different instance of a hash table or data structure should use its own <a href="#Seed">Seed</a>.
+<p>The hash functions are not cryptographically secure.
+(See crypto/sha256 and crypto/sha512 for cryptographic use.)
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/maphash&#34;
+)
+
+func main() {
+	// The zero Hash value is valid and ready to use; setting an
+	// initial seed is not necessary.
+	var h maphash.Hash
+
+	// Add a string to the hash, and print the current hash value.
+	h.WriteString(&#34;hello, &#34;)
+	fmt.Printf(&#34;%#x\n&#34;, h.Sum64())
+
+	// Append additional data (in the form of a byte array).
+	h.Write([]byte{&#39;w&#39;, &#39;o&#39;, &#39;r&#39;, &#39;l&#39;, &#39;d&#39;})
+	fmt.Printf(&#34;%#x\n&#34;, h.Sum64())
+
+	// Reset discards all data previously added to the Hash, without
+	// changing its seed.
+	h.Reset()
+
+	// Use SetSeed to create a new Hash h2 which will behave
+	// identically to h.
+	var h2 maphash.Hash
+	h2.SetSeed(h.Seed())
+
+	h.WriteString(&#34;same&#34;)
+	h2.WriteString(&#34;same&#34;)
+	fmt.Printf(&#34;%#x == %#x\n&#34;, h.Sum64(), h2.Sum64())
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__bloomFilter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (BloomFilter)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (BloomFilter)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+// This file demonstrates a Bloom filter.
+
+import (
+	&#34;fmt&#34;
+	&#34;hash/maphash&#34;
+	&#34;math&#34;
+	&#34;math/bits&#34;
+)
+
+// BloomFilter is a Bloom filter, a probabilistic space-efficient
+// representation of a set of values of type V based on hashing.
+//
+// It provides two operations: Insert inserts an element and Contains
+// queries whether a value is a member of the set.
+//
+// However, unlike a typical set, the size is independent of the
+// number of elements. The catch: Contains is permitted to report
+// true even for some elements that are not present. The trade-off
+// between space and accuracy is determined by parameters at
+// construction.
+type BloomFilter[V any] struct {
+	hasher maphash.Hasher[V]
+	seeds  []maphash.Seed // each seed determines a hash function
+	bytes  []byte         // bit vector
+}
+
+// NewBloomFilterComparable returns a new BloomFilter for the
+// specified elements using their natural comparison.
+func NewComparableBloomFilter[V comparable](n int, fpProb float64) *BloomFilter[V] {
+	return NewBloomFilter(maphash.ComparableHasher[V]{}, n, fpProb)
+}
+
+// NewBloomFilter constructs a new BloomFilter capable of holding n
+// elements with the specified probability of false positive results,
+// assuming a well dispersed hash function.
+func NewBloomFilter[V any](hasher maphash.Hasher[V], n int, fpProb float64) *BloomFilter[V] {
+	nbytes, nseeds := calibrate(n, fpProb)
+
+	seeds := make([]maphash.Seed, nseeds)
+	for i := range nseeds {
+		seeds[i] = maphash.MakeSeed()
+	}
+
+	return &amp;BloomFilter[V]{
+		hasher: hasher,
+		bytes:  make([]byte, nbytes),
+		seeds:  seeds,
+	}
+}
+
+func (f *BloomFilter[V]) Contains(v V) bool {
+	for _, seed := range f.seeds {
+		index, bit := f.locate(seed, v)
+		if f.bytes[index]&amp;bit == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (f *BloomFilter[V]) Insert(v V) {
+	for _, seed := range f.seeds {
+		index, bit := f.locate(seed, v)
+		f.bytes[index] |= bit
+	}
+}
+
+func (f *BloomFilter[V]) locate(seed maphash.Seed, v V) (uint64, byte) {
+	// Optimization note: the dynamic call to hasher.Hash causes h
+	// to escape. You can use a sync.Pool can help mitigate the
+	// allocation cost.
+	//
+	// Alternatively, you could copy and specialize the filter logic
+	// for a specific implementation of maphash.Hasher, allowing
+	// the compiler&#39;s escape analysis to determine that the
+	// hasher.Hash call does not in fact cause h to escape.
+	var h maphash.Hash
+	h.SetSeed(seed)
+	f.hasher.Hash(&amp;h, v)
+	hash := h.Sum64()
+
+	index := reduce(hash, uint64(len(f.bytes)))
+	mask := byte(1 &lt;&lt; (hash % 8))
+	return index, mask
+}
+
+// reduce maps hash to a value in the interval [0, n).
+// See https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction
+func reduce(hash, n uint64) uint64 {
+	if n &gt; 1&lt;&lt;32-1 {
+		hi, _ := bits.Mul64(hash, n)
+		return hi
+	}
+	return hash &gt;&gt; 32 * n &gt;&gt; 32
+}
+
+func calibrate(n int, fpProb float64) (bytes, seeds int) {
+	// Following https://en.wikipedia.org/wiki/Bloom_filter:
+	// - k is the number of hash functions,
+	// - m is the size of the bit field;
+	// - n is the number of set bits.
+
+	if n == 0 {
+		return 1, 1
+	}
+
+	logFpProb := math.Log(fpProb)
+	m := -(float64(n) * logFpProb) / (math.Ln2 * math.Ln2)
+
+	// Round up to a byte.
+	// TODO(adonovan): opt: round up to the next allocation size
+	// class (see bytes.growSlice) and then compute the possibly
+	// smaller number of needed seeds based on this higher number.
+	bytes = int(m) / 8
+	if float64(bytes*8) &lt; m {
+		bytes&#43;&#43;
+	}
+
+	k := -logFpProb / math.Ln2
+	seeds = max(int(math.Round(k)), 1)
+	return bytes, seeds
+}
+
+func main() {
+	// Create a Bloom filter optimized for 2 elements with
+	// a one-in-a-billion false-positive rate.
+	//
+	// (This low rate demands a lot of space: 88 bits and
+	// 30 hash functions. More typical rates are 1-5%;
+	// at 5%, we need only 16 bits and 4 hash functions.)
+	f := NewComparableBloomFilter[string](2, 1e-9)
+
+	// Insert two elements.
+	f.Insert(&#34;apple&#34;)
+	f.Insert(&#34;banana&#34;)
+
+	// Check whether elements are present.
+	//
+	// &#34;cherry&#34; was not inserted, but Contains is probabilistic, so
+	// this test will spuriously report Contains(&#34;cherry&#34;) = true
+	// about once every billion runs.
+	for _, fruit := range []string{&#34;apple&#34;, &#34;banana&#34;, &#34;cherry&#34;} {
+		fmt.Printf(&#34;Contains(%q) = %v\n&#34;, fruit, f.Contains(fruit))
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>
+Contains(&#34;apple&#34;) = true
+Contains(&#34;banana&#34;) = true
+Contains(&#34;cherry&#34;) = false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Bytes">func Bytes(seed Seed, b []byte) uint64</a></dd>
+			
+				<dd><a href="#Comparable">func Comparable[T comparable](seed Seed, v T) uint64</a></dd>
+			
+				<dd><a href="#String">func String(seed Seed, s string) uint64</a></dd>
+			
+				<dd><a href="#WriteComparable">func WriteComparable[T comparable](h *Hash, x T)</a></dd>
+			
+			
+				
+				<dd><a href="#ComparableHasher">type ComparableHasher</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ComparableHasher.Equal">func (ComparableHasher[T]) Equal(x, y T) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ComparableHasher.Hash">func (ComparableHasher[T]) Hash(h *Hash, v T)</a></dd>
+				
+			
+				
+				<dd><a href="#Hash">type Hash</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.BlockSize">func (h *Hash) BlockSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Clone">func (h *Hash) Clone() (hash.Cloner, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Reset">func (h *Hash) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Seed">func (h *Hash) Seed() Seed</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.SetSeed">func (h *Hash) SetSeed(seed Seed)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Size">func (h *Hash) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Sum">func (h *Hash) Sum(b []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Sum64">func (h *Hash) Sum64() uint64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Write">func (h *Hash) Write(b []byte) (int, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.WriteByte">func (h *Hash) WriteByte(b byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.WriteString">func (h *Hash) WriteString(s string) (int, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Hasher">type Hasher</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Seed">type Seed</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MakeSeed">func MakeSeed() Seed</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">Package</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__bloomFilter">Package (BloomFilter)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/hash/maphash/hasher.go">hasher.go</a>
+			
+				<a href="/src/hash/maphash/maphash.go">maphash.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Bytes">func <a href="/src/hash/maphash/maphash.go?s=1663:1701#L39">Bytes</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func Bytes(seed <a href="#Seed">Seed</a>, b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Bytes returns the hash of b with the given seed.
+<p>Bytes is equivalent to, but more convenient and efficient than:
+<pre>var h Hash
+h.SetSeed(seed)
+h.Write(b)
+return h.Sum64()
+</pre>
+
+			
+		
+			
+			<h2 id="Comparable">func <a href="/src/hash/maphash/maphash.go?s=8646:8698#L290">Comparable</a>
+				
+				
+			</h2>
+			<pre>func Comparable[T <a href="/pkg/builtin/#comparable">comparable</a>](seed <a href="#Seed">Seed</a>, v <a href="#T">T</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>Comparable returns the hash of comparable value v with the given seed
+such that Comparable(s, v1) == Comparable(s, v2) if v1 == v2.
+If v != v, then the resulting hash is randomly distributed.
+
+			
+		
+			
+			<h2 id="String">func <a href="/src/hash/maphash/maphash.go?s=2201:2240#L63">String</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func String(seed <a href="#Seed">Seed</a>, s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#uint64">uint64</a></pre>
+			<p>String returns the hash of s with the given seed.
+<p>String is equivalent to, but more convenient and efficient than:
+<pre>var h Hash
+h.SetSeed(seed)
+h.WriteString(s)
+return h.Sum64()
+</pre>
+
+			
+		
+			
+			<h2 id="WriteComparable">func <a href="/src/hash/maphash/maphash.go?s=8811:8859#L296">WriteComparable</a>
+				
+				
+			</h2>
+			<pre>func WriteComparable[T <a href="/pkg/builtin/#comparable">comparable</a>](h *<a href="#Hash">Hash</a>, x <a href="#T">T</a>)</pre>
+			<p>WriteComparable adds x to the data hashed by h.
+
+			
+		
+		
+			
+			<h2 id="ComparableHasher">type <a href="/src/hash/maphash/hasher.go?s=5598:5749#L124">ComparableHasher</a>
+				
+				
+			</h2>
+			<p>ComparableHasher is an implementation of <a href="#Hasher">Hasher</a> whose
+Equal(x, y) method is consistent with x == y.
+<p>ComparableHasher is defined only for comparable types.
+The type system will not prevent you from instantiating a type
+such as ComparableHasher[any]; nonetheless you must not pass
+non-comparable argument values to its Hash or Equal methods.
+
+			<pre>type ComparableHasher[T <a href="/pkg/builtin/#comparable">comparable</a>] struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ComparableHasher.Equal">func (ComparableHasher[T]) <a href="/src/hash/maphash/hasher.go?s=5823:5868#L129">Equal</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#ComparableHasher">ComparableHasher</a>[<a href="#T">T</a>]) Equal(x, y <a href="#T">T</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="ComparableHasher.Hash">func (ComparableHasher[T]) <a href="/src/hash/maphash/hasher.go?s=5751:5796#L128">Hash</a>
+					
+					
+				</h3>
+				<pre>func (<a href="#ComparableHasher">ComparableHasher</a>[<a href="#T">T</a>]) Hash(h *<a href="#Hash">Hash</a>, v <a href="#T">T</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Hash">type <a href="/src/hash/maphash/maphash.go?s=3419:3688#L98">Hash</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<p>A Hash computes a seeded hash of a byte sequence.
+<p>The zero Hash is a valid Hash ready to use.
+A zero Hash chooses a random seed for itself during
+the first call to a Reset, Write, Seed, Clone, or Sum64 method.
+For control over the seed, use SetSeed.
+<p>The computed hash values depend only on the initial seed and
+the sequence of bytes provided to the Hash object, not on the way
+in which the bytes are provided. For example, the three sequences
+<pre>h.Write([]byte{&apos;f&apos;,&apos;o&apos;,&apos;o&apos;})
+h.WriteByte(&apos;f&apos;); h.WriteByte(&apos;o&apos;); h.WriteByte(&apos;o&apos;)
+h.WriteString(&quot;foo&quot;)
+</pre>
+<p>all have the same effect.
+<p>Hashes are intended to be collision-resistant, even for situations
+where an adversary controls the byte sequences being hashed.
+<p>A Hash is not safe for concurrent use by multiple goroutines, but a Seed is.
+If multiple goroutines must compute the same seeded hash,
+each can declare its own Hash and call SetSeed with a common Seed.
+
+			<pre>type Hash struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Hash.BlockSize">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8268:8298#L278">BlockSize</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) BlockSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>BlockSize returns h&apos;s block size.
+
+				
+			
+				<h3 id="Hash.Clone">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8357:8400#L281">Clone</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Clone() (<a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Cloner">Cloner</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Clone implements <a href="/pkg/hash/#Cloner">hash.Cloner</a>.
+
+				
+			
+				<h3 id="Hash.Reset">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6822:6844#L216">Reset</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Reset()</pre>
+				<p>Reset discards all bytes added to h.
+(The seed remains the same.)
+
+				
+			
+				<h3 id="Hash.Seed">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6230:6256#L195">Seed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Seed() <a href="#Seed">Seed</a></pre>
+				<p>Seed returns h&apos;s seed value.
+
+				
+			
+				<h3 id="Hash.SetSeed">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=6604:6637#L205">SetSeed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) SetSeed(seed <a href="#Seed">Seed</a>)</pre>
+				<p>SetSeed sets h to use seed, which must have been returned by <a href="#MakeSeed">MakeSeed</a>
+or by another <a href="#Hash.Seed">Hash.Seed</a> method.
+Two <a href="#Hash">Hash</a> objects with the same seed behave identically.
+Two <a href="#Hash">Hash</a> objects with different seeds will very likely behave differently.
+Any bytes added to h before this call will be discarded.
+
+				
+			
+				<h3 id="Hash.Size">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=8191:8216#L275">Size</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size returns h&apos;s hash value size, 8 bytes.
+
+				
+			
+				<h3 id="Hash.Sum">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=7952:7987#L261">Sum</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Sum(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Sum appends the hash&apos;s current 64-bit value to b.
+It exists for implementing <a href="/pkg/hash/#Hash">hash.Hash</a>.
+For direct calls, it is more efficient to use <a href="#Hash.Sum64">Hash.Sum64</a>.
+
+				
+			
+				<h3 id="Hash.Sum64">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=7442:7471#L239">Sum64</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Sum64() <a href="/pkg/builtin/#uint64">uint64</a></pre>
+				<p>Sum64 returns h&apos;s current 64-bit value, which depends on
+h&apos;s seed and the sequence of bytes added to h since the
+last call to <a href="#Hash.Reset">Hash.Reset</a> or <a href="#Hash.SetSeed">Hash.SetSeed</a>.
+<p>All bits of the Sum64 result are close to uniformly and
+independently distributed, so it can be safely reduced
+by using bit masking, shifting, or modular arithmetic.
+
+				
+			
+				<h3 id="Hash.Write">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=4788:4831#L138">Write</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write adds b to the sequence of bytes hashed by h.
+It always writes all of b and never fails; the count and error result are for implementing <a href="/pkg/io/#Writer">io.Writer</a>.
+
+				
+			
+				<h3 id="Hash.WriteByte">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=4509:4547#L127">WriteByte</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) WriteByte(b <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteByte adds b to the sequence of bytes hashed by h.
+It never fails; the error result is for implementing <a href="/pkg/io/#ByteWriter">io.ByteWriter</a>.
+
+				
+			
+				<h3 id="Hash.WriteString">func (*Hash) <a href="/src/hash/maphash/maphash.go?s=5737:5786#L170">WriteString</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h *<a href="#Hash">Hash</a>) WriteString(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>WriteString adds the bytes of s to the sequence of bytes hashed by h.
+It always writes all of s and never fails; the count and error result are for implementing <a href="/pkg/io/#StringWriter">io.StringWriter</a>.
+
+				
+			
+		
+			
+			<h2 id="Hasher">type <a href="/src/hash/maphash/hasher.go?s=5165:5233#L112">Hasher</a>
+				
+				
+			</h2>
+			<p>A Hasher defines the interface between a hash-based container and its elements.
+It provides a hash function and an equivalence relation over values
+of type T, enabling those values to be inserted in hash tables
+and similar data structures.
+<p>Of course, comparable types can already be used as keys of Go&apos;s
+built-in map type, but a Hasher enables non-comparable types to be
+used as keys of a suitable hash table too.
+Hashers may be useful even for comparable types, to define an
+equivalence relation that differs from the usual one (==), such as a
+field-based comparison for a pointer-to-struct type, or a
+case-insensitive comparison for strings, as in this example:
+<pre>// CaseInsensitive is a Hasher[string] whose
+// equivalence relation ignores letter case.
+type CaseInsensitive struct{}
+
+func (CaseInsensitive) Hash(h *Hash, s string) {
+	h.WriteString(strings.ToLower(s))
+}
+
+func (CaseInsensitive) Equal(x, y string) bool {
+	// (We avoid strings.EqualFold as it is not
+	// consistent with ToLower for all values.)
+	return strings.ToLower(x) == strings.ToLower(y)
+}
+</pre>
+<p>A Hasher also permits values to be used with other hash-based data
+structures such as a Bloom filter.
+The <a href="#ComparableHasher">ComparableHasher</a> type makes it convenient to enable comparable
+types to be used in such data structures under their usual (==)
+equivalence relation.
+<h3 id="hdr-Hash_invariants">Hash invariants</h3>
+<p>If two values are equal as defined by Equal(x, y), then they must
+have the same hash as defined by the effects of Hash(h, x) on h.
+<p>Hashers must be logically stateless: the behavior of the Hash and
+Equal methods depends only on the arguments.
+<h3 id="hdr-Writing_a_good_function">Writing a good function</h3>
+<p>When defining a hash function and equivalence relation for a data
+type, it may help to first define a canonical encoding for values
+of that type as a sequence of elements, each being a number,
+string, boolean, or pointer.
+An encoding is canonical if two values that are logically equal
+have the same encoding, even if they are represented differently.
+For example, a canonical case-insensitive encoding of a string is
+<a href="/pkg/strings/#ToLower">strings.ToLower</a>.
+<p>Once you have defined the encoding, the Hasher&apos;s Hash method should
+encode a value into the <a href="#Hash">Hash</a> using a sequence of calls to
+<a href="#Hash.Write">Hash.Write</a> for byte slices, <a href="#Hash.WriteString">Hash.WriteString</a> for strings,
+<a href="#Hash.WriteByte">Hash.WriteByte</a> for bytes, and <a href="#WriteComparable">WriteComparable</a> for elements of
+other types. The Hasher&apos;s Equal method should compute the
+encodings of two values, then compare their corresponding
+elements, returning false at the first mismatch.
+<p>A Hash method may discard information so long as it remains
+consistent with the Equal method as defined above.
+For example, valid implementations of CaseInsensitive.Hash might inspect
+only the first letter of the string, or even use a constant value.
+However, the lossier the hash function, the more frequent
+the hash collisions and the slower the hash table.
+<p>Some data types, such as sets, are inherently unordered: the set
+{a, b, c} is equal to the set {c, b, a}.
+In some cases it is possible to define a canonical encoding for a
+set by sorting the elements into some order.
+In other cases this may inefficient, since it may require allocating
+memory, or infeasible, as when there is no convenient order.
+Another way to hash an unordered set is to compute the hash
+for each element separately, then combine all the element hashes
+using a commutative (order-independent) operator such as + or ^.
+<p>The Hash method below, for a hypothetical Set type, illustrates
+this approach:
+<pre>type Set[T comparable] struct{ ... }
+
+type setHasher[T comparable] struct{}
+
+func (setHasher[T]) Hash(hash *maphash.Hash, set *Set[T]) {
+	var accum uint64
+	for elem := range set.Elements() {
+		// Initialize a hasher for the element,
+		// using same seed as the outer hash.
+		var sub maphash.Hash
+		sub.SetSeed(hash.Seed())
+
+		// Hash the element.
+		maphash.WriteComparable(&amp;sub, elem)
+
+		// Mix the element&apos;s hash into the set&apos;s hash.
+		accum ^= sub.Sum64()
+	}
+	maphash.WriteComparable(hash, accum)
+}
+</pre>
+<p>In many languages, a data type&apos;s hash operation simply returns an
+integer value.
+However, that makes it possible for an adversary to systematically
+construct a large number of values that all have the same hash,
+degrading the asymptotic performance of hash tables in a
+denial-of-service attack known as &quot;hash flooding&quot;.
+By contrast, computing hashes as a sequence of values emitted into
+a <a href="#Hash">Hash</a> with an unpredictable <a href="#Seed">Seed</a> that varies from one hash
+table to another mitigates this attack.
+<p>In effect, the Seed chooses one of 2⁶⁴ different hash functions.
+The code example above calls SetSeed on the element&apos;s sub-Hasher
+so that it uses the same hash function as for the Set itself, and
+not a random one.
+
+			<pre>type Hasher[T <a href="/pkg/builtin/#any">any</a>] interface {
+    Hash(*<a href="#Hash">Hash</a>, <a href="#T">T</a>)
+    Equal(x, y <a href="#T">T</a>) <a href="/pkg/builtin/#bool">bool</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Seed">type <a href="/src/hash/maphash/maphash.go?s=1439:1469#L27">Seed</a>
+				
+				<span title="自 Go 1.14 起提供">1.14</span>
+			</h2>
+			<p>A Seed is a random value that selects the specific hash function
+computed by a <a href="#Hash">Hash</a>. If two Hashes use the same Seeds, they
+will compute the same hash values for any given input.
+If two Hashes use different Seeds, they are very likely to compute
+distinct hash values for any given input.
+<p>A Seed must be initialized by calling <a href="#MakeSeed">MakeSeed</a>.
+The zero seed is uninitialized and not valid for use with <a href="#Hash">Hash</a>&apos;s SetSeed method.
+<p>Each Seed value is local to a single process and cannot be serialized
+or otherwise recreated in a different process.
+
+			<pre>type Seed struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MakeSeed">func <a href="/src/hash/maphash/maphash.go?s=7569:7589#L245">MakeSeed</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func MakeSeed() <a href="#Seed">Seed</a></pre>
+				<p>MakeSeed returns a new random seed.
+
+				
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

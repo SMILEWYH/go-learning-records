@@ -1,0 +1,665 @@
+<!--{
+  "Title": "go/doc/comment 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/doc/comment 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/doc/comment"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>comment 包实现 Go 文档注释的解析和重新格式化。文档注释是紧挨在 package、const、func、type 或 var 顶层声明之前的注释。<p>Go 文档注释语法是 Markdown 的简化子集，支持链接、标题、段落、列表（不支持嵌套）以及预格式化文本块。语法详情见 <a href="/doc/comment">https://go.dev/doc/comment</a>。<p>要解析文档注释对应的文本（去除注释标记后），请使用 <a href="#Parser">Parser</a>：<pre>var p comment.Parser
+doc := p.Parse(text)
+</pre>
+<p>结果是一个 <a href="#Doc">*Doc</a>。要将其重新格式化为文档注释、HTML、Markdown 或纯文本，请使用 <a href="#Printer">Printer</a>：<pre>var pr comment.Printer
+os.Stdout.Write(pr.Text(doc))
+</pre>
+<p><a href="#Parser">Parser</a> 和 <a href="#Printer">Printer</a> 类型都是结构体，可以修改其字段来自定义操作。详情请参阅这些类型的文档。<p>如果用例需要更精细地控制重新格式化过程，可以直接检查解析后的语法并实现自己的逻辑。有关概览及其他类型的链接，请参阅 <a href="#Doc">Doc</a>、<a href="#Block">Block</a> 和 <a href="#Text">Text</a> 的文档。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#DefaultLookupPackage">func DefaultLookupPackage(name string) (importPath string, ok bool)</a></dd>
+			
+			
+				
+				<dd><a href="#Block">type Block</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Code">type Code</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Doc">type Doc</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DocLink">type DocLink</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#DocLink.DefaultURL">func (l *DocLink) DefaultURL(baseURL string) string</a></dd>
+				
+			
+				
+				<dd><a href="#Heading">type Heading</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Heading.DefaultID">func (h *Heading) DefaultID() string</a></dd>
+				
+			
+				
+				<dd><a href="#Italic">type Italic</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Link">type Link</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LinkDef">type LinkDef</a></dd>
+				
+				
+			
+				
+				<dd><a href="#List">type List</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#List.BlankBefore">func (l *List) BlankBefore() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#List.BlankBetween">func (l *List) BlankBetween() bool</a></dd>
+				
+			
+				
+				<dd><a href="#ListItem">type ListItem</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Paragraph">type Paragraph</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Parser">type Parser</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Parser.Parse">func (p *Parser) Parse(text string) *Doc</a></dd>
+				
+			
+				
+				<dd><a href="#Plain">type Plain</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Printer">type Printer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Printer.Comment">func (p *Printer) Comment(d *Doc) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Printer.HTML">func (p *Printer) HTML(d *Doc) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Printer.Markdown">func (p *Printer) Markdown(d *Doc) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Printer.Text">func (p *Printer) Text(d *Doc) []byte</a></dd>
+				
+			
+				
+				<dd><a href="#Text">type Text</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/doc/comment/doc.go">doc.go</a>
+			
+				<a href="/src/go/doc/comment/html.go">html.go</a>
+			
+				<a href="/src/go/doc/comment/markdown.go">markdown.go</a>
+			
+				<a href="/src/go/doc/comment/parse.go">parse.go</a>
+			
+				<a href="/src/go/doc/comment/print.go">print.go</a>
+			
+				<a href="/src/go/doc/comment/std.go">std.go</a>
+			
+				<a href="/src/go/doc/comment/text.go">text.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="DefaultLookupPackage">func <a href="/src/go/doc/comment/parse.go?s=9266:9333#L265">DefaultLookupPackage</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func DefaultLookupPackage(name <a href="/pkg/builtin/#string">string</a>) (importPath <a href="/pkg/builtin/#string">string</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>DefaultLookupPackage 是默认的包查找函数，在 <a href="#Parser.LookupPackage">Parser.LookupPackage</a> 为 nil 时使用。它能够识别导入路径只有一个元素的标准库包名，例如 math；否则这些包将无法用名称引用。<p>注意，go/doc 包提供了更完善的查找方式，它会依据当前包所使用的导入进行查找。<h2 id="Block">type <a href="/src/go/doc/comment/parse.go?s=734:767#L22">Block</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Block 是文档注释中的块级内容，可以是 <a href="#Code">*Code</a>、<a href="#Heading">*Heading</a>、<a href="#List">*List</a> 或 <a href="#Paragraph">*Paragraph</a> 之一。<pre>type Block interface {
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Code">type <a href="/src/go/doc/comment/parse.go?s=3778:4021#L115">Code</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Code 是一个预格式化代码块。<pre>type Code struct {
+<span id="Code.Text"></span>    <span class="comment">// Text 是以换行符结尾的预格式化文本。</span>
+    <span class="comment">// 它可以包含多行，每行都以换行符结尾。</span>
+    <span class="comment">// 它始终非空，也不以空行开头或结尾。</span>
+    Text <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Doc">type <a href="/src/go/doc/comment/parse.go?s=274:441#L5">Doc</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Doc 是解析后的 Go 文档注释。<pre>type Doc struct {
+<span id="Doc.Content"></span>    <span class="comment">// Content 是注释中的内容块序列。</span>
+    Content []<a href="#Block">Block</a>
+
+<span id="Doc.Links"></span>    <span class="comment">// Links 是注释中的链接定义。</span>
+    Links []*<a href="#LinkDef">LinkDef</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DocLink">type <a href="/src/go/doc/comment/parse.go?s=4678:5368#L150">DocLink</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>DocLink 是指向 Go 包或符号文档的链接。<pre>type DocLink struct {
+<span id="DocLink.Text"></span>    Text []<a href="#Text">Text</a> <span class="comment">// 链接文本</span>
+
+<span id="DocLink.ImportPath"></span>    <span class="comment">// ImportPath、Recv 和 Name 标识作为链接目标的</span>
+    <span class="comment">// Go 包或符号。非空字段</span>
+    <span class="comment">// 可能存在以下组合：</span>
+    <span class="comment">//  - ImportPath：链接到另一个包</span>
+    <span class="comment">//  - ImportPath、Name：链接到另一个包中的 const、func、type 或 var</span>
+    <span class="comment">//  - ImportPath、Recv、Name：链接到另一个包中的方法</span>
+    <span class="comment">//  - Name：链接到当前包中的 const、func、type 或 var</span>
+    <span class="comment">//  - Recv、Name：链接到当前包中的方法</span>
+    ImportPath <a href="/pkg/builtin/#string">string</a> <span class="comment">// 导入路径</span>
+<span id="DocLink.Recv"></span>    Recv       <a href="/pkg/builtin/#string">string</a> <span class="comment">// 方法的接收者类型，不包含指针星号</span>
+<span id="DocLink.Name"></span>    Name       <a href="/pkg/builtin/#string">string</a> <span class="comment">// const、func、type、var 或方法的名称</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="DocLink.DefaultURL">func (*DocLink) <a href="/src/go/doc/comment/print.go?s=3248:3299#L87">DefaultURL</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (l *<a href="#DocLink">DocLink</a>) DefaultURL(baseURL <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>DefaultURL 构造并返回 l 的文档 URL，并将 baseURL 用作指向其他包的链接前缀。<p>DefaultURL 可能返回以下形式：<ul>
+<li>baseURL/ImportPath：链接到另一个包<li>baseURL/ImportPath#Name：链接到另一个包中的 const、func、type 或 var<li>baseURL/ImportPath#Recv.Name：链接到另一个包中的方法<li>#Name：链接到当前包中的 const、func、type 或 var<li>#Recv.Name：链接到当前包中的方法</ul>
+<p>如果 baseURL 以斜杠结尾，那么对于带锚点的形式，DefaultURL 会在 ImportPath 和 # 之间插入斜杠。例如，以下是一些 baseURL 值及其可以生成的 URL：<pre>&quot;/pkg/&quot; → &quot;/pkg/math/#Sqrt&quot;
+&quot;/pkg&quot;  → &quot;/pkg/math#Sqrt&quot;
+&quot;/&quot;     → &quot;/math/#Sqrt&quot;
+&quot;&quot;      → &quot;/math#Sqrt&quot;
+</pre>
+
+				
+			
+		
+			
+			<h2 id="Heading">type <a href="/src/go/doc/comment/parse.go?s=808:864#L27">Heading</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Heading 是文档注释中的标题。<pre>type Heading struct {
+<span id="Heading.Text"></span>    Text []<a href="#Text">Text</a> <span class="comment">// 标题文本</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Heading.DefaultID">func (*Heading) <a href="/src/go/doc/comment/print.go?s=4083:4119#L117">DefaultID</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (h *<a href="#Heading">Heading</a>) DefaultID() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>DefaultID 返回标题 h 的默认锚点 ID。<p>默认锚点 ID 的构造方式为：将每个非 ASCII 字母或数字的 rune 转换成下划线，再添加前缀“hdr-”。例如，如果标题文本为“Go Doc Comments”，默认 ID 就是“hdr-Go_Doc_Comments”。<h2 id="Italic">type <a href="/src/go/doc/comment/parse.go?s=4345:4363#L136">Italic</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Italic 是渲染为斜体文本的字符串。<pre>type Italic <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Link">type <a href="/src/go/doc/comment/parse.go?s=4429:4584#L141">Link</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Link 是指向特定 URL 的链接。<pre>type Link struct {
+<span id="Link.Auto"></span>    Auto <a href="/pkg/builtin/#bool">bool</a>   <span class="comment">// 这是否是由 URL 字面量形成的自动（隐式）链接？</span>
+<span id="Link.Text"></span>    Text []<a href="#Text">Text</a> <span class="comment">// 链接文本</span>
+<span id="Link.URL"></span>    URL  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 链接的目标 URL</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LinkDef">type <a href="/src/go/doc/comment/parse.go?s=485:623#L14">LinkDef</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>LinkDef 是单个链接定义。<pre>type LinkDef struct {
+<span id="LinkDef.Text"></span>    Text <a href="/pkg/builtin/#string">string</a> <span class="comment">// 链接文本</span>
+<span id="LinkDef.URL"></span>    URL  <a href="/pkg/builtin/#string">string</a> <span class="comment">// 链接 URL</span>
+<span id="LinkDef.Used"></span>    Used <a href="/pkg/builtin/#bool">bool</a>   <span class="comment">// 注释是否使用此定义</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="List">type <a href="/src/go/doc/comment/parse.go?s=1112:1930#L37">List</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>List 是一个有序列表或无序列表。列表始终非空：len(Items) &gt; 0。在有序列表中，每个 Items[i].Number 都是非空字符串。在无序列表中，每个 Items[i].Number 都是空字符串。<pre>type List struct {
+<span id="List.Items"></span>    <span class="comment">// Items 是列表项。</span>
+    Items []*<a href="#ListItem">ListItem</a>
+
+<span id="List.ForceBlankBefore"></span>    <span class="comment">// ForceBlankBefore 表示重新格式化注释时，</span>
+    <span class="comment">// 列表之前必须有一个空行，</span>
+    <span class="comment">// 从而覆盖通常的条件。参见 BlankBefore 方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于前面有空行的任意列表，注释解析器</span>
+    <span class="comment">// 都会设置 ForceBlankBefore，确保</span>
+    <span class="comment">// 输出时保留该空行。</span>
+    ForceBlankBefore <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="List.ForceBlankBetween"></span>    <span class="comment">// ForceBlankBetween 表示重新格式化注释时，</span>
+    <span class="comment">// 列表项之间必须以空行分隔，</span>
+    <span class="comment">// 从而覆盖通常的条件。参见 BlankBetween 方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于任意两个列表项之间有空行的列表，</span>
+    <span class="comment">// 注释解析器都会设置 ForceBlankBetween，确保</span>
+    <span class="comment">// 输出时保留这些空行。</span>
+    ForceBlankBetween <a href="/pkg/builtin/#bool">bool</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="List.BlankBefore">func (*List) <a href="/src/go/doc/comment/parse.go?s=2363:2396#L69">BlankBefore</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (l *<a href="#List">List</a>) BlankBefore() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>BlankBefore 报告重新格式化注释时，是否应在列表前包含空行。默认规则与 [BlankBetween] 相同：如果列表项内容中含有任何空行（意味着至少一项有多个段落），那么列表本身前面必须有空行。可以设置 <a href="#List">List</a>.ForceBlankBefore 来强制在前面添加空行。<h3 id="List.BlankBetween">func (*List) <a href="/src/go/doc/comment/parse.go?s=2848:2882#L79">BlankBetween</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (l *<a href="#List">List</a>) BlankBetween() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>BlankBetween 报告重新格式化注释时，是否应在每两个列表项之间包含空行。默认规则是：如果列表项内容中含有任何空行（意味着至少一项有多个段落），那么列表项之间也必须以空行分隔。可以设置 <a href="#List">List</a>.ForceBlankBetween 来强制用空行分隔。<h2 id="ListItem">type <a href="/src/go/doc/comment/parse.go?s=3273:3627#L96">ListItem</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>ListItem 是有序列表或无序列表中的单个列表项。<pre>type ListItem struct {
+<span id="ListItem.Number"></span>    <span class="comment">// 在有序列表中，Number 是十进制数字字符串；</span>
+    <span class="comment">// 在无序列表中，它是空字符串。</span>
+    Number <a href="/pkg/builtin/#string">string</a> <span class="comment">// "1"、"2"、……；无序列表中为 ""</span>
+
+<span id="ListItem.Content"></span>    <span class="comment">// Content 是列表内容。</span>
+    <span class="comment">// 目前，解析器和格式化器的限制要求</span>
+    <span class="comment">// Content 中的每个元素都必须是 *Paragraph。</span>
+    Content []<a href="#Block">Block</a> <span class="comment">// 此列表项的内容。</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Paragraph">type <a href="/src/go/doc/comment/parse.go?s=3668:3706#L108">Paragraph</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Paragraph 是一段文本。<pre>type Paragraph struct {
+<span id="Paragraph.Text"></span>    Text []<a href="#Text">Text</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Parser">type <a href="/src/go/doc/comment/parse.go?s=5570:7415#L171">Parser</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Parser 是文档注释解析器。可以在调用 <a href="#Parser.Parse">Parser.Parse</a> 之前设置结构体中的字段，以自定义解析过程的细节。<pre>type Parser struct {
+<span id="Parser.Words"></span>    <span class="comment">// Words 是 Go 标识符单词的映射，</span>
+    <span class="comment">// 这些单词应显示为斜体，并且可能附带链接。</span>
+    <span class="comment">// 如果 Words[w] 为空字符串，则单词 w</span>
+    <span class="comment">// 仅显示为斜体。否则，会为它创建链接，</span>
+    <span class="comment">// 以 Words[w] 作为链接目标。</span>
+    <span class="comment">// Words 对应 [go/doc.ToHTML] 的 words 参数。</span>
+    Words map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>
+
+<span id="Parser.LookupPackage"></span>    <span class="comment">// LookupPackage 将包名解析为导入路径。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 LookupPackage(name) 返回 ok == true，则 [name]</span>
+    <span class="comment">// （或 [name.Sym] 或 [name.Sym.Method]）</span>
+    <span class="comment">// 会被视为指向 importPath 对应包文档的文档链接。</span>
+    <span class="comment">// 可以返回 "", true，此时 name 被视为</span>
+    <span class="comment">// 引用当前包。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 LookupPackage(name) 返回 ok == false，</span>
+    <span class="comment">// 则 [name]（或 [name.Sym] 或 [name.Sym.Method]）</span>
+    <span class="comment">// 不会被视为文档链接，</span>
+    <span class="comment">// 但 name 是标准库包的完整（且仅含一个元素的）导入路径时除外，</span>
+    <span class="comment">// 例如 [math] 或 [io.Reader]。</span>
+    <span class="comment">// 对于这些名称，仍会调用 LookupPackage，</span>
+    <span class="comment">// 以便允许引用所导入的其他包，</span>
+    <span class="comment">// 即使这些包具有相同的包名。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 将 LookupPackage 设为 nil，等价于将它设置为</span>
+    <span class="comment">// 始终返回 "", false 的函数。</span>
+    LookupPackage func(name <a href="/pkg/builtin/#string">string</a>) (importPath <a href="/pkg/builtin/#string">string</a>, ok <a href="/pkg/builtin/#bool">bool</a>)
+
+<span id="Parser.LookupSym"></span>    <span class="comment">// LookupSym 报告某个符号名或方法名</span>
+    <span class="comment">// 是否存在于当前包中。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 如果 LookupSym("", "Name") 返回 true，则 [Name]</span>
+    <span class="comment">// 被视为指向 const、func、type 或 var 的文档链接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 类似地，如果 LookupSym("Recv", "Name") 返回 true，</span>
+    <span class="comment">// 则 [Recv.Name] 被视为指向</span>
+    <span class="comment">// 类型 Recv 的 Name 方法的文档链接。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 将 LookupSym 设为 nil，等价于将它设置为</span>
+    <span class="comment">// 始终返回 false 的函数。</span>
+    LookupSym func(recv, name <a href="/pkg/builtin/#string">string</a>) (ok <a href="/pkg/builtin/#bool">bool</a>)
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Parser.Parse">func (*Parser) <a href="/src/go/doc/comment/parse.go?s=9545:9585#L274">Parse</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Parser">Parser</a>) Parse(text <a href="/pkg/builtin/#string">string</a>) *<a href="#Doc">Doc</a></pre>
+				<p>Parse 解析文档注释文本并返回 *<a href="#Doc">Doc</a> 形式。必须事先移除文本中的注释标记（/*、// 和 */）。<h2 id="Plain">type <a href="/src/go/doc/comment/parse.go?s=4248:4265#L131">Plain</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Plain 是渲染为普通文本（非斜体）的字符串。<pre>type Plain <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Printer">type <a href="/src/go/doc/comment/print.go?s=408:2000#L7">Printer</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Printer 是文档注释格式化器。可以在调用任意输出方法之前设置结构体中的字段，以自定义格式化过程的细节。<pre>type Printer struct {
+<span id="Printer.HeadingLevel"></span>    <span class="comment">// HeadingLevel 是用于 HTML 和 Markdown</span>
+    <span class="comment">// 标题的嵌套级别。</span>
+    <span class="comment">// 如果 HeadingLevel 为零，则默认为 3 级，</span>
+    <span class="comment">// 即使用 &lt;h3&gt; 和 ###。</span>
+    HeadingLevel <a href="/pkg/builtin/#int">int</a>
+
+<span id="Printer.HeadingID"></span>    <span class="comment">// HeadingID 是用于计算标题 ID（锚点标签）的函数，</span>
+    <span class="comment">// 生成 HTML 和 Markdown 时，会为标题 h</span>
+    <span class="comment">// 调用它。如果 HeadingID 返回空字符串，</span>
+    <span class="comment">// 则省略标题 ID。</span>
+    <span class="comment">// 如果 HeadingID 为 nil，则使用 h.DefaultID。</span>
+    HeadingID func(h *<a href="#Heading">Heading</a>) <a href="/pkg/builtin/#string">string</a>
+
+<span id="Printer.DocLinkURL"></span>    <span class="comment">// DocLinkURL 是计算给定 DocLink 的 URL 的函数。</span>
+    <span class="comment">// 如果 DocLinkURL 为 nil，则使用 link.DefaultURL(p.DocLinkBaseURL)。</span>
+    DocLinkURL func(link *<a href="#DocLink">DocLink</a>) <a href="/pkg/builtin/#string">string</a>
+
+<span id="Printer.DocLinkBaseURL"></span>    <span class="comment">// 当 DocLinkURL 为 nil 时，使用 DocLinkBaseURL，</span>
+    <span class="comment">// 将它传给 [DocLink.DefaultURL] 来构造 DocLink 的 URL。</span>
+    <span class="comment">// 详情请参阅该方法的文档。</span>
+    DocLinkBaseURL <a href="/pkg/builtin/#string">string</a>
+
+<span id="Printer.TextPrefix"></span>    <span class="comment">// TextPrefix 是通过 Text 方法生成文本输出时，</span>
+    <span class="comment">// 在每行开头输出的前缀。</span>
+    TextPrefix <a href="/pkg/builtin/#string">string</a>
+
+<span id="Printer.TextCodePrefix"></span>    <span class="comment">// TextCodePrefix 是生成文本输出时，在每个</span>
+    <span class="comment">// 预格式化行（代码块行）开头输出的前缀，</span>
+    <span class="comment">// 它会替换 TextPrefix，而不是追加到 TextPrefix 后面。</span>
+    <span class="comment">// 如果 TextCodePrefix 为空字符串，则默认为 TextPrefix+"\t"。</span>
+    TextCodePrefix <a href="/pkg/builtin/#string">string</a>
+
+<span id="Printer.TextWidth"></span>    <span class="comment">// TextWidth 是生成文本行的最大宽度，</span>
+    <span class="comment">// 以 Unicode 码点数衡量，</span>
+    <span class="comment">// 不包括 TextPrefix 和换行符。</span>
+    <span class="comment">// 如果 TextWidth 为零，则默认为 80 减去 TextPrefix 中的码点数。</span>
+    <span class="comment">// 如果 TextWidth 为负数，则不限制宽度。</span>
+    TextWidth <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Printer.Comment">func (*Printer) <a href="/src/go/doc/comment/print.go?s=4732:4772#L145">Comment</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Printer">Printer</a>) Comment(d *<a href="#Doc">Doc</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Comment 返回 <a href="#Doc">Doc</a> 的标准 Go 格式，不包含任何注释标记。<h3 id="Printer.HTML">func (*Printer) <a href="/src/go/doc/comment/html.go?s=461:498#L11">HTML</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Printer">Printer</a>) HTML(d *<a href="#Doc">Doc</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>HTML 返回 <a href="#Doc">Doc</a> 的 HTML 格式。有关自定义 HTML 输出的方法，请参阅 <a href="#Printer">Printer</a> 文档。<h3 id="Printer.Markdown">func (*Printer) <a href="/src/go/doc/comment/markdown.go?s=506:547#L12">Markdown</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Printer">Printer</a>) Markdown(d *<a href="#Doc">Doc</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Markdown 返回 Doc 的 Markdown 格式。有关自定义 Markdown 输出的方法，请参阅 <a href="#Printer">Printer</a> 文档。<h3 id="Printer.Text">func (*Printer) <a href="/src/go/doc/comment/text.go?s=560:597#L16">Text</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (p *<a href="#Printer">Printer</a>) Text(d *<a href="#Doc">Doc</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Text 返回 <a href="#Doc">Doc</a> 的文本格式。有关自定义文本输出的方法，请参阅 <a href="#Printer">Printer</a> 文档。<h2 id="Text">type <a href="/src/go/doc/comment/parse.go?s=4151:4182#L126">Text</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<p>Text 是文档注释中的文本级内容，可以是 <a href="#Plain">Plain</a>、<a href="#Italic">Italic</a>、<a href="#Link">*Link</a> 或 <a href="#DocLink">*DocLink</a> 之一。<pre>type Text interface {
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

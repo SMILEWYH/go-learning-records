@@ -1,0 +1,1665 @@
+<!--{
+  "Title": "html/template 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>html/template 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "html/template"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>template 包（html/template）实现了数据驱动的模板，用于生成能够防范代码注入的 HTML 输出。它提供与 <a href="/pkg/text/template/">text/template</a> 相同的接口；只要输出是 HTML，就应使用本包替代 <a href="/pkg/text/template/">text/template</a>。<p>这里的文档重点介绍本包的安全特性。有关如何编写模板本身的信息，请参阅 <a href="/pkg/text/template/">text/template</a> 文档。<h3 id="hdr-Introduction">简介</h3>
+<p>本包封装了 <a href="/pkg/text/template/">text/template</a>，因此可以使用同一套模板 API 来安全地解析和执行 HTML 模板。<pre>tmpl, err := template.New(&quot;name&quot;).Parse(...)
+// 此处省略错误检查
+err = tmpl.Execute(out, data)
+</pre>
+<p>如果成功，tmpl 就具备了防止注入的安全性；否则，err 是 ErrorCode 文档中定义的错误。<p>HTML 模板将数据值视为需要编码的纯文本，从而可以安全地嵌入 HTML 文档。转义会根据上下文进行，因此模板动作可以出现在 JavaScript、CSS 和 URI 上下文中。<p>注释会从输出中移除，但通过 <a href="#HTML">HTML</a>、<a href="#CSS">CSS</a> 和 <a href="#JS">JS</a> 类型传入相应上下文的注释除外。<p>本包的安全模型假定模板作者可信，而 Execute 的 data 参数不可信。下文会进一步说明。<p>例如：<pre>import &quot;text/template&quot;
+...
+t, err := template.New(&quot;foo&quot;).Parse(`{{define &quot;T&quot;}}Hello, {{.}}!{{end}}`)
+err = t.ExecuteTemplate(out, &quot;T&quot;, &quot;&lt;script&gt;alert(&apos;you have been pwned&apos;)&lt;/script&gt;&quot;)
+</pre>
+<p>会产生：<pre>Hello, &lt;script&gt;alert(&apos;you have been pwned&apos;)&lt;/script&gt;!
+</pre>
+<p>但 html/template 中根据上下文进行的自动转义：<pre>import &quot;html/template&quot;
+...
+t, err := template.New(&quot;foo&quot;).Parse(`{{define &quot;T&quot;}}Hello, {{.}}!{{end}}`)
+err = t.ExecuteTemplate(out, &quot;T&quot;, &quot;&lt;script&gt;alert(&apos;you have been pwned&apos;)&lt;/script&gt;&quot;)
+</pre>
+<p>会生成经过转义的安全 HTML 输出：<pre>Hello, &amp;lt;script&amp;gt;alert(&amp;#39;you have been pwned&amp;#39;)&amp;lt;/script&amp;gt;!
+</pre>
+<h3 id="hdr-Contexts">上下文</h3>
+<p>本包理解 HTML、CSS、JavaScript 和 URI 的语法。它会为每个简单动作管道添加安全处理函数。例如，对于以下片段：<pre>&lt;a href=&quot;/search?q={{.}}&quot;&gt;{{.}}&lt;/a&gt;
+</pre>
+<p>解析时，会按需改写每个 {{.}}，加入转义函数。在此例中，它变为：<pre>&lt;a href=&quot;/search?q={{. | urlescaper | attrescaper}}&quot;&gt;{{. | htmlescaper}}&lt;/a&gt;
+</pre>
+<p>其中 urlescaper、attrescaper 和 htmlescaper 是内部转义函数的别名。<p>对于这些内部转义函数，如果动作管道求值为 nil 接口值，则按空字符串处理。<h3 id="hdr-Namespaced_and_data__attributes">带命名空间和 data- 前缀的属性</h3>
+<p>带有命名空间的属性会按不带命名空间的属性处理。例如，给定以下片段：<pre>&lt;a my:href=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>解析时，该属性会被当作普通的“href”处理。因此模板会变为：<pre>&lt;a my:href=&quot;{{. | urlescaper | attrescaper}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>与带命名空间的属性类似，带“data-”前缀的属性会按不带该前缀的属性处理。因此，对于：<pre>&lt;a data-href=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>解析时会变为：<pre>&lt;a data-href=&quot;{{. | urlescaper | attrescaper}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>如果属性既有命名空间，又有“data-”前缀，那么确定上下文时只移除命名空间。例如：<pre>&lt;a my:data-href=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>处理时，“my:data-href”会被视为“data-href”，而不是同时忽略“data-”前缀后得到的“href”。因此，解析时只会变为：<pre>&lt;a my:data-href=&quot;{{. | attrescaper}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>有一个特殊情况：命名空间为“xmlns”的属性始终被视为包含 URL。例如，给定以下片段：<pre>&lt;a xmlns:title=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+&lt;a xmlns:href=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+&lt;a xmlns:onclick=&quot;{{.}}&quot;&gt;&lt;/a&gt;
+</pre>
+<p>解析时会变为：<pre>&lt;a xmlns:title=&quot;{{. | urlescaper | attrescaper}}&quot;&gt;&lt;/a&gt;
+&lt;a xmlns:href=&quot;{{. | urlescaper | attrescaper}}&quot;&gt;&lt;/a&gt;
+&lt;a xmlns:onclick=&quot;{{. | urlescaper | attrescaper}}&quot;&gt;&lt;/a&gt;
+</pre>
+<h3 id="hdr-Errors">错误</h3>
+<p>详细信息请参阅 ErrorCode 的文档。<h3 id="hdr-A_fuller_picture">进一步说明</h3>
+<p>首次阅读时可以跳过本包概览的其余部分；它们介绍了理解转义上下文和错误消息所需的细节。大多数使用者无需掌握这些细节。<h3 id="hdr-Contexts">上下文</h3>
+<p>假设 {{.}} 的值为 `O&apos;Reilly: How are &lt;i&gt;you&lt;/i&gt;?`，下表展示 {{.}} 在左侧各种上下文中使用时得到的结果。<pre>上下文                           {{.}} 处理后的结果
+{{.}}                            O&apos;Reilly: How are &amp;lt;i&amp;gt;you&amp;lt;/i&amp;gt;?
+&lt;a title=&apos;{{.}}&apos;&gt;                O&amp;#39;Reilly: How are you?
+&lt;a href=&quot;/{{.}}&quot;&gt;                O&amp;#39;Reilly: How are %3ci%3eyou%3c/i%3e?
+&lt;a href=&quot;?q={{.}}&quot;&gt;              O&amp;#39;Reilly%3a%20How%20are%3ci%3e...%3f
+&lt;a onx=&apos;f(&quot;{{.}}&quot;)&apos;&gt;             O\x27Reilly: How are \x3ci\x3eyou...?
+&lt;a onx=&apos;f({{.}})&apos;&gt;               &quot;O\x27Reilly: How are \x3ci\x3eyou...?&quot;
+&lt;a onx=&apos;pattern = /{{.}}/;&apos;&gt;     O\x27Reilly: How are \x3ci\x3eyou...\x3f
+</pre>
+<p>如果用于不安全的上下文，其值可能被过滤掉：<pre>上下文                           {{.}} 处理后的结果
+&lt;a href=&quot;{{.}}&quot;&gt;                 #ZgotmplZ
+</pre>
+<p>这是因为“O&apos;Reilly:”不是像“http:”那样受允许的协议。<p>如果 {{.}} 是无害的单词 `left`，它就能用于更多位置：<pre>上下文                               {{.}} 处理后的结果
+{{.}}                                left
+&lt;a title=&apos;{{.}}&apos;&gt;                    left
+&lt;a href=&apos;{{.}}&apos;&gt;                     left
+&lt;a href=&apos;/{{.}}&apos;&gt;                    left
+&lt;a href=&apos;?dir={{.}}&apos;&gt;                left
+&lt;a style=&quot;border-{{.}}: 4px&quot;&gt;        left
+&lt;a style=&quot;align: {{.}}&quot;&gt;             left
+&lt;a style=&quot;background: &apos;{{.}}&apos;&gt;       left
+&lt;a style=&quot;background: url(&apos;{{.}}&apos;)&gt;  left
+&lt;style&gt;p.{{.}} {color:red}&lt;/style&gt;   left
+</pre>
+<p>JavaScript 上下文中可以使用非字符串值。如果 {{.}} 为：<pre>struct{A,B string}{ &quot;foo&quot;, &quot;bar&quot; }
+</pre>
+<p>将其用于会自动转义的模板：<pre>&lt;script&gt;var pair = {{.}};&lt;/script&gt;
+</pre>
+<p>则模板输出为：<pre>&lt;script&gt;var pair = {&quot;A&quot;: &quot;foo&quot;, &quot;B&quot;: &quot;bar&quot;};&lt;/script&gt;
+</pre>
+<p>非字符串内容如何序列化以嵌入 JavaScript 上下文，请参阅 json 包。<h3 id="hdr-Typed_Strings">具有特定类型的字符串</h3>
+<p>本包默认假定所有管道都生成纯文本字符串。它会为管道加入必要的转义阶段，以便将该纯文本字符串正确且安全地嵌入相应上下文。<p>当数据值并非纯文本时，可以通过类型标记，确保它不会被过度转义。<p>content.go 中的 HTML、JS、URL 等类型可以承载无需转义的安全内容。<p>对于模板：<pre>Hello, {{.}}!
+</pre>
+<p>可以这样调用：<pre>tmpl.Execute(out, template.HTML(`&lt;b&gt;World&lt;/b&gt;`))
+</pre>
+<p>从而生成：<pre>Hello, &lt;b&gt;World&lt;/b&gt;!
+</pre>
+<p>而如果 {{.}} 是普通字符串，则会生成：<pre>Hello, &amp;lt;b&amp;gt;World&amp;lt;b&amp;gt;!
+</pre>
+<p>以上是将 {{.}} 作为普通字符串时产生的结果。<h3 id="hdr-Security_Model">安全模型</h3>
+<p><a href="https://web.archive.org/web/20160501113828/http://js-quasis-libraries-and-repl.googlecode.com/svn/trunk/safetemplate.html#problem_definition">https://web.archive.org/web/20160501113828/http://js-quasis-libraries-and-repl.googlecode.com/svn/trunk/safetemplate.html#problem_definition</a> 定义了本包所使用的“安全”一词的含义。<p>本包假定模板作者可信，而 Execute 的 data 参数不可信，并力求在面对不可信数据时保持以下性质：<p>结构保持性质：“……当模板作者使用安全的模板语言编写 HTML 标签时，无论不可信数据的值是什么，浏览器都会将输出的相应部分解释为标签；对于属性边界以及 JS、CSS 字符串边界等其他结构，同样如此。”<p>代码效果性质：“……将模板输出插入页面后，应当只有模板作者指定的代码会运行，而且模板作者指定的所有代码都应运行。”<p>最小意外性质：“熟悉 HTML、CSS 和 JavaScript，并且知道会发生上下文自动转义的开发者（或代码审查者），应当能够在看到 {{.}} 时正确推断会进行哪些安全处理。”<p>以前，ECMAScript 6 模板字面量默认禁用，需要通过环境变量 GODEBUG=jstmpllitinterp=1 启用。现在默认支持模板字面量，设置 jstmpllitinterp 不再产生影响。<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;html/template&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const tpl = `
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;meta charset=&#34;UTF-8&#34;&gt;
+		&lt;title&gt;{{.Title}}&lt;/title&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		{{range .Items}}&lt;div&gt;{{ . }}&lt;/div&gt;{{else}}&lt;div&gt;&lt;strong&gt;no rows&lt;/strong&gt;&lt;/div&gt;{{end}}
+	&lt;/body&gt;
+&lt;/html&gt;`
+
+	check := func(err error) {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	t, err := template.New(&#34;webpage&#34;).Parse(tpl)
+	check(err)
+
+	data := struct {
+		Title string
+		Items []string
+	}{
+		Title: &#34;My page&#34;,
+		Items: []string{
+			&#34;My photos&#34;,
+			&#34;My blog&#34;,
+		},
+	}
+
+	err = t.Execute(os.Stdout, data)
+	check(err)
+
+	noItems := struct {
+		Title string
+		Items []string
+	}{
+		Title: &#34;My another page&#34;,
+		Items: []string{},
+	}
+
+	err = t.Execute(os.Stdout, noItems)
+	check(err)
+
+}
+</textarea></div>
+        <div class="output"><pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;meta charset=&#34;UTF-8&#34;&gt;
+		&lt;title&gt;My page&lt;/title&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;div&gt;My photos&lt;/div&gt;&lt;div&gt;My blog&lt;/div&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;meta charset=&#34;UTF-8&#34;&gt;
+		&lt;title&gt;My another page&lt;/title&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;div&gt;&lt;strong&gt;no rows&lt;/strong&gt;&lt;/div&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__autoescaping" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（自动转义）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（自动转义）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;html/template&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	check := func(err error) {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	t, err := template.New(&#34;foo&#34;).Parse(`{{define &#34;T&#34;}}Hello, {{.}}!{{end}}`)
+	check(err)
+	err = t.ExecuteTemplate(os.Stdout, &#34;T&#34;, &#34;&lt;script&gt;alert(&#39;you have been pwned&#39;)&lt;/script&gt;&#34;)
+	check(err)
+}
+</textarea></div>
+        <div class="output"><pre>Hello, &amp;lt;script&amp;gt;alert(&amp;#39;you have been pwned&amp;#39;)&amp;lt;/script&amp;gt;!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__escape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（转义）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（转义）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;html/template&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const s = `&#34;Fran &amp; Freddie&#39;s Diner&#34; &lt;tasty@example.com&gt;`
+	v := []any{`&#34;Fran &amp; Freddie&#39;s Diner&#34;`, &#39; &#39;, `&lt;tasty@example.com&gt;`}
+
+	fmt.Println(template.HTMLEscapeString(s))
+	template.HTMLEscape(os.Stdout, []byte(s))
+	fmt.Fprintln(os.Stdout, &#34;&#34;)
+	fmt.Println(template.HTMLEscaper(v...))
+
+	fmt.Println(template.JSEscapeString(s))
+	template.JSEscape(os.Stdout, []byte(s))
+	fmt.Fprintln(os.Stdout, &#34;&#34;)
+	fmt.Println(template.JSEscaper(v...))
+
+	fmt.Println(template.URLQueryEscaper(v...))
+
+}
+</textarea></div>
+        <div class="output"><pre>&amp;#34;Fran &amp;amp; Freddie&amp;#39;s Diner&amp;#34; &amp;lt;tasty@example.com&amp;gt;
+&amp;#34;Fran &amp;amp; Freddie&amp;#39;s Diner&amp;#34; &amp;lt;tasty@example.com&amp;gt;
+&amp;#34;Fran &amp;amp; Freddie&amp;#39;s Diner&amp;#34;32&amp;lt;tasty@example.com&amp;gt;
+\&#34;Fran \u0026 Freddie\&#39;s Diner\&#34; \u003Ctasty@example.com\u003E
+\&#34;Fran \u0026 Freddie\&#39;s Diner\&#34; \u003Ctasty@example.com\u003E
+\&#34;Fran \u0026 Freddie\&#39;s Diner\&#34;32\u003Ctasty@example.com\u003E
+%22Fran+%26+Freddie%27s+Diner%2232%3Ctasty%40example.com%3E
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#HTMLEscape">func HTMLEscape(w io.Writer, b []byte)</a></dd>
+			
+				<dd><a href="#HTMLEscapeString">func HTMLEscapeString(s string) string</a></dd>
+			
+				<dd><a href="#HTMLEscaper">func HTMLEscaper(args ...any) string</a></dd>
+			
+				<dd><a href="#IsTrue">func IsTrue(val any) (truth, ok bool)</a></dd>
+			
+				<dd><a href="#JSEscape">func JSEscape(w io.Writer, b []byte)</a></dd>
+			
+				<dd><a href="#JSEscapeString">func JSEscapeString(s string) string</a></dd>
+			
+				<dd><a href="#JSEscaper">func JSEscaper(args ...any) string</a></dd>
+			
+				<dd><a href="#URLQueryEscaper">func URLQueryEscaper(args ...any) string</a></dd>
+			
+			
+				
+				<dd><a href="#CSS">type CSS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e *Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#ErrorCode">type ErrorCode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FuncMap">type FuncMap</a></dd>
+				
+				
+			
+				
+				<dd><a href="#HTML">type HTML</a></dd>
+				
+				
+			
+				
+				<dd><a href="#HTMLAttr">type HTMLAttr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#JS">type JS</a></dd>
+				
+				
+			
+				
+				<dd><a href="#JSStr">type JSStr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Srcset">type Srcset</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Template">type Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Must">func Must(t *Template, err error) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(name string) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseFS">func ParseFS(fs fs.FS, patterns ...string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseFiles">func ParseFiles(filenames ...string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseGlob">func ParseGlob(pattern string) (*Template, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.AddParseTree">func (t *Template) AddParseTree(name string, tree *parse.Tree) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Clone">func (t *Template) Clone() (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.DefinedTemplates">func (t *Template) DefinedTemplates() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Delims">func (t *Template) Delims(left, right string) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Execute">func (t *Template) Execute(wr io.Writer, data any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.ExecuteTemplate">func (t *Template) ExecuteTemplate(wr io.Writer, name string, data any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Funcs">func (t *Template) Funcs(funcMap FuncMap) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Lookup">func (t *Template) Lookup(name string) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Name">func (t *Template) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.New">func (t *Template) New(name string) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Option">func (t *Template) Option(opt ...string) *Template</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Parse">func (t *Template) Parse(text string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.ParseFS">func (t *Template) ParseFS(fs fs.FS, patterns ...string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.ParseFiles">func (t *Template) ParseFiles(filenames ...string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.ParseGlob">func (t *Template) ParseGlob(pattern string) (*Template, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Template.Templates">func (t *Template) Templates() []*Template</a></dd>
+				
+			
+				
+				<dd><a href="#URL">type URL</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span></h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_Delims">Template.Delims</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_block">Template（模板块）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_glob">Template（通配模式）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_helpers">Template（辅助模板）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_parsefiles">Template（解析文件）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Template_share">Template（共享）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__autoescaping">包（自动转义）</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__escape">包（转义）</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/html/template/attr.go">attr.go</a>
+			
+				<a href="/src/html/template/attr_string.go">attr_string.go</a>
+			
+				<a href="/src/html/template/content.go">content.go</a>
+			
+				<a href="/src/html/template/context.go">context.go</a>
+			
+				<a href="/src/html/template/css.go">css.go</a>
+			
+				<a href="/src/html/template/delim_string.go">delim_string.go</a>
+			
+				<a href="/src/html/template/doc.go">doc.go</a>
+			
+				<a href="/src/html/template/element_string.go">element_string.go</a>
+			
+				<a href="/src/html/template/error.go">error.go</a>
+			
+				<a href="/src/html/template/escape.go">escape.go</a>
+			
+				<a href="/src/html/template/html.go">html.go</a>
+			
+				<a href="/src/html/template/js.go">js.go</a>
+			
+				<a href="/src/html/template/jsctx_string.go">jsctx_string.go</a>
+			
+				<a href="/src/html/template/state_string.go">state_string.go</a>
+			
+				<a href="/src/html/template/template.go">template.go</a>
+			
+				<a href="/src/html/template/transition.go">transition.go</a>
+			
+				<a href="/src/html/template/url.go">url.go</a>
+			
+				<a href="/src/html/template/urlpart_string.go">urlpart_string.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="HTMLEscape">func <a href="/src/html/template/escape.go?s=32538:32576#L966">HTMLEscape</a>
+				
+				
+			</h2>
+			<pre>func HTMLEscape(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, b []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>HTMLEscape 将纯文本数据 b 的等价 HTML 转义形式写入 w。<h2 id="HTMLEscapeString">func <a href="/src/html/template/escape.go?s=32691:32729#L971">HTMLEscapeString</a>
+				
+				
+			</h2>
+			<pre>func HTMLEscapeString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>HTMLEscapeString 返回纯文本数据 s 的等价 HTML 转义形式。<h2 id="HTMLEscaper">func <a href="/src/html/template/escape.go?s=32874:32910#L977">HTMLEscaper</a>
+				
+				
+			</h2>
+			<pre>func HTMLEscaper(args ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>HTMLEscaper 返回各实参文本表示的等价 HTML 转义形式。<h2 id="IsTrue">func <a href="/src/html/template/template.go?s=15991:16028#L476">IsTrue</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<pre>func IsTrue(val <a href="/pkg/builtin/#any">any</a>) (truth, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>IsTrue 报告值是否为“真”（即并非其类型的零值），以及该值是否具有有意义的真值。这就是 if 等模板动作所使用的真值定义。<h2 id="JSEscape">func <a href="/src/html/template/escape.go?s=33038:33074#L982">JSEscape</a>
+				
+				
+			</h2>
+			<pre>func JSEscape(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, b []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>JSEscape 将纯文本数据 b 的等价 JavaScript 转义形式写入 w。<h2 id="JSEscapeString">func <a href="/src/html/template/escape.go?s=33191:33227#L987">JSEscapeString</a>
+				
+				
+			</h2>
+			<pre>func JSEscapeString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>JSEscapeString 返回纯文本数据 s 的等价 JavaScript 转义形式。<h2 id="JSEscaper">func <a href="/src/html/template/escape.go?s=33374:33408#L993">JSEscaper</a>
+				
+				
+			</h2>
+			<pre>func JSEscaper(args ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>JSEscaper 返回各实参文本表示的等价 JavaScript 转义形式。<h2 id="URLQueryEscaper">func <a href="/src/html/template/escape.go?s=33594:33634#L999">URLQueryEscaper</a>
+				
+				
+			</h2>
+			<pre>func URLQueryEscaper(args ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>URLQueryEscaper 返回各实参文本表示经过转义后的值，其形式适合嵌入 URL 查询字符串。<h2 id="CSS">type <a href="/src/html/template/content.go?s=920:930#L15">CSS</a>
+				
+				
+			</h2>
+			<p>CSS 封装已知安全、且符合以下任意一种语法产生式的内容：<ol>
+<li>CSS3 样式表产生式，例如 `p { color: purple }`。<li>CSS3 规则产生式，例如 `a[href=~&quot;https:&quot;].foo#bar`。<li>CSS3 声明产生式，例如 `color: red; margin: 2px`。<li>CSS3 值产生式，例如 `rgba(0, 0, 255, 127)`。</ol>
+<p>参见 <a href="https://www.w3.org/TR/css3-syntax/#parsing">https://www.w3.org/TR/css3-syntax/#parsing</a> 和 <a href="https://web.archive.org/web/20090211114933/http://w3.org/TR/css3-syntax#style">https://web.archive.org/web/20090211114933/http://w3.org/TR/css3-syntax#style</a>。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type CSS <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Error">type <a href="/src/html/template/error.go?s=287:739#L3">Error</a>
+				
+				
+			</h2>
+			<p>Error 描述模板转义过程中遇到的问题。<pre>type Error struct {
+<span id="Error.ErrorCode"></span>    <span class="comment">// ErrorCode 描述错误的类别。</span>
+    ErrorCode <a href="#ErrorCode">ErrorCode</a>
+<span id="Error.Node"></span>    <span class="comment">// Node 是导致问题的节点（如果已知）。</span>
+    <span class="comment">// 如果不为 nil，则优先于 Name 和 Line。</span>
+    Node <a href="/pkg/text/template/parse/">parse</a>.<a href="/pkg/text/template/parse/#Node">Node</a> <span class="comment">// Go 1.4</span>
+<span id="Error.Name"></span>    <span class="comment">// Name 是发生错误的模板名称。</span>
+    Name <a href="/pkg/builtin/#string">string</a>
+<span id="Error.Line"></span>    <span class="comment">// Line 是错误在模板源文件中的行号，或为 0。</span>
+    Line <a href="/pkg/builtin/#int">int</a>
+<span id="Error.Description"></span>    <span class="comment">// Description 是供人阅读的问题描述。</span>
+    Description <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (*Error) <a href="/src/html/template/error.go?s=9013:9043#L224">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ErrorCode">type <a href="/src/html/template/error.go?s=785:803#L18">ErrorCode</a>
+				
+				
+			</h2>
+			<p>ErrorCode 是某一类错误的代码。<pre>type ErrorCode <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>我们为模板转义过程中出现的每种错误都定义了错误代码，但经过转义的模板在运行时仍可能失败。<p>输出：“ZgotmplZ”
+示例：<pre>&lt;img src=&quot;{{.X}}&quot;&gt;
+其中 {{.X}} 的值为 `javascript:...`
+</pre>
+<p>说明：<pre>“ZgotmplZ”是一个特殊值，表示运行时有不安全内容进入了
+CSS 或 URL 上下文。此示例的输出为：
+  &lt;img src=&quot;#ZgotmplZ&quot;&gt;
+如果数据来自可信来源，可以使用相应的内容类型使其免于
+过滤：URL(`javascript:...`)。
+</pre>
+
+				<pre>const (
+    <span class="comment">// OK 表示没有错误。</span>
+    <span id="OK">OK</span> <a href="#ErrorCode">ErrorCode</a> = <a href="/pkg/builtin/#iota">iota</a>
+
+    <span class="comment">// ErrAmbigContext：“……出现在 URL 中含义不明确的上下文中”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;a href=&#34;</span>
+    <span class="comment">//      {{if .C}}</span>
+    <span class="comment">//        /path/</span>
+    <span class="comment">//      {{else}}</span>
+    <span class="comment">//        /search?q=</span>
+    <span class="comment">//      {{end}}</span>
+    <span class="comment">//      {{.X}}</span>
+    <span class="comment">//   &#34;&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   {{.X}} 所处的 URL 上下文有歧义，因为根据 {{.C}} 的值，</span>
+    <span class="comment">//   它可能是 URL 后缀，也可能是查询参数。</span>
+    <span class="comment">//   将 {{.X}} 移到条件分支内部即可消除歧义：</span>
+    <span class="comment">//   &lt;a href=&#34;{{if .C}}/path/{{.X}}{{else}}/search?q={{.X}}&#34;&gt;</span>
+    <span id="ErrAmbigContext">ErrAmbigContext</span>
+
+    <span class="comment">// ErrBadHTML：“预期为空格、属性名或标签结束，但实际为……”、</span>
+    <span class="comment">//   “……出现在未加引号的属性中”、“……出现在属性名中”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;a href = /search?q=foo&gt;</span>
+    <span class="comment">//   &lt;href=foo&gt;</span>
+    <span class="comment">//   &lt;form na&lt;e=...&gt;</span>
+    <span class="comment">//   &lt;option selected&lt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   这通常是 HTML 元素中的拼写错误造成的；不过，某些 rune</span>
+    <span class="comment">//   在标签名、属性名和不带引号的属性值中本来就不允许使用，</span>
+    <span class="comment">//   因为它们可能引发解析歧义。</span>
+    <span class="comment">//   最稳妥的做法是给所有属性值加上引号。</span>
+    <span id="ErrBadHTML">ErrBadHTML</span>
+
+    <span class="comment">// ErrBranchEnd：“{{if}} 的各分支结束于不同的上下文”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   {{if .C}}&lt;a href=&#34;{{end}}{{.X}}</span>
+    <span class="comment">//   &lt;script {{with .T}}type=&#34;{{.}}&#34;{{end}}&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包会静态检查经过</span>
+    <span class="comment">//   {{if}}、{{range}} 或 {{with}} 的每条路径，以转义后续管道。</span>
+    <span class="comment">//   第一个示例有歧义，因为 {{.X}} 可能是 HTML 文本节点，</span>
+    <span class="comment">//   也可能是 HTML 属性中的 URL 前缀。{{.X}} 的上下文</span>
+    <span class="comment">//   决定如何对它进行转义，但该上下文取决于</span>
+    <span class="comment">//   静态分析时无法得知的 {{.C}} 的运行时值。</span>
+    <span class="comment">//   第二个示例有歧义，因为 script 的 type 属性</span>
+    <span class="comment">//   可能改变脚本内容所需的转义方式。</span>
+    <span class="comment">//</span>
+    <span class="comment">//   问题通常出在缺少引号或尖括号之类的地方，</span>
+    <span class="comment">//   也可以通过重构，将两种上下文放入</span>
+    <span class="comment">//   if、range 或 with 的不同分支来避免。如果问题</span>
+    <span class="comment">//   出现在遍历一个本不应为空的集合的 {{range}} 中，</span>
+    <span class="comment">//   添加一个占位的 {{else}} 分支可能有帮助。</span>
+    <span id="ErrBranchEnd">ErrBranchEnd</span>
+
+    <span class="comment">// ErrEndContext：“……结束于非文本上下文：……”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;div</span>
+    <span class="comment">//   &lt;div title=&#34;no close quote&gt;</span>
+    <span class="comment">//   &lt;script&gt;f()</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   执行模板后应当生成 HTML 的 DocumentFragment。</span>
+    <span class="comment">//   模板结束时如果没有闭合标签，就会触发此错误。</span>
+    <span class="comment">//   不应在 HTML 上下文中使用的模板，或者</span>
+    <span class="comment">//   生成不完整片段的模板，都不应直接执行。</span>
+    <span class="comment">//</span>
+    <span class="comment">//   {{define &#34;main&#34;}} &lt;script&gt;{{template &#34;helper&#34;}}&lt;/script&gt; {{end}}</span>
+    <span class="comment">//   {{define &#34;helper&#34;}} document.write(&#39; &lt;div title=&#34; &#39;) {{end}}</span>
+    <span class="comment">//</span>
+    <span class="comment">//   “helper”不会生成有效的文档片段，因此</span>
+    <span class="comment">//   不应直接执行。</span>
+    <span id="ErrEndContext">ErrEndContext</span>
+
+    <span class="comment">// ErrNoSuchTemplate：“不存在这样的模板……”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   {{define &#34;main&#34;}}&lt;div {{template &#34;attrs&#34;}}&gt;{{end}}</span>
+    <span class="comment">//   {{define &#34;attrs&#34;}}href=&#34;{{.URL}}&#34;{{end}}</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包会分析模板调用，以计算</span>
+    <span class="comment">//   上下文。</span>
+    <span class="comment">//   这里，从“main”调用“attrs”时，后者的 {{.URL}} 必须按 URL 处理；</span>
+    <span class="comment">//   但如果解析“main”时尚未定义“attrs”，</span>
+    <span class="comment">//   就会得到此错误。</span>
+    <span id="ErrNoSuchTemplate">ErrNoSuchTemplate</span>
+
+    <span class="comment">// ErrOutputContext：“无法计算模板……的输出上下文”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   {{define &#34;t&#34;}}{{if .T}}{{template &#34;t&#34; .T}}{{end}}{{.H}}&#34;,{{end}}</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   递归模板的结束上下文与其开始上下文</span>
+    <span class="comment">//   不同，因此无法可靠地计算输出上下文。</span>
+    <span class="comment">//   请检查该命名模板中是否存在拼写错误。</span>
+    <span class="comment">//   如果不应在指定的起始上下文调用该模板，</span>
+    <span class="comment">//   请查找是否在意外的上下文中调用了它。</span>
+    <span class="comment">//   也可以考虑将递归模板重构为非递归形式。</span>
+    <span id="ErrOutputContext">ErrOutputContext</span>
+
+    <span class="comment">// ErrPartialCharset：“……中的 JS 正则表达式字符集未完成”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//     &lt;script&gt;var pattern = /foo[{{.Chars}}]/&lt;/script&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包不支持在正则表达式</span>
+    <span class="comment">//   字面量的字符集中进行插值。</span>
+    <span id="ErrPartialCharset">ErrPartialCharset</span>
+
+    <span class="comment">// ErrPartialEscape：“……中的转义序列未完成”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;script&gt;alert(&#34;\{{.X}}&#34;)&lt;/script&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包不支持紧跟在</span>
+    <span class="comment">//   反斜杠后面的模板动作。</span>
+    <span class="comment">//   这通常是错误用法，而且存在更合适的解决方案；</span>
+    <span class="comment">//   例如：</span>
+    <span class="comment">//     &lt;script&gt;alert(&#34;{{.X}}&#34;)&lt;/script&gt;</span>
+    <span class="comment">//   就可以正常工作。如果 {{.X}} 是“xA0”这样的</span>
+    <span class="comment">//   部分转义序列，应将整个序列标记为安全内容：JSStr(`\xA0`)</span>
+    <span id="ErrPartialEscape">ErrPartialEscape</span>
+
+    <span class="comment">// ErrRangeLoopReentry：“重新进入 range 循环时：……”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;script&gt;var x = [{{range .}}&#39;{{.}},{{end}}]&lt;/script&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   如果 range 的某次迭代结束时所处的上下文</span>
+    <span class="comment">//   与先前迭代不同，就无法确定单一的上下文。</span>
+    <span class="comment">//   此示例中缺少一个引号，因此无法确定</span>
+    <span class="comment">//   {{.}} 应当位于 JS 字符串内，还是处于 JS 值</span>
+    <span class="comment">//   上下文中。第二次迭代会产生类似这样的结果：</span>
+    <span class="comment">//</span>
+    <span class="comment">//     &lt;script&gt;var x = [&#39;firstValue,&#39;secondValue]&lt;/script&gt;</span>
+    <span id="ErrRangeLoopReentry">ErrRangeLoopReentry</span>
+
+    <span class="comment">// ErrSlashAmbig：“/”可能是除法运算符，也可能是正则表达式的开头。</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;script&gt;</span>
+    <span class="comment">//     {{if .C}}var x = 1{{end}}</span>
+    <span class="comment">//     /-{{.N}}/i.test(x) ? doThis : doThat();</span>
+    <span class="comment">//   &lt;/script&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   上面的示例可能生成 `var x = 1/-2/i.test(s)...`，</span>
+    <span class="comment">//   其中第一个“/”是数学除法运算符；也可能</span>
+    <span class="comment">//   生成 `/-2/i.test(s)`，其中第一个“/”是</span>
+    <span class="comment">//   正则表达式字面量的开头。</span>
+    <span class="comment">//   请检查分支内部是否缺少分号，也可以添加</span>
+    <span class="comment">//   括号来明确希望采用的解释方式。</span>
+    <span id="ErrSlashAmbig">ErrSlashAmbig</span>
+
+    <span class="comment">// ErrPredefinedEscaper：“模板中不允许使用预定义转义器……”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//   &lt;div class={{. | html}}&gt;Hello&lt;div&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包已经会根据上下文转义所有管道，</span>
+    <span class="comment">//   生成能够防范代码注入的 HTML 输出。使用预定义的</span>
+    <span class="comment">//   “html”或“urlquery”转义器手动转义管道输出</span>
+    <span class="comment">//   是多余的，而且在 Go 1.8 及更早版本中，可能影响</span>
+    <span class="comment">//   转义后管道输出的正确性或安全性。</span>
+    <span class="comment">//</span>
+    <span class="comment">//   大多数情况下（包括给出的示例），只需</span>
+    <span class="comment">//   从管道中移除预定义转义器，让上下文自动转义器</span>
+    <span class="comment">//   处理管道的转义，即可解决此错误。在其他</span>
+    <span class="comment">//   情况下，预定义转义器位于管道中间，</span>
+    <span class="comment">//   而后续命令要求输入已经转义，例如：</span>
+    <span class="comment">//     {{.X | html | makeALink}}</span>
+    <span class="comment">//   其中 makeALink 执行：</span>
+    <span class="comment">//     return `&lt;a href=&#34;`+input+`&#34;&gt;link&lt;/a&gt;`</span>
+    <span class="comment">//   此时应考虑重构外围模板，让它使用</span>
+    <span class="comment">//   上下文自动转义器，即：</span>
+    <span class="comment">//     &lt;a href=&#34;{{.X}}&#34;&gt;link&lt;/a&gt;</span>
+    <span class="comment">//</span>
+    <span class="comment">//   为便于迁移到 Go 1.9 及更高版本，仍允许</span>
+    <span class="comment">//   “html”和“urlquery”作为管道中的最后一个命令。但是，</span>
+    <span class="comment">//   如果管道位于不带引号的属性值上下文中，就不允许</span>
+    <span class="comment">//   使用“html”。新模板应完全避免使用“html”和“urlquery”。</span>
+    <span id="ErrPredefinedEscaper">ErrPredefinedEscaper</span>
+
+    <span class="comment">// ErrJSTemplate：“……出现在 JS 模板字面量中”</span>
+    <span class="comment">// 示例：</span>
+    <span class="comment">//     &lt;script&gt;var tmpl = `{{.Interp}}`&lt;/script&gt;</span>
+    <span class="comment">// 说明：</span>
+    <span class="comment">//   html/template 包不支持在 JS 模板</span>
+    <span class="comment">//   字面量内部使用动作。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 已弃用：现在 JS 模板字面量中出现动作时，</span>
+    <span class="comment">// 不再返回 ErrJSTemplate。JS 模板字面量中的动作</span>
+    <span class="comment">// 现在会按预期进行转义。</span>
+    <span id="ErrJSTemplate">ErrJSTemplate</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="FuncMap">type <a href="/src/html/template/template.go?s=9886:9917#L322">FuncMap</a>
+				
+				
+			</h2>
+			
+			<pre>type FuncMap = <a href="/pkg/text/template/">template</a>.<a href="/pkg/text/template/#FuncMap">FuncMap</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="HTML">type <a href="/src/html/template/content.go?s=1375:1386#L25">HTML</a>
+				
+				
+			</h2>
+			<p>HTML 封装已知安全的 HTML 文档片段。它不应承载来自第三方的 HTML，也不应包含未闭合的标签或注释。可靠的 HTML 安全过滤器所输出的内容，以及本包转义后的模板，都可以用作 HTML 类型的值。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type HTML <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="HTMLAttr">type <a href="/src/html/template/content.go?s=1662:1677#L33">HTMLAttr</a>
+				
+				
+			</h2>
+			<p>HTMLAttr 封装来自可信来源的 HTML 属性，例如 ` dir=&quot;ltr&quot;`。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type HTMLAttr <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="JS">type <a href="/src/html/template/content.go?s=2549:2558#L51">JS</a>
+				
+				
+			</h2>
+			<p>JS 封装已知安全的 EcmaScript5 表达式，例如 `(x + y * z())`。模板作者有责任确保带类型标记的表达式不会破坏预期的运算优先级，也不会产生语句／表达式歧义。例如，传入“{ foo: bar() }\n[&apos;foo&apos;]()”这样的表达式时，它既是合法的表达式，也是合法但含义截然不同的程序。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<p>使用 JS 嵌入合法但不可信的 JSON 是不安全的。安全的替代方案是先用 json.Unmarshal 解析 JSON，再将得到的对象传入模板；在 JavaScript 上下文中输出时，它会转换为经过安全处理的 JSON。<pre>type JS <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="JSStr">type <a href="/src/html/template/content.go?s=3132:3144#L64">JSStr</a>
+				
+				
+			</h2>
+			<p>JSStr 封装一段字符序列，用于嵌入 JavaScript 表达式的引号之间。该字符串必须匹配一系列 StringCharacters：<pre>StringCharacter :: SourceCharacter but not `\` or LineTerminator
+                 | EscapeSequence
+</pre>
+<p>注意，不允许使用 LineContinuations（续行）。JSStr(&quot;foo\\nbar&quot;) 可以使用，但 JSStr(&quot;foo\\\nbar&quot;) 不可以。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type JSStr <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Srcset">type <a href="/src/html/template/content.go?s=3974:3987#L83">Srcset</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>Srcset 封装已知安全的 srcset 属性，参见 <a href="https://w3c.github.io/html/semantics-embedded-content.html#element-attrdef-img-srcset">https://w3c.github.io/html/semantics-embedded-content.html#element-attrdef-img-srcset</a>。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type Srcset <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Template">type <a href="/src/html/template/template.go?s=398:864#L11">Template</a>
+				
+				
+			</h2>
+			<p>Template 是“text/template”中 Template 的专用版本，用于生成安全的 HTML 文档片段。<pre>type Template struct {
+
+    <span class="comment">// 底层模板的解析树，在首次执行后</span>
+    <span class="comment">// 会更新为可安全用于 HTML 的形式。</span>
+<span id="Template.Tree"></span>    Tree *<a href="/pkg/text/template/parse/">parse</a>.<a href="/pkg/text/template/parse/#Tree">Tree</a> <span class="comment">// Go 1.2</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Template_block" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（模板块）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（模板块）</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;html/template&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	const (
+		master  = `Names:{{block &#34;list&#34; .}}{{&#34;\n&#34;}}{{range .}}{{println &#34;-&#34; .}}{{end}}{{end}}`
+		overlay = `{{define &#34;list&#34;}} {{join . &#34;, &#34;}}{{end}} `
+	)
+	var (
+		funcs     = template.FuncMap{&#34;join&#34;: strings.Join}
+		guardians = []string{&#34;Gamora&#34;, &#34;Groot&#34;, &#34;Nebula&#34;, &#34;Rocket&#34;, &#34;Star-Lord&#34;}
+	)
+	masterTmpl, err := template.New(&#34;master&#34;).Funcs(funcs).Parse(master)
+	if err != nil {
+		log.Fatal(err)
+	}
+	overlayTmpl, err := template.Must(masterTmpl.Clone()).Parse(overlay)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := masterTmpl.Execute(os.Stdout, guardians); err != nil {
+		log.Fatal(err)
+	}
+	if err := overlayTmpl.Execute(os.Stdout, guardians); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Names:
+- Gamora
+- Groot
+- Nebula
+- Rocket
+- Star-Lord
+Names: Gamora, Groot, Nebula, Rocket, Star-Lord
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Template_glob" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（通配模式）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（通配模式）</span></p>
+    <p>这里演示如何从一个目录加载一组模板。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+	&#34;text/template&#34;
+)
+
+// templateFile 定义供测试使用、要保存到文件中的模板内容。
+type templateFile struct {
+	name     string
+	contents string
+}
+
+func createTestDir(files []templateFile) string {
+	dir, err := os.MkdirTemp(&#34;&#34;, &#34;template&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		f, err := os.Create(filepath.Join(dir, file.name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		_, err = io.WriteString(f, file.contents)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func main() {
+	// 这里创建一个临时目录，并写入示例
+	// 模板定义文件；通常，模板文件已经
+	// 位于程序已知的某个位置。
+	dir := createTestDir([]templateFile{
+		// T0.tmpl 是一个普通模板文件，只调用 T1。
+		{&#34;T0.tmpl&#34;, `T0 invokes T1: ({{template &#34;T1&#34;}})`},
+		// T1.tmpl 定义模板 T1，后者调用 T2。
+		{&#34;T1.tmpl&#34;, `{{define &#34;T1&#34;}}T1 invokes T2: ({{template &#34;T2&#34;}}){{end}}`},
+		// T2.tmpl 定义模板 T2。
+		{&#34;T2.tmpl&#34;, `{{define &#34;T2&#34;}}This is T2{{end}}`},
+	})
+	// 测试结束后清理；这是作为示例运行时需要的额外处理。
+	defer os.RemoveAll(dir)
+
+	// pattern 是用于查找所有模板文件的通配模式。
+	pattern := filepath.Join(dir, &#34;*.tmpl&#34;)
+
+	// 下面开始示例的核心部分。
+	// T0.tmpl 是第一个匹配的名称，因此它成为起始模板，
+	// 也就是 ParseGlob 返回的值。
+	tmpl := template.Must(template.ParseGlob(pattern))
+
+	err := tmpl.Execute(os.Stdout, nil)
+	if err != nil {
+		log.Fatalf(&#34;template execution: %s&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>T0 invokes T1: (T1 invokes T2: (This is T2))
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Template_helpers" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（辅助模板）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（辅助模板）</span></p>
+    <p>此示例演示如何共享一些模板，并在不同上下文中使用。在这个版本中，我们手动向已有的一组模板添加多个驱动模板。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+	&#34;text/template&#34;
+)
+
+// templateFile 定义供测试使用、要保存到文件中的模板内容。
+type templateFile struct {
+	name     string
+	contents string
+}
+
+func createTestDir(files []templateFile) string {
+	dir, err := os.MkdirTemp(&#34;&#34;, &#34;template&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		f, err := os.Create(filepath.Join(dir, file.name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		_, err = io.WriteString(f, file.contents)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func main() {
+	// 这里创建一个临时目录，并写入示例
+	// 模板定义文件；通常，模板文件已经
+	// 位于程序已知的某个位置。
+	dir := createTestDir([]templateFile{
+		// T1.tmpl 定义模板 T1，后者调用 T2。
+		{&#34;T1.tmpl&#34;, `{{define &#34;T1&#34;}}T1 invokes T2: ({{template &#34;T2&#34;}}){{end}}`},
+		// T2.tmpl 定义模板 T2。
+		{&#34;T2.tmpl&#34;, `{{define &#34;T2&#34;}}This is T2{{end}}`},
+	})
+	// 测试结束后清理；这是作为示例运行时需要的额外处理。
+	defer os.RemoveAll(dir)
+
+	// pattern 是用于查找所有模板文件的通配模式。
+	pattern := filepath.Join(dir, &#34;*.tmpl&#34;)
+
+	// 下面开始示例的核心部分。
+	// 加载辅助模板。
+	templates := template.Must(template.ParseGlob(pattern))
+	// 向这一组模板添加一个驱动模板；这里使用显式的模板定义。
+	_, err := templates.Parse(&#34;{{define `driver1`}}Driver 1 calls T1: ({{template `T1`}})\n{{end}}&#34;)
+	if err != nil {
+		log.Fatal(&#34;parsing driver1: &#34;, err)
+	}
+	// 再添加一个驱动模板。
+	_, err = templates.Parse(&#34;{{define `driver2`}}Driver 2 calls T2: ({{template `T2`}})\n{{end}}&#34;)
+	if err != nil {
+		log.Fatal(&#34;parsing driver2: &#34;, err)
+	}
+	// 我们在执行之前加载全部模板。此包本身不要求
+	// 这样做，但 html/template 的转义要求如此，因此这是一个好习惯。
+	err = templates.ExecuteTemplate(os.Stdout, &#34;driver1&#34;, nil)
+	if err != nil {
+		log.Fatalf(&#34;driver1 execution: %s&#34;, err)
+	}
+	err = templates.ExecuteTemplate(os.Stdout, &#34;driver2&#34;, nil)
+	if err != nil {
+		log.Fatalf(&#34;driver2 execution: %s&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Driver 1 calls T1: (T1 invokes T2: (This is T2))
+Driver 2 calls T2: (This is T2)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Template_parsefiles" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（解析文件）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（解析文件）</span></p>
+    <p>这里演示如何从不同目录中的文件加载一组模板。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+	&#34;text/template&#34;
+)
+
+// templateFile 定义供测试使用、要保存到文件中的模板内容。
+type templateFile struct {
+	name     string
+	contents string
+}
+
+func createTestDir(files []templateFile) string {
+	dir, err := os.MkdirTemp(&#34;&#34;, &#34;template&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		f, err := os.Create(filepath.Join(dir, file.name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		_, err = io.WriteString(f, file.contents)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func main() {
+	// 这里创建不同的临时目录，并写入示例
+	// 模板定义文件；通常，模板文件已经
+	// 位于程序已知的某个位置。
+	dir1 := createTestDir([]templateFile{
+		// T1.tmpl 是一个普通模板文件，只调用 T2。
+		{&#34;T1.tmpl&#34;, `T1 invokes T2: ({{template &#34;T2&#34;}})`},
+	})
+
+	dir2 := createTestDir([]templateFile{
+		// T2.tmpl 定义模板 T2。
+		{&#34;T2.tmpl&#34;, `{{define &#34;T2&#34;}}This is T2{{end}}`},
+	})
+
+	// 测试结束后清理；这是作为示例运行时需要的额外处理。
+	defer func(dirs ...string) {
+		for _, dir := range dirs {
+			os.RemoveAll(dir)
+		}
+	}(dir1, dir2)
+
+	// 下面开始示例的核心部分。
+	// 这里只解析 dir1/T0 和 dir2/T2。
+	paths := []string{
+		filepath.Join(dir1, &#34;T1.tmpl&#34;),
+		filepath.Join(dir2, &#34;T2.tmpl&#34;),
+	}
+	tmpl := template.Must(template.ParseFiles(paths...))
+
+	err := tmpl.Execute(os.Stdout, nil)
+	if err != nil {
+		log.Fatalf(&#34;template execution: %s&#34;, err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>T1 invokes T2: (This is T2)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_Template_share" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例（共享）</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例（共享）</span></p>
+    <p>此示例演示如何让同一组驱动模板配合不同的辅助模板集合使用。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;path/filepath&#34;
+	&#34;text/template&#34;
+)
+
+// templateFile 定义供测试使用、要保存到文件中的模板内容。
+type templateFile struct {
+	name     string
+	contents string
+}
+
+func createTestDir(files []templateFile) string {
+	dir, err := os.MkdirTemp(&#34;&#34;, &#34;template&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		f, err := os.Create(filepath.Join(dir, file.name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		_, err = io.WriteString(f, file.contents)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func main() {
+	// 这里创建一个临时目录，并写入示例
+	// 模板定义文件；通常，模板文件已经
+	// 位于程序已知的某个位置。
+	dir := createTestDir([]templateFile{
+		// T0.tmpl 是一个普通模板文件，只调用 T1。
+		{&#34;T0.tmpl&#34;, &#34;T0 ({{.}} version) invokes T1: ({{template `T1`}})\n&#34;},
+		// T1.tmpl 定义模板 T1，后者调用 T2。注意，T2 尚未定义。
+		{&#34;T1.tmpl&#34;, `{{define &#34;T1&#34;}}T1 invokes T2: ({{template &#34;T2&#34;}}){{end}}`},
+	})
+	// 测试结束后清理；这是作为示例运行时需要的额外处理。
+	defer os.RemoveAll(dir)
+
+	// pattern 是用于查找所有模板文件的通配模式。
+	pattern := filepath.Join(dir, &#34;*.tmpl&#34;)
+
+	// 下面开始示例的核心部分。
+	// 加载驱动模板。
+	drivers := template.Must(template.ParseGlob(pattern))
+
+	// 必须为 T2 模板提供一个实现。首先克隆
+	// 驱动模板，然后向模板命名空间添加 T2 的定义。
+
+	// 1. 克隆辅助模板集合，创建用于运行它们的新命名空间。
+	first, err := drivers.Clone()
+	if err != nil {
+		log.Fatal(&#34;cloning helpers: &#34;, err)
+	}
+	// 2. 定义并解析 T2 的 A 版本。
+	_, err = first.Parse(&#34;{{define `T2`}}T2, version A{{end}}&#34;)
+	if err != nil {
+		log.Fatal(&#34;parsing T2: &#34;, err)
+	}
+
+	// 现在使用 T2 的另一个版本，重复整个过程。
+	// 1. 克隆驱动模板。
+	second, err := drivers.Clone()
+	if err != nil {
+		log.Fatal(&#34;cloning drivers: &#34;, err)
+	}
+	// 2. 定义并解析 T2 的 B 版本。
+	_, err = second.Parse(&#34;{{define `T2`}}T2, version B{{end}}&#34;)
+	if err != nil {
+		log.Fatal(&#34;parsing T2: &#34;, err)
+	}
+
+	// 按相反顺序执行模板，验证
+	// 第一个模板没有受到第二个模板的影响。
+	err = second.ExecuteTemplate(os.Stdout, &#34;T0.tmpl&#34;, &#34;second&#34;)
+	if err != nil {
+		log.Fatalf(&#34;second execution: %s&#34;, err)
+	}
+	err = first.ExecuteTemplate(os.Stdout, &#34;T0.tmpl&#34;, &#34;first&#34;)
+	if err != nil {
+		log.Fatalf(&#34;first: execution: %s&#34;, err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>T0 (second version) invokes T1: (T1 invokes T2: (T2, version B))
+T0 (first version) invokes T1: (T1 invokes T2: (T2, version A))
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="Must">func <a href="/src/html/template/template.go?s=11467:11510#L359">Must</a>
+					
+					
+				</h3>
+				<pre>func Must(t *<a href="#Template">Template</a>, err <a href="/pkg/builtin/#error">error</a>) *<a href="#Template">Template</a></pre>
+				<p>Must 是一个辅助函数，用于包装返回 (<a href="#Template">*Template</a>, error) 的函数调用；如果错误非 nil，则触发 panic。它适合用于变量初始化，例如：<pre>var t = template.Must(template.New(&quot;name&quot;).Parse(&quot;html&quot;))
+</pre>
+
+				
+			
+				<h3 id="New">func <a href="/src/html/template/template.go?s=8755:8786#L275">New</a>
+					
+					
+				</h3>
+				<pre>func New(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Template">Template</a></pre>
+				<p>New 分配一个具有指定名称的新 HTML 模板。<h3 id="ParseFS">func <a href="/src/html/template/template.go?s=16318:16379#L484">ParseFS</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func ParseFS(fs <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, patterns ...<a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseFS 类似 <a href="#ParseFiles">ParseFiles</a> 或 <a href="#ParseGlob">ParseGlob</a>，但从文件系统 fs 读取，而不是从宿主操作系统的文件系统读取。它接收一组通配模式。（注意，大多数文件名本身就可以作为只匹配自身的通配模式。）<h3 id="ParseFiles">func <a href="/src/html/template/template.go?s=12123:12178#L375">ParseFiles</a>
+					
+					
+				</h3>
+				<pre>func ParseFiles(filenames ...<a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseFiles 创建一个新的 <a href="#Template">Template</a>，并从指定文件中解析模板定义。返回的模板使用第一个文件的基本名称（不含目录）及解析后的内容。必须提供至少一个文件。如果发生错误，解析停止，返回的 <a href="#Template">*Template</a> 为 nil。<p>解析不同目录下的多个同名文件时，以最后指定的文件为准。例如，ParseFiles(&quot;a/foo&quot;, &quot;b/foo&quot;) 会将“b/foo”存为名为“foo”的模板，而“a/foo”则不可用。<h3 id="ParseGlob">func <a href="/src/html/template/template.go?s=14568:14617#L440">ParseGlob</a>
+					
+					
+				</h3>
+				<pre>func ParseGlob(pattern <a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseGlob 创建一个新的 <a href="#Template">Template</a>，并从模式匹配到的文件中解析模板定义。文件按 filepath.Match 的语义匹配，且模式必须匹配至少一个文件。返回的模板使用模式匹配到的第一个文件的基本名称（不含目录）及解析后的内容。ParseGlob 等价于用模式匹配到的文件列表调用 <a href="#ParseFiles">ParseFiles</a>。<p>解析不同目录下的多个同名文件时，以最后指定的文件为准。<h3 id="Template.AddParseTree">func (*Template) <a href="/src/html/template/template.go?s=6904:6985#L208">AddParseTree</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) AddParseTree(name <a href="/pkg/builtin/#string">string</a>, tree *<a href="/pkg/text/template/parse/">parse</a>.<a href="/pkg/text/template/parse/#Tree">Tree</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AddParseTree 根据给定名称和解析树创建一个新模板，并将其与 t 关联。<p>如果 t 或任意关联模板已经执行过，则返回错误。<h3 id="Template.Clone">func (*Template) <a href="/src/html/template/template.go?s=7806:7851#L237">Clone</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Clone() (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Clone 返回模板及其所有关联模板的副本。底层实际表示并不会复制，但会复制关联模板的命名空间，因此在副本上进一步调用 <a href="#Template.Parse">Template.Parse</a> 时，新模板只会添加到副本，不会添加到原模板。可以使用 <a href="#Template.Clone">Template.Clone</a> 预先准备公共模板，再在创建副本后加入其他模板的不同定义，从而组合出不同变体。<p>如果 t 已经执行过，则返回错误。<h3 id="Template.DefinedTemplates">func (*Template) <a href="/src/html/template/template.go?s=5388:5432#L162">DefinedTemplates</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) DefinedTemplates() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>DefinedTemplates 返回一个列出已定义模板的字符串，以“; defined templates are: ”为前缀。如果没有已定义模板，则返回空字符串。此方法用于生成错误消息。<h3 id="Template.Delims">func (*Template) <a href="/src/html/template/template.go?s=10874:10929#L341">Delims</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Delims(left, right <a href="/pkg/builtin/#string">string</a>) *<a href="#Template">Template</a></pre>
+				<p>Delims 将动作分隔符设置为指定字符串，供随后调用 <a href="#Template.Parse">Template.Parse</a>、<a href="#ParseFiles">ParseFiles</a> 或 <a href="#ParseGlob">ParseGlob</a> 时使用。嵌套模板定义会继承此设置。空分隔符表示使用对应的默认值：{{ 或 }}。返回值为模板本身，因此支持链式调用。<div id="example_Template_Delims" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;html/template&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	const text = &#34;&lt;&lt;.Greeting&gt;&gt; {{.Name}}&#34;
+
+	data := struct {
+		Greeting string
+		Name     string
+	}{
+		Greeting: &#34;Hello&#34;,
+		Name:     &#34;Joe&#34;,
+	}
+
+	t := template.Must(template.New(&#34;tpl&#34;).Delims(&#34;&lt;&lt;&#34;, &#34;&gt;&gt;&#34;).Parse(text))
+
+	err := t.Execute(os.Stdout, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello {{.Name}}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Template.Execute">func (*Template) <a href="/src/html/template/template.go?s=3527:3583#L111">Execute</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Execute(wr <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, data <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Execute 将已解析的模板应用于指定数据对象，并将输出写入 wr。如果执行模板或写入输出时发生错误，则停止执行，但可能已经向输出写入器写入部分结果。同一个模板可以安全地并行执行，不过如果并行执行共享一个 Writer，输出可能交错。<h3 id="Template.ExecuteTemplate">func (*Template) <a href="/src/html/template/template.go?s=4111:4188#L125">ExecuteTemplate</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) ExecuteTemplate(wr <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, name <a href="/pkg/builtin/#string">string</a>, data <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>ExecuteTemplate 将与 t 关联、具有给定名称的模板应用于指定数据对象，并将输出写入 wr。如果执行模板或写入输出时发生错误，则停止执行，但可能已经向输出写入器写入部分结果。同一个模板可以安全地并行执行，不过如果并行执行共享一个 Writer，输出可能交错。<h3 id="Template.Funcs">func (*Template) <a href="/src/html/template/template.go?s=10428:10479#L331">Funcs</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Funcs(funcMap <a href="#FuncMap">FuncMap</a>) *<a href="#Template">Template</a></pre>
+				<p>Funcs 将参数映射中的元素添加到模板的函数映射。模板中使用的任何函数，都必须在解析模板之前添加。Funcs 可以多次调用，包括在解析之后（例如 <a href="#Template.Clone">Template.Clone</a> 之后）调用，以替换同名函数；模板执行时会使用替换后的函数。如果映射中的某个值不是具有合适返回类型的函数，则触发 panic。返回值为模板本身，因此支持链式调用。<h3 id="Template.Lookup">func (*Template) <a href="/src/html/template/template.go?s=11091:11139#L348">Lookup</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Lookup(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Template">Template</a></pre>
+				<p>Lookup 返回与 t 关联且具有给定名称的模板；如果没有这样的模板，则返回 nil。<h3 id="Template.Name">func (*Template) <a href="/src/html/template/template.go?s=9826:9858#L318">Name</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回模板的名称。<h3 id="Template.New">func (*Template) <a href="/src/html/template/template.go?s=9340:9385#L295">New</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) New(name <a href="/pkg/builtin/#string">string</a>) *<a href="#Template">Template</a></pre>
+				<p>New 分配一个新的 HTML 模板，将它与当前模板关联，并使用相同的分隔符。这种关联具有传递性，使一个模板可以通过 {{template}} 动作调用另一个模板。<p>如果已存在给定名称的模板，新的 HTML 模板会替换它。现有模板会被重置，并解除与 t 的关联。<h3 id="Template.Option">func (*Template) <a href="/src/html/template/template.go?s=2263:2313#L67">Option</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Option(opt ...<a href="/pkg/builtin/#string">string</a>) *<a href="#Template">Template</a></pre>
+				<p>Option 设置模板选项。选项使用字符串描述，可以是简单字符串，也可以是“key=value”。选项字符串中最多只能出现一个等号。如果选项无法识别或因其他原因无效，Option 会触发 panic。<p>已知选项：<p>missingkey：控制模板执行期间使用不存在的键索引映射时的行为。<pre>&quot;missingkey=default&quot; 或 &quot;missingkey=invalid&quot;
+	默认行为：不做处理，继续执行。
+	如果打印该索引操作的结果，会得到字符串
+	&quot;&lt;no value&gt;&quot;。
+&quot;missingkey=zero&quot;
+	该操作返回映射元素类型的零值。
+&quot;missingkey=error&quot;
+	立即停止执行，并返回错误。
+</pre>
+
+				
+			
+				<h3 id="Template.Parse">func (*Template) <a href="/src/html/template/template.go?s=6108:6164#L177">Parse</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Parse(text <a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 将 text 解析为 t 的模板体。text 中的命名模板定义（{{define ...}} 或 {{block ...}} 语句）会定义与 t 关联的其他模板，并从 t 自身的定义中移除。<p>首次对 t 或其任意关联模板调用 <a href="#Template.Execute">Template.Execute</a> 之前，可以通过连续调用 Parse 来重新定义模板。仅包含空白和注释的模板体视为空，不会替换已有模板的主体。因此，可以使用 Parse 添加新的命名模板定义，而不覆盖主模板体。<h3 id="Template.ParseFS">func (*Template) <a href="/src/html/template/template.go?s=16693:16768#L492">ParseFS</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) ParseFS(fs <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>, patterns ...<a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseFS 类似 <a href="#Template.ParseFiles">Template.ParseFiles</a> 或 <a href="#Template.ParseGlob">Template.ParseGlob</a>，但从文件系统 fs 读取，而不是从宿主操作系统的文件系统读取。它接收一组通配模式。（注意，大多数文件名本身就可以作为只匹配自身的通配模式。）<h3 id="Template.ParseFiles">func (*Template) <a href="/src/html/template/template.go?s=12672:12741#L387">ParseFiles</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) ParseFiles(filenames ...<a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseFiles 解析指定文件，并将生成的模板与 t 关联。如果发生错误，解析停止，返回的模板为 nil；否则返回 t。必须提供至少一个文件。<p>解析不同目录下的多个同名文件时，以最后指定的文件为准。<p>如果 t 或任意关联模板已经执行过，ParseFiles 会返回错误。<h3 id="Template.ParseGlob">func (*Template) <a href="/src/html/template/template.go?s=15234:15297#L454">ParseGlob</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) ParseGlob(pattern <a href="/pkg/builtin/#string">string</a>) (*<a href="#Template">Template</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseGlob 解析模式匹配到的文件中的模板定义，并将生成的模板与 t 关联。文件按 filepath.Match 的语义匹配，且模式必须匹配至少一个文件。ParseGlob 等价于用模式匹配到的文件列表调用 t.ParseFiles。<p>解析不同目录下的多个同名文件时，以最后指定的文件为准。<p>如果 t 或任意关联模板已经执行过，ParseGlob 会返回错误。<h3 id="Template.Templates">func (*Template) <a href="/src/html/template/template.go?s=1262:1304#L37">Templates</a>
+					
+					
+				</h3>
+				<pre>func (t *<a href="#Template">Template</a>) Templates() []*<a href="#Template">Template</a></pre>
+				<p>Templates 返回一个切片，包含与 t 关联的所有模板，包括 t 自身。<h2 id="URL">type <a href="/src/html/template/content.go?s=3635:3645#L75">URL</a>
+				
+				
+			</h2>
+			<p>URL 封装已知安全的 URL 或 URL 子串（见 RFC 3986）。来自可信来源、形如 `javascript:checkThatFormNotEditedBeforeLeavingPage()` 的 URL 应能放入页面，但默认情况下，动态的 `javascript:` URL 会被过滤掉，因为它们是常被利用的注入途径。<p>使用此类型存在安全风险：封装的内容应来自可信来源，因为它会原样写入模板输出。<pre>type URL <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

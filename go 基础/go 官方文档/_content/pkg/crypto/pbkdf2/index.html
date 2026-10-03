@@ -1,0 +1,104 @@
+<!--{
+  "Title": "crypto/pbkdf2 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package pbkdf2</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/pbkdf2"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>pbkdf2 包实现 RFC 8018（PKCS #5 v2.1）定义的密钥派生函数 PBKDF2。
+<p>根据密码或其他非完全随机的数据进行加密时，密钥派生函数很有用。它通过伪随机函数，根据密码派生安全的加密密钥。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Key">func Key[Hash hash.Hash](h func() Hash, password string, salt []byte, iter, keyLength int) ([]byte, error)</a></dd>
+			
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/pbkdf2/pbkdf2.go">pbkdf2.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Key">func <a href="/src/crypto/pbkdf2/pbkdf2.go?s=1513:1619#L30">Key</a>
+				
+				
+			</h2>
+			<pre>func Key[Hash <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>](h func() <a href="#Hash">Hash</a>, password <a href="/pkg/builtin/#string">string</a>, salt []<a href="/pkg/builtin/#byte">byte</a>, iter, keyLength <a href="/pkg/builtin/#int">int</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Key 根据 password、salt 和迭代次数派生密钥，返回长度为 keyLength 的 []byte，可用作密码学密钥。派生方法为 PBKDF2 的 HMAC 变体，使用给定的哈希函数。
+<p>例如，要使用基于 HMAC-SHA-1 的 PBKDF2 密钥派生函数，为 AES-256（需要 32 字节密钥）派生密钥，可以这样做：
+<pre>dk, err := pbkdf2.Key(sha1.New, &quot;some password&quot;, salt, 4096, 32)
+</pre>
+<p>请记得使用质量良好的随机盐值。RFC 建议至少使用 8 字节。
+<p>增加迭代次数会提高穷举搜索的成本，但也会使派生过程按比例变慢。
+<p>keyLength 必须是 1 到 (2^32 - 1) * h.Size() 之间的正整数。将 keyLength 设为此范围之外的值会导致错误。
+
+			
+		
+		
+	
+
+	
+
+
+
+
+</article>

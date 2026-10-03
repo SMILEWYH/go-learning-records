@@ -1,0 +1,346 @@
+<!--{
+  "Title": "container/heap 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>container/heap 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "container/heap"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>heap 包为任何实现 heap.Interface 的类型提供堆操作。堆是一棵树，其中每个节点都是其子树中值最小的节点。<p>树中的最小元素是根节点，位于索引 0。<p>堆是实现优先队列的常用方式。要构建优先队列，应实现 Heap 接口，并以优先级的负值作为 Less 方法的排序依据；这样 Push 会添加元素，而 Pop 会从队列中移除优先级最高的元素。示例中包含这样的实现；完整源代码位于 example_pq_test.go 文件中。<div id="example__intHeap" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (IntHeap)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (IntHeap)</span></p>
+    <p>本示例向 IntHeap 插入若干整数，检查最小值，然后按优先级顺序移除它们。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">// 本示例展示如何使用 heap 接口构建整数堆。
+package main
+
+import (
+	&#34;container/heap&#34;
+	&#34;fmt&#34;
+)
+
+// IntHeap 是整数的最小堆。
+type IntHeap []int
+
+func (h IntHeap) Len() int           { return len(h) }
+func (h IntHeap) Less(i, j int) bool { return h[i] &lt; h[j] }
+func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *IntHeap) Push(x any) {
+	// Push 和 Pop 使用指针接收者，因为它们会修改切片的长度，
+	// 而不仅仅是修改内容。
+	*h = append(*h, x.(int))
+}
+
+func (h *IntHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+// 本示例向 IntHeap 插入若干整数，检查最小值，
+// 然后按优先级顺序移除它们。
+func main() {
+	h := &amp;IntHeap{2, 1, 5}
+	heap.Init(h)
+	heap.Push(h, 3)
+	fmt.Printf(&#34;minimum: %d\n&#34;, (*h)[0])
+	for h.Len() &gt; 0 {
+		fmt.Printf(&#34;%d &#34;, heap.Pop(h))
+	}
+}
+</textarea></div>
+        <div class="output"><pre>minimum: 1
+1 2 3 5
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__priorityQueue" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (PriorityQueue)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (PriorityQueue)</span></p>
+    <p>本示例创建一个包含一些元素的 PriorityQueue，添加并修改一个元素，然后按优先级顺序移除这些元素。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">// 本示例展示如何使用 heap 接口构建优先队列。
+package main
+
+import (
+	&#34;container/heap&#34;
+	&#34;fmt&#34;
+)
+
+// Item 是我们在优先队列中管理的元素。
+type Item struct {
+	value    string // 元素的值，可以是任意值。
+	priority int    // 元素在队列中的优先级。
+	// update 需要使用索引，索引由 heap.Interface 的方法维护。
+	index int // 元素在堆中的索引。
+}
+
+// PriorityQueue 实现 heap.Interface 并保存 Item。
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int { return len(pq) }
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	// 我们希望 Pop 返回优先级最高的元素，而不是最低的，因此这里使用大于号。
+	return pq[i].priority &gt; pq[j].priority
+}
+
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index = i
+	pq[j].index = j
+}
+
+func (pq *PriorityQueue) Push(x any) {
+	n := len(*pq)
+	item := x.(*Item)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *PriorityQueue) Pop() any {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil  // 不要阻止 GC 最终回收该元素
+	item.index = -1 // 出于安全考虑
+	*pq = old[0 : n-1]
+	return item
+}
+
+// update 修改队列中 Item 的优先级和值。
+func (pq *PriorityQueue) update(item *Item, value string, priority int) {
+	item.value = value
+	item.priority = priority
+	heap.Fix(pq, item.index)
+}
+
+// 本示例创建一个包含一些元素的 PriorityQueue，添加并修改一个元素，
+// 然后按优先级顺序移除这些元素。
+func main() {
+	// 一些元素及其优先级。
+	items := map[string]int{
+		&#34;banana&#34;: 3, &#34;apple&#34;: 2, &#34;pear&#34;: 4,
+	}
+
+	// 创建优先队列，将元素放入其中，
+	// 并建立优先队列（堆）的不变量。
+	pq := make(PriorityQueue, len(items))
+	i := 0
+	for value, priority := range items {
+		pq[i] = &amp;Item{
+			value:    value,
+			priority: priority,
+			index:    i,
+		}
+		i&#43;&#43;
+	}
+	heap.Init(&amp;pq)
+
+	// 插入新元素，然后修改其优先级。
+	item := &amp;Item{
+		value:    &#34;orange&#34;,
+		priority: 1,
+	}
+	heap.Push(&amp;pq, item)
+	pq.update(item, item.value, 5)
+
+	// 取出这些元素；它们按优先级从高到低的顺序返回。
+	for pq.Len() &gt; 0 {
+		item := heap.Pop(&amp;pq).(*Item)
+		fmt.Printf(&#34;%.2d:%s &#34;, item.priority, item.value)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>05:orange 04:pear 03:banana 02:apple
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Fix">func Fix(h Interface, i int)</a></dd>
+			
+				<dd><a href="#Init">func Init(h Interface)</a></dd>
+			
+				<dd><a href="#Pop">func Pop(h Interface) any</a></dd>
+			
+				<dd><a href="#Push">func Push(h Interface, x any)</a></dd>
+			
+				<dd><a href="#Remove">func Remove(h Interface, i int) any</a></dd>
+			
+			
+				
+				<dd><a href="#Interface">type Interface</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__intHeap">包 (IntHeap)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__priorityQueue">包 (PriorityQueue)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/container/heap/heap.go">heap.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Fix">func <a href="/src/container/heap/heap.go?s=2846:2874#L73">Fix</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<pre>func Fix(h <a href="#Interface">Interface</a>, i <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>Fix 在索引 i 处元素的值改变后重新建立堆序。修改索引 i 处元素的值后调用 Fix，等价于先调用 <a href="#Remove">Remove</a>(h, i) 再 Push 新值，但开销更小。复杂度为 O(log n)，其中 n = h.Len()。<h2 id="Init">func <a href="/src/container/heap/heap.go?s=1741:1763#L31">Init</a>
+				
+				
+			</h2>
+			<pre>func Init(h <a href="#Interface">Interface</a>)</pre>
+			<p>Init 建立本包其他函数所要求的堆不变量。就堆不变量而言，Init 是幂等的，可以在堆不变量可能已失效时调用。复杂度为 O(n)，其中 n = h.Len()。<h2 id="Pop">func <a href="/src/container/heap/heap.go?s=2175:2200#L49">Pop</a>
+				
+				
+			</h2>
+			<pre>func Pop(h <a href="#Interface">Interface</a>) <a href="/pkg/builtin/#any">any</a></pre>
+			<p>Pop 从堆中移除并返回最小元素（根据 Less 判断）。复杂度为 O(log n)，其中 n = h.Len()。Pop 等价于 <a href="#Remove">Remove</a>(h, 0)。<h2 id="Push">func <a href="/src/container/heap/heap.go?s=1940:1969#L41">Push</a>
+				
+				
+			</h2>
+			<pre>func Push(h <a href="#Interface">Interface</a>, x <a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>Push 将元素 x 压入堆中。复杂度为 O(log n)，其中 n = h.Len()。<h2 id="Remove">func <a href="/src/container/heap/heap.go?s=2386:2421#L58">Remove</a>
+				
+				
+			</h2>
+			<pre>func Remove(h <a href="#Interface">Interface</a>, i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#any">any</a></pre>
+			<p>Remove 从堆中移除并返回索引 i 处的元素。复杂度为 O(log n)，其中 n = h.Len()。<h2 id="Interface">type <a href="/src/container/heap/heap.go?s=1335:1471#L21">Interface</a>
+				
+				
+			</h2>
+			<p>Interface 类型描述了使用本包函数的类型必须满足的要求。任何实现此接口的类型都可用作最小堆，并满足以下不变量（在调用 <a href="#Init">Init</a> 后，或数据为空或已排序时成立）：<pre>!h.Less(j, i) for 0 &lt;= i &lt; h.Len() and 2*i+1 &lt;= j &lt;= 2*i+2 and j &lt; h.Len()
+</pre>
+<p>注意，此接口中的 <a href="#Push">Push</a> 和 <a href="#Pop">Pop</a> 供 heap 包的实现调用。要向堆中添加或移除元素，请使用 <a href="#Push">heap.Push</a> 和 <a href="#Pop">heap.Pop</a>。<pre>type Interface interface {
+    <a href="/pkg/sort/">sort</a>.<a href="/pkg/sort/#Interface">Interface</a>
+    Push(x <a href="/pkg/builtin/#any">any</a>) <span class="comment">// 将 x 添加为索引 Len() 处的元素</span>
+    Pop() <a href="/pkg/builtin/#any">any</a>   <span class="comment">// 移除并返回索引 Len() - 1 处的元素。</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

@@ -1,0 +1,627 @@
+<!--{
+	"Title": "编写 Web 应用",
+	"Template": true,
+	"Breadcrumb": true
+}-->
+
+<h2>简介</h2>
+
+<p>
+本教程涵盖以下内容：
+</p>
+<ul>
+<li>创建带有加载和保存方法的数据结构</li>
+<li>使用 <code>net/http</code> 包构建 Web 应用
+<li>使用 <code>html/template</code> 包处理 HTML 模板</li>
+<li>使用 <code>regexp</code> 包验证用户输入</li>
+<li>使用闭包</li>
+</ul>
+
+<p>
+学习本教程需要具备以下基础：
+</p>
+<ul>
+<li>有编程经验</li>
+<li>了解基本的 Web 技术（HTTP、HTML）</li>
+<li>了解一些 UNIX/DOS 命令行知识</li>
+</ul>
+
+<h2>开始使用</h2>
+
+<p>
+你需要一台运行 FreeBSD、Linux、macOS 或 Windows 的计算机来运行 Go。
+本文使用 <code>$</code> 表示命令提示符。
+</p>
+
+<p>
+安装 Go（参见<a href="/doc/install">安装说明</a>）。
+</p>
+
+<p>
+在 <code>GOPATH</code> 中为本教程新建一个目录，并切换到该目录：
+</p>
+
+<pre>
+$ mkdir gowiki
+$ cd gowiki
+</pre>
+
+<p>
+创建名为 <code>wiki.go</code> 的文件，用你喜欢的编辑器打开它，加入以下内容：
+</p>
+
+<pre>
+package main
+
+import (
+    "fmt"
+    "os"
+)
+</pre>
+
+<p>
+我们从 Go 标准库导入了 <code>fmt</code> 和 <code>os</code> 包。
+之后实现更多功能时，还会向这个 <code>import</code> 声明中添加其他包。
+</p>
+
+<h2>数据结构</h2>
+
+<p>
+先来定义数据结构。Wiki 由一系列相互链接的页面组成，每个页面都有标题和正文（页面内容）。
+这里将 <code>Page</code> 定义为一个结构体，用两个字段分别表示标题和正文。
+</p>
+
+{{code "part1.go" `/^type Page/` `/}/`}}
+
+<p>
+<code>[]byte</code> 类型表示“<code>byte</code> 切片”。
+关于切片的更多介绍，请参阅<a href="/doc/articles/slices_usage_and_internals.html">切片：用法与内部原理</a>。
+<code>Body</code> 字段使用 <code>[]byte</code> 而不是 <code>string</code>，因为接下来使用的 <code>io</code> 库需要这一类型，后文会展示具体用法。
+</p>
+
+<p>
+<code>Page</code> 结构体描述了页面数据在内存中的存储方式。
+那么如何持久化存储呢？可以为 <code>Page</code> 创建一个 <code>save</code> 方法：
+</p>
+
+{{code "part1.go" `/^func.*Page.*save/` `/}/`}}
+
+<p>
+这个方法签名可以读作：“名为 <code>save</code> 的方法，以 <code>p</code> 为接收者，其类型是指向 <code>Page</code> 的指针。
+它没有参数，返回一个 <code>error</code> 类型的值。”
+</p>
+
+<p>
+该方法会将 <code>Page</code> 的 <code>Body</code> 保存到文本文件中。
+为简单起见，我们使用 <code>Title</code> 作为文件名。
+</p>
+
+<p>
+<code>save</code> 方法返回 <code>error</code> 值，因为这是 <code>WriteFile</code> 的返回类型；后者是将字节切片写入文件的标准库函数。
+<code>save</code> 方法把错误值返回给应用，让应用在写入文件出错时进行处理。
+如果一切正常，<code>Page.save()</code> 会返回 <code>nil</code>，也就是指针、接口以及其他一些类型的零值。
+</p>
+
+<p>
+传给 <code>WriteFile</code> 的第三个参数是八进制整数字面量 <code>0600</code>，表示创建文件时只允许当前用户读写。
+详情请参阅 Unix 手册页 <code>open(2)</code>。
+</p>
+
+<p>
+除了保存页面，我们还需要加载页面：
+</p>
+
+{{code "part1-noerror.go" `/^func loadPage/` `/^}/`}}
+
+<p>
+<code>loadPage</code> 函数根据 title 参数构造文件名，将文件内容读入新变量 <code>body</code>，
+再用相应的标题和正文构造 <code>Page</code> 字面量，返回指向它的指针。
+</p>
+
+<p>
+函数可以返回多个值。标准库函数 <code>os.ReadFile</code> 返回 <code>[]byte</code> 和 <code>error</code>。
+<code>loadPage</code> 暂时没有处理错误；它使用下划线符号 <code>_</code> 表示的“空白标识符”丢弃错误返回值，本质上就是不将该值赋给任何变量。
+</p>
+
+<p>
+如果 <code>ReadFile</code> 遇到错误，例如文件不存在，会发生什么？我们不应该忽略这些错误。
+修改函数，让它返回 <code>*Page</code> 和 <code>error</code>。
+</p>
+
+{{code "part1.go" `/^func loadPage/` `/^}/`}}
+
+<p>
+现在，调用方可以检查第二个返回值：如果它是 <code>nil</code>，就表示页面已成功加载；
+否则，它就是可由调用方处理的 <code>error</code>，详情见<a href="/ref/spec#Errors">语言规范</a>。
+</p>
+
+<p>
+至此，我们已经定义了一个简单的数据结构，并实现了保存到文件和从文件加载的功能。
+下面编写 <code>main</code> 函数，测试已完成的代码：
+</p>
+
+{{code "part1.go" `/^func main/` `/^}/`}}
+
+<p>
+编译并执行这段代码后，会创建名为 <code>TestPage.txt</code> 的文件，其中保存了 <code>p1</code> 的正文。
+接着，程序会读取该文件，将数据存入结构体 <code>p2</code>，并把它的 <code>Body</code> 字段打印到屏幕上。
+</p>
+
+<p>
+可以用下面的命令编译并运行程序：
+</p>
+
+<pre>
+$ go build wiki.go
+$ ./wiki
+This is a sample Page.
+</pre>
+
+<p>
+如果使用 Windows，请输入“<code>wiki</code>”运行程序，不要带“<code>./</code>”前缀。
+</p>
+
+<p>
+<a href="part1.go">点击查看目前完成的代码。</a>
+</p>
+
+<h2>认识 <code>net/http</code> 包（插曲）</h2>
+
+<p>
+下面是一个可以直接运行的简单 Web 服务器完整示例：
+</p>
+
+{{code "http-sample.go"}}
+
+<p>
+<code>main</code> 函数首先调用 <code>http.HandleFunc</code>，告诉 <code>http</code> 包使用 <code>handler</code> 处理 Web 根路径（<code>"/"</code>）下的所有请求。
+</p>
+
+<p>
+接着调用 <code>http.ListenAndServe</code>，指定在所有网络接口的 8080 端口上监听（<code>":8080"</code>）。
+暂时不用关注第二个参数 <code>nil</code>。
+正常情况下，这个函数会一直阻塞，直到程序终止。
+</p>
+
+<p>
+<code>ListenAndServe</code> 总是返回错误，因为它只会在发生意外错误时返回。
+为了记录该错误，我们用 <code>log.Fatal</code> 包装这次函数调用。
+</p>
+
+<p>
+<code>handler</code> 函数符合 <code>http.HandlerFunc</code> 类型的签名。
+它接收一个 <code>http.ResponseWriter</code> 和一个指向 <code>http.Request</code> 的指针作为参数。
+</p>
+
+<p>
+<code>http.ResponseWriter</code> 用于构造 HTTP 服务器的响应；向它写入内容，就会把数据发送给 HTTP 客户端。
+</p>
+
+<p>
+<code>http.Request</code> 是表示客户端 HTTP 请求的数据结构。
+<code>r.URL.Path</code> 是请求 URL 的路径部分。
+后面的 <code>[1:]</code> 表示“从 <code>Path</code> 中索引为 1 的字节开始，一直截取到末尾”。
+这样就去掉了路径开头的“/”。
+</p>
+
+<p>
+运行这个程序后，访问以下 URL：
+</p>
+<pre>http://localhost:8080/monkeys</pre>
+<p>
+程序会显示包含以下内容的页面：
+</p>
+<pre>Hi there, I love monkeys!</pre>
+
+<h2>使用 <code>net/http</code> 提供 Wiki 页面</h2>
+
+<p>
+要使用 <code>net/http</code> 包，首先需要导入它：
+</p>
+
+<pre>
+import (
+    "fmt"
+    "os"
+    "log"
+    <b>"net/http"</b>
+)
+</pre>
+
+<p>
+创建一个名为 <code>viewHandler</code> 的处理函数，让用户可以查看 Wiki 页面。
+它将处理以“/view/”开头的 URL。
+</p>
+
+{{code "part2.go" `/^func viewHandler/` `/^}/`}}
+
+<p>
+这里再次使用 <code>_</code> 忽略了 <code>loadPage</code> 的 <code>error</code> 返回值。
+这是为简化示例而临时采用的写法，通常不应这样做。稍后会补上错误处理。
+</p>
+
+<p>
+首先，函数从请求 URL 的路径部分 <code>r.URL.Path</code> 中提取页面标题。
+通过 <code>[len("/view/"):]</code> 对 <code>Path</code> 再次切片，去掉请求路径开头的 <code>"/view/"</code> 部分。
+这是因为路径总是以 <code>"/view/"</code> 开头，而这部分不属于页面标题。
+</p>
+
+<p>
+随后，函数加载页面数据，用简单的 HTML 字符串格式化页面，并将内容写入 <code>http.ResponseWriter</code> 类型的 <code>w</code>。
+</p>
+
+<p>
+为了使用这个处理函数，修改 <code>main</code> 函数，初始化 <code>http</code>，让 <code>viewHandler</code> 处理 <code>/view/</code> 路径下的所有请求。
+</p>
+
+{{code "part2.go" `/^func main/` `/^}/`}}
+
+<p>
+<a href="part2.go">点击查看目前完成的代码。</a>
+</p>
+
+<p>
+创建一些页面数据（保存为 <code>test.txt</code>），编译代码，尝试提供一个 Wiki 页面。
+</p>
+
+<p>
+在编辑器中打开 <code>test.txt</code> 文件，写入并保存字符串“Hello world”（不含引号）。
+</p>
+
+<pre>
+$ go build wiki.go
+$ ./wiki
+</pre>
+
+<p>
+如果使用 Windows，请输入“<code>wiki</code>”运行程序，不要带“<code>./</code>”前缀。
+</p>
+
+<p>
+Web 服务器运行后，访问 <code><a
+href="http://localhost:8080/view/test">http://localhost:8080/view/test</a></code>，
+应该能看到标题为“test”、正文为“Hello world”的页面。
+</p>
+
+<h2>编辑页面</h2>
+
+<p>
+Wiki 需要具备编辑页面的功能。
+我们来创建两个新的处理函数：<code>editHandler</code> 用于显示“编辑页面”表单，<code>saveHandler</code> 用于保存通过表单输入的数据。
+</p>
+
+<p>
+首先，将它们加入 <code>main()</code>：
+</p>
+
+{{code "final-noclosure.go" `/^func main/` `/^}/`}}
+
+<p>
+<code>editHandler</code> 函数会加载页面；如果页面不存在，就创建一个空的 <code>Page</code> 结构体。
+然后，它会显示一个 HTML 表单。
+</p>
+
+{{code "notemplate.go" `/^func editHandler/` `/^}/`}}
+
+<p>
+这个函数可以正常工作，但把所有 HTML 硬编码在里面并不美观，也难以维护。
+下面介绍更好的实现方式。
+</p>
+
+<h2><code>html/template</code> 包</h2>
+
+<p>
+<code>html/template</code> 包属于 Go 标准库。
+借助 <code>html/template</code>，可以将 HTML 放入独立的文件中，让我们不必修改底层 Go 代码就能调整编辑页面的布局。
+</p>
+
+<p>
+首先，将 <code>html/template</code> 添加到导入列表。
+我们不再使用 <code>fmt</code>，因此也要移除它。
+</p>
+
+<pre>
+import (
+    <b>"html/template"</b>
+    "os"
+    "net/http"
+)
+</pre>
+
+<p>
+创建一个包含 HTML 表单的模板文件。
+新建名为 <code>edit.html</code> 的文件，加入以下内容：
+</p>
+
+{{code "edit.html"}}
+
+<p>
+修改 <code>editHandler</code>，将硬编码的 HTML 替换为模板：
+</p>
+
+{{code "final-noerror.go" `/^func editHandler/` `/^}/`}}
+
+<p>
+<code>template.ParseFiles</code> 函数会读取 <code>edit.html</code> 的内容，返回一个 <code>*template.Template</code>。
+</p>
+
+<p>
+<code>t.Execute</code> 方法执行模板，将生成的 HTML 写入 <code>http.ResponseWriter</code>。
+以点开头的标识符 <code>.Title</code> 和 <code>.Body</code> 分别对应 <code>p.Title</code> 和 <code>p.Body</code>。
+</p>
+
+<p>
+模板指令用双花括号包围。
+<code>printf "%s" .Body</code> 指令是一次函数调用，将 <code>.Body</code> 作为字符串而不是字节序列输出，效果与调用 <code>fmt.Printf</code> 相同。
+<code>html/template</code> 包有助于保证模板动作只生成安全、显示正确的 HTML。
+例如，它会自动转义大于号（<code>&gt;</code>），将其替换为 <code>&#x26;gt;</code>，确保用户数据不会破坏表单的 HTML 结构。
+</p>
+
+<p>
+既然已经开始使用模板，也为 <code>viewHandler</code> 创建一个名为 <code>view.html</code> 的模板：
+</p>
+
+{{code "view.html"}}
+
+<p>
+相应地修改 <code>viewHandler</code>：
+</p>
+
+{{code "final-noerror.go" `/^func viewHandler/` `/^}/`}}
+
+<p>
+可以看到，两个处理函数中的模板处理代码几乎完全相同。
+将这些代码提取到独立函数中，消除重复：
+</p>
+
+{{code "final-template.go" `/^func renderTemplate/` `/^}/`}}
+
+<p>
+再修改处理函数，调用这个函数：
+</p>
+
+{{code "final-template.go" `/^func viewHandler/` `/^}/`}}
+{{code "final-template.go" `/^func editHandler/` `/^}/`}}
+
+<p>
+在 <code>main</code> 中注释掉尚未实现的保存处理函数的注册语句后，就可以再次构建并测试程序。
+<a href="part3.go">点击查看目前完成的代码。</a>
+</p>
+
+<h2>处理不存在的页面</h2>
+
+<p>
+如果访问 <a href="http://localhost:8080/view/APageThatDoesntExist"><code>/view/APageThatDoesntExist</code></a>，会发生什么？
+你会看到一个包含 HTML 的页面。这是因为程序忽略了 <code>loadPage</code> 的错误返回值，在没有数据的情况下仍然尝试填充模板。
+正确的做法是：当请求的页面不存在时，将客户端重定向到编辑页面，让用户创建内容：
+</p>
+
+{{code "part3-errorhandling.go" `/^func viewHandler/` `/^}/`}}
+
+<p>
+<code>http.Redirect</code> 函数会向 HTTP 响应添加 <code>http.StatusFound</code>（302）状态码和 <code>Location</code> 响应头。
+</p>
+
+<h2>保存页面</h2>
+
+<p>
+<code>saveHandler</code> 函数用于处理编辑页面提交的表单。
+先取消 <code>main</code> 中相关语句的注释，然后实现这个处理函数：
+</p>
+
+{{code "final-template.go" `/^func saveHandler/` `/^}/`}}
+
+<p>
+页面标题（由 URL 提供）和表单中唯一的字段 <code>Body</code> 会被存入一个新的 <code>Page</code>。
+随后调用 <code>save()</code> 方法，将数据写入文件，再把客户端重定向到 <code>/view/</code> 页面。
+</p>
+
+<p>
+<code>FormValue</code> 返回的值是 <code>string</code> 类型。
+必须先将它转换为 <code>[]byte</code>，才能放入 <code>Page</code> 结构体。
+这里使用 <code>[]byte(body)</code> 完成转换。
+</p>
+
+<h2>错误处理</h2>
+
+<p>
+程序目前有多处忽略了错误，这种做法不可取，尤其是发生错误时会导致程序出现意料之外的行为。
+更好的做法是处理错误，并向用户返回错误消息。
+这样，出现问题时服务器仍能按预期工作，用户也能收到通知。
+</p>
+
+<p>
+首先，处理 <code>renderTemplate</code> 中的错误：
+</p>
+
+{{code "final-parsetemplate.go" `/^func renderTemplate/` `/^}/`}}
+
+<p>
+<code>http.Error</code> 函数会发送指定的 HTTP 响应状态码（这里是“Internal Server Error”，即服务器内部错误）和错误消息。
+将模板处理提取到独立函数的好处已经体现出来了。
+</p>
+
+<p>
+接着完善 <code>saveHandler</code>：
+</p>
+
+{{code "part3-errorhandling.go" `/^func saveHandler/` `/^}/`}}
+
+<p>
+<code>p.save()</code> 执行过程中发生的任何错误，都会报告给用户。
+</p>
+
+<h2>模板缓存</h2>
+
+<p>
+当前代码存在一个效率问题：<code>renderTemplate</code> 每次渲染页面都会调用 <code>ParseFiles</code>。
+更好的做法是在程序初始化时只调用一次 <code>ParseFiles</code>，将全部模板解析到同一个 <code>*Template</code> 中。
+然后通过 <a href="/pkg/html/template/#Template.ExecuteTemplate"><code>ExecuteTemplate</code></a> 方法渲染指定模板。
+</p>
+
+<p>
+首先，创建名为 <code>templates</code> 的全局变量，并使用 <code>ParseFiles</code> 初始化它。
+</p>
+
+{{code "final.go" `/var templates/`}}
+
+<p>
+<code>template.Must</code> 是一个方便使用的包装函数：传入非 nil 的 <code>error</code> 值时会触发 panic，否则会原样返回 <code>*Template</code>。
+在这里触发 panic 是合适的，因为如果无法加载模板，唯一合理的做法就是退出程序。
+</p>
+
+<p>
+<code>ParseFiles</code> 函数接受任意数量的字符串参数，用于指定模板文件。
+它会解析这些文件，并使用文件的基本名称作为各个模板的名称。
+如果要向程序添加更多模板，只需把相应的文件名加入 <code>ParseFiles</code> 的调用参数中。
+</p>
+
+<p>
+随后修改 <code>renderTemplate</code> 函数，将所需模板的名称传给 <code>templates.ExecuteTemplate</code> 方法：
+</p>
+
+{{code "final.go" `/func renderTemplate/` `/^}/`}}
+
+<p>
+注意，模板名称就是模板文件名，因此必须在 <code>tmpl</code> 参数后追加 <code>".html"</code>。
+</p>
+
+<h2>输入验证</h2>
+
+<p>
+你可能已经发现，这个程序存在一个严重的安全缺陷：用户可以提供任意路径，让服务器读取或写入该路径。
+为了缓解这一问题，可以编写一个函数，用正则表达式验证标题。
+</p>
+
+<p>
+首先，将 <code>"regexp"</code> 加入 <code>import</code> 列表。
+然后创建一个全局变量，保存用于验证的表达式：
+</p>
+
+{{code "final-noclosure.go" `/^var validPath/`}}
+
+<p>
+<code>regexp.MustCompile</code> 函数会解析并编译正则表达式，返回指向 <code>regexp.Regexp</code> 的指针。
+<code>MustCompile</code> 与 <code>Compile</code> 的区别在于：如果表达式编译失败，前者会触发 panic；而 <code>Compile</code> 会通过第二个返回值返回 <code>error</code>。
+</p>
+
+<p>
+接下来编写一个函数，使用 <code>validPath</code> 表达式验证路径，并提取页面标题：
+</p>
+
+{{code "final-noclosure.go" `/func getTitle/` `/^}/`}}
+
+<p>
+如果标题有效，函数会返回标题和一个值为 <code>nil</code> 的错误。
+如果标题无效，函数会通过 HTTP 连接写入“404 Not Found”错误，并向处理函数返回错误。
+为了创建新的错误，需要导入 <code>errors</code> 包。
+</p>
+
+<p>
+在每个处理函数中调用 <code>getTitle</code>：
+</p>
+
+{{code "final-noclosure.go" `/^func viewHandler/` `/^}/`}}
+{{code "final-noclosure.go" `/^func editHandler/` `/^}/`}}
+{{code "final-noclosure.go" `/^func saveHandler/` `/^}/`}}
+
+<h2>认识函数字面量和闭包</h2>
+
+<p>
+在每个处理函数中检查错误，会引入大量重复代码。
+能否用一个函数包装各个处理函数，在其中统一完成验证和错误检查？
+Go 的<a href="/ref/spec#Function_literals">函数字面量</a>提供了强大的功能抽象方式，可以帮助我们做到这一点。
+</p>
+
+<p>
+首先，修改每个处理函数的定义，让它们接收一个标题字符串：
+</p>
+
+<pre>
+func viewHandler(w http.ResponseWriter, r *http.Request, title string)
+func editHandler(w http.ResponseWriter, r *http.Request, title string)
+func saveHandler(w http.ResponseWriter, r *http.Request, title string)
+</pre>
+
+<p>
+然后定义一个包装函数，<i>接收一个上述类型的函数</i>，返回一个 <code>http.HandlerFunc</code> 类型的函数，
+这样返回值就可以传给 <code>http.HandleFunc</code>：
+</p>
+
+<pre>
+func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Here we will extract the page title from the Request,
+        // and call the provided handler 'fn'
+    }
+}
+</pre>
+
+<p>
+返回的函数称为闭包，因为它捕获了在函数外部定义的值。
+在这个例子中，闭包捕获了变量 <code>fn</code>，也就是 <code>makeHandler</code> 唯一的参数。
+变量 <code>fn</code> 将是保存、编辑或查看页面的处理函数之一。
+</p>
+
+<p>
+现在，可以稍作修改，将 <code>getTitle</code> 中的代码移到这里：
+</p>
+
+{{code "final.go" `/func makeHandler/` `/^}/`}}
+
+<p>
+<code>makeHandler</code> 返回的闭包接收一个 <code>http.ResponseWriter</code> 和一个指向 <code>http.Request</code> 的指针，因此符合 <code>http.HandlerFunc</code> 的签名。
+闭包从请求路径中提取 <code>title</code>，并使用正则表达式 <code>validPath</code> 进行验证。
+如果 <code>title</code> 无效，就通过 <code>http.NotFound</code> 函数向 <code>ResponseWriter</code> 写入错误。
+如果 <code>title</code> 有效，就调用捕获的处理函数 <code>fn</code>，将 <code>ResponseWriter</code>、<code>Request</code> 指针和 <code>title</code> 作为参数传入。
+</p>
+
+<p>
+现在，可以在 <code>main</code> 中使用 <code>makeHandler</code> 包装处理函数，再将它们注册到 <code>http</code> 包：
+</p>
+
+{{code "final.go" `/func main/` `/^}/`}}
+
+<p>
+最后，移除处理函数中的 <code>getTitle</code> 调用，让这些函数更简洁：
+</p>
+
+{{code "final.go" `/^func viewHandler/` `/^}/`}}
+{{code "final.go" `/^func editHandler/` `/^}/`}}
+{{code "final.go" `/^func saveHandler/` `/^}/`}}
+
+<h2>动手试试！</h2>
+
+<p>
+<a href="final.go">点击查看最终的完整代码。</a>
+</p>
+
+<p>
+重新编译代码，并运行应用：
+</p>
+
+<pre>
+$ go build wiki.go
+$ ./wiki
+</pre>
+
+<p>
+访问 <a href="http://localhost:8080/view/ANewPage">http://localhost:8080/view/ANewPage</a>，应该能看到页面编辑表单。
+输入一些文本，点击“Save”（保存），浏览器就会重定向到新创建的页面。
+</p>
+
+<h2>更多练习</h2>
+
+<p>
+可以尝试独立完成以下几个简单任务：
+</p>
+
+<ul>
+<li>将模板存放在 <code>tmpl/</code>，将页面数据存放在 <code>data/</code>。
+<li>添加处理函数，把 Web 根路径重定向到 <code>/view/FrontPage</code>。</li>
+<li>完善页面模板，使其符合 HTML 规范，并添加一些 CSS 规则美化页面。</li>
+<li>将 <code>[PageName]</code> 转换为 <br>
+	<code>&lt;a href="/view/PageName"&gt;PageName&lt;/a&gt;</code>，实现页面之间的链接。
+	提示：可以使用 <code>regexp.ReplaceAllFunc</code> 完成这一任务。
+	</li>
+</ul>

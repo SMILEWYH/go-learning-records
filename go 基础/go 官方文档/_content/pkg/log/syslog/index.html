@@ -1,0 +1,333 @@
+<!--{
+  "Title": "log/syslog 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>log/syslog 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "log/syslog"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>syslog 包为系统日志服务提供简单接口。它可以通过 UNIX 域套接字、UDP 或 TCP 向 syslog 守护进程发送消息。<p>只需调用一次 Dial。写入失败时，syslog 客户端会尝试重新连接服务器并再次写入。<p>syslog 包已冻结，不再接受新功能。一些外部包提供了更多功能。参见：<pre>https://godoc.org/?q=syslog
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#NewLogger">func NewLogger(p Priority, logFlag int) (*log.Logger, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Priority">type Priority</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(network, raddr string, priority Priority, tag string) (*Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New">func New(priority Priority, tag string) (*Writer, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Alert">func (w *Writer) Alert(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (w *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Crit">func (w *Writer) Crit(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Debug">func (w *Writer) Debug(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Emerg">func (w *Writer) Emerg(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Err">func (w *Writer) Err(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Info">func (w *Writer) Info(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Notice">func (w *Writer) Notice(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Warning">func (w *Writer) Warning(m string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (w *Writer) Write(b []byte) (int, error)</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Dial">Dial</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/log/syslog/doc.go">doc.go</a>
+			
+				<a href="/src/log/syslog/syslog.go">syslog.go</a>
+			
+				<a href="/src/log/syslog/syslog_unix.go">syslog_unix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="NewLogger">func <a href="/src/log/syslog/syslog.go?s=7505:7565#L302">NewLogger</a>
+				
+				
+			</h2>
+			<pre>func NewLogger(p <a href="#Priority">Priority</a>, logFlag <a href="/pkg/builtin/#int">int</a>) (*<a href="/pkg/log/">log</a>.<a href="/pkg/log/#Logger">Logger</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewLogger 创建一个 <a href="/pkg/log/#Logger">log.Logger</a>，以指定的优先级将输出写入系统日志服务；该优先级由 syslog 的设施类别（facility）和严重级别（severity）组合而成。logFlag 实参是传给 <a href="/pkg/log/#New">log.New</a> 以创建 Logger 的标志集合。<h2 id="Priority">type <a href="/src/log/syslog/syslog.go?s=527:544#L14">Priority</a>
+				
+				
+			</h2>
+			<p>Priority 由 syslog 的设施类别和严重级别组合而成。例如，<a href="#LOG_ALERT">LOG_ALERT</a> | <a href="#LOG_FTP">LOG_FTP</a> 发送来自 FTP 设施、严重级别为 alert 的消息。默认严重级别为 <a href="#LOG_EMERG">LOG_EMERG</a>；默认设施类别为 <a href="#LOG_KERN">LOG_KERN</a>。<pre>type Priority <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+
+    <span class="comment">// 来自 /usr/include/sys/syslog.h。</span>
+    <span class="comment">// 这些值在 Linux、BSD 和 OS X 上相同。</span>
+    <span id="LOG_EMERG">LOG_EMERG</span> <a href="#Priority">Priority</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="LOG_ALERT">LOG_ALERT</span>
+    <span id="LOG_CRIT">LOG_CRIT</span>
+    <span id="LOG_ERR">LOG_ERR</span>
+    <span id="LOG_WARNING">LOG_WARNING</span>
+    <span id="LOG_NOTICE">LOG_NOTICE</span>
+    <span id="LOG_INFO">LOG_INFO</span>
+    <span id="LOG_DEBUG">LOG_DEBUG</span>
+)</pre>
+			
+				
+				<pre>const (
+
+    <span class="comment">// 来自 /usr/include/sys/syslog.h。</span>
+    <span class="comment">// 直到 LOG_FTP 为止，这些值在 Linux、BSD 和 OS X 上都相同。</span>
+    <span id="LOG_KERN">LOG_KERN</span> <a href="#Priority">Priority</a> = <a href="/pkg/builtin/#iota">iota</a> &lt;&lt; 3
+    <span id="LOG_USER">LOG_USER</span>
+    <span id="LOG_MAIL">LOG_MAIL</span>
+    <span id="LOG_DAEMON">LOG_DAEMON</span>
+    <span id="LOG_AUTH">LOG_AUTH</span>
+    <span id="LOG_SYSLOG">LOG_SYSLOG</span>
+    <span id="LOG_LPR">LOG_LPR</span>
+    <span id="LOG_NEWS">LOG_NEWS</span>
+    <span id="LOG_UUCP">LOG_UUCP</span>
+    <span id="LOG_CRON">LOG_CRON</span>
+    <span id="LOG_AUTHPRIV">LOG_AUTHPRIV</span>
+    <span id="LOG_FTP">LOG_FTP</span>
+
+    <span id="LOG_LOCAL0">LOG_LOCAL0</span>
+    <span id="LOG_LOCAL1">LOG_LOCAL1</span>
+    <span id="LOG_LOCAL2">LOG_LOCAL2</span>
+    <span id="LOG_LOCAL3">LOG_LOCAL3</span>
+    <span id="LOG_LOCAL4">LOG_LOCAL4</span>
+    <span id="LOG_LOCAL5">LOG_LOCAL5</span>
+    <span id="LOG_LOCAL6">LOG_LOCAL6</span>
+    <span id="LOG_LOCAL7">LOG_LOCAL7</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/log/syslog/syslog.go?s=1279:1438#L66">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 是到 syslog 服务器的连接。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dial">func <a href="/src/log/syslog/syslog.go?s=2750:2830#L108">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(network, raddr <a href="/pkg/builtin/#string">string</a>, priority <a href="#Priority">Priority</a>, tag <a href="/pkg/builtin/#string">string</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial 通过在指定 network 上连接地址 raddr，建立到日志守护进程的连接。向返回的写入器每写入一次，就会发送一条带有设施类别、严重级别（来自 priority）及 tag 的日志消息。如果 tag 为空，则使用 <a href="/pkg/os/#Args">os.Args</a>[0]。如果 network 为空，Dial 连接到本地 syslog 服务器。否则，network 和 raddr 的有效值请参见 net.Dial 的文档。<div id="example_Dial" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;log/syslog&#34;
+)
+
+func main() {
+	sysLog, err := syslog.Dial(&#34;tcp&#34;, &#34;localhost:1234&#34;,
+		syslog.LOG_WARNING|syslog.LOG_DAEMON, &#34;demotag&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Fprintf(sysLog, &#34;This is a daemon warning with demotag.&#34;)
+	sysLog.Emerg(&#34;And this is a daemon emergency with demotag.&#34;)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="New">func <a href="/src/log/syslog/syslog.go?s=2223:2279#L97">New</a>
+					
+					
+				</h3>
+				<pre>func New(priority <a href="#Priority">Priority</a>, tag <a href="/pkg/builtin/#string">string</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>New 建立到系统日志守护进程的新连接。向返回的写入器每写入一次，就会发送一条带有给定 priority（syslog 设施类别与严重级别的组合）及前缀 tag 的日志消息。如果 tag 为空，则使用 <a href="/pkg/os/#Args">os.Args</a>[0]。<h3 id="Writer.Alert">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4513:4551#L193">Alert</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Alert(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Alert 以严重级别 <a href="#LOG_ALERT">LOG_ALERT</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Close">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4076:4106#L172">Close</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭到 syslog 守护进程的连接。<h3 id="Writer.Crit">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4699:4736#L200">Crit</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Crit(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Crit 以严重级别 <a href="#LOG_CRIT">LOG_CRIT</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Debug">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5637:5675#L235">Debug</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Debug(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Debug 以严重级别 <a href="#LOG_DEBUG">LOG_DEBUG</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Emerg">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4325:4363#L186">Emerg</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Emerg(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Emerg 以严重级别 <a href="#LOG_EMERG">LOG_EMERG</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Err">func (*Writer) <a href="/src/log/syslog/syslog.go?s=4881:4917#L207">Err</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Err(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err 以严重级别 <a href="#LOG_ERR">LOG_ERR</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Info">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5451:5488#L228">Info</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Info(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Info 以严重级别 <a href="#LOG_INFO">LOG_INFO</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Notice">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5263:5302#L221">Notice</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Notice(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Notice 以严重级别 <a href="#LOG_NOTICE">LOG_NOTICE</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Warning">func (*Writer) <a href="/src/log/syslog/syslog.go?s=5069:5109#L214">Warning</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Warning(m <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Warning 以严重级别 <a href="#LOG_WARNING">LOG_WARNING</a> 记录消息，忽略传给 New 的严重级别。<h3 id="Writer.Write">func (*Writer) <a href="/src/log/syslog/syslog.go?s=3927:3972#L167">Write</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 向 syslog 守护进程发送一条日志消息。<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/log/syslog/doc.go?s=641:874#L9" style="float: left;">&#x261e;</a> <p>本包未在 Windows 上实现。由于 syslog 包已冻结，建议 Windows 用户使用标准库之外的包。背景信息见 <a href="/golang.org/issue/1108">https://golang.org/issue/1108</a>。</li>
+		
+		<li><a href="/src/log/syslog/doc.go?s=876:934#L14" style="float: left;">&#x261e;</a> <p>本包未在 Plan 9 上实现。</li>
+		
+		<li><a href="/src/log/syslog/doc.go?s=936:1244#L16" style="float: left;">&#x261e;</a> <p>从 Darwin 的 macOS 12.X（Monterey）开始，Apple 的 syslog 守护进程不再监听 UNIX 域套接字，而是改用其专有的 Apple Unified Logging（AUL）系统，因此本包将无法再工作。参见 <a href="https://developer.apple.com/documentation/os/logging">https://developer.apple.com/documentation/os/logging</a>。</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

@@ -1,0 +1,401 @@
+<!--{
+  "Title": "crypto/ecdh package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package ecdh</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/ecdh"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package ecdh implements Elliptic Curve Diffie-Hellman over
+NIST curves and Curve25519.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Curve">type Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P256">func P256() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P384">func P384() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#P521">func P521() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#X25519">func X25519() Curve</a></dd>
+				
+				
+			
+				
+				<dd><a href="#KeyExchanger">type KeyExchanger</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Bytes">func (k *PrivateKey) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Curve">func (k *PrivateKey) Curve() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.ECDH">func (k *PrivateKey) ECDH(remote *PublicKey) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Equal">func (k *PrivateKey) Equal(x crypto.PrivateKey) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.Public">func (k *PrivateKey) Public() crypto.PublicKey</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PrivateKey.PublicKey">func (k *PrivateKey) PublicKey() *PublicKey</a></dd>
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Bytes">func (k *PublicKey) Bytes() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Curve">func (k *PublicKey) Curve() Curve</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PublicKey.Equal">func (k *PublicKey) Equal(x crypto.PublicKey) bool</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/ecdh/ecdh.go">ecdh.go</a>
+			
+				<a href="/src/crypto/ecdh/nist.go">nist.go</a>
+			
+				<a href="/src/crypto/ecdh/x25519.go">x25519.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Curve">type <a href="/src/crypto/ecdh/ecdh.go?s=380:2006#L8">Curve</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			
+			<pre>type Curve interface {
+    <span class="comment">// GenerateKey generates a random PrivateKey.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Since Go 1.26, a secure source of random bytes is always used, and rand</span>
+    <span class="comment">// is ignored unless GODEBUG=cryptocustomrand=1 is set. This setting will be</span>
+    <span class="comment">// removed in a future Go release. Instead, use [testing/cryptotest.SetGlobalRandom].</span>
+    GenerateKey(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPrivateKey checks that key is valid and returns a PrivateKey.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For NIST curves, this follows SEC 1, Version 2.0, Section 2.3.6, which</span>
+    <span class="comment">// amounts to decoding the bytes as a fixed length big endian integer and</span>
+    <span class="comment">// checking that the result is lower than the order of the curve. The zero</span>
+    <span class="comment">// private key is also rejected, as the encoding of the corresponding public</span>
+    <span class="comment">// key would be irregular.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For X25519, this only checks the scalar length.</span>
+    NewPrivateKey(key []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PrivateKey">PrivateKey</a>, <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// NewPublicKey checks that key is valid and returns a PublicKey.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For NIST curves, this decodes an uncompressed point according to SEC 1,</span>
+    <span class="comment">// Version 2.0, Section 2.3.4. Compressed encodings and the point at</span>
+    <span class="comment">// infinity are rejected.</span>
+    <span class="comment">//</span>
+    <span class="comment">// For X25519, this only checks the u-coordinate length. Adversarially</span>
+    <span class="comment">// selected public keys can cause ECDH to return an error.</span>
+    NewPublicKey(key []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#PublicKey">PublicKey</a>, <a href="/pkg/builtin/#error">error</a>)
+    <span class="comment">// contains filtered or unexported methods</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="P256">func <a href="/src/crypto/ecdh/nist.go?s=4261:4278#L155">P256</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func P256() <a href="#Curve">Curve</a></pre>
+				<p>P256 returns a <a href="#Curve">Curve</a> which implements NIST P-256 (FIPS 186-3, section D.2.3),
+also known as secp256r1 or prime256v1.
+<p>Multiple invocations of this function will return the same value, which can
+be used for equality checks and switch statements.
+
+				
+			
+				<h3 id="P384">func <a href="/src/crypto/ecdh/nist.go?s=5061:5078#L178">P384</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func P384() <a href="#Curve">Curve</a></pre>
+				<p>P384 returns a <a href="#Curve">Curve</a> which implements NIST P-384 (FIPS 186-3, section D.2.4),
+also known as secp384r1.
+<p>Multiple invocations of this function will return the same value, which can
+be used for equality checks and switch statements.
+
+				
+			
+				<h3 id="P521">func <a href="/src/crypto/ecdh/nist.go?s=5861:5878#L201">P521</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func P521() <a href="#Curve">Curve</a></pre>
+				<p>P521 returns a <a href="#Curve">Curve</a> which implements NIST P-521 (FIPS 186-3, section D.2.5),
+also known as secp521r1.
+<p>Multiple invocations of this function will return the same value, which can
+be used for equality checks and switch statements.
+
+				
+			
+				<h3 id="X25519">func <a href="/src/crypto/ecdh/x25519.go?s=651:670#L17">X25519</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func X25519() <a href="#Curve">Curve</a></pre>
+				<p>X25519 returns a <a href="#Curve">Curve</a> which implements the X25519 function over Curve25519
+(RFC 7748, Section 5).
+<p>Multiple invocations of this function will return the same value, so it can
+be used for equality checks and switch statements.
+
+				
+			
+
+			
+		
+			
+			<h2 id="KeyExchanger">type <a href="/src/crypto/ecdh/ecdh.go?s=3493:3597#L89">KeyExchanger</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>KeyExchanger is an interface for an opaque private key that can be used for
+key exchange operations. For example, an ECDH key kept in a hardware module.
+<p>It is implemented by <a href="#PrivateKey">PrivateKey</a>.
+
+			<pre>type KeyExchanger interface {
+    PublicKey() *<a href="#PublicKey">PublicKey</a>
+    Curve() <a href="#Curve">Curve</a>
+    ECDH(*<a href="#PublicKey">PublicKey</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/ecdh/ecdh.go?s=3930:4080#L102">PrivateKey</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>PrivateKey is an ECDH private key, usually kept secret.
+<p>These keys can be parsed with <a href="/pkg/crypto/x509/#ParsePKCS8PrivateKey">crypto/x509.ParsePKCS8PrivateKey</a> and encoded
+with <a href="/pkg/crypto/x509/#MarshalPKCS8PrivateKey">crypto/x509.MarshalPKCS8PrivateKey</a>. For NIST curves, they then need to
+be converted with <a href="/pkg/crypto/ecdsa/#PrivateKey.ECDH">crypto/ecdsa.PrivateKey.ECDH</a> after parsing.
+
+			<pre>type PrivateKey struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PrivateKey.Bytes">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=5005:5040#L129">Bytes</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes returns a copy of the encoding of the private key.
+
+				
+			
+				<h3 id="PrivateKey.Curve">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=5755:5789#L152">Curve</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) Curve() <a href="#Curve">Curve</a></pre>
+				
+				
+			
+				<h3 id="PrivateKey.ECDH">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=4726:4786#L121">ECDH</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) ECDH(remote *<a href="#PublicKey">PublicKey</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ECDH performs an ECDH exchange and returns the shared secret. The <a href="#PrivateKey">PrivateKey</a>
+and <a href="#PublicKey">PublicKey</a> must use the same curve.
+<p>For NIST curves, this performs ECDH as specified in SEC 1, Version 2.0,
+Section 3.3.1, and returns the x-coordinate encoded according to SEC 1,
+Version 2.0, Section 2.3.5. The result is never the point at infinity.
+This is also known as the Shared Secret Computation of the Ephemeral Unified
+Model scheme specified in NIST SP 800-56A Rev. 3, Section 6.1.2.2.
+<p>For <a href="#X25519">X25519</a>, this performs ECDH as specified in RFC 7748, Section 6.1. If
+the result is the all-zero value, ECDH returns an error.
+
+				
+			
+				<h3 id="PrivateKey.Equal">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=5548:5600#L143">Equal</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PrivateKey">PrivateKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal returns whether x represents the same private key as k.
+<p>Note that there can be equivalent private keys with different encodings which
+would return false from this check but behave the same way as inputs to [ECDH].
+<p>This check is performed in constant time as long as the key types and their
+curve match.
+
+				
+			
+				<h3 id="PrivateKey.Public">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=6002:6048#L162">Public</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) Public() <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a></pre>
+				<p>Public implements the implicit interface of all standard library private
+keys. See the docs of <a href="/pkg/crypto/#PrivateKey">crypto.PrivateKey</a>.
+
+				
+			
+				<h3 id="PrivateKey.PublicKey">func (*PrivateKey) <a href="/src/crypto/ecdh/ecdh.go?s=5811:5854#L156">PublicKey</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PrivateKey">PrivateKey</a>) PublicKey() *<a href="#PublicKey">PublicKey</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/ecdh/ecdh.go?s=2318:2438#L50">PublicKey</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>PublicKey is an ECDH public key, usually a peer&apos;s ECDH share sent over the wire.
+<p>These keys can be parsed with <a href="/pkg/crypto/x509/#ParsePKIXPublicKey">crypto/x509.ParsePKIXPublicKey</a> and encoded
+with <a href="/pkg/crypto/x509/#MarshalPKIXPublicKey">crypto/x509.MarshalPKIXPublicKey</a>. For NIST curves, they then need to
+be converted with <a href="/pkg/crypto/ecdsa/#PublicKey.ECDH">crypto/ecdsa.PublicKey.ECDH</a> after parsing.
+
+			<pre>type PublicKey struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PublicKey.Bytes">func (*PublicKey) <a href="/src/crypto/ecdh/ecdh.go?s=2499:2533#L58">Bytes</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PublicKey">PublicKey</a>) Bytes() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Bytes returns a copy of the encoding of the public key.
+
+				
+			
+				<h3 id="PublicKey.Curve">func (*PublicKey) <a href="/src/crypto/ecdh/ecdh.go?s=3238:3271#L81">Curve</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PublicKey">PublicKey</a>) Curve() <a href="#Curve">Curve</a></pre>
+				
+				
+			
+				<h3 id="PublicKey.Equal">func (*PublicKey) <a href="/src/crypto/ecdh/ecdh.go?s=3036:3086#L72">Equal</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (k *<a href="#PublicKey">PublicKey</a>) Equal(x <a href="/pkg/crypto/">crypto</a>.<a href="/pkg/crypto/#PublicKey">PublicKey</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Equal returns whether x represents the same public key as k.
+<p>Note that there can be equivalent public keys with different encodings which
+would return false from this check but behave the same way as inputs to ECDH.
+<p>This check is performed in constant time as long as the key types and their
+curve match.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

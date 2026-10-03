@@ -1,0 +1,817 @@
+<!--{
+  "Title": "net/textproto package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package textproto</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/textproto"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package textproto implements generic support for text-based request/response
+protocols in the style of HTTP, NNTP, and SMTP.
+<p>This package enforces the HTTP/1.1 character set defined by
+RFC 9112 for header keys and values.
+<p>The package provides:
+<p><a href="#Error">Error</a>, which represents a numeric error response from
+a server.
+<p><a href="#Pipeline">Pipeline</a>, to manage pipelined requests and responses
+in a client.
+<p><a href="#Reader">Reader</a>, to read numeric response code lines,
+key: value headers, lines wrapped with leading spaces
+on continuation lines, and whole text blocks ending
+with a dot on a line by itself.
+<p><a href="#Writer">Writer</a>, to write dot-encoded text blocks.
+<p><a href="#Conn">Conn</a>, a convenient packaging of <a href="#Reader">Reader</a>, <a href="#Writer">Writer</a>, and <a href="#Pipeline">Pipeline</a> for use
+with a single network connection.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#CanonicalMIMEHeaderKey">func CanonicalMIMEHeaderKey(s string) string</a></dd>
+			
+				<dd><a href="#TrimBytes">func TrimBytes(b []byte) []byte</a></dd>
+			
+				<dd><a href="#TrimString">func TrimString(s string) string</a></dd>
+			
+			
+				
+				<dd><a href="#Conn">type Conn</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(network, addr string) (*Conn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewConn">func NewConn(conn io.ReadWriteCloser) *Conn</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Close">func (c *Conn) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Conn.Cmd">func (c *Conn) Cmd(format string, args ...any) (id uint, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e *Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#MIMEHeader">type MIMEHeader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MIMEHeader.Add">func (h MIMEHeader) Add(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MIMEHeader.Del">func (h MIMEHeader) Del(key string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MIMEHeader.Get">func (h MIMEHeader) Get(key string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MIMEHeader.Set">func (h MIMEHeader) Set(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MIMEHeader.Values">func (h MIMEHeader) Values(key string) []string</a></dd>
+				
+			
+				
+				<dd><a href="#Pipeline">type Pipeline</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pipeline.EndRequest">func (p *Pipeline) EndRequest(id uint)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pipeline.EndResponse">func (p *Pipeline) EndResponse(id uint)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pipeline.Next">func (p *Pipeline) Next() uint</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pipeline.StartRequest">func (p *Pipeline) StartRequest(id uint)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pipeline.StartResponse">func (p *Pipeline) StartResponse(id uint)</a></dd>
+				
+			
+				
+				<dd><a href="#ProtocolError">type ProtocolError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ProtocolError.Error">func (p ProtocolError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewReader">func NewReader(r *bufio.Reader) *Reader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.DotReader">func (r *Reader) DotReader() io.Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadCodeLine">func (r *Reader) ReadCodeLine(expectCode int) (code int, message string, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadContinuedLine">func (r *Reader) ReadContinuedLine() (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadContinuedLineBytes">func (r *Reader) ReadContinuedLineBytes() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadDotBytes">func (r *Reader) ReadDotBytes() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadDotLines">func (r *Reader) ReadDotLines() ([]string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadLine">func (r *Reader) ReadLine() (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadLineBytes">func (r *Reader) ReadLineBytes() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadMIMEHeader">func (r *Reader) ReadMIMEHeader() (MIMEHeader, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Reader.ReadResponse">func (r *Reader) ReadResponse(expectCode int) (code int, message string, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w *bufio.Writer) *Writer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.DotWriter">func (w *Writer) DotWriter() io.WriteCloser</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.PrintfLine">func (w *Writer) PrintfLine(format string, args ...any) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/textproto/header.go">header.go</a>
+			
+				<a href="/src/net/textproto/pipeline.go">pipeline.go</a>
+			
+				<a href="/src/net/textproto/reader.go">reader.go</a>
+			
+				<a href="/src/net/textproto/textproto.go">textproto.go</a>
+			
+				<a href="/src/net/textproto/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="CanonicalMIMEHeaderKey">func <a href="/src/net/textproto/reader.go?s=18385:18429#L650">CanonicalMIMEHeaderKey</a>
+				
+				
+			</h2>
+			<pre>func CanonicalMIMEHeaderKey(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>CanonicalMIMEHeaderKey returns the canonical format of the
+MIME header key s. The canonicalization converts the first
+letter and any letter following a hyphen to upper case;
+the rest are converted to lowercase. For example, the
+canonical key for &quot;accept-encoding&quot; is &quot;Accept-Encoding&quot;.
+MIME header keys are assumed to be ASCII only.
+If s contains a space or invalid header field bytes as
+defined by RFC 9112, it is returned without modifications.
+
+			
+		
+			
+			<h2 id="TrimBytes">func <a href="/src/net/textproto/textproto.go?s=3529:3560#L128">TrimBytes</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func TrimBytes(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>TrimBytes returns b without leading and trailing ASCII space.
+
+			
+		
+			
+			<h2 id="TrimString">func <a href="/src/net/textproto/textproto.go?s=3292:3324#L117">TrimString</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func TrimString(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>TrimString returns s without leading and trailing ASCII space.
+
+			
+		
+		
+			
+			<h2 id="Conn">type <a href="/src/net/textproto/textproto.go?s=1681:1752#L50">Conn</a>
+				
+				
+			</h2>
+			<p>A Conn represents a textual network protocol connection.
+It consists of a <a href="#Reader">Reader</a> and <a href="#Writer">Writer</a> to manage I/O
+and a <a href="#Pipeline">Pipeline</a> to sequence concurrent requests on the connection.
+These embedded types carry methods with them;
+see the documentation of those types for details.
+
+			<pre>type Conn struct {
+    <a href="#Reader">Reader</a>
+    <a href="#Writer">Writer</a>
+    <a href="#Pipeline">Pipeline</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dial">func <a href="/src/net/textproto/textproto.go?s=2195:2241#L73">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(network, addr <a href="/pkg/builtin/#string">string</a>) (*<a href="#Conn">Conn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial connects to the given address on the given network using <a href="/pkg/net/#Dial">net.Dial</a>
+and then returns a new <a href="#Conn">Conn</a> for the connection.
+
+				
+			
+				<h3 id="NewConn">func <a href="/src/net/textproto/textproto.go?s=1806:1849#L58">NewConn</a>
+					
+					
+				</h3>
+				<pre>func NewConn(conn <a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadWriteCloser">ReadWriteCloser</a>) *<a href="#Conn">Conn</a></pre>
+				<p>NewConn returns a new <a href="#Conn">Conn</a> using conn for I/O.
+
+				
+			
+
+			
+				<h3 id="Conn.Close">func (*Conn) <a href="/src/net/textproto/textproto.go?s=2009:2037#L67">Close</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close closes the connection.
+
+				
+			
+				<h3 id="Conn.Cmd">func (*Conn) <a href="/src/net/textproto/textproto.go?s=3011:3078#L105">Cmd</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Conn">Conn</a>) Cmd(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) (id <a href="/pkg/builtin/#uint">uint</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Cmd is a convenience method that sends a command after
+waiting its turn in the pipeline. The command text is the
+result of formatting format with args and appending \r\n.
+Cmd returns the id of the command, for use with StartResponse and EndResponse.
+<p>For example, a client might run a HELP command that returns a dot-body
+by using:
+<pre>id, err := c.Cmd(&quot;HELP&quot;)
+if err != nil {
+	return nil, err
+}
+
+c.StartResponse(id)
+defer c.EndResponse(id)
+
+if _, _, err = c.ReadCodeLine(110); err != nil {
+	return nil, err
+}
+text, err := c.ReadDotBytes()
+if err != nil {
+	return nil, err
+}
+return c.ReadCodeLine(250)
+</pre>
+
+				
+			
+		
+			
+			<h2 id="Error">type <a href="/src/net/textproto/textproto.go?s=1070:1114#L28">Error</a>
+				
+				
+			</h2>
+			<p>An Error represents a numeric error response from a server.
+
+			<pre>type Error struct {
+<span id="Error.Code"></span>    Code <a href="/pkg/builtin/#int">int</a>
+<span id="Error.Msg"></span>    Msg  <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (*Error) <a href="/src/net/textproto/textproto.go?s=1116:1146#L33">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="MIMEHeader">type <a href="/src/net/textproto/header.go?s=261:296#L1">MIMEHeader</a>
+				
+				
+			</h2>
+			<p>A MIMEHeader represents a MIME-style header mapping
+keys to sets of values.
+
+			<pre>type MIMEHeader map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MIMEHeader.Add">func (MIMEHeader) <a href="/src/net/textproto/header.go?s=403:445#L3">Add</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#MIMEHeader">MIMEHeader</a>) Add(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Add adds the key, value pair to the header.
+It appends to any existing values associated with key.
+
+				
+			
+				<h3 id="MIMEHeader.Del">func (MIMEHeader) <a href="/src/net/textproto/header.go?s=1613:1648#L44">Del</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#MIMEHeader">MIMEHeader</a>) Del(key <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Del deletes the values associated with key.
+
+				
+			
+				<h3 id="MIMEHeader.Get">func (MIMEHeader) <a href="/src/net/textproto/header.go?s=1033:1075#L20">Get</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#MIMEHeader">MIMEHeader</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Get gets the first value associated with the given key.
+It is case insensitive; <a href="#CanonicalMIMEHeaderKey">CanonicalMIMEHeaderKey</a> is used
+to canonicalize the provided key.
+If there are no values associated with the key, Get returns &quot;&quot;.
+To use non-canonical keys, access the map directly.
+
+				
+			
+				<h3 id="MIMEHeader.Set">func (MIMEHeader) <a href="/src/net/textproto/header.go?s=657:699#L11">Set</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#MIMEHeader">MIMEHeader</a>) Set(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Set sets the header entries associated with key to
+the single element value. It replaces any existing
+values associated with key.
+
+				
+			
+				<h3 id="MIMEHeader.Values">func (MIMEHeader) <a href="/src/net/textproto/header.go?s=1443:1490#L36">Values</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (h <a href="#MIMEHeader">MIMEHeader</a>) Values(key <a href="/pkg/builtin/#string">string</a>) []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>Values returns all values associated with the given key.
+It is case insensitive; <a href="#CanonicalMIMEHeaderKey">CanonicalMIMEHeaderKey</a> is
+used to canonicalize the provided key. To use non-canonical
+keys, access the map directly.
+The returned slice is not a copy.
+
+				
+			
+		
+			
+			<h2 id="Pipeline">type <a href="/src/net/textproto/pipeline.go?s=816:916#L18">Pipeline</a>
+				
+				
+			</h2>
+			<p>A Pipeline manages a pipelined in-order request/response sequence.
+<p>To use a Pipeline p to manage multiple clients on a connection,
+each client should run:
+<pre>id := p.Next()	// take a number
+
+p.StartRequest(id)	// wait for turn to send request
+«send request»
+p.EndRequest(id)	// notify Pipeline that request is sent
+
+p.StartResponse(id)	// wait for turn to read response
+«read response»
+p.EndResponse(id)	// notify Pipeline that response is read
+</pre>
+<p>A pipelined server can use the same calls to ensure that
+responses computed in parallel are written in the correct order.
+
+			<pre>type Pipeline struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pipeline.EndRequest">func (*Pipeline) <a href="/src/net/textproto/pipeline.go?s=1368:1406#L42">EndRequest</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Pipeline">Pipeline</a>) EndRequest(id <a href="/pkg/builtin/#uint">uint</a>)</pre>
+				<p>EndRequest notifies p that the request with the given id has been sent
+(or, if this is a server, received).
+
+				
+			
+				<h3 id="Pipeline.EndResponse">func (*Pipeline) <a href="/src/net/textproto/pipeline.go?s=1734:1773#L54">EndResponse</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Pipeline">Pipeline</a>) EndResponse(id <a href="/pkg/builtin/#uint">uint</a>)</pre>
+				<p>EndResponse notifies p that the response with the given id has been received
+(or, if this is a server, sent).
+
+				
+			
+				<h3 id="Pipeline.Next">func (*Pipeline) <a href="/src/net/textproto/pipeline.go?s=975:1005#L26">Next</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Pipeline">Pipeline</a>) Next() <a href="/pkg/builtin/#uint">uint</a></pre>
+				<p>Next returns the next id for a request/response pair.
+
+				
+			
+				<h3 id="Pipeline.StartRequest">func (*Pipeline) <a href="/src/net/textproto/pipeline.go?s=1187:1227#L36">StartRequest</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Pipeline">Pipeline</a>) StartRequest(id <a href="/pkg/builtin/#uint">uint</a>)</pre>
+				<p>StartRequest blocks until it is time to send (or, if this is a server, receive)
+the request with the given id.
+
+				
+			
+				<h3 id="Pipeline.StartResponse">func (*Pipeline) <a href="/src/net/textproto/pipeline.go?s=1549:1590#L48">StartResponse</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Pipeline">Pipeline</a>) StartResponse(id <a href="/pkg/builtin/#uint">uint</a>)</pre>
+				<p>StartResponse blocks until it is time to receive (or, if this is a server, send)
+the request with the given id.
+
+				
+			
+		
+			
+			<h2 id="ProtocolError">type <a href="/src/net/textproto/textproto.go?s=1304:1329#L39">ProtocolError</a>
+				
+				
+			</h2>
+			<p>A ProtocolError describes a protocol violation such
+as an invalid response or a hung-up connection.
+
+			<pre>type ProtocolError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ProtocolError.Error">func (ProtocolError) <a href="/src/net/textproto/textproto.go?s=1331:1368#L41">Error</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ProtocolError">ProtocolError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/net/textproto/reader.go?s=600:718#L16">Reader</a>
+				
+				
+			</h2>
+			<p>A Reader implements convenience methods for reading requests
+or responses from a text protocol network connection.
+
+			<pre>type Reader struct {
+<span id="Reader.R"></span>    R *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewReader">func <a href="/src/net/textproto/reader.go?s=941:980#L27">NewReader</a>
+					
+					
+				</h3>
+				<pre>func NewReader(r *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Reader">Reader</a>) *<a href="#Reader">Reader</a></pre>
+				<p>NewReader returns a new <a href="#Reader">Reader</a> reading from r.
+<p>To avoid denial of service attacks, the provided <a href="/pkg/bufio/#Reader">bufio.Reader</a>
+should be reading from an <a href="/pkg/io/#LimitReader">io.LimitReader</a> or similar Reader to bound
+the size of responses.
+
+				
+			
+
+			
+				<h3 id="Reader.DotReader">func (*Reader) <a href="/src/net/textproto/reader.go?s=9834:9872#L324">DotReader</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) DotReader() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+				<p>DotReader returns a new <a href="#Reader">Reader</a> that satisfies Reads using the
+decoded text of a dot-encoded block read from r.
+The returned Reader is only valid until the next call
+to a method on r.
+<p>Dot encoding is a common framing used for data blocks
+in text protocols such as SMTP.  The data consists of a sequence
+of lines, each of which ends in &quot;\r\n&quot;.  The sequence itself
+ends at a line containing just a dot: &quot;.\r\n&quot;.  Lines beginning
+with a dot are escaped with an additional dot to avoid
+looking like the end of the sequence.
+<p>The decoded form returned by the Reader&apos;s Read method
+rewrites the &quot;\r\n&quot; line endings into the simpler &quot;\n&quot;,
+removes leading dot escapes if present, and stops with error <a href="/pkg/io/#EOF">io.EOF</a>
+after consuming (and discarding) the end-of-sequence line.
+
+				
+			
+				<h3 id="Reader.ReadCodeLine">func (*Reader) <a href="/src/net/textproto/reader.go?s=6999:7082#L243">ReadCodeLine</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadCodeLine(expectCode <a href="/pkg/builtin/#int">int</a>) (code <a href="/pkg/builtin/#int">int</a>, message <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadCodeLine reads a response code line of the form
+<pre>code message
+</pre>
+<p>where code is a three-digit status code and the message
+extends to the rest of the line. An example of such a line is:
+<pre>220 plan9.bell-labs.com ESMTP
+</pre>
+<p>If the prefix of the status does not match the digits in expectCode,
+ReadCodeLine returns with err set to &amp;Error{code, message}.
+For example, if expectCode is 31, an error will be returned if
+the status is not in the range [310,319].
+<p>If the response is multi-line, ReadCodeLine returns an error.
+<p>An expectCode &lt;= 0 disables the check of the status code.
+
+				
+			
+				<h3 id="Reader.ReadContinuedLine">func (*Reader) <a href="/src/net/textproto/reader.go?s=2680:2732#L91">ReadContinuedLine</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadContinuedLine() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadContinuedLine reads a possibly continued line from r,
+eliding the final trailing ASCII white space.
+Lines after the first are considered continuations if they
+begin with a space or tab character. In the returned data,
+continuation lines are separated from the previous line
+only by a single space: the newline and leading white space
+are removed.
+<p>For example, consider this input:
+<pre>Line 1
+  continued...
+Line 2
+</pre>
+<p>The first call to ReadContinuedLine will return &quot;Line 1 continued...&quot;
+and the second will return &quot;Line 2&quot;.
+<p>Empty lines are never continued.
+
+				
+			
+				<h3 id="Reader.ReadContinuedLineBytes">func (*Reader) <a href="/src/net/textproto/reader.go?s=3236:3293#L113">ReadContinuedLineBytes</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadContinuedLineBytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadContinuedLineBytes is like <a href="#Reader.ReadContinuedLine">Reader.ReadContinuedLine</a> but
+returns a []byte instead of a string.
+
+				
+			
+				<h3 id="Reader.ReadDotBytes">func (*Reader) <a href="/src/net/textproto/reader.go?s=12257:12304#L440">ReadDotBytes</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadDotBytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadDotBytes reads a dot-encoding and returns the decoded data.
+<p>See the documentation for the <a href="#Reader.DotReader">Reader.DotReader</a> method for details about dot-encoding.
+
+				
+			
+				<h3 id="Reader.ReadDotLines">func (*Reader) <a href="/src/net/textproto/reader.go?s=12572:12621#L448">ReadDotLines</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadDotLines() ([]<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadDotLines reads a dot-encoding and returns a slice
+containing the decoded lines, with the final \r\n or \n elided from each.
+<p>See the documentation for the <a href="#Reader.DotReader">Reader.DotReader</a> method for details about dot-encoding.
+
+				
+			
+				<h3 id="Reader.ReadLine">func (*Reader) <a href="/src/net/textproto/reader.go?s=1106:1149#L33">ReadLine</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadLine() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadLine reads a single line from r,
+eliding the final \n or \r\n from the returned string.
+
+				
+			
+				<h3 id="Reader.ReadLineBytes">func (*Reader) <a href="/src/net/textproto/reader.go?s=1300:1348#L39">ReadLineBytes</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadLineBytes() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadLineBytes is like <a href="#Reader.ReadLine">Reader.ReadLine</a> but returns a []byte instead of a string.
+
+				
+			
+				<h3 id="Reader.ReadMIMEHeader">func (*Reader) <a href="/src/net/textproto/reader.go?s=13730:13783#L497">ReadMIMEHeader</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadMIMEHeader() (<a href="#MIMEHeader">MIMEHeader</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadMIMEHeader reads a MIME-style header from r.
+The header is a sequence of possibly continued Key: Value lines
+ending in a blank line.
+The returned map m maps <a href="#CanonicalMIMEHeaderKey">CanonicalMIMEHeaderKey</a>(key) to a
+sequence of values in the same order encountered in the input.
+<p>For example, consider this input:
+<pre>My-Key: Value 1
+Long-Key: Even
+       Longer Value
+My-Key: Value 2
+</pre>
+<p>Given that input, ReadMIMEHeader returns the map:
+<pre>map[string][]string{
+	&quot;My-Key&quot;: {&quot;Value 1&quot;, &quot;Value 2&quot;},
+	&quot;Long-Key&quot;: {&quot;Even Longer Value&quot;},
+}
+</pre>
+
+				
+			
+				<h3 id="Reader.ReadResponse">func (*Reader) <a href="/src/net/textproto/reader.go?s=8163:8246#L277">ReadResponse</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#Reader">Reader</a>) ReadResponse(expectCode <a href="/pkg/builtin/#int">int</a>) (code <a href="/pkg/builtin/#int">int</a>, message <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadResponse reads a multi-line response of the form:
+<pre>code-message line 1
+code-message line 2
+...
+code message line n
+</pre>
+<p>where code is a three-digit status code. The first line starts with the
+code and a hyphen. The response is terminated by a line that starts
+with the same code followed by a space. Each line in message is
+separated by a newline (\n).
+<p>See page 36 of RFC 959 (<a href="https://www.ietf.org/rfc/rfc959.txt">https://www.ietf.org/rfc/rfc959.txt</a>) for
+details of another form of response accepted:
+<pre>code-message line 1
+message line 2
+...
+code message line n
+</pre>
+<p>If the prefix of the status does not match the digits in expectCode,
+ReadResponse returns with err set to &amp;Error{code, message}.
+For example, if expectCode is 31, an error will be returned if
+the status is not in the range [310,319].
+<p>An expectCode &lt;= 0 disables the check of the status code.
+
+				
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/net/textproto/writer.go?s=332:389#L5">Writer</a>
+				
+				
+			</h2>
+			<p>A Writer implements convenience methods for writing
+requests or responses to a text protocol network connection.
+
+			<pre>type Writer struct {
+<span id="Writer.W"></span>    W *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Writer">Writer</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/net/textproto/writer.go?s=441:480#L11">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w *<a href="/pkg/bufio/">bufio</a>.<a href="/pkg/bufio/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter returns a new <a href="#Writer">Writer</a> writing to w.
+
+				
+			
+
+			
+				<h3 id="Writer.DotWriter">func (*Writer) <a href="/src/net/textproto/writer.go?s=1206:1249#L33">DotWriter</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) DotWriter() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a></pre>
+				<p>DotWriter returns a writer that can be used to write a dot-encoding to w.
+It takes care of inserting leading dots when necessary,
+translating line-ending \n into \r\n, and adding the final .\r\n line
+when the DotWriter is closed. The caller should close the
+DotWriter before the next call to a method on w.
+<p>See the documentation for the <a href="#Reader.DotReader">Reader.DotReader</a> method for details about dot-encoding.
+
+				
+			
+				<h3 id="Writer.PrintfLine">func (*Writer) <a href="/src/net/textproto/writer.go?s=637:698#L19">PrintfLine</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#Writer">Writer</a>) PrintfLine(format <a href="/pkg/builtin/#string">string</a>, args ...<a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>PrintfLine writes the formatted output followed by \r\n.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

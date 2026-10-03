@@ -1,0 +1,38 @@
+# 启动：go run .；也可把这些正文复制到 curl。
+@base = http://127.0.0.1:8091
+
+### 健康检查
+GET {{base}}/healthz
+
+### 商品列表
+GET {{base}}/products?page=1&size=20
+
+### 新增商品；再次执行会返回 409
+POST {{base}}/products
+Content-Type: application/json
+
+{"id":"p-1003","name":"签字笔","price_cents":250,"stock":100}
+
+### 补货
+POST {{base}}/products/p-1003/restock
+Content-Type: application/json
+
+{"quantity":10}
+
+### 下单；重复相同 request_id 和内容不会再次扣库存
+POST {{base}}/orders
+Content-Type: application/json
+
+{"request_id":"example-001","customer":"小林","items":[{"product_id":"p-1001","quantity":2}]}
+
+### 状态筛选与分页
+GET {{base}}/orders?status=confirmed&page=1&size=20
+
+### 订单详情；ID 换成实际创建结果
+GET {{base}}/orders/ord-000001
+
+### 取消，或将 canceled 改为 shipped 测试发货
+PATCH {{base}}/orders/ord-000001/status
+Content-Type: application/json
+
+{"status":"canceled"}

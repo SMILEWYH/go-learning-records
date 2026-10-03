@@ -1,0 +1,3178 @@
+<!--{
+  "Title": "os 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>os 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "os"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>
+os 包提供与平台无关的操作系统功能接口。其设计风格类似 Unix，但错误处理采用 Go 的方式：调用失败时返回 error 类型的值，而不是错误编号。错误值中通常包含更多信息。例如，<a href="#Open">Open</a> 或 <a href="#Stat">Stat</a> 等接收文件名的调用失败时，返回的错误类型为 <a href="#PathError">*PathError</a>；打印该错误会包含出错的文件名，也可以检查其内容以获取更多信息。
+<p>
+os 接口旨在为所有操作系统提供一致的行为。不具备普遍可用性的功能放在与系统相关的 syscall 包中。
+<p>
+下面是一个简单示例，打开文件并读取其中的一部分内容。
+<pre>file, err := os.Open("file.go") // 用于读取访问。
+if err != nil {
+	log.Fatal(err)
+}
+</pre>
+<p>
+如果打开失败，错误字符串会说明原因，例如：
+<pre>open file.go: no such file or directory
+</pre>
+<p>
+随后可以将文件数据读入字节切片。Read 和 Write 根据实参切片的长度确定要读写的字节数。
+<pre>data := make([]byte, 100)
+count, err := file.Read(data)
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Printf(&quot;read %d bytes: %q\n&quot;, count, data[:count])
+</pre>
+<h3 id="hdr-Concurrency">
+并发
+</h3>
+<p>
+<a href="#File">File</a> 的方法对应文件系统操作，均可安全地并发使用。对一个 File 同时执行的操作数量可能受到操作系统或系统本身的限制。这个上限通常较高，但超过它可能降低性能或引发其他问题。
+</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Chdir">func Chdir(dir string) error</a></dd>
+			
+				<dd><a href="#Chmod">func Chmod(name string, mode FileMode) error</a></dd>
+			
+				<dd><a href="#Chown">func Chown(name string, uid, gid int) error</a></dd>
+			
+				<dd><a href="#Chtimes">func Chtimes(name string, atime time.Time, mtime time.Time) error</a></dd>
+			
+				<dd><a href="#Clearenv">func Clearenv()</a></dd>
+			
+				<dd><a href="#CopyFS">func CopyFS(dir string, fsys fs.FS) error</a></dd>
+			
+				<dd><a href="#DirFS">func DirFS(dir string) fs.FS</a></dd>
+			
+				<dd><a href="#Environ">func Environ() []string</a></dd>
+			
+				<dd><a href="#Executable">func Executable() (string, error)</a></dd>
+			
+				<dd><a href="#Exit">func Exit(code int)</a></dd>
+			
+				<dd><a href="#Expand">func Expand(s string, mapping func(string) string) string</a></dd>
+			
+				<dd><a href="#ExpandEnv">func ExpandEnv(s string) string</a></dd>
+			
+				<dd><a href="#Getegid">func Getegid() int</a></dd>
+			
+				<dd><a href="#Getenv">func Getenv(key string) string</a></dd>
+			
+				<dd><a href="#Geteuid">func Geteuid() int</a></dd>
+			
+				<dd><a href="#Getgid">func Getgid() int</a></dd>
+			
+				<dd><a href="#Getgroups">func Getgroups() ([]int, error)</a></dd>
+			
+				<dd><a href="#Getpagesize">func Getpagesize() int</a></dd>
+			
+				<dd><a href="#Getpid">func Getpid() int</a></dd>
+			
+				<dd><a href="#Getppid">func Getppid() int</a></dd>
+			
+				<dd><a href="#Getuid">func Getuid() int</a></dd>
+			
+				<dd><a href="#Getwd">func Getwd() (dir string, err error)</a></dd>
+			
+				<dd><a href="#Hostname">func Hostname() (name string, err error)</a></dd>
+			
+				<dd><a href="#IsExist">func IsExist(err error) bool</a></dd>
+			
+				<dd><a href="#IsNotExist">func IsNotExist(err error) bool</a></dd>
+			
+				<dd><a href="#IsPathSeparator">func IsPathSeparator(c uint8) bool</a></dd>
+			
+				<dd><a href="#IsPermission">func IsPermission(err error) bool</a></dd>
+			
+				<dd><a href="#IsTimeout">func IsTimeout(err error) bool</a></dd>
+			
+				<dd><a href="#Lchown">func Lchown(name string, uid, gid int) error</a></dd>
+			
+				<dd><a href="#Link">func Link(oldname, newname string) error</a></dd>
+			
+				<dd><a href="#LookupEnv">func LookupEnv(key string) (string, bool)</a></dd>
+			
+				<dd><a href="#Mkdir">func Mkdir(name string, perm FileMode) error</a></dd>
+			
+				<dd><a href="#MkdirAll">func MkdirAll(path string, perm FileMode) error</a></dd>
+			
+				<dd><a href="#MkdirTemp">func MkdirTemp(dir, pattern string) (string, error)</a></dd>
+			
+				<dd><a href="#NewSyscallError">func NewSyscallError(syscall string, err error) error</a></dd>
+			
+				<dd><a href="#Pipe">func Pipe() (r *File, w *File, err error)</a></dd>
+			
+				<dd><a href="#ReadFile">func ReadFile(name string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Readlink">func Readlink(name string) (string, error)</a></dd>
+			
+				<dd><a href="#Remove">func Remove(name string) error</a></dd>
+			
+				<dd><a href="#RemoveAll">func RemoveAll(path string) error</a></dd>
+			
+				<dd><a href="#Rename">func Rename(oldpath, newpath string) error</a></dd>
+			
+				<dd><a href="#SameFile">func SameFile(fi1, fi2 FileInfo) bool</a></dd>
+			
+				<dd><a href="#Setenv">func Setenv(key, value string) error</a></dd>
+			
+				<dd><a href="#Symlink">func Symlink(oldname, newname string) error</a></dd>
+			
+				<dd><a href="#TempDir">func TempDir() string</a></dd>
+			
+				<dd><a href="#Truncate">func Truncate(name string, size int64) error</a></dd>
+			
+				<dd><a href="#Unsetenv">func Unsetenv(key string) error</a></dd>
+			
+				<dd><a href="#UserCacheDir">func UserCacheDir() (string, error)</a></dd>
+			
+				<dd><a href="#UserConfigDir">func UserConfigDir() (string, error)</a></dd>
+			
+				<dd><a href="#UserHomeDir">func UserHomeDir() (string, error)</a></dd>
+			
+				<dd><a href="#WriteFile">func WriteFile(name string, data []byte, perm FileMode) error</a></dd>
+			
+			
+				
+				<dd><a href="#DirEntry">type DirEntry</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReadDir">func ReadDir(name string) ([]DirEntry, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#File">type File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Create">func Create(name string) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CreateTemp">func CreateTemp(dir, pattern string) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFile">func NewFile(fd uintptr, name string) *File</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Open">func Open(name string) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenFile">func OpenFile(name string, flag int, perm FileMode) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenInRoot">func OpenInRoot(dir, name string) (*File, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Chdir">func (f *File) Chdir() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Chmod">func (f *File) Chmod(mode FileMode) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Chown">func (f *File) Chown(uid, gid int) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Close">func (f *File) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Fd">func (f *File) Fd() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Name">func (f *File) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Read">func (f *File) Read(b []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ReadAt">func (f *File) ReadAt(b []byte, off int64) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ReadDir">func (f *File) ReadDir(n int) ([]DirEntry, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.ReadFrom">func (f *File) ReadFrom(r io.Reader) (n int64, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Readdir">func (f *File) Readdir(n int) ([]FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Readdirnames">func (f *File) Readdirnames(n int) (names []string, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Seek">func (f *File) Seek(offset int64, whence int) (ret int64, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SetDeadline">func (f *File) SetDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SetReadDeadline">func (f *File) SetReadDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SetWriteDeadline">func (f *File) SetWriteDeadline(t time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Stat">func (f *File) Stat() (FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Sync">func (f *File) Sync() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.SyscallConn">func (f *File) SyscallConn() (syscall.RawConn, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Truncate">func (f *File) Truncate(size int64) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.Write">func (f *File) Write(b []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.WriteAt">func (f *File) WriteAt(b []byte, off int64) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.WriteString">func (f *File) WriteString(s string) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#File.WriteTo">func (f *File) WriteTo(w io.Writer) (n int64, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#FileInfo">type FileInfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Lstat">func Lstat(name string) (FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Stat">func Stat(name string) (FileInfo, error)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#FileMode">type FileMode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LinkError">type LinkError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LinkError.Error">func (e *LinkError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LinkError.Unwrap">func (e *LinkError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#PathError">type PathError</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ProcAttr">type ProcAttr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Process">type Process</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FindProcess">func FindProcess(pid int) (*Process, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StartProcess">func StartProcess(name string, argv []string, attr *ProcAttr) (*Process, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Process.Kill">func (p *Process) Kill() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Process.Release">func (p *Process) Release() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Process.Signal">func (p *Process) Signal(sig Signal) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Process.Wait">func (p *Process) Wait() (*ProcessState, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Process.WithHandle">func (p *Process) WithHandle(f func(handle uintptr)) error</a></dd>
+				
+			
+				
+				<dd><a href="#ProcessState">type ProcessState</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.ExitCode">func (p *ProcessState) ExitCode() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.Exited">func (p *ProcessState) Exited() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.Pid">func (p *ProcessState) Pid() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.String">func (p *ProcessState) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.Success">func (p *ProcessState) Success() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.Sys">func (p *ProcessState) Sys() any</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.SysUsage">func (p *ProcessState) SysUsage() any</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.SystemTime">func (p *ProcessState) SystemTime() time.Duration</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcessState.UserTime">func (p *ProcessState) UserTime() time.Duration</a></dd>
+				
+			
+				
+				<dd><a href="#Root">type Root</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OpenRoot">func OpenRoot(name string) (*Root, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Chmod">func (r *Root) Chmod(name string, mode FileMode) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Chown">func (r *Root) Chown(name string, uid, gid int) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Chtimes">func (r *Root) Chtimes(name string, atime time.Time, mtime time.Time) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Close">func (r *Root) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Create">func (r *Root) Create(name string) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.FS">func (r *Root) FS() fs.FS</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Lchown">func (r *Root) Lchown(name string, uid, gid int) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Link">func (r *Root) Link(oldname, newname string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Lstat">func (r *Root) Lstat(name string) (FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Mkdir">func (r *Root) Mkdir(name string, perm FileMode) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.MkdirAll">func (r *Root) MkdirAll(name string, perm FileMode) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Name">func (r *Root) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Open">func (r *Root) Open(name string) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.OpenFile">func (r *Root) OpenFile(name string, flag int, perm FileMode) (*File, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.OpenRoot">func (r *Root) OpenRoot(name string) (*Root, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.ReadFile">func (r *Root) ReadFile(name string) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Readlink">func (r *Root) Readlink(name string) (string, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Remove">func (r *Root) Remove(name string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.RemoveAll">func (r *Root) RemoveAll(name string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Rename">func (r *Root) Rename(oldname, newname string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Stat">func (r *Root) Stat(name string) (FileInfo, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.Symlink">func (r *Root) Symlink(oldname, newname string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Root.WriteFile">func (r *Root) WriteFile(name string, data []byte, perm FileMode) error</a></dd>
+				
+			
+				
+				<dd><a href="#Signal">type Signal</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SyscallError">type SyscallError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyscallError.Error">func (e *SyscallError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SyscallError.Timeout">func (e *SyscallError) Timeout() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SyscallError.Unwrap">func (e *SyscallError) Unwrap() error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Chmod">Chmod</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Chtimes">Chtimes</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CreateTemp">CreateTemp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CreateTemp_suffix">CreateTemp (Suffix)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ErrNotExist">ErrNotExist</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Expand">Expand</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ExpandEnv">ExpandEnv</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_FileMode">FileMode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Getenv">Getenv</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LookupEnv">LookupEnv</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Mkdir">Mkdir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MkdirAll">MkdirAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MkdirTemp">MkdirTemp</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MkdirTemp_suffix">MkdirTemp (Suffix)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OpenFile">OpenFile</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_OpenFile_append">OpenFile (Append)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadDir">ReadDir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadFile">ReadFile</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Readlink">Readlink</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unsetenv">Unsetenv</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UserCacheDir">UserCacheDir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_UserConfigDir">UserConfigDir</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WriteFile">WriteFile</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/os/dir.go">dir.go</a>
+			
+				<a href="/src/os/dir_unix.go">dir_unix.go</a>
+			
+				<a href="/src/os/dirent_linux.go">dirent_linux.go</a>
+			
+				<a href="/src/os/eloop_other.go">eloop_other.go</a>
+			
+				<a href="/src/os/env.go">env.go</a>
+			
+				<a href="/src/os/error.go">error.go</a>
+			
+				<a href="/src/os/error_errno.go">error_errno.go</a>
+			
+				<a href="/src/os/exec.go">exec.go</a>
+			
+				<a href="/src/os/exec_linux.go">exec_linux.go</a>
+			
+				<a href="/src/os/exec_posix.go">exec_posix.go</a>
+			
+				<a href="/src/os/exec_unix.go">exec_unix.go</a>
+			
+				<a href="/src/os/executable.go">executable.go</a>
+			
+				<a href="/src/os/executable_procfs.go">executable_procfs.go</a>
+			
+				<a href="/src/os/file.go">file.go</a>
+			
+				<a href="/src/os/file_open_unix.go">file_open_unix.go</a>
+			
+				<a href="/src/os/file_posix.go">file_posix.go</a>
+			
+				<a href="/src/os/file_unix.go">file_unix.go</a>
+			
+				<a href="/src/os/getwd.go">getwd.go</a>
+			
+				<a href="/src/os/path.go">path.go</a>
+			
+				<a href="/src/os/path_unix.go">path_unix.go</a>
+			
+				<a href="/src/os/pidfd_linux.go">pidfd_linux.go</a>
+			
+				<a href="/src/os/pipe2_unix.go">pipe2_unix.go</a>
+			
+				<a href="/src/os/proc.go">proc.go</a>
+			
+				<a href="/src/os/rawconn.go">rawconn.go</a>
+			
+				<a href="/src/os/removeall_at.go">removeall_at.go</a>
+			
+				<a href="/src/os/removeall_unix.go">removeall_unix.go</a>
+			
+				<a href="/src/os/root.go">root.go</a>
+			
+				<a href="/src/os/root_nonwindows.go">root_nonwindows.go</a>
+			
+				<a href="/src/os/root_openat.go">root_openat.go</a>
+			
+				<a href="/src/os/root_unix.go">root_unix.go</a>
+			
+				<a href="/src/os/stat.go">stat.go</a>
+			
+				<a href="/src/os/stat_linux.go">stat_linux.go</a>
+			
+				<a href="/src/os/stat_unix.go">stat_unix.go</a>
+			
+				<a href="/src/os/statat.go">statat.go</a>
+			
+				<a href="/src/os/statat_unix.go">statat_unix.go</a>
+			
+				<a href="/src/os/sticky_notbsd.go">sticky_notbsd.go</a>
+			
+				<a href="/src/os/sys.go">sys.go</a>
+			
+				<a href="/src/os/sys_linux.go">sys_linux.go</a>
+			
+				<a href="/src/os/sys_unix.go">sys_unix.go</a>
+			
+				<a href="/src/os/tempfile.go">tempfile.go</a>
+			
+				<a href="/src/os/types.go">types.go</a>
+			
+				<a href="/src/os/types_unix.go">types_unix.go</a>
+			
+				<a href="/src/os/wait_waitid.go">wait_waitid.go</a>
+			
+				<a href="/src/os/zero_copy_linux.go">zero_copy_linux.go</a>
+			
+				<a href="/src/os/zero_copy_posix.go">zero_copy_posix.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>
+传给 OpenFile 的标志，封装了底层系统的对应标志。给定系统不一定实现了所有标志。
+<pre>const (
+    <span class="comment">// 必须且只能指定 O_RDONLY、O_WRONLY 或 O_RDWR 其中一个。</span>
+    <span id="O_RDONLY">O_RDONLY</span> <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_RDONLY">O_RDONLY</a> <span class="comment">// 以只读方式打开文件。</span>
+    <span id="O_WRONLY">O_WRONLY</span> <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_WRONLY">O_WRONLY</a> <span class="comment">// 以只写方式打开文件。</span>
+    <span id="O_RDWR">O_RDWR</span>   <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_RDWR">O_RDWR</a>   <span class="comment">// 以读写方式打开文件。</span>
+    <span class="comment">// 其余值可通过按位或组合，用于控制行为。</span>
+    <span id="O_APPEND">O_APPEND</span> <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_APPEND">O_APPEND</a> <span class="comment">// 写入时将数据追加到文件末尾。</span>
+    <span id="O_CREATE">O_CREATE</span> <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_CREAT">O_CREAT</a>  <span class="comment">// 文件不存在时创建新文件。</span>
+    <span id="O_EXCL">O_EXCL</span>   <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_EXCL">O_EXCL</a>   <span class="comment">// 与 O_CREATE 一起使用，要求文件必须不存在。</span>
+    <span id="O_SYNC">O_SYNC</span>   <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_SYNC">O_SYNC</a>   <span class="comment">// 以同步 I/O 方式打开。</span>
+    <span id="O_TRUNC">O_TRUNC</span>  <a href="/pkg/builtin/#int">int</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#O_TRUNC">O_TRUNC</a>  <span class="comment">// 打开可写的普通文件时，将其截断。</span>
+)</pre>
+			
+				<p>
+Seek 的 whence 参数取值。
+<p>
+已弃用：请使用 io.SeekStart、io.SeekCurrent 和 io.SeekEnd。
+<pre>const (
+    <span id="SEEK_SET">SEEK_SET</span> <a href="/pkg/builtin/#int">int</a> = 0 <span class="comment">// 相对于文件起始位置定位</span>
+    <span id="SEEK_CUR">SEEK_CUR</span> <a href="/pkg/builtin/#int">int</a> = 1 <span class="comment">// 相对于当前偏移量定位</span>
+    <span id="SEEK_END">SEEK_END</span> <a href="/pkg/builtin/#int">int</a> = 2 <span class="comment">// 相对于文件末尾定位</span>
+)</pre>
+			
+				
+				<pre>const (
+    <span id="PathSeparator">PathSeparator</span>     = &#39;/&#39; <span class="comment">// 操作系统特定的路径分隔符</span>
+    <span id="PathListSeparator">PathListSeparator</span> = &#39;:&#39; <span class="comment">// 操作系统特定的路径列表分隔符</span>
+)</pre>
+			
+				<p>
+已定义的文件模式位位于 <a href="#FileMode">FileMode</a> 的高位。最低的九位是标准 Unix rwxrwxrwx 权限位。这些位的值应视为公共 API 的一部分，可以用于传输协议或磁盘表示：其值不得更改，但可以新增位。
+<pre>const (
+    <span class="comment">// 单字母是 String 方法格式化时</span>
+    <span class="comment">// 使用的缩写。</span>
+    <span id="ModeDir">ModeDir</span>        = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeDir">ModeDir</a>        <span class="comment">// d：目录</span>
+    <span id="ModeAppend">ModeAppend</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeAppend">ModeAppend</a>     <span class="comment">// a：仅追加</span>
+    <span id="ModeExclusive">ModeExclusive</span>  = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeExclusive">ModeExclusive</a>  <span class="comment">// l：独占使用</span>
+    <span id="ModeTemporary">ModeTemporary</span>  = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeTemporary">ModeTemporary</a>  <span class="comment">// T：临时文件；仅用于 Plan 9</span>
+    <span id="ModeSymlink">ModeSymlink</span>    = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeSymlink">ModeSymlink</a>    <span class="comment">// L：符号链接</span>
+    <span id="ModeDevice">ModeDevice</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeDevice">ModeDevice</a>     <span class="comment">// D：设备文件</span>
+    <span id="ModeNamedPipe">ModeNamedPipe</span>  = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeNamedPipe">ModeNamedPipe</a>  <span class="comment">// p：命名管道（FIFO）</span>
+    <span id="ModeSocket">ModeSocket</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeSocket">ModeSocket</a>     <span class="comment">// S：Unix 域套接字</span>
+    <span id="ModeSetuid">ModeSetuid</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeSetuid">ModeSetuid</a>     <span class="comment">// u：setuid 位</span>
+    <span id="ModeSetgid">ModeSetgid</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeSetgid">ModeSetgid</a>     <span class="comment">// g：setgid 位</span>
+    <span id="ModeCharDevice">ModeCharDevice</span> = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeCharDevice">ModeCharDevice</a> <span class="comment">// c：设置了 ModeDevice 时，表示 Unix 字符设备</span>
+    <span id="ModeSticky">ModeSticky</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeSticky">ModeSticky</a>     <span class="comment">// t：粘滞位</span>
+    <span id="ModeIrregular">ModeIrregular</span>  = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeIrregular">ModeIrregular</a>  <span class="comment">// ?：非普通文件；没有该文件的其他信息</span>
+
+    <span class="comment">// 类型位掩码。普通文件不会设置其中的任何位。</span>
+    <span id="ModeType">ModeType</span> = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModeType">ModeType</a>
+
+    <span id="ModePerm">ModePerm</span> = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ModePerm">ModePerm</a> <span class="comment">// Unix 权限位，0o777</span>
+)</pre>
+			
+				<p>
+DevNull 是操作系统“空设备”的名称。在类 Unix 系统上为 &quot;/dev/null&quot;，在 Windows 上为 &quot;NUL&quot;。
+<pre>const <span id="DevNull">DevNull</span> = &#34;/dev/null&#34;</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>
+一些常见系统调用错误的可移植对应值。
+<p>
+可以使用 <a href="/pkg/errors/#Is">errors.Is</a> 判断本包返回的错误是否对应这些错误。
+<pre>var (
+    <span class="comment">// ErrInvalid 表示参数无效。</span>
+    <span class="comment">// 接收者为 nil 时，File 的方法返回此错误。</span>
+    <span id="ErrInvalid">ErrInvalid</span> = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ErrInvalid">ErrInvalid</a> <span class="comment">// 参数无效："invalid argument"</span>
+
+    <span id="ErrPermission">ErrPermission</span> = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ErrPermission">ErrPermission</a> <span class="comment">// 权限不足："permission denied"</span>
+    <span id="ErrExist">ErrExist</span>      = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ErrExist">ErrExist</a>      <span class="comment">// 文件已存在："file already exists"</span>
+    <span id="ErrNotExist">ErrNotExist</span>   = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ErrNotExist">ErrNotExist</a>   <span class="comment">// 文件不存在："file does not exist"</span>
+    <span id="ErrClosed">ErrClosed</span>     = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#ErrClosed">ErrClosed</a>     <span class="comment">// 文件已关闭："file already closed"</span>
+
+    <span id="ErrNoDeadline">ErrNoDeadline</span>       = errNoDeadline()       <span class="comment">// 文件类型不支持截止时间："file type does not support deadline"</span>
+    <span id="ErrDeadlineExceeded">ErrDeadlineExceeded</span> = errDeadlineExceeded() <span class="comment">// I/O 超时："i/o timeout"</span>
+)</pre>
+			
+				
+				<pre>var (
+    <span class="comment">// ErrProcessDone 表示 [Process] 已结束。</span>
+    <span id="ErrProcessDone">ErrProcessDone</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;os: process already finished&#34;)
+
+    <span class="comment">// ErrNoHandle 表示 [Process] 没有句柄。</span>
+    <span id="ErrNoHandle">ErrNoHandle</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;os: process handle unavailable&#34;)
+)</pre>
+			
+				<p>
+Stdin、Stdout 和 Stderr 是已打开的 File，分别指向标准输入、标准输出和标准错误的文件描述符。
+<p>
+注意，Go 运行时会将 panic 和崩溃信息写入标准错误；关闭 Stderr 可能导致这些消息被写到其他地方，例如随后打开的某个文件。
+<pre>var (
+    <span id="Stdin">Stdin</span>  = <a href="#NewFile">NewFile</a>(<a href="/pkg/builtin/#uintptr">uintptr</a>(<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#Stdin">Stdin</a>), &#34;/dev/stdin&#34;)
+    <span id="Stdout">Stdout</span> = <a href="#NewFile">NewFile</a>(<a href="/pkg/builtin/#uintptr">uintptr</a>(<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#Stdout">Stdout</a>), &#34;/dev/stdout&#34;)
+    <span id="Stderr">Stderr</span> = <a href="#NewFile">NewFile</a>(<a href="/pkg/builtin/#uintptr">uintptr</a>(<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#Stderr">Stderr</a>), &#34;/dev/stderr&#34;)
+)</pre>
+			
+				<p>
+Args 保存命令行实参，第一个元素是程序名。
+<pre>var <span id="Args">Args</span> []<a href="/pkg/builtin/#string">string</a></pre>
+			
+		
+		
+			
+			<h2 id="Chdir">func <a href="/src/os/file.go?s=10918:10946#L351">Chdir</a>
+				
+				
+			</h2>
+			<pre>func Chdir(dir <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Chdir 将当前工作目录更改为指定目录。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h2 id="Chmod">func <a href="/src/os/file.go?s=20140:20184#L634">Chmod</a>
+				
+				
+			</h2>
+			<pre>func Chmod(name <a href="/pkg/builtin/#string">string</a>, mode <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Chmod 将指定文件的模式更改为 mode。如果文件是符号链接，则更改链接目标的模式。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+实际使用哪些模式位取决于操作系统。
+<p>
+在 Unix 上，使用 mode 中的权限位以及 <a href="#ModeSetuid">ModeSetuid</a>、<a href="#ModeSetgid">ModeSetgid</a> 和 <a href="#ModeSticky">ModeSticky</a>。
+<p>
+在 Windows 上，只使用 mode 的 0o200 位（所有者可写），用于设置或清除文件的只读属性。其他位目前不使用。为了兼容 Go 1.12 及更早版本，请使用非零的 mode。只读文件使用 0o400，可读写文件使用 0o600。
+<p>
+在 Plan 9 上，使用 mode 中的权限位以及 <a href="#ModeAppend">ModeAppend</a>、<a href="#ModeExclusive">ModeExclusive</a> 和 <a href="#ModeTemporary">ModeTemporary</a>。
+<div id="example_Chmod" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	if err := os.Chmod(&#34;some-filename&#34;, 0644); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Chown">func <a href="/src/os/file_posix.go?s=2961:3004#L96">Chown</a>
+				
+				
+			</h2>
+			<pre>func Chown(name <a href="/pkg/builtin/#string">string</a>, uid, gid <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Chown 更改指定文件的数字 uid 和 gid。如果文件是符号链接，则更改链接目标的 uid 和 gid。uid 或 gid 为 -1 表示不更改相应值。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+在 Windows 或 Plan 9 上，Chown 总是返回包装在 <a href="#PathError">*PathError</a> 中的 <a href="/pkg/syscall/#EWINDOWS">syscall.EWINDOWS</a> 或 <a href="/pkg/syscall/#EPLAN9">syscall.EPLAN9</a> 错误。
+<h2 id="Chtimes">func <a href="/src/os/file_posix.go?s=5139:5204#L170">Chtimes</a>
+				
+				
+			</h2>
+			<pre>func Chtimes(name <a href="/pkg/builtin/#string">string</a>, atime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, mtime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Chtimes 更改指定文件的访问时间和修改时间，类似于 Unix 的 utime() 或 utimes() 函数。<a href="/pkg/time/#Time">time.Time</a> 的零值表示保持对应的文件时间不变。
+<p>
+底层文件系统可能将时间值截断或舍入到精度较低的时间单位。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<div id="example_Chtimes" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;time&#34;
+)
+
+func main() {
+	mtime := time.Date(2006, time.February, 1, 3, 4, 5, 0, time.UTC)
+	atime := time.Date(2007, time.March, 2, 4, 5, 6, 0, time.UTC)
+	if err := os.Chtimes(&#34;some-filename&#34;, atime, mtime); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Clearenv">func <a href="/src/os/env.go?s=3756:3771#L123">Clearenv</a>
+				
+				
+			</h2>
+			<pre>func Clearenv()</pre>
+			<p>
+Clearenv 删除所有环境变量。
+<h2 id="CopyFS">func <a href="/src/os/dir.go?s=5085:5126#L135">CopyFS</a>
+				
+				<span title="自 Go 1.23 起提供">1.23</span>
+			</h2>
+			<pre>func CopyFS(dir <a href="/pkg/builtin/#string">string</a>, fsys <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+CopyFS 将文件系统 fsys 复制到目录 dir，必要时创建 dir。
+<p>
+文件以 0o666 加上源文件的所有执行权限创建；目录以 0o777 创建，以上模式均为应用 umask 之前的值。
+<p>
+CopyFS 不会覆盖已有文件。如果 fsys 中的某个文件名已存在于目标目录，CopyFS 会返回一个满足 errors.Is(err, fs.ErrExist) 为 true 的错误。
+<p>
+dir 中的符号链接会被跟随。
+<p>
+不保证会复制 CopyFS 运行期间新加入 fsys 的文件，dir 是 fsys 子目录的情况也包括在内。
+<p>
+复制操作在遇到第一个错误时停止，并返回该错误。
+<h2 id="DirFS">func <a href="/src/os/file.go?s=24494:24522#L733">DirFS</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func DirFS(dir <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a></pre>
+			<p>
+DirFS 返回以目录 dir 为根的文件树所对应的文件系统（fs.FS）。
+<p>
+注意，DirFS(&quot;/prefix&quot;) 只保证它向操作系统发出的 Open 调用的路径以 &quot;/prefix&quot; 开头：DirFS(&quot;/prefix&quot;).Open(&quot;file&quot;) 等同于 os.Open(&quot;/prefix/file&quot;)。因此，如果 /prefix/file 是指向 /prefix 文件树之外的符号链接，DirFS 和 os.Open 一样都不会阻止访问。此外，使用相对路径 DirFS(&quot;prefix&quot;) 返回的 fs.FS，其根目录会受后续 Chdir 调用影响。因此，当目录树包含任意内容时，DirFS 不能作为 chroot 式安全机制的通用替代方案。
+<p>
+可以使用 <a href="#Root.FS">Root.FS</a> 获取能阻止通过符号链接越出目录树的 fs.FS。
+<p>
+目录 dir 不能为 &quot;&quot;。
+<p>
+返回值实现了 <a href="/pkg/io/fs/#StatFS">io/fs.StatFS</a>、<a href="/pkg/io/fs/#ReadFileFS">io/fs.ReadFileFS</a>、<a href="/pkg/io/fs/#ReadDirFS">io/fs.ReadDirFS</a> 和 <a href="/pkg/io/fs/#ReadLinkFS">io/fs.ReadLinkFS</a>。
+<h2 id="Environ">func <a href="/src/os/env.go?s=3892:3915#L129">Environ</a>
+				
+				
+			</h2>
+			<pre>func Environ() []<a href="/pkg/builtin/#string">string</a></pre>
+			<p>
+Environ 返回表示环境变量的字符串副本，每个字符串的形式为 &quot;key=value&quot;。
+<h2 id="Executable">func <a href="/src/os/executable.go?s=717:750#L8">Executable</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func Executable() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Executable 返回启动当前进程的可执行文件路径。不保证该路径仍然指向正确的可执行文件。如果进程通过符号链接启动，返回值可能是符号链接路径，也可能是其指向的路径，具体取决于操作系统。如果需要稳定的结果，可以考虑使用 <a href="/pkg/path/filepath/#EvalSymlinks">path/filepath.EvalSymlinks</a>。
+<p>
+除非发生错误，否则 Executable 返回绝对路径。
+<p>
+其主要用途是查找相对于可执行文件存放的资源。
+<h2 id="Exit">func <a href="/src/os/proc.go?s=1655:1674#L52">Exit</a>
+				
+				
+			</h2>
+			<pre>func Exit(code <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>
+Exit 使当前程序以给定状态码退出。按惯例，状态码为零表示成功，非零表示错误。程序会立即终止，不会执行延迟调用的函数。
+<p>
+为保证可移植性，状态码应在 [0, 125] 范围内。
+<h2 id="Expand">func <a href="/src/os/env.go?s=409:466#L6">Expand</a>
+				
+				
+			</h2>
+			<pre>func Expand(s <a href="/pkg/builtin/#string">string</a>, mapping func(<a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>
+Expand 根据 mapping 函数替换字符串中的 ${var} 或 $var。例如，<a href="#ExpandEnv">os.ExpandEnv</a>(s) 等价于 <a href="#Expand">os.Expand</a>(s, <a href="#Getenv">os.Getenv</a>)。
+<div id="example_Expand" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	mapper := func(placeholderName string) string {
+		switch placeholderName {
+		case &#34;DAY_PART&#34;:
+			return &#34;morning&#34;
+		case &#34;NAME&#34;:
+			return &#34;Gopher&#34;
+		}
+
+		return &#34;&#34;
+	}
+
+	fmt.Println(os.Expand(&#34;Good ${DAY_PART}, $NAME!&#34;, mapper))
+
+}
+</textarea></div>
+        <div class="output"><pre>Good morning, Gopher!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ExpandEnv">func <a href="/src/os/env.go?s=1327:1358#L40">ExpandEnv</a>
+				
+				
+			</h2>
+			<pre>func ExpandEnv(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>
+ExpandEnv 根据当前环境变量的值替换字符串中的 ${var} 或 $var。对未定义变量的引用会被替换为空字符串。
+<div id="example_ExpandEnv" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	os.Setenv(&#34;NAME&#34;, &#34;gopher&#34;)
+	os.Setenv(&#34;BURROW&#34;, &#34;/usr/gopher&#34;)
+
+	fmt.Println(os.ExpandEnv(&#34;$NAME lives in ${BURROW}.&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>gopher lives in /usr/gopher.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Getegid">func <a href="/src/os/proc.go?s=1019:1037#L36">Getegid</a>
+				
+				
+			</h2>
+			<pre>func Getegid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getegid 返回调用者的数字有效组 ID。
+<p>
+在 Windows 上返回 -1。
+<h2 id="Getenv">func <a href="/src/os/env.go?s=2869:2899#L91">Getenv</a>
+				
+				
+			</h2>
+			<pre>func Getenv(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>
+Getenv 获取名为 key 的环境变量的值。如果变量不存在，则返回空字符串。要区分值为空与变量未设置的情况，请使用 <a href="#LookupEnv">LookupEnv</a>。
+<div id="example_Getenv" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	os.Setenv(&#34;NAME&#34;, &#34;gopher&#34;)
+	os.Setenv(&#34;BURROW&#34;, &#34;/usr/gopher&#34;)
+
+	fmt.Printf(&#34;%s lives in %s.\n&#34;, os.Getenv(&#34;NAME&#34;), os.Getenv(&#34;BURROW&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>gopher lives in /usr/gopher.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Geteuid">func <a href="/src/os/proc.go?s=738:756#L26">Geteuid</a>
+				
+				
+			</h2>
+			<pre>func Geteuid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Geteuid 返回调用者的数字有效用户 ID。
+<p>
+在 Windows 上返回 -1。
+<h2 id="Getgid">func <a href="/src/os/proc.go?s=874:891#L31">Getgid</a>
+				
+				
+			</h2>
+			<pre>func Getgid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getgid 返回调用者的数字组 ID。
+<p>
+在 Windows 上返回 -1。
+<h2 id="Getgroups">func <a href="/src/os/proc.go?s=1259:1290#L42">Getgroups</a>
+				
+				
+			</h2>
+			<pre>func Getgroups() ([]<a href="/pkg/builtin/#int">int</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Getgroups 返回调用者所属各组的数字 ID 列表。
+<p>
+在 Windows 上返回 <a href="/pkg/syscall/#EWINDOWS">syscall.EWINDOWS</a>。可以查看 <a href="/pkg/os/user/">os/user</a> 包，寻找替代方案。
+<h2 id="Getpagesize">func <a href="/src/os/types.go?s=269:291#L3">Getpagesize</a>
+				
+				
+			</h2>
+			<pre>func Getpagesize() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getpagesize 返回底层系统的内存页大小。
+<h2 id="Getpid">func <a href="/src/os/exec.go?s=6878:6895#L230">Getpid</a>
+				
+				
+			</h2>
+			<pre>func Getpid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getpid 返回调用者的进程 ID。
+<h2 id="Getppid">func <a href="/src/os/exec.go?s=6983:7001#L233">Getppid</a>
+				
+				
+			</h2>
+			<pre>func Getppid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getppid 返回调用者的父进程 ID。
+<h2 id="Getuid">func <a href="/src/os/proc.go?s=594:611#L21">Getuid</a>
+				
+				
+			</h2>
+			<pre>func Getuid() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>
+Getuid 返回调用者的数字用户 ID。
+<p>
+在 Windows 上返回 -1。
+<h2 id="Getwd">func <a href="/src/os/getwd.go?s=620:656#L16">Getwd</a>
+				
+				
+			</h2>
+			<pre>func Getwd() (dir <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Getwd 返回当前目录的绝对路径。如果由于符号链接等原因，可以通过多个路径到达当前目录，Getwd 可能返回其中任意一个。
+<p>
+在 Unix 平台上，如果环境变量 PWD 是绝对路径，并且确实指向当前目录，就返回该值。
+<h2 id="Hostname">func <a href="/src/os/sys.go?s=230:270#L1">Hostname</a>
+				
+				
+			</h2>
+			<pre>func Hostname() (name <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Hostname 返回内核报告的主机名。
+<h2 id="IsExist">func <a href="/src/os/error.go?s=2742:2770#L70">IsExist</a>
+				
+				
+			</h2>
+			<pre>func IsExist(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+IsExist 返回一个布尔值，表示是否已知其错误实参说明某个文件或目录已存在。<a href="#ErrExist">ErrExist</a> 和一些系统调用错误满足这一条件。
+<p>
+这个函数早于 <a href="/pkg/errors/#Is">errors.Is</a> 出现，只支持 os 包返回的错误。新代码应使用 errors.Is(err, fs.ErrExist)。
+<h2 id="IsNotExist">func <a href="/src/os/error.go?s=3161:3192#L80">IsNotExist</a>
+				
+				
+			</h2>
+			<pre>func IsNotExist(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+IsNotExist 返回一个布尔值，表示是否已知其错误实参说明某个文件或目录不存在。<a href="#ErrNotExist">ErrNotExist</a> 和一些系统调用错误满足这一条件。
+<p>
+这个函数早于 <a href="/pkg/errors/#Is">errors.Is</a> 出现，只支持 os 包返回的错误。新代码应使用 errors.Is(err, fs.ErrNotExist)。
+<h2 id="IsPathSeparator">func <a href="/src/os/path_unix.go?s=414:448#L5">IsPathSeparator</a>
+				
+				
+			</h2>
+			<pre>func IsPathSeparator(c <a href="/pkg/builtin/#uint8">uint8</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+IsPathSeparator 报告 c 是否为目录分隔符。
+<h2 id="IsPermission">func <a href="/src/os/error.go?s=3578:3611#L90">IsPermission</a>
+				
+				
+			</h2>
+			<pre>func IsPermission(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+IsPermission 返回一个布尔值，表示是否已知其错误实参说明权限被拒绝。<a href="#ErrPermission">ErrPermission</a> 和一些系统调用错误满足这一条件。
+<p>
+这个函数早于 <a href="/pkg/errors/#Is">errors.Is</a> 出现，只支持 os 包返回的错误。新代码应使用 errors.Is(err, fs.ErrPermission)。
+<h2 id="IsTimeout">func <a href="/src/os/error.go?s=4116:4146#L102">IsTimeout</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<pre>func IsTimeout(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+IsTimeout 返回一个布尔值，表示是否已知其错误实参说明发生了超时。
+<p>
+这个函数早于 <a href="/pkg/errors/#Is">errors.Is</a> 出现，而错误是否表示超时有时并不明确。例如，Unix 错误 EWOULDBLOCK 有时表示超时，有时并非如此。新代码应使用 errors.Is，并传入与产生错误的调用相适应的错误值，例如 <a href="#ErrDeadlineExceeded">os.ErrDeadlineExceeded</a>。
+<h2 id="Lchown">func <a href="/src/os/file_posix.go?s=3466:3510#L112">Lchown</a>
+				
+				
+			</h2>
+			<pre>func Lchown(name <a href="/pkg/builtin/#string">string</a>, uid, gid <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Lchown 更改指定文件的数字 uid 和 gid。如果文件是符号链接，则更改链接本身的 uid 和 gid。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+在 Windows 上，它总是返回包装在 <a href="#PathError">*PathError</a> 中的 <a href="/pkg/syscall/#EWINDOWS">syscall.EWINDOWS</a> 错误。
+<h2 id="Link">func <a href="/src/os/file_unix.go?s=12169:12209#L394">Link</a>
+				
+				
+			</h2>
+			<pre>func Link(oldname, newname <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Link 创建名为 newname 的硬链接，指向 oldname 文件。如果发生错误，其类型为 *LinkError。
+<h2 id="LookupEnv">func <a href="/src/os/env.go?s=3244:3285#L102">LookupEnv</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func LookupEnv(key <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>
+LookupEnv 获取名为 key 的环境变量的值。如果环境中存在该变量，就返回其值（可能为空），同时返回 true；否则返回空字符串和 false。
+<div id="example_LookupEnv" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	show := func(key string) {
+		val, ok := os.LookupEnv(key)
+		if !ok {
+			fmt.Printf(&#34;%s not set\n&#34;, key)
+		} else {
+			fmt.Printf(&#34;%s=%s\n&#34;, key, val)
+		}
+	}
+
+	os.Setenv(&#34;SOME_KEY&#34;, &#34;value&#34;)
+	os.Setenv(&#34;EMPTY_KEY&#34;, &#34;&#34;)
+
+	show(&#34;SOME_KEY&#34;)
+	show(&#34;EMPTY_KEY&#34;)
+	show(&#34;MISSING_KEY&#34;)
+
+}
+</textarea></div>
+        <div class="output"><pre>SOME_KEY=value
+EMPTY_KEY=
+MISSING_KEY not set
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Mkdir">func <a href="/src/os/file.go?s=10111:10155#L317">Mkdir</a>
+				
+				
+			</h2>
+			<pre>func Mkdir(name <a href="/pkg/builtin/#string">string</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Mkdir 使用指定名称和权限位创建新目录，权限位为应用 umask 之前的值。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<div id="example_Mkdir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	err := os.Mkdir(&#34;testdir&#34;, 0750)
+	if err != nil &amp;&amp; !os.IsExist(err) {
+		log.Fatal(err)
+	}
+	err = os.WriteFile(&#34;testdir/testfile.txt&#34;, []byte(&#34;Hello, Gophers!&#34;), 0660)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="MkdirAll">func <a href="/src/os/path.go?s=522:569#L9">MkdirAll</a>
+				
+				
+			</h2>
+			<pre>func MkdirAll(path <a href="/pkg/builtin/#string">string</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+MkdirAll 创建名为 path 的目录以及所需的各级父目录，成功返回 nil，否则返回错误。MkdirAll 创建的所有目录都使用权限位 perm（应用 umask 之前）。如果 path 已经是目录，MkdirAll 不做任何操作并返回 nil。
+<div id="example_MkdirAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	err := os.MkdirAll(&#34;test/subdir&#34;, 0750)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile(&#34;test/subdir/testfile.txt&#34;, []byte(&#34;Hello, Gophers!&#34;), 0660)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="MkdirTemp">func <a href="/src/os/tempfile.go?s=3177:3228#L76">MkdirTemp</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func MkdirTemp(dir, pattern <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+MkdirTemp 在目录 dir 中创建新的临时目录，并返回新目录的路径。目录名通过在 pattern 末尾追加随机字符串生成；如果 pattern 包含 &quot;*&quot;，则用随机字符串替换最后一个 &quot;*&quot;。目录以 0o700 模式创建（应用 umask 之前）。如果 dir 为空字符串，就使用 TempDir 返回的默认临时文件目录。多个程序或 goroutine 同时调用 MkdirTemp 不会选中同一个目录。调用者负责在不再需要时删除目录。
+<div id="example_MkdirTemp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	dir, err := os.MkdirTemp("", "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // 清理
+
+	file := filepath.Join(dir, "tmpfile")
+	if err := os.WriteFile(file, []byte("content"), 0666); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_MkdirTemp_suffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Suffix)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Suffix)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	logsDir, err := os.MkdirTemp("", "*-logs")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(logsDir) // 清理
+
+	// 如果需要，可通过查找所有名称以 *-logs 结尾的目录，
+	// 提前清理日志。
+	globPattern := filepath.Join(os.TempDir(), "*-logs")
+	matches, err := filepath.Glob(globPattern)
+	if err != nil {
+		log.Fatalf("Failed to match %q: %v", globPattern, err)
+	}
+
+	for _, match := range matches {
+		if err := os.RemoveAll(match); err != nil {
+			log.Printf("Failed to remove %q: %v", match, err)
+		}
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="NewSyscallError">func <a href="/src/os/error.go?s=2279:2332#L57">NewSyscallError</a>
+				
+				
+			</h2>
+			<pre>func NewSyscallError(syscall <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+NewSyscallError 使用给定系统调用名称和错误详情创建新的 <a href="#SyscallError">SyscallError</a>，并以 error 返回。为方便使用，如果 err 为 nil，NewSyscallError 就返回 nil。
+<h2 id="Pipe">func <a href="/src/os/pipe2_unix.go?s=393:434#L3">Pipe</a>
+				
+				
+			</h2>
+			<pre>func Pipe() (r *<a href="#File">File</a>, w *<a href="#File">File</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Pipe 返回一对相连的 File：从 r 读取会得到写入 w 的字节。返回值包括这两个文件以及可能发生的错误。
+<h2 id="ReadFile">func <a href="/src/os/file.go?s=27893:27935#L861">ReadFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+ReadFile 读取指定文件并返回内容。成功调用返回 err == nil，而不是 err == EOF。由于 ReadFile 会读取整个文件，它不会将 Read 遇到的 EOF 作为错误报告。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<div id="example_ReadFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	data, err := os.ReadFile(&#34;testdata/hello&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.Stdout.Write(data)
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello, Gophers!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Readlink">func <a href="/src/os/file.go?s=13997:14039#L436">Readlink</a>
+				
+				
+			</h2>
+			<pre>func Readlink(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+Readlink 返回指定符号链接的目标。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+如果链接目标是相对路径，Readlink 原样返回该相对路径，不会将它解析为绝对路径。
+<div id="example_Readlink" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 首先，创建指向文件的相对符号链接。</span>
+d, err := os.MkdirTemp(&#34;&#34;, &#34;&#34;)
+if err != nil {
+    log.Fatal(err)
+}
+defer os.RemoveAll(d)
+targetPath := filepath.Join(d, &#34;hello.txt&#34;)
+if err := os.WriteFile(targetPath, []byte(&#34;Hello, Gophers!&#34;), 0644); err != nil {
+    log.Fatal(err)
+}
+linkPath := filepath.Join(d, &#34;hello.link&#34;)
+if err := os.Symlink(&#34;hello.txt&#34;, filepath.Join(d, &#34;hello.link&#34;)); err != nil {
+    if isOSSymlinkUnsupportedError(err) {
+        <span class="comment">// 让此示例也能在不支持符号链接的平台上运行。</span>
+        fmt.Printf(&#34;%s links to %s\n&#34;, filepath.Base(linkPath), &#34;hello.txt&#34;)
+        return
+    }
+    log.Fatal(err)
+}
+
+<span class="comment">// Readlink 返回传给 os.Symlink 的相对路径。</span>
+dst, err := os.Readlink(linkPath)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf(&#34;%s links to %s\n&#34;, filepath.Base(linkPath), dst)
+
+var dstAbs string
+if filepath.IsAbs(dst) {
+    dstAbs = dst
+} else {
+    <span class="comment">// 符号链接的目标路径相对于链接所在目录。</span>
+    dstAbs = filepath.Join(filepath.Dir(linkPath), dst)
+}
+
+<span class="comment">// 将目标与对原始目标路径调用 os.Stat 的结果比较，</span>
+<span class="comment">// 确认目标正确。</span>
+dstInfo, err := os.Stat(dstAbs)
+if err != nil {
+    log.Fatal(err)
+}
+targetInfo, err := os.Stat(targetPath)
+if err != nil {
+    log.Fatal(err)
+}
+if !os.SameFile(dstInfo, targetInfo) {
+    log.Fatalf(&#34;link destination (%s) is not the same file as %s&#34;, dstAbs, targetPath)
+}
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">hello.link links to hello.txt
+</pre>
+      
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Remove">func <a href="/src/os/file_unix.go?s=10945:10975#L347">Remove</a>
+				
+				
+			</h2>
+			<pre>func Remove(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Remove 删除指定文件或空目录。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h2 id="RemoveAll">func <a href="/src/os/path.go?s=2040:2073#L63">RemoveAll</a>
+				
+				
+			</h2>
+			<pre>func RemoveAll(path <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+RemoveAll 删除 path 及其包含的全部子项。它会尽可能删除所有内容，但返回遇到的第一个错误。如果路径不存在，RemoveAll 返回 nil，表示没有错误。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h2 id="Rename">func <a href="/src/os/file.go?s=13672:13714#L427">Rename</a>
+				
+				
+			</h2>
+			<pre>func Rename(oldpath, newpath <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Rename 将 oldpath 重命名（移动）为 newpath。如果 newpath 已存在且不是目录，Rename 会替换它；如果 newpath 已存在且是目录，则返回错误。oldpath 与 newpath 位于不同目录时，可能受到操作系统特定限制。即使位于同一目录，在非 Unix 平台上 Rename 也不是原子操作。如果发生错误，其类型为 *LinkError。
+<h2 id="SameFile">func <a href="/src/os/types.go?s=2763:2800#L59">SameFile</a>
+				
+				
+			</h2>
+			<pre>func SameFile(fi1, fi2 <a href="#FileInfo">FileInfo</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>
+SameFile 报告 fi1 和 fi2 是否描述同一个文件。例如，在 Unix 上，这表示两个底层结构的设备和 inode 字段相同；其他系统可能根据路径名判断。SameFile 仅适用于本包 <a href="#Stat">Stat</a> 返回的结果，其他情况下返回 false。
+<h2 id="Setenv">func <a href="/src/os/env.go?s=3443:3479#L109">Setenv</a>
+				
+				
+			</h2>
+			<pre>func Setenv(key, value <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Setenv 设置名为 key 的环境变量的值，并返回可能发生的错误。
+<h2 id="Symlink">func <a href="/src/os/file_unix.go?s=12635:12678#L408">Symlink</a>
+				
+				
+			</h2>
+			<pre>func Symlink(oldname, newname <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Symlink 创建名为 newname 的符号链接，指向 oldname。在 Windows 上，如果 oldname 不存在，会创建文件符号链接；如果之后将 oldname 创建为目录，这个符号链接将无法正常工作。如果发生错误，其类型为 *LinkError。
+<h2 id="TempDir">func <a href="/src/os/file.go?s=15443:15464#L477">TempDir</a>
+				
+				
+			</h2>
+			<pre>func TempDir() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>
+TempDir 返回存放临时文件的默认目录。
+<p>
+在 Unix 系统上，如果 $TMPDIR 非空就返回它，否则返回 /tmp。在 Windows 上，使用 GetTempPath，按 %TMP%、%TEMP%、%USERPROFILE%、Windows 目录的顺序返回第一个非空值。在 Plan 9 上返回 /tmp。
+<p>
+不保证该目录存在，也不保证调用者有访问权限。
+<h2 id="Truncate">func <a href="/src/os/file_unix.go?s=10619:10663#L335">Truncate</a>
+				
+				
+			</h2>
+			<pre>func Truncate(name <a href="/pkg/builtin/#string">string</a>, size <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Truncate 更改指定文件的大小。如果文件是符号链接，则更改链接目标的大小。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h2 id="Unsetenv">func <a href="/src/os/env.go?s=3642:3673#L118">Unsetenv</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<pre>func Unsetenv(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+Unsetenv 取消设置单个环境变量。
+<div id="example_Unsetenv" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;os&#34;
+)
+
+func main() {
+	os.Setenv(&#34;TMPDIR&#34;, &#34;/my/tmp&#34;)
+	defer os.Unsetenv(&#34;TMPDIR&#34;)
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="UserCacheDir">func <a href="/src/os/file.go?s=16146:16181#L494">UserCacheDir</a>
+				
+				<span title="自 Go 1.11 起提供">1.11</span>
+			</h2>
+			<pre>func UserCacheDir() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+UserCacheDir 返回存放用户专属缓存数据的默认根目录。应用应在该目录中创建并使用自身专属的子目录。
+<p>
+在 Unix 系统上，根据 <a href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html</a> 的规定，$XDG_CACHE_HOME 非空时返回该值，否则返回 $HOME/.cache。在 Darwin 上返回 $HOME/Library/Caches。在 Windows 上返回 %LocalAppData%。在 Plan 9 上返回 $home/lib/cache。
+<p>
+如果无法确定位置（例如未定义 $HOME），或者 $XDG_CACHE_HOME 中的路径是相对路径，就返回错误。
+<div id="example_UserCacheDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"sync"
+)
+
+func main() {
+	dir, dirErr := os.UserCacheDir()
+	if dirErr == nil {
+		dir = filepath.Join(dir, "ExampleUserCacheDir")
+	}
+
+	getCache := func(name string) ([]byte, error) {
+		if dirErr != nil {
+			return nil, &amp;os.PathError{Op: "getCache", Path: name, Err: os.ErrNotExist}
+		}
+		return os.ReadFile(filepath.Join(dir, name))
+	}
+
+	var mkdirOnce sync.Once
+	putCache := func(name string, b []byte) error {
+		if dirErr != nil {
+			return &amp;os.PathError{Op: "putCache", Path: name, Err: dirErr}
+		}
+		mkdirOnce.Do(func() {
+			if err := os.MkdirAll(dir, 0700); err != nil {
+				log.Printf("can't create user cache dir: %v", err)
+			}
+		})
+		return os.WriteFile(filepath.Join(dir, name), b, 0600)
+	}
+
+	// 读取并保存缓存数据。
+	// …
+	_ = getCache
+	_ = putCache
+
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="UserConfigDir">func <a href="/src/os/file.go?s=17639:17675#L547">UserConfigDir</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func UserConfigDir() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+UserConfigDir 返回存放用户专属配置数据的默认根目录。应用应在该目录中创建并使用自身专属的子目录。
+<p>
+在 Unix 系统上，根据 <a href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html</a> 的规定，$XDG_CONFIG_HOME 非空时返回该值，否则返回 $HOME/.config。在 Darwin 上返回 $HOME/Library/Application Support。在 Windows 上返回 %AppData%。在 Plan 9 上返回 $home/lib。
+<p>
+如果无法确定位置（例如未定义 $HOME），或者 $XDG_CONFIG_HOME 中的路径是相对路径，就返回错误。
+<div id="example_UserConfigDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"bytes"
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	dir, dirErr := os.UserConfigDir()
+
+	var (
+		configPath string
+		origConfig []byte
+	)
+	if dirErr == nil {
+		configPath = filepath.Join(dir, "ExampleUserConfigDir", "example.conf")
+		var err error
+		origConfig, err = os.ReadFile(configPath)
+		if err != nil &amp;&amp; !os.IsNotExist(err) {
+			// 用户有配置文件，但无法读取。
+			// 应报告错误，而不是忽略用户的配置。
+			log.Fatal(err)
+		}
+	}
+
+	// 使用配置，并根据需要进行修改。
+	config := bytes.Clone(origConfig)
+	// …
+
+	// 保存修改。
+	if !bytes.Equal(config, origConfig) {
+		if configPath == "" {
+			log.Printf("not saving config changes: %v", dirErr)
+		} else {
+			err := os.MkdirAll(filepath.Dir(configPath), 0700)
+			if err == nil {
+				err = os.WriteFile(configPath, config, 0600)
+			}
+			if err != nil {
+				log.Printf("error saving config changes: %v", err)
+			}
+		}
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="UserHomeDir">func <a href="/src/os/file.go?s=18840:18874#L595">UserHomeDir</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<pre>func UserHomeDir() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>
+UserHomeDir 返回当前用户的主目录。
+<p>
+在包括 macOS 的 Unix 系统上，返回环境变量 $HOME。在 Windows 上返回 %USERPROFILE%。在 Plan 9 上返回环境变量 $home。
+<p>
+如果环境中没有设置相应变量，UserHomeDir 会返回平台特定的默认值，或一个非 nil 错误。
+<h2 id="WriteFile">func <a href="/src/os/file.go?s=30082:30143#L929">WriteFile</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func WriteFile(name <a href="/pkg/builtin/#string">string</a>, data []<a href="/pkg/builtin/#byte">byte</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>
+WriteFile 将 data 写入指定文件，必要时创建文件。如果文件不存在，就使用权限 perm 创建（应用 umask 之前）；否则先截断文件再写入，不更改权限。由于 WriteFile 需要多次系统调用才能完成，操作中途失败可能使文件处于只写入了部分内容的状态。
+<div id="example_WriteFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	err := os.WriteFile(&#34;testdata/hello&#34;, []byte(&#34;Hello, Gophers!&#34;), 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="DirEntry">type <a href="/src/os/dir.go?s=3002:3029#L75">DirEntry</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>
+DirEntry 表示使用 <a href="#ReadDir">ReadDir</a> 函数或 <a href="#File.ReadDir">File.ReadDir</a> 方法从目录读取的一个目录项。
+<pre>type DirEntry = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#DirEntry">DirEntry</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ReadDir">func <a href="/src/os/dir.go?s=4126:4171#L104">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func ReadDir(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ReadDir 读取指定目录，返回按文件名排序的全部目录项。如果读取目录时出错，会返回出错前已读取的目录项以及该错误。
+<div id="example_ReadDir" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	files, err := os.ReadDir(&#34;.&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name())
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="File">type <a href="/src/os/types.go?s=425:467#L8">File</a>
+				
+				
+			</h2>
+			<p>
+File 表示已打开的文件描述符。
+<p>
+File 的方法可以安全地并发使用。
+<pre>type File struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Create">func <a href="/src/os/file.go?s=12119:12158#L389">Create</a>
+					
+					
+				</h3>
+				<pre>func Create(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Create 创建或截断指定文件。如果文件已经存在，就截断它；否则以 0o666 模式创建（应用 umask 之前）。成功后，可以使用返回的 File 的方法进行 I/O，关联的文件描述符具有 <a href="#O_RDWR">O_RDWR</a> 模式。文件所在目录必须已经存在。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="CreateTemp">func <a href="/src/os/tempfile.go?s=1366:1417#L25">CreateTemp</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func CreateTemp(dir, pattern <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+CreateTemp 在目录 dir 中创建新的临时文件，以可读写方式打开，并返回该文件。文件名通过在 pattern 末尾追加随机字符串生成；如果 pattern 包含 &quot;*&quot;，则用随机字符串替换最后一个 &quot;*&quot;。文件以 0o600 模式创建（应用 umask 之前）。如果 dir 为空字符串，就使用 <a href="#TempDir">TempDir</a> 返回的默认临时文件目录。多个程序或 goroutine 同时调用 CreateTemp 不会选中同一个文件。调用者可以通过文件的 Name 方法获取其路径，并负责在不再需要时删除文件。
+<div id="example_CreateTemp" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	f, err := os.CreateTemp("", "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(f.Name()) // 清理
+
+	if _, err := f.Write([]byte("content")); err != nil {
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_CreateTemp_suffix" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Suffix)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Suffix)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	f, err := os.CreateTemp("", "example.*.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(f.Name()) // 清理
+
+	if _, err := f.Write([]byte("content")); err != nil {
+		f.Close()
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewFile">func <a href="/src/os/file.go?s=4881:4924#L123">NewFile</a>
+					
+					
+				</h3>
+				<pre>func NewFile(fd <a href="/pkg/builtin/#uintptr">uintptr</a>, name <a href="/pkg/builtin/#string">string</a>) *<a href="#File">File</a></pre>
+				<p>
+NewFile 使用给定的文件描述符和名称返回一个新的 <a href="#File">File</a>。如果 fd 不是有效的文件描述符，则返回 nil。
+<p>
+NewFile 在部分平台上的行为有所不同：
+<ul>
+<li>
+在 Unix 上，如果 fd 处于非阻塞模式，NewFile 会尝试返回支持轮询的文件。
+<li>
+在 Windows 上，如果 fd 以异步 I/O 方式打开，也就是调用 <a href="/pkg/syscall/#CreateFile">syscall.CreateFile</a> 时指定了 <a href="/pkg/syscall/#FILE_FLAG_OVERLAPPED">syscall.FILE_FLAG_OVERLAPPED</a>，NewFile 会尝试将 fd 关联到 Go 运行时的 I/O 完成端口，以返回支持轮询的文件。如果关联失败，I/O 操作将以同步方式执行。
+</ul>
+<p>
+只有支持轮询的文件才支持 <a href="#File.SetDeadline">File.SetDeadline</a>、<a href="#File.SetReadDeadline">File.SetReadDeadline</a> 和 <a href="#File.SetWriteDeadline">File.SetWriteDeadline</a>。
+<p>
+将 fd 传给 NewFile 后，它可能在 <a href="#File.Fd">File.Fd</a> 文档所述的相同条件下失效，并受相同约束。
+<h3 id="Open">func <a href="/src/os/file.go?s=11635:11672#L379">Open</a>
+					
+					
+				</h3>
+				<pre>func Open(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Open 以只读方式打开指定文件。成功后，可以使用返回文件的方法读取数据；关联的文件描述符具有 <a href="#O_RDONLY">O_RDONLY</a> 模式。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="OpenFile">func <a href="/src/os/file.go?s=12650:12716#L400">OpenFile</a>
+					
+					
+				</h3>
+				<pre>func OpenFile(name <a href="/pkg/builtin/#string">string</a>, flag <a href="/pkg/builtin/#int">int</a>, perm <a href="#FileMode">FileMode</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+OpenFile 是通用的文件打开调用；大多数用户使用 Open 或 Create 即可。它以指定 flag（如 <a href="#O_RDONLY">O_RDONLY</a>）打开指定文件。如果文件不存在且传入了 <a href="#O_CREATE">O_CREATE</a> 标志，则以 perm 模式创建文件（应用 umask 之前），但文件所在目录必须存在。成功后，可以使用返回的 File 的方法进行 I/O。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<div id="example_OpenFile" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	f, err := os.OpenFile(&#34;notes.txt&#34;, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_OpenFile_append" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Append)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Append)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	// 文件不存在时创建，否则追加到文件末尾
+	f, err := os.OpenFile("access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := f.Write([]byte("appended some data\n")); err != nil {
+		f.Close() // 忽略此错误；优先返回 Write 的错误
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="OpenInRoot">func <a href="/src/os/root.go?s=581:629#L15">OpenInRoot</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func OpenInRoot(dir, name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+OpenInRoot 打开目录 dir 中名为 name 的文件，等价于先调用 OpenRoot(dir)，再在该根目录中打开文件。
+<p>
+如果 name 的任何路径分量指向 dir 之外的位置，OpenInRoot 会返回错误。
+<p>
+详情及限制请参阅 <a href="#Root">Root</a>。
+<h3 id="File.Chdir">func (*File) <a href="/src/os/file_posix.go?s=5875:5903#L195">Chdir</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Chdir() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chdir 将当前工作目录更改为该文件所指的目录，因此文件必须是目录。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="File.Chmod">func (*File) <a href="/src/os/file.go?s=20320:20361#L638">Chmod</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Chmod(mode <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chmod 将文件模式更改为 mode。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="File.Chown">func (*File) <a href="/src/os/file_posix.go?s=3891:3931#L127">Chown</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Chown(uid, gid <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chown 更改指定文件的数字 uid 和 gid。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+在 Windows 上，它总是返回包装在 <a href="#PathError">*PathError</a> 中的 <a href="/pkg/syscall/#EWINDOWS">syscall.EWINDOWS</a> 错误。
+<h3 id="File.Close">func (*File) <a href="/src/os/file_posix.go?s=550:578#L10">Close</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Close 关闭 <a href="#File">File</a>，使其无法再用于 I/O。对于支持 <a href="#File.SetDeadline">File.SetDeadline</a> 的文件，所有尚未完成的 I/O 操作都会被取消，并立即返回 <a href="#ErrClosed">ErrClosed</a> 错误。如果已经调用过 Close，再次调用会返回错误。
+<h3 id="File.Fd">func (*File) <a href="/src/os/file.go?s=23481:23508#L712">Fd</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Fd() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>
+Fd 返回引用该已打开文件的系统文件描述符或句柄。如果 f 被关闭，描述符就会失效。如果 f 被垃圾回收，终结器可能关闭描述符，使其失效；终结器的执行时机详见 <a href="/pkg/runtime/#SetFinalizer">runtime.SetFinalizer</a>。
+<p>
+不要关闭返回的描述符，否则之后关闭 f 时可能误关一个无关的描述符。
+<p>
+Fd 在部分平台上的行为有所不同：
+<ul>
+<li>
+在 Unix 和 Windows 上，<a href="#File.SetDeadline">File.SetDeadline</a> 相关方法将不再生效。
+<li>
+在 Windows 上，如果文件没有并发进行的 I/O 操作，文件描述符将解除与 Go 运行时 I/O 完成端口的关联。
+</ul>
+<p>
+多数情况下，优先使用 f.SyscallConn 方法。
+<h3 id="File.Name">func (*File) <a href="/src/os/file.go?s=2015:2043#L53">Name</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+Name 返回传给 Open 的文件名。
+<p>
+调用 [Close] 后仍可安全调用 Name。
+<h3 id="File.Read">func (*File) <a href="/src/os/file.go?s=5145:5193#L130">Read</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Read(b []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Read 从 File 读取最多 len(b) 个字节并保存到 b 中，返回读取的字节数以及遇到的错误。到达文件末尾时，Read 返回 0, io.EOF。
+<h3 id="File.ReadAt">func (*File) <a href="/src/os/file.go?s=5548:5609#L142">ReadAt</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ReadAt(b []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ReadAt 从文件中偏移量 off 处开始读取 len(b) 个字节，返回读取的字节数以及可能发生的错误。n &lt; len(b) 时，ReadAt 总是返回非 nil 错误。到达文件末尾时，该错误为 io.EOF。
+<h3 id="File.ReadDir">func (*File) <a href="/src/os/dir.go?s=3607:3656#L87">ReadDir</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ReadDir(n <a href="/pkg/builtin/#int">int</a>) ([]<a href="#DirEntry">DirEntry</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ReadDir 读取与文件 f 关联的目录内容，按目录顺序返回 <a href="#DirEntry">DirEntry</a> 值的切片。对同一文件的后续调用会返回目录中后面的 DirEntry 记录。
+<p>
+如果 n &gt; 0，ReadDir 最多返回 n 条 DirEntry 记录。这种情况下，如果返回空切片，就会同时返回解释原因的错误。到达目录末尾时，错误为 <a href="/pkg/io/#EOF">io.EOF</a>。
+<p>
+如果 n &lt;= 0，ReadDir 返回目录中剩余的全部 DirEntry 记录。成功时返回 nil 错误，而不是 io.EOF。
+<h3 id="File.ReadFrom">func (*File) <a href="/src/os/file.go?s=5977:6034#L165">ReadFrom</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) ReadFrom(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ReadFrom 实现 io.ReaderFrom。
+<h3 id="File.Readdir">func (*File) <a href="/src/os/dir.go?s=1242:1291#L30">Readdir</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Readdir(n <a href="/pkg/builtin/#int">int</a>) ([]<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Readdir 读取与文件关联的目录内容，按目录顺序返回最多 n 个 <a href="#FileInfo">FileInfo</a> 值组成的切片，信息与 <a href="#Lstat">Lstat</a> 返回的相同。对同一文件的后续调用会返回后面的 FileInfo。
+<p>
+如果 n &gt; 0，Readdir 最多返回 n 个 FileInfo 结构。这种情况下，如果返回空切片，就会同时返回一个非 nil 错误说明原因。到达目录末尾时，错误为 <a href="/pkg/io/#EOF">io.EOF</a>。
+<p>
+如果 n &lt;= 0，Readdir 将目录中剩余的全部 FileInfo 放在一个切片中返回。这种情况下，如果成功读取到目录末尾，就返回该切片和 nil 错误；如果在目录末尾之前出错，就返回此前读到的 FileInfo 和非 nil 错误。
+<p>
+对多数调用者而言，效率更高的 ReadDir 方法更合适。
+<h3 id="File.Readdirnames">func (*File) <a href="/src/os/dir.go?s=2462:2524#L59">Readdirnames</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Readdirnames(n <a href="/pkg/builtin/#int">int</a>) (names []<a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Readdirnames 读取与文件关联的目录内容，按目录顺序返回最多 n 个文件名组成的切片。对同一文件的后续调用会返回后面的文件名。
+<p>
+如果 n &gt; 0，Readdirnames 最多返回 n 个名称。这种情况下，如果返回空切片，就会同时返回一个非 nil 错误说明原因。到达目录末尾时，错误为 <a href="/pkg/io/#EOF">io.EOF</a>。
+<p>
+如果 n &lt;= 0，Readdirnames 将目录中剩余的全部名称放在一个切片中返回。这种情况下，如果成功读取到目录末尾，就返回该切片和 nil 错误；如果在目录末尾之前出错，就返回此前读到的名称和非 nil 错误。
+<h3 id="File.Seek">func (*File) <a href="/src/os/file.go?s=9416:9484#L293">Seek</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Seek(offset <a href="/pkg/builtin/#int64">int64</a>, whence <a href="/pkg/builtin/#int">int</a>) (ret <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Seek 设置文件下一次 Read 或 Write 的偏移量。offset 根据 whence 解释：0 表示相对于文件开头，1 表示相对于当前偏移量，2 表示相对于文件末尾。它返回新的偏移量以及可能发生的错误。对以 <a href="#O_APPEND">O_APPEND</a> 打开的文件调用 Seek，其行为未定义。
+<h3 id="File.SetDeadline">func (*File) <a href="/src/os/file.go?s=21687:21732#L664">SetDeadline</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SetDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+SetDeadline 设置 File 的读写截止时间，等价于同时调用 SetReadDeadline 和 SetWriteDeadline。
+<p>
+只有部分类型的文件支持设置截止时间。对不支持的文件调用 SetDeadline 会返回 ErrNoDeadline。在多数系统上，普通文件不支持截止时间，但管道支持。
+<p>
+截止时间是一个绝对时间点：超过该时间后，I/O 操作会返回错误，而不再阻塞。截止时间适用于将来及正在等待的所有 I/O，不仅是紧接着的一次 Read 或 Write。超过截止时间后，可以将截止时间重新设到未来，使连接恢复可用。
+<p>
+超过截止时间后，Read、Write 或其他 I/O 方法会返回包装了 ErrDeadlineExceeded 的错误。可以通过 errors.Is(err, os.ErrDeadlineExceeded) 检查。该错误实现了 Timeout 方法，调用会返回 true；但其他某些错误即使未超过截止时间，Timeout 也可能返回 true。
+<p>
+每次 Read 或 Write 成功后不断延长截止时间，就可以实现空闲超时。
+<p>
+t 为零值表示 I/O 操作不会超时。
+<h3 id="File.SetReadDeadline">func (*File) <a href="/src/os/file.go?s=21975:22024#L672">SetReadDeadline</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SetReadDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+SetReadDeadline 为将来的 Read 调用以及当前阻塞的 Read 调用设置截止时间。t 为零值表示 Read 不会超时。并非所有文件都支持设置截止时间，参见 SetDeadline。
+<h3 id="File.SetWriteDeadline">func (*File) <a href="/src/os/file.go?s=22390:22440#L682">SetWriteDeadline</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SetWriteDeadline(t <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+SetWriteDeadline 为将来的 Write 调用以及当前阻塞的 Write 调用设置截止时间。即使 Write 超时，也可能返回 n &gt; 0，表示已有部分数据成功写入。t 为零值表示 Write 不会超时。并非所有文件都支持设置截止时间，参见 SetDeadline。
+<h3 id="File.Stat">func (*File) <a href="/src/os/stat_unix.go?s=354:393#L5">Stat</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Stat() (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Stat 返回描述文件的 <a href="#FileInfo">FileInfo</a> 结构。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="File.Sync">func (*File) <a href="/src/os/file_posix.go?s=4605:4632#L153">Sync</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Sync() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Sync 将文件当前内容提交到持久存储。通常，这意味着把文件系统在内存中保存的最近写入数据刷新到磁盘。
+<h3 id="File.SyscallConn">func (*File) <a href="/src/os/file.go?s=22558:22611#L688">SyscallConn</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) SyscallConn() (<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#RawConn">RawConn</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+SyscallConn 返回底层文件访问接口，实现 syscall.Conn 接口。
+<h3 id="File.Truncate">func (*File) <a href="/src/os/file_posix.go?s=4228:4269#L140">Truncate</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Truncate(size <a href="/pkg/builtin/#int64">int64</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Truncate 更改文件大小，但不更改 I/O 偏移量。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="File.Write">func (*File) <a href="/src/os/file.go?s=7039:7088#L201">Write</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) Write(b []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Write 将 b 中的 len(b) 个字节写入 File，返回写入字节数以及可能发生的错误。n != len(b) 时，Write 返回非 nil 错误。
+<h3 id="File.WriteAt">func (*File) <a href="/src/os/file.go?s=7699:7761#L229">WriteAt</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) WriteAt(b []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+WriteAt 从文件偏移量 off 处开始写入 len(b) 个字节，返回写入字节数以及可能发生的错误。n != len(b) 时，WriteAt 返回非 nil 错误。
+<p>
+如果文件以 <a href="#O_APPEND">O_APPEND</a> 标志打开，WriteAt 会返回错误。
+<h3 id="File.WriteString">func (*File) <a href="/src/os/file.go?s=9828:9883#L309">WriteString</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) WriteString(s <a href="/pkg/builtin/#string">string</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+WriteString 类似于 Write，但写入的是字符串 s 的内容，而不是字节切片。
+<h3 id="File.WriteTo">func (*File) <a href="/src/os/file.go?s=8187:8243#L255">WriteTo</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (f *<a href="#File">File</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+WriteTo 实现 io.WriterTo。
+<h2 id="FileInfo">type <a href="/src/os/types.go?s=539:566#L13">FileInfo</a>
+				
+				
+			</h2>
+			<p>
+FileInfo 描述一个文件，由 <a href="#Stat">Stat</a> 和 <a href="#Lstat">Lstat</a> 返回。
+<pre>type FileInfo = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileInfo">FileInfo</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Lstat">func <a href="/src/os/stat.go?s=882:923#L14">Lstat</a>
+					
+					
+				</h3>
+				<pre>func Lstat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Lstat 返回描述指定文件的 <a href="#FileInfo">FileInfo</a>。如果文件是符号链接，返回的 FileInfo 描述链接本身；Lstat 不会尝试跟随链接。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<p>
+在 Windows 上，如果文件是代表另一个具名实体的重解析点（例如符号链接或挂载文件夹），返回的 FileInfo 描述重解析点本身，不会尝试解析其目标。
+<h3 id="Stat">func <a href="/src/os/stat.go?s=313:353#L1">Stat</a>
+					
+					
+				</h3>
+				<pre>func Stat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Stat 返回描述指定文件的 <a href="#FileInfo">FileInfo</a>。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h2 id="FileMode">type <a href="/src/os/types.go?s=859:886#L20">FileMode</a>
+				
+				
+			</h2>
+			<p>
+FileMode 表示文件的模式和权限位。各个位在所有系统上的定义相同，因此可以在系统之间可移植地传递文件信息。并非所有位都适用于所有系统。唯一必需的位是用于目录的 <a href="#ModeDir">ModeDir</a>。
+<pre>type FileMode = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FileMode">FileMode</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_FileMode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"io/fs"
+	"log"
+	"os"
+)
+
+func main() {
+	fi, err := os.Lstat("some-filename")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("permissions: %#o\n", fi.Mode().Perm()) // 例如 0o400、0o777
+	switch mode := fi.Mode(); {
+	case mode.IsRegular():
+		fmt.Println("regular file")
+	case mode.IsDir():
+		fmt.Println("directory")
+	case mode&amp;fs.ModeSymlink != 0:
+		fmt.Println("symbolic link")
+	case mode&amp;fs.ModeNamedPipe != 0:
+		fmt.Println("named pipe")
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="LinkError">type <a href="/src/os/file.go?s=3734:3806#L93">LinkError</a>
+				
+				
+			</h2>
+			<p>
+LinkError 记录 link、symlink 或 rename 系统调用中的错误，以及导致该错误的路径。
+<pre>type LinkError struct {
+<span id="LinkError.Op"></span>    Op  <a href="/pkg/builtin/#string">string</a>
+<span id="LinkError.Old"></span>    Old <a href="/pkg/builtin/#string">string</a>
+<span id="LinkError.New"></span>    New <a href="/pkg/builtin/#string">string</a>
+<span id="LinkError.Err"></span>    Err <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LinkError.Error">func (*LinkError) <a href="/src/os/file.go?s=3808:3842#L100">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#LinkError">LinkError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="LinkError.Unwrap">func (*LinkError) <a href="/src/os/file.go?s=3912:3946#L104">Unwrap</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (e *<a href="#LinkError">LinkError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="PathError">type <a href="/src/os/error.go?s=1650:1679#L36">PathError</a>
+				
+				
+			</h2>
+			<p>
+PathError 记录错误，以及导致该错误的操作和文件路径。
+<pre>type PathError = <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#PathError">PathError</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ProcAttr">type <a href="/src/os/exec.go?s=5499:6581#L196">ProcAttr</a>
+				
+				
+			</h2>
+			<p>
+ProcAttr 保存将应用于 StartProcess 启动的新进程的属性。
+<pre>type ProcAttr struct {
+    <span class="comment">// 如果 Dir 非空，子进程会在创建进程之前切换到该目录。</span>
+<span id="ProcAttr.Dir"></span>    Dir <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// Env 非 nil 时，以 Environ 返回的格式指定新进程的环境变量。</span>
+    <span class="comment">// 若为 nil，则使用 Environ 的结果。</span>
+<span id="ProcAttr.Env"></span>    Env []<a href="/pkg/builtin/#string">string</a>
+<span id="ProcAttr.Files"></span>    <span class="comment">// Files 指定新进程继承的已打开文件。前三项分别对应标准输入、</span>
+    <span class="comment">// 标准输出和标准错误。根据底层操作系统，实现可能支持更多项。</span>
+    <span class="comment">// 某项为 nil，表示进程启动时对应文件处于关闭状态。</span>
+    <span class="comment">// 在 Unix 系统上，StartProcess 会将这些 File 值改为阻塞模式，</span>
+    <span class="comment">// 这意味着 SetDeadline 将失效，且调用 Close 不会中断 Read 或 Write。</span>
+    Files []*<a href="#File">File</a>
+
+    <span class="comment">// 操作系统特定的进程创建属性。</span>
+    <span class="comment">// 注意，设置此字段可能使程序在某些操作系统上无法正常执行，</span>
+    <span class="comment">// 甚至无法编译。</span>
+<span id="ProcAttr.Sys"></span>    Sys *<a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#SysProcAttr">SysProcAttr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Process">type <a href="/src/os/exec.go?s=1162:1877#L33">Process</a>
+				
+				
+			</h2>
+			<p>
+Process 保存通过 <a href="#StartProcess">StartProcess</a> 创建的进程的信息。
+<pre>type Process struct {
+<span id="Process.Pid"></span>    <span class="comment">// Pid 是操作系统进程 ID。</span>
+    Pid <a href="/pkg/builtin/#int">int</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FindProcess">func <a href="/src/os/exec.go?s=7448:7491#L244">FindProcess</a>
+					
+					
+				</h3>
+				<pre>func FindProcess(pid <a href="/pkg/builtin/#int">int</a>) (*<a href="#Process">Process</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+FindProcess 根据 pid 查找正在运行的进程。
+<p>
+返回的 <a href="#Process">Process</a> 可用于获取底层操作系统进程的信息。
+<p>
+在 Unix 系统上，无论进程是否存在，FindProcess 总会成功并返回对应 pid 的 Process。要检查进程是否确实存在，可以检查 p.Signal(syscall.Signal(0)) 是否报告错误。
+<h3 id="StartProcess">func <a href="/src/os/exec.go?s=8167:8246#L261">StartProcess</a>
+					
+					
+				</h3>
+				<pre>func StartProcess(name <a href="/pkg/builtin/#string">string</a>, argv []<a href="/pkg/builtin/#string">string</a>, attr *<a href="#ProcAttr">ProcAttr</a>) (*<a href="#Process">Process</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+StartProcess 按照 name、argv 和 attr 指定的程序、实参和属性启动新进程。argv 切片将成为新进程中的 <a href="#Args">os.Args</a>，因此通常以程序名开头。
+<p>
+如果调用方 goroutine 已通过 <a href="/pkg/runtime/#LockOSThread">runtime.LockOSThread</a> 锁定操作系统线程，并修改了可继承的操作系统线程状态（例如 Linux 或 Plan 9 的命名空间），新进程将继承调用者的线程状态。
+<p>
+StartProcess 是底层接口。<a href="/pkg/os/exec/">os/exec</a> 包提供更高层的接口。
+<p>
+如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="Process.Kill">func (*Process) <a href="/src/os/exec.go?s=10143:10173#L327">Kill</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Process">Process</a>) Kill() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Kill 使 <a href="#Process">Process</a> 立即退出，但不会等待进程实际退出。它只终止该进程本身，不会终止该进程启动的其他进程。
+<h3 id="Process.Release">func (*Process) <a href="/src/os/exec.go?s=8479:8512#L269">Release</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Process">Process</a>) Release() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Release 释放与 <a href="#Process">Process</a> p 关联的全部资源，此后该 Process 不再可用。只有不调用 <a href="#Process.Wait">Process.Wait</a> 时才需要调用 Release。
+<h3 id="Process.Signal">func (*Process) <a href="/src/os/exec.go?s=10657:10699#L342">Signal</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Process">Process</a>) Signal(sig <a href="#Signal">Signal</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Signal 向 <a href="#Process">Process</a> 发送信号。Windows 尚未实现发送 <a href="#Interrupt">Interrupt</a> 信号的功能。
+<h3 id="Process.Wait">func (*Process) <a href="/src/os/exec.go?s=10490:10537#L336">Wait</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#Process">Process</a>) Wait() (*<a href="#ProcessState">ProcessState</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Wait 等待 <a href="#Process">Process</a> 退出，然后返回描述其状态的 ProcessState，以及可能发生的错误。Wait 会释放与 Process 关联的资源。在多数操作系统上，Process 必须是当前进程的子进程，否则会返回错误。
+<h3 id="Process.WithHandle">func (*Process) <a href="/src/os/exec.go?s=11169:11227#L354">WithHandle</a>
+					
+					<span title="自 Go 1.26 起提供">1.26</span>
+				</h3>
+				<pre>func (p *<a href="#Process">Process</a>) WithHandle(f func(handle <a href="/pkg/builtin/#uintptr">uintptr</a>)) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+WithHandle 将有效的进程句柄作为实参，调用传入的函数 f。即使进程 p 终止，在 f 返回之前，该句柄也保证始终引用 p。在调用 <a href="#Process.Release">Process.Release</a> 或 <a href="#Process.Wait">Process.Wait</a> 之后，不能再使用此函数。
+<p>
+如果不支持进程句柄或句柄不可用，则返回 <a href="#ErrNoHandle">ErrNoHandle</a>。目前 Linux 5.4 及更高版本（pidfd）和 Windows 支持进程句柄。
+<h2 id="ProcessState">type <a href="/src/os/exec_posix.go?s=2488:2648#L88">ProcessState</a>
+				
+				
+			</h2>
+			<p>
+ProcessState 保存 Wait 报告的进程信息。
+<pre>type ProcessState struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ProcessState.ExitCode">func (*ProcessState) <a href="/src/os/exec_posix.go?s=4003:4040#L147">ExitCode</a>
+					
+					<span title="自 Go 1.12 起提供">1.12</span>
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) ExitCode() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+ExitCode 返回已退出进程的退出码。如果进程尚未退出，或被信号终止，则返回 -1。
+<h3 id="ProcessState.Exited">func (*ProcessState) <a href="/src/os/exec.go?s=11755:11791#L371">Exited</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) Exited() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Exited 报告程序是否已经退出。在 Unix 系统上，程序通过调用 exit 退出时返回 true；被信号终止时返回 false。
+<h3 id="ProcessState.Pid">func (*ProcessState) <a href="/src/os/exec_posix.go?s=2703:2735#L95">Pid</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) Pid() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>
+Pid 返回已退出进程的进程 ID。
+<h3 id="ProcessState.String">func (*ProcessState) <a href="/src/os/exec_posix.go?s=3016:3054#L115">String</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="ProcessState.Success">func (*ProcessState) <a href="/src/os/exec.go?s=11915:11952#L377">Success</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) Success() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Success 报告程序是否成功退出，例如在 Unix 上以状态码 0 退出。
+<h3 id="ProcessState.Sys">func (*ProcessState) <a href="/src/os/exec.go?s=12161:12193#L384">Sys</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) Sys() <a href="/pkg/builtin/#any">any</a></pre>
+				<p>
+Sys 返回与系统相关的进程退出信息。将其转换为对应底层类型（例如 Unix 上的 <a href="/pkg/syscall/#WaitStatus">syscall.WaitStatus</a>）后，可以访问其中的内容。
+<h3 id="ProcessState.SysUsage">func (*ProcessState) <a href="/src/os/exec.go?s=12516:12553#L393">SysUsage</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) SysUsage() <a href="/pkg/builtin/#any">any</a></pre>
+				<p>
+SysUsage 返回与系统相关的已退出进程资源使用信息。将其转换为对应底层类型（例如 Unix 上的 <a href="/pkg/syscall/#Rusage">*syscall.Rusage</a>）后，可以访问其中的内容。在 Unix 上，*syscall.Rusage 对应 getrusage(2) 手册页定义的 struct rusage。
+<h3 id="ProcessState.SystemTime">func (*ProcessState) <a href="/src/os/exec.go?s=11491:11540#L364">SystemTime</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) SystemTime() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+				<p>
+SystemTime 返回已退出进程及其子进程使用的系统态 CPU 时间。
+<h3 id="ProcessState.UserTime">func (*ProcessState) <a href="/src/os/exec.go?s=11335:11382#L359">UserTime</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ProcessState">ProcessState</a>) UserTime() <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Duration">Duration</a></pre>
+				<p>
+UserTime 返回已退出进程及其子进程使用的用户态 CPU 时间。
+<h2 id="Root">type <a href="/src/os/root.go?s=2567:2599#L58">Root</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>
+Root 可用于将文件访问限定在一个目录树内。
+<p>
+Root 的方法只能访问根目录下的文件和目录。如果传给 Root 方法的文件名中，任何路径分量指向根目录之外的位置，该方法会返回错误。文件名可以引用目录本身（.）。
+<p>
+Root 的方法会跟随符号链接，但符号链接不能指向根目录之外的位置，也不能是绝对路径。
+<p>
+Root 的方法不会禁止跨越文件系统边界、Linux bind 挂载、/proc 特殊文件，也不会禁止访问 Unix 设备文件。
+<p>
+Root 的方法可以由多个 goroutine 同时安全调用。
+<p>
+在多数平台上，创建 Root 会打开引用该目录的文件描述符或句柄。如果目录被移动，Root 的方法仍然引用处于新位置的原目录。
+<p>
+Root 在部分平台上的行为有所不同：
+<ul>
+<li>
+当 GOOS=windows 时，文件名不能引用 NUL、COM1 等 Windows 保留设备名。
+<li>
+在 Unix 上，<a href="#Root.Chmod">Root.Chmod</a>、<a href="#Root.Chown">Root.Chown</a> 和 <a href="#Root.Chtimes">Root.Chtimes</a> 存在竞态条件。如果操作进行期间，目标从普通文件变成符号链接，操作可能作用于链接本身，而不是链接目标。
+<li>
+当 GOOS=js 时，Root 的符号链接验证容易受到 TOCTOU（检查时间与使用时间之间的竞态）攻击，无法保证操作不会越出根目录。
+<li>
+当 GOOS=plan9 或 GOOS=js 时，Root 无法在目录重命名后继续跟踪它。在这些平台上，Root 引用的是目录名，而不是文件描述符。
+<li>
+WASI preview 1（GOOS=wasip1）不支持 <a href="#Root.Chmod">Root.Chmod</a>。
+</ul>
+
+			<pre>type Root struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="OpenRoot">func <a href="/src/os/root.go?s=2965:3006#L72">OpenRoot</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func OpenRoot(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#Root">Root</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+OpenRoot 打开指定目录，并跟随目录名中的符号链接。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="Root.Chmod">func (*Root) <a href="/src/os/root.go?s=4613:4667#L129">Chmod</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Chmod(name <a href="/pkg/builtin/#string">string</a>, mode <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chmod 将根目录中指定文件的模式更改为 mode。详情请参阅 <a href="#Chmod">Chmod</a>。
+<h3 id="Root.Chown">func (*Root) <a href="/src/os/root.go?s=5714:5767#L160">Chown</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Chown(name <a href="/pkg/builtin/#string">string</a>, uid, gid <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chown 更改根目录中指定文件的数字 uid 和 gid。详情请参阅 <a href="#Chown">Chown</a>。
+<h3 id="Root.Chtimes">func (*Root) <a href="/src/os/root.go?s=6134:6209#L172">Chtimes</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Chtimes(name <a href="/pkg/builtin/#string">string</a>, atime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>, mtime <a href="/pkg/time/">time</a>.<a href="/pkg/time/#Time">Time</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Chtimes 更改根目录中指定文件的访问时间和修改时间。详情请参阅 <a href="#Chtimes">Chtimes</a>。
+<h3 id="Root.Close">func (*Root) <a href="/src/os/root.go?s=3309:3337#L86">Close</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Close 关闭 Root。调用之后，Root 的方法都会返回错误。
+<h3 id="Root.Create">func (*Root) <a href="/src/os/root.go?s=3636:3685#L98">Create</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Create(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Create 创建或截断根目录中的指定文件。详情请参阅 <a href="#Create">Create</a>。
+<h3 id="Root.FS">func (*Root) <a href="/src/os/root.go?s=11378:11403#L349">FS</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) FS() <a href="/pkg/io/fs/">fs</a>.<a href="/pkg/io/fs/#FS">FS</a></pre>
+				<p>
+FS 返回以根目录中的文件树为内容的文件系统（fs.FS）。
+<p>
+返回值实现了 <a href="/pkg/io/fs/#StatFS">io/fs.StatFS</a>、<a href="/pkg/io/fs/#ReadFileFS">io/fs.ReadFileFS</a>、<a href="/pkg/io/fs/#ReadDirFS">io/fs.ReadDirFS</a> 和 <a href="/pkg/io/fs/#ReadLinkFS">io/fs.ReadLinkFS</a>。
+<h3 id="Root.Lchown">func (*Root) <a href="/src/os/root.go?s=5917:5971#L166">Lchown</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Lchown(name <a href="/pkg/builtin/#string">string</a>, uid, gid <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Lchown 更改根目录中指定文件的数字 uid 和 gid。详情请参阅 <a href="#Lchown">Lchown</a>。
+<h3 id="Root.Link">func (*Root) <a href="/src/os/root.go?s=7917:7967#L225">Link</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Link(oldname, newname <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Link 为 oldname 文件创建名为 newname 的硬链接。两个路径都相对于根目录。详情请参阅 <a href="#Link">Link</a>。
+<p>
+如果 oldname 是符号链接，Link 创建的链接指向 oldname 本身，而不是其目标。在某些平台上，这可能与 <a href="#Link">Link</a> 的行为不同。
+<p>
+当 GOOS=js 时，如果 oldname 是符号链接，Link 会返回错误。
+<h3 id="Root.Lstat">func (*Root) <a href="/src/os/root.go?s=7031:7082#L199">Lstat</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Lstat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Lstat 返回描述根目录中指定文件的 <a href="#FileInfo">FileInfo</a>。如果文件是符号链接，返回的 FileInfo 描述链接本身。详情请参阅 <a href="#Lstat">Lstat</a>。
+<h3 id="Root.Mkdir">func (*Root) <a href="/src/os/root.go?s=4954:5008#L139">Mkdir</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Mkdir(name <a href="/pkg/builtin/#string">string</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Mkdir 使用指定名称和权限位在根目录中创建新目录，权限位为应用 umask 之前的值。详情请参阅 <a href="#Mkdir">Mkdir</a>。
+<p>
+如果 perm 包含最低九位（0o777）之外的位，Mkdir 会返回错误。
+<h3 id="Root.MkdirAll">func (*Root) <a href="/src/os/root.go?s=5393:5450#L151">MkdirAll</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) MkdirAll(name <a href="/pkg/builtin/#string">string</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+MkdirAll 在根目录中创建新目录及所需的各级父目录。详情请参阅 <a href="#MkdirAll">MkdirAll</a>。
+<p>
+如果 perm 包含最低九位（0o777）之外的位，MkdirAll 会返回错误。
+<h3 id="Root.Name">func (*Root) <a href="/src/os/root.go?s=3170:3198#L80">Name</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>
+Name 返回传给 OpenRoot 的目录名。
+<p>
+调用 [Close] 后仍可安全调用 Name。
+<h3 id="Root.Open">func (*Root) <a href="/src/os/root.go?s=3452:3499#L92">Open</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Open(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Open 以只读方式打开根目录中的指定文件。详情请参阅 <a href="#Open">Open</a>。
+<h3 id="Root.OpenFile">func (*Root) <a href="/src/os/root.go?s=3939:4015#L107">OpenFile</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) OpenFile(name <a href="/pkg/builtin/#string">string</a>, flag <a href="/pkg/builtin/#int">int</a>, perm <a href="#FileMode">FileMode</a>) (*<a href="#File">File</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+OpenFile 打开根目录中的指定文件。详情请参阅 <a href="#OpenFile">OpenFile</a>。
+<p>
+如果 perm 包含最低九位（0o777）之外的位，OpenFile 会返回错误。
+<h3 id="Root.OpenRoot">func (*Root) <a href="/src/os/root.go?s=4409:4460#L122">OpenRoot</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) OpenRoot(name <a href="/pkg/builtin/#string">string</a>) (*<a href="#Root">Root</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+OpenRoot 打开根目录中的指定目录。如果发生错误，其类型为 <a href="#PathError">*PathError</a>。
+<h3 id="Root.ReadFile">func (*Root) <a href="/src/os/root.go?s=8538:8590#L243">ReadFile</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) ReadFile(name <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+ReadFile 读取根目录中的指定文件并返回其内容。详情请参阅 <a href="#ReadFile">ReadFile</a>。
+<h3 id="Root.Readlink">func (*Root) <a href="/src/os/root.go?s=7249:7301#L206">Readlink</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Readlink(name <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Readlink 返回根目录中指定符号链接的目标。详情请参阅 <a href="#Readlink">Readlink</a>。
+<h3 id="Root.Remove">func (*Root) <a href="/src/os/root.go?s=6359:6399#L178">Remove</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Remove(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Remove 删除根目录中的指定文件或空目录。详情请参阅 <a href="#Remove">Remove</a>。
+<h3 id="Root.RemoveAll">func (*Root) <a href="/src/os/root.go?s=6554:6597#L184">RemoveAll</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) RemoveAll(name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+RemoveAll 删除指定文件或目录及其包含的全部子项。详情请参阅 <a href="#RemoveAll">RemoveAll</a>。
+<h3 id="Root.Rename">func (*Root) <a href="/src/os/root.go?s=7457:7509#L213">Rename</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Rename(oldname, newname <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Rename 将 oldname 重命名（移动）为 newname。两个路径都相对于根目录。详情请参阅 <a href="#Rename">Rename</a>。
+<h3 id="Root.Stat">func (*Root) <a href="/src/os/root.go?s=6734:6784#L190">Stat</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Stat(name <a href="/pkg/builtin/#string">string</a>) (<a href="#FileInfo">FileInfo</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Stat 返回描述根目录中指定文件的 <a href="#FileInfo">FileInfo</a>。详情请参阅 <a href="#Stat">Stat</a>。
+<h3 id="Root.Symlink">func (*Root) <a href="/src/os/root.go?s=8331:8384#L237">Symlink</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) Symlink(oldname, newname <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+Symlink 创建名为 newname 的符号链接，指向 oldname。详情请参阅 <a href="#Symlink">Symlink</a>。
+<p>
+Symlink 不会验证 oldname；它可能指向根目录之外的位置。
+<p>
+在 Windows 上，如果 oldname 指向根目录内的目录，就创建目录链接；否则创建文件链接。
+<h3 id="Root.WriteFile">func (*Root) <a href="/src/os/root.go?s=8842:8913#L254">WriteFile</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (r *<a href="#Root">Root</a>) WriteFile(name <a href="/pkg/builtin/#string">string</a>, data []<a href="/pkg/builtin/#byte">byte</a>, perm <a href="#FileMode">FileMode</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>
+WriteFile 将 data 写入根目录中的指定文件，必要时创建文件。详情请参阅 <a href="#WriteFile">WriteFile</a>。
+<h2 id="Signal">type <a href="/src/os/exec.go?s=6737:6828#L224">Signal</a>
+				
+				
+			</h2>
+			<p>
+Signal 表示操作系统信号，其底层实现通常与操作系统有关；在 Unix 上是 syscall.Signal。
+<pre>type Signal interface {
+    String() <a href="/pkg/builtin/#string">string</a>
+    Signal() <span class="comment">// 用于与其他 Stringer 实现区分</span>
+}</pre>
+
+			
+
+			
+				<p>
+os 包在所有系统上只保证提供 os.Interrupt（向进程发送中断）和 os.Kill（强制进程退出）两个信号值。在 Windows 上，尚未实现通过 os.Process.Signal 向进程发送 os.Interrupt；该操作会返回错误，而不发送信号。
+<pre>var (
+    <span id="Interrupt">Interrupt</span> <a href="#Signal">Signal</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#SIGINT">SIGINT</a>
+    <span id="Kill">Kill</span>      <a href="#Signal">Signal</a> = <a href="/pkg/syscall/">syscall</a>.<a href="/pkg/syscall/#SIGKILL">SIGKILL</a>
+)</pre>
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SyscallError">type <a href="/src/os/error.go?s=1743:1802#L39">SyscallError</a>
+				
+				
+			</h2>
+			<p>
+SyscallError 记录特定系统调用产生的错误。
+<pre>type SyscallError struct {
+<span id="SyscallError.Syscall"></span>    Syscall <a href="/pkg/builtin/#string">string</a>
+<span id="SyscallError.Err"></span>    Err     <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyscallError.Error">func (*SyscallError) <a href="/src/os/error.go?s=1804:1841#L44">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#SyscallError">SyscallError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="SyscallError.Timeout">func (*SyscallError) <a href="/src/os/error.go?s=2003:2040#L49">Timeout</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (e *<a href="#SyscallError">SyscallError</a>) Timeout() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>
+Timeout 报告该错误是否表示超时。
+<h3 id="SyscallError.Unwrap">func (*SyscallError) <a href="/src/os/error.go?s=1887:1924#L46">Unwrap</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (e *<a href="#SyscallError">SyscallError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="exec/">exec</a>
+					</td>
+				
+					<td class="pkg-synopsis">exec 包用于运行外部命令。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="signal/">signal</a>
+					</td>
+				
+					<td class="pkg-synopsis">signal 包提供接收传入信号的功能。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="user/">user</a>
+					</td>
+				
+					<td class="pkg-synopsis">user 包支持按名称或 ID 查询用户账户。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

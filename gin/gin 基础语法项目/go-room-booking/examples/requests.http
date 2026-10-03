@@ -1,0 +1,24 @@
+# 启动：go run .。start/end 请替换为未来 90 天内的日期。
+# 不想改日期时直接运行 go run ./cmd/demo，自动使用明天的时间。
+@base = http://127.0.0.1:8092
+
+### 会议室
+GET {{base}}/rooms
+
+### 创建；这里日期仅用于展示格式
+POST {{base}}/bookings
+Content-Type: application/json
+
+{"room_id":"room-a","organizer":"小林","title":"需求评审","attendees":3,"start":"2026-09-28T09:00:00+08:00","end":"2026-09-28T10:00:00+08:00"}
+
+### 查询房间空闲（+ 转义为 %2B）
+GET {{base}}/rooms/room-a/availability?start=2026-09-28T09:00:00%2B08:00&end=2026-09-28T10:00:00%2B08:00
+
+### 有效预约
+GET {{base}}/bookings?room_id=room-a&status=active&page=1&size=20
+
+### 详情
+GET {{base}}/bookings/booking-000001
+
+### 取消，不需要正文
+POST {{base}}/bookings/booking-000001/cancel

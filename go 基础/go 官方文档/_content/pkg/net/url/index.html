@@ -1,0 +1,1924 @@
+<!--{
+  "Title": "net/url 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>net/url 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/url"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>url 包用于解析 URL，并实现查询字符串的转义。<p>参见 RFC 3986。除为兼容性而作出的偏离外，本包总体上遵循 RFC 3986。IPv6 区域标识符字面量遵循 RFC 6874。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#JoinPath">func JoinPath(base string, elem ...string) (result string, err error)</a></dd>
+			
+				<dd><a href="#PathEscape">func PathEscape(s string) string</a></dd>
+			
+				<dd><a href="#PathUnescape">func PathUnescape(s string) (string, error)</a></dd>
+			
+				<dd><a href="#QueryEscape">func QueryEscape(s string) string</a></dd>
+			
+				<dd><a href="#QueryUnescape">func QueryUnescape(s string) (string, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e *Error) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Temporary">func (e *Error) Temporary() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Timeout">func (e *Error) Timeout() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Unwrap">func (e *Error) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#EscapeError">type EscapeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#EscapeError.Error">func (e EscapeError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#InvalidHostError">type InvalidHostError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InvalidHostError.Error">func (e InvalidHostError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#URL">type URL</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Parse">func Parse(rawURL string) (*URL, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseRequestURI">func ParseRequestURI(rawURL string) (*URL, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.AppendBinary">func (u *URL) AppendBinary(b []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Clone">func (u *URL) Clone() *URL</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.EscapedFragment">func (u *URL) EscapedFragment() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.EscapedPath">func (u *URL) EscapedPath() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Hostname">func (u *URL) Hostname() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.IsAbs">func (u *URL) IsAbs() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.JoinPath">func (u *URL) JoinPath(elem ...string) *URL</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.MarshalBinary">func (u *URL) MarshalBinary() (text []byte, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Parse">func (u *URL) Parse(ref string) (*URL, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Port">func (u *URL) Port() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Query">func (u *URL) Query() Values</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.Redacted">func (u *URL) Redacted() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.RequestURI">func (u *URL) RequestURI() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.ResolveReference">func (u *URL) ResolveReference(ref *URL) *URL</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.String">func (u *URL) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#URL.UnmarshalBinary">func (u *URL) UnmarshalBinary(text []byte) error</a></dd>
+				
+			
+				
+				<dd><a href="#Userinfo">type Userinfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#User">func User(username string) *Userinfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UserPassword">func UserPassword(username, password string) *Userinfo</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Userinfo.Password">func (u *Userinfo) Password() (string, bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Userinfo.String">func (u *Userinfo) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Userinfo.Username">func (u *Userinfo) Username() string</a></dd>
+				
+			
+				
+				<dd><a href="#Values">type Values</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseQuery">func ParseQuery(query string) (Values, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Add">func (v Values) Add(key, value string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Clone">func (vs Values) Clone() Values</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Del">func (v Values) Del(key string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Encode">func (v Values) Encode() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Get">func (v Values) Get(key string) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Has">func (v Values) Has(key string) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Values.Set">func (v Values) Set(key, value string)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_ParseQuery">ParseQuery</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_PathEscape">PathEscape</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_PathUnescape">PathUnescape</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QueryEscape">QueryEscape</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_QueryUnescape">QueryUnescape</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL">URL</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_EscapedFragment">URL.EscapedFragment</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_EscapedPath">URL.EscapedPath</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_Hostname">URL.Hostname</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_IsAbs">URL.IsAbs</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_JoinPath">URL.JoinPath</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_MarshalBinary">URL.MarshalBinary</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_Parse">URL.Parse</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_Port">URL.Port</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_Query">URL.Query</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_Redacted">URL.Redacted</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_RequestURI">URL.RequestURI</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_ResolveReference">URL.ResolveReference</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_String">URL.String</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_UnmarshalBinary">URL.UnmarshalBinary</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_URL_roundtrip">URL (Roundtrip)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values">Values</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Add">Values.Add</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Del">Values.Del</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Encode">Values.Encode</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Get">Values.Get</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Has">Values.Has</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Values_Set">Values.Set</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/url/encoding_table.go">encoding_table.go</a>
+			
+				<a href="/src/net/url/url.go">url.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="JoinPath">func <a href="/src/net/url/url.go?s=38029:38098#L1320">JoinPath</a>
+				
+				<span title="自 Go 1.19 起提供">1.19</span>
+			</h2>
+			<pre>func JoinPath(base <a href="/pkg/builtin/#string">string</a>, elem ...<a href="/pkg/builtin/#string">string</a>) (result <a href="/pkg/builtin/#string">string</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>JoinPath 将给定的路径元素拼接到 base 的现有路径上，清理结果中的 ./ 和 ../ 元素，并返回 <a href="#URL">URL</a> 字符串。路径元素必须已经转义，例如使用 <a href="#PathEscape">PathEscape</a> 生成。<h2 id="PathEscape">func <a href="/src/net/url/url.go?s=5254:5286#L182">PathEscape</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func PathEscape(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>PathEscape 对字符串进行转义，使其能够安全地放入 <a href="#URL">URL</a> 的一个路径段中。它会根据需要，将特殊字符（包括 /）替换为 %XX 序列。<div id="example_PathEscape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	path := url.PathEscape(&#34;my/cool&#43;blog&amp;about,stuff&#34;)
+	fmt.Println(path)
+
+}
+</textarea></div>
+        <div class="output"><pre>my%2Fcool+blog&amp;about%2Cstuff
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="PathUnescape">func <a href="/src/net/url/url.go?s=2553:2596#L90">PathUnescape</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func PathUnescape(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>PathUnescape 执行 <a href="#PathEscape">PathEscape</a> 的逆变换，将每个形如 &quot;%AB&quot; 的 3 字节编码子串还原为十六进制字节 0xAB。如果任何 % 后面没有跟随两个十六进制数字，则返回错误。<p>PathUnescape 与 <a href="#QueryUnescape">QueryUnescape</a> 相同，但不会将 &apos;+&apos; 还原为 &apos; &apos;（空格）。<div id="example_PathUnescape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	escapedPath := &#34;my%2Fcool&#43;blog&amp;about%2Cstuff&#34;
+	path, err := url.PathUnescape(escapedPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(path)
+
+}
+</textarea></div>
+        <div class="output"><pre>my/cool+blog&amp;about,stuff
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QueryEscape">func <a href="/src/net/url/url.go?s=5010:5043#L176">QueryEscape</a>
+				
+				
+			</h2>
+			<pre>func QueryEscape(s <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>QueryEscape 对字符串进行转义，使其能够安全地放入 <a href="#URL">URL</a> 查询字符串中。<div id="example_QueryEscape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	query := url.QueryEscape(&#34;my/cool&#43;blog&amp;about,stuff&#34;)
+	fmt.Println(query)
+
+}
+</textarea></div>
+        <div class="output"><pre>my%2Fcool%2Bblog%26about%2Cstuff
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="QueryUnescape">func <a href="/src/net/url/url.go?s=2117:2161#L79">QueryUnescape</a>
+				
+				
+			</h2>
+			<pre>func QueryUnescape(s <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>QueryUnescape 执行 <a href="#QueryEscape">QueryEscape</a> 的逆变换，将每个形如 &quot;%AB&quot; 的 3 字节编码子串还原为十六进制字节 0xAB。如果任何 % 后面没有跟随两个十六进制数字，则返回错误。<div id="example_QueryUnescape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	escapedQuery := &#34;my%2Fcool%2Bblog%26about%2Cstuff&#34;
+	query, err := url.QueryUnescape(escapedQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(query)
+
+}
+</textarea></div>
+        <div class="output"><pre>my/cool+blog&amp;about,stuff
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Error">type <a href="/src/net/url/url.go?s=850:906#L23">Error</a>
+				
+				
+			</h2>
+			<p>Error 报告一个错误，以及导致该错误的操作和 URL。<pre>type Error struct {
+<span id="Error.Op"></span>    Op  <a href="/pkg/builtin/#string">string</a>
+<span id="Error.URL"></span>    URL <a href="/pkg/builtin/#string">string</a>
+<span id="Error.Err"></span>    Err <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (*Error) <a href="/src/net/url/url.go?s=956:986#L30">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Error.Temporary">func (*Error) <a href="/src/net/url/url.go?s=1156:1188#L39">Temporary</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Temporary() <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="Error.Timeout">func (*Error) <a href="/src/net/url/url.go?s=1044:1074#L32">Timeout</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Timeout() <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="Error.Unwrap">func (*Error) <a href="/src/net/url/url.go?s=908:938#L29">Unwrap</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (e *<a href="#Error">Error</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="EscapeError">type <a href="/src/net/url/url.go?s=1462:1485#L57">EscapeError</a>
+				
+				
+			</h2>
+			
+			<pre>type EscapeError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="EscapeError.Error">func (EscapeError) <a href="/src/net/url/url.go?s=1487:1522#L59">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#EscapeError">EscapeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="InvalidHostError">type <a href="/src/net/url/url.go?s=1585:1613#L63">InvalidHostError</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			
+			<pre>type InvalidHostError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InvalidHostError.Error">func (InvalidHostError) <a href="/src/net/url/url.go?s=1615:1655#L65">Error</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (e <a href="#InvalidHostError">InvalidHostError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="URL">type <a href="/src/net/url/url.go?s=7449:8710#L266">URL</a>
+				
+				
+			</h2>
+			<p>URL 表示解析后的 URL（严格来说，是一个 URI 引用）。<p>其表示的一般形式为：<pre>[scheme:][//[userinfo@]host][/]path[?query][#fragment]
+</pre>
+<p>如果 URL 的协议方案之后不是以斜杠开头，则解释为：<pre>scheme:opaque[?query][#fragment]
+</pre>
+<p>Host 字段包含 URL 的主机和端口部分。端口存在时，以冒号与主机分隔。主机为 IPv6 地址时，必须用方括号包围，例如 &quot;[fe80::1]:80&quot;。<a href="/pkg/net/#JoinHostPort">net.JoinHostPort</a> 将主机和端口组合成适合 Host 字段的字符串，并在需要时为主机加上方括号。<p>注意，Path 字段存储解码后的形式：/%47%6f%2f 会变成 /Go/。因此，无法仅从 Path 判断哪些斜杠来自原始 URL 中的斜杠，哪些来自 %2f。这一区别通常并不重要；如果需要区分，应使用 <a href="#URL.EscapedPath">URL.EscapedPath</a>，它会保留 Path 的原始编码。Fragment 字段也存储解码后的形式，可用 <a href="#URL.EscapedFragment">URL.EscapedFragment</a> 获取原始编码。<p><a href="#URL.String">URL.String</a> 使用 <a href="#URL.EscapedPath">URL.EscapedPath</a> 获取路径。<pre>type URL struct {
+<span id="URL.Scheme"></span>    Scheme   <a href="/pkg/builtin/#string">string</a>
+<span id="URL.Opaque"></span>    Opaque   <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 编码后的不透明数据</span>
+<span id="URL.User"></span>    User     *<a href="#Userinfo">Userinfo</a> <span class="comment">// 用户名和密码信息</span>
+<span id="URL.Host"></span>    Host     <a href="/pkg/builtin/#string">string</a>    <span class="comment">// "host" 或 "host:port"（参见 Hostname 和 Port 方法）</span>
+<span id="URL.Path"></span>    Path     <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 路径（相对路径可以省略开头的斜杠）</span>
+<span id="URL.Fragment"></span>    Fragment <a href="/pkg/builtin/#string">string</a>    <span class="comment">// 引用的片段标识符（不包含 '#'）</span>
+
+<span id="URL.RawQuery"></span>    <span class="comment">// RawQuery 包含编码后的查询值，不含开头的 '?'。</span>
+    <span class="comment">// 使用 URL.Query 解码查询。</span>
+    RawQuery <a href="/pkg/builtin/#string">string</a>
+
+<span id="URL.RawPath"></span>    <span class="comment">// RawPath 是可选字段，包含编码后的路径提示。</span>
+    <span class="comment">// 详情请参阅 EscapedPath 方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 通常应调用 EscapedPath，而不是直接读取 RawPath。</span>
+    RawPath <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.5</span>
+
+<span id="URL.RawFragment"></span>    <span class="comment">// RawFragment 是可选字段，包含编码后的片段提示。</span>
+    <span class="comment">// 详情请参阅 EscapedFragment 方法。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 通常应调用 EscapedFragment，而不是直接读取 RawFragment。</span>
+    RawFragment <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.15</span>
+
+<span id="URL.ForceQuery"></span>    <span class="comment">// ForceQuery 表示原始 URL 是否包含查询字符（'?'）。</span>
+    <span class="comment">// 设置后，即使 RawQuery 为空，String 方法也会在结尾加上 '?'。</span>
+    ForceQuery <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.7</span>
+
+<span id="URL.OmitHost"></span>    <span class="comment">// OmitHost 表示 URL 的主机（authority 部分）为空。</span>
+    <span class="comment">// 设置后，如果主机为空，String 方法就不会包含主机部分。</span>
+    OmitHost <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// Go 1.19</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_URL" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;http://bing.com/search?q=dotnet&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	u.Scheme = &#34;https&#34;
+	u.Host = &#34;google.com&#34;
+	q := u.Query()
+	q.Set(&#34;q&#34;, &#34;golang&#34;)
+	u.RawQuery = q.Encode()
+	fmt.Println(u)
+}
+</textarea></div>
+        <div class="output"><pre>https://google.com/search?q=golang
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_URL_roundtrip" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Roundtrip)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Roundtrip)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"net/url"
+)
+
+func main() {
+	// Parse + String 保留原始编码。
+	u, err := url.Parse("https://example.com/foo%2fbar")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.Path)
+	fmt.Println(u.RawPath)
+	fmt.Println(u.String())
+}
+</textarea></div>
+        <div class="output"><pre>/foo/bar
+/foo%2fbar
+https://example.com/foo%2fbar
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="Parse">func <a href="/src/net/url/url.go?s=11356:11395#L389">Parse</a>
+					
+					
+				</h3>
+				<pre>func Parse(rawURL <a href="/pkg/builtin/#string">string</a>) (*<a href="#URL">URL</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 将原始 url 解析为 <a href="#URL">URL</a> 结构。<p>url 可以是相对地址（只有路径，没有主机），也可以是绝对地址（以协议方案开头）。不带协议方案的主机名与路径组合不属于有效输入，但由于解析可能存在歧义，尝试解析时不一定返回错误。<h3 id="ParseRequestURI">func <a href="/src/net/url/url.go?s=12018:12067#L410">ParseRequestURI</a>
+					
+					
+				</h3>
+				<pre>func ParseRequestURI(rawURL <a href="/pkg/builtin/#string">string</a>) (*<a href="#URL">URL</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseRequestURI 将原始 url 解析为 <a href="#URL">URL</a> 结构。它假定 url 来自 HTTP 请求，因此只将其解释为绝对 URI 或绝对路径，并假定字符串不含 #fragment 后缀。（Web 浏览器在向服务器发送 URL 前会去掉 #fragment。）<h3 id="URL.AppendBinary">func (*URL) <a href="/src/net/url/url.go?s=35137:35189#L1221">AppendBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) AppendBinary(b []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="URL.Clone">func (*URL) <a href="/src/net/url/url.go?s=38321:38347#L1333">Clone</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Clone() *<a href="#URL">URL</a></pre>
+				<p>Clone 对该 <a href="#URL">URL</a> 的各字段创建深拷贝。<h3 id="URL.EscapedFragment">func (*URL) <a href="/src/net/url/url.go?s=22445:22483#L740">EscapedFragment</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) EscapedFragment() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>EscapedFragment 返回 u.Fragment 的转义形式。一个片段通常存在多种有效的转义表示。如果 u.RawFragment 是 u.Fragment 的有效转义，便返回 u.RawFragment；否则忽略 u.RawFragment，自行计算转义结果。<a href="#URL.String">URL.String</a> 使用 EscapedFragment 构造结果。通常应调用 EscapedFragment，而不是直接读取 u.RawFragment。<div id="example_URL_EscapedFragment" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;http://example.com/#x/y%2Fz&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(&#34;Fragment:&#34;, u.Fragment)
+	fmt.Println(&#34;RawFragment:&#34;, u.RawFragment)
+	fmt.Println(&#34;EscapedFragment:&#34;, u.EscapedFragment())
+}
+</textarea></div>
+        <div class="output"><pre>Fragment: x/y/z
+RawFragment: x/y%2Fz
+EscapedFragment: x/y%2Fz
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.EscapedPath">func (*URL) <a href="/src/net/url/url.go?s=20502:20536#L677">EscapedPath</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) EscapedPath() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>EscapedPath 返回 u.Path 的转义形式。一个路径通常存在多种有效的转义表示。如果 u.RawPath 是 u.Path 的有效转义，便返回 u.RawPath；否则忽略 u.RawPath，自行计算转义结果。<a href="#URL.String">URL.String</a> 和 <a href="#URL.RequestURI">URL.RequestURI</a> 使用 EscapedPath 构造结果。通常应调用 EscapedPath，而不是直接读取 u.RawPath。<div id="example_URL_EscapedPath" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;http://example.com/x/y%2Fz&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(&#34;Path:&#34;, u.Path)
+	fmt.Println(&#34;RawPath:&#34;, u.RawPath)
+	fmt.Println(&#34;EscapedPath:&#34;, u.EscapedPath())
+}
+</textarea></div>
+        <div class="output"><pre>Path: /x/y/z
+RawPath: /x/y%2Fz
+EscapedPath: /x/y%2Fz
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.Hostname">func (*URL) <a href="/src/net/url/url.go?s=34016:34047#L1183">Hostname</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Hostname() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Hostname 返回 u.Host，并移除其中有效的端口号（若有）。<p>如果结果像 IPv6 地址字面量一样被方括号包围，也会移除方括号。<div id="example_URL_Hostname" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.org:8000/path&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.Hostname())
+	u, err = url.Parse(&#34;https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:17000&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.Hostname())
+}
+</textarea></div>
+        <div class="output"><pre>example.org
+2001:0db8:85a3:0000:0000:8a2e:0370:7334
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.IsAbs">func (*URL) <a href="/src/net/url/url.go?s=31386:31412#L1091">IsAbs</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) IsAbs() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsAbs 报告 <a href="#URL">URL</a> 是否为绝对地址，即其协议方案是否非空。<div id="example_URL_IsAbs" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u := url.URL{Host: &#34;example.com&#34;, Path: &#34;foo&#34;}
+	fmt.Println(u.IsAbs())
+	u.Scheme = &#34;http&#34;
+	fmt.Println(u.IsAbs())
+}
+</textarea></div>
+        <div class="output"><pre>false
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.JoinPath">func (*URL) <a href="/src/net/url/url.go?s=35679:35722#L1238">JoinPath</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) JoinPath(elem ...<a href="/pkg/builtin/#string">string</a>) *<a href="#URL">URL</a></pre>
+				<p>JoinPath 将给定路径元素拼接到现有路径上，清理结果中的 ./ 和 ../ 元素，并返回新的 <a href="#URL">URL</a>。连续的多个 / 会合并成单个 /。路径元素必须已经转义，例如使用 <a href="#PathEscape">PathEscape</a> 生成。<div id="example_URL_JoinPath" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.com/foo/bar&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(u.JoinPath(&#34;baz&#34;, &#34;qux&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>https://example.com/foo/bar/baz/qux
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.MarshalBinary">func (*URL) <a href="/src/net/url/url.go?s=35049:35103#L1217">MarshalBinary</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) MarshalBinary() (text []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+
+
+<div id="example_URL_MarshalBinary" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, _ := url.Parse(&#34;https://example.org&#34;)
+	b, err := u.MarshalBinary()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, b)
+}
+</textarea></div>
+        <div class="output"><pre>https://example.org
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.Parse">func (*URL) <a href="/src/net/url/url.go?s=31656:31701#L1098">Parse</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Parse(ref <a href="/pkg/builtin/#string">string</a>) (*<a href="#URL">URL</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Parse 在接收者的上下文中解析 <a href="#URL">URL</a>。给定 URL 可以是相对或绝对地址。解析失败时返回 nil, err；否则结果与 <a href="#URL.ResolveReference">URL.ResolveReference</a> 相同。<div id="example_URL_Parse" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.org&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rel, err := u.Parse(&#34;/foo&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(rel)
+	_, err = u.Parse(&#34;:foo&#34;)
+	if _, ok := err.(*url.Error); !ok {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>https://example.org/foo
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.Port">func (*URL) <a href="/src/net/url/url.go?s=34252:34279#L1191">Port</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Port() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Port 返回 u.Host 中的端口部分，不包含开头的冒号。<p>如果 u.Host 不包含有效的数字端口，Port 返回空字符串。<div id="example_URL_Port" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.org&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.Port())
+	u, err = url.Parse(&#34;https://example.org:8080&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.Port())
+}
+</textarea></div>
+        <div class="output"><pre>
+8080
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.Query">func (*URL) <a href="/src/net/url/url.go?s=33294:33322#L1154">Query</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Query() <a href="#Values">Values</a></pre>
+				<p>Query 解析 RawQuery，并返回对应的键值集合。格式错误的键值对会被静默丢弃。需要检查错误时，请使用 <a href="#ParseQuery">ParseQuery</a>。<div id="example_URL_Query" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.org/?a=1&amp;a=2&amp;b=&amp;=3&amp;&amp;&amp;&amp;&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	q := u.Query()
+	fmt.Println(q[&#34;a&#34;])
+	fmt.Println(q.Get(&#34;b&#34;))
+	fmt.Println(q.Get(&#34;&#34;))
+}
+</textarea></div>
+        <div class="output"><pre>[1 2]
+
+3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.Redacted">func (*URL) <a href="/src/net/url/url.go?s=26203:26234#L866">Redacted</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) Redacted() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Redacted 类似于 <a href="#URL.String">URL.String</a>，但会将密码替换为 &quot;xxxxx&quot;。仅对 u.User 中的密码进行脱敏。<div id="example_URL_Redacted" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u := &amp;url.URL{
+		Scheme: &#34;https&#34;,
+		User:   url.UserPassword(&#34;user&#34;, &#34;password&#34;),
+		Host:   &#34;example.com&#34;,
+		Path:   &#34;foo/bar&#34;,
+	}
+	fmt.Println(u.Redacted())
+	u.User = url.UserPassword(&#34;me&#34;, &#34;newerPassword&#34;)
+	fmt.Println(u.Redacted())
+}
+</textarea></div>
+        <div class="output"><pre>https://user:xxxxx@example.com/foo/bar
+https://me:xxxxx@example.com/foo/bar
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.RequestURI">func (*URL) <a href="/src/net/url/url.go?s=33486:33519#L1161">RequestURI</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) RequestURI() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>RequestURI 返回对 u 发起 HTTP 请求时使用的编码后的 path?query 或 opaque?query 字符串。<div id="example_URL_RequestURI" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;https://example.org/path?foo=bar&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(u.RequestURI())
+}
+</textarea></div>
+        <div class="output"><pre>/path?foo=bar
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.ResolveReference">func (*URL) <a href="/src/net/url/url.go?s=32207:32252#L1112">ResolveReference</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) ResolveReference(ref *<a href="#URL">URL</a>) *<a href="#URL">URL</a></pre>
+				<p>ResolveReference 按 RFC 3986 第 5.2 节，以绝对基础 URI u 为基准，将一个 URI 引用解析为绝对 URI。该引用可以是相对或绝对地址。ResolveReference 始终返回新的 <a href="#URL">URL</a> 实例，即使结果与基础 URI 或引用完全相同。如果 ref 是绝对 URL，则忽略基础地址，返回 ref 的副本。<div id="example_URL_ResolveReference" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u, err := url.Parse(&#34;../../..//search?q=dotnet&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	base, err := url.Parse(&#34;http://example.com/directory/&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(base.ResolveReference(u))
+}
+</textarea></div>
+        <div class="output"><pre>http://example.com/search?q=dotnet
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.String">func (*URL) <a href="/src/net/url/url.go?s=23927:23956#L788">String</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 将 <a href="#URL">URL</a> 重新组合为有效的 URL 字符串。结果的一般形式为以下之一：<pre>scheme:opaque?query#fragment
+scheme://userinfo@host/path?query#fragment
+</pre>
+<p>u.Opaque 非空时，String 使用第一种形式；否则使用第二种形式。主机部分的非 ASCII 字符都会被转义。路径通过 u.EscapedPath() 获取。<p>第二种形式遵循以下规则：<ul>
+<li>u.Scheme 为空时，省略 scheme:。<li>u.User 为 nil 时，省略 userinfo@。<li>u.Host 为空时，省略 host/。<li>u.Scheme 和 u.Host 均为空、且 u.User 为 nil 时，省略整个 scheme://userinfo@host/。<li>u.Host 非空且 u.Path 以 / 开头时，host/path 不再额外添加 /。<li>u.RawQuery 为空时，省略 ?query。<li>u.Fragment 为空时，省略 #fragment。</ul>
+
+				
+
+
+<div id="example_URL_String" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u := &amp;url.URL{
+		Scheme:   &#34;https&#34;,
+		User:     url.UserPassword(&#34;me&#34;, &#34;pass&#34;),
+		Host:     &#34;example.com&#34;,
+		Path:     &#34;foo/bar&#34;,
+		RawQuery: &#34;x=1&amp;y=2&#34;,
+		Fragment: &#34;anchor&#34;,
+	}
+	fmt.Println(u.String())
+	u.Opaque = &#34;opaque&#34;
+	fmt.Println(u.String())
+}
+</textarea></div>
+        <div class="output"><pre>https://me:pass@example.com/foo/bar?x=1&amp;y=2#anchor
+https:opaque?x=1&amp;y=2#anchor
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="URL.UnmarshalBinary">func (*URL) <a href="/src/net/url/url.go?s=35233:35281#L1225">UnmarshalBinary</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func (u *<a href="#URL">URL</a>) UnmarshalBinary(text []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+
+
+<div id="example_URL_UnmarshalBinary" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	u := &amp;url.URL{}
+	err := u.UnmarshalBinary([]byte(&#34;https://example.org/foo&#34;))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, u)
+}
+</textarea></div>
+        <div class="output"><pre>https://example.org/foo
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="Userinfo">type <a href="/src/net/url/url.go?s=9625:9707#L321">Userinfo</a>
+				
+				
+			</h2>
+			<p>Userinfo 类型以不可变形式封装 <a href="#URL">URL</a> 的用户名和密码信息。一个已存在的 Userinfo 值保证设有用户名（可为空，RFC 2396 允许如此），并可选地包含密码。<pre>type Userinfo struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="User">func <a href="/src/net/url/url.go?s=8798:8834#L301">User</a>
+					
+					
+				</h3>
+				<pre>func User(username <a href="/pkg/builtin/#string">string</a>) *<a href="#Userinfo">Userinfo</a></pre>
+				<p>User 返回包含给定用户名且未设置密码的 <a href="#Userinfo">Userinfo</a>。<h3 id="UserPassword">func <a href="/src/net/url/url.go?s=9279:9333#L313">UserPassword</a>
+					
+					
+				</h3>
+				<pre>func UserPassword(username, password <a href="/pkg/builtin/#string">string</a>) *<a href="#Userinfo">Userinfo</a></pre>
+				<p>UserPassword 返回包含给定用户名和密码的 <a href="#Userinfo">Userinfo</a>。<p>此功能只应在兼容旧网站时使用。RFC 2396 警告，不建议以这种方式解释 Userinfo，因为以明文（例如 URI）传递身份验证信息，在几乎所有实际使用场景中都被证明存在安全风险。<h3 id="Userinfo.Password">func (*Userinfo) <a href="/src/net/url/url.go?s=9909:9953#L336">Password</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#Userinfo">Userinfo</a>) Password() (<a href="/pkg/builtin/#string">string</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Password 返回已设置的密码，以及是否设置了密码。<h3 id="Userinfo.String">func (*Userinfo) <a href="/src/net/url/url.go?s=10131:10165#L345">String</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#Userinfo">Userinfo</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 以标准的 &quot;username[:password]&quot; 形式返回编码后的用户信息。<h3 id="Userinfo.Username">func (*Userinfo) <a href="/src/net/url/url.go?s=9743:9779#L328">Username</a>
+					
+					
+				</h3>
+				<pre>func (u *<a href="#Userinfo">Userinfo</a>) Username() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Username 返回用户名。<h2 id="Values">type <a href="/src/net/url/url.go?s=26591:26622#L882">Values</a>
+				
+				
+			</h2>
+			<p>Values 将字符串键映射到值列表，通常用于查询参数和表单值。与 http.Header 映射不同，Values 中的键区分大小写。<pre>type Values map[<a href="/pkg/builtin/#string">string</a>][]<a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Values" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Set(&#34;name&#34;, &#34;Ava&#34;)
+	v.Add(&#34;friend&#34;, &#34;Jess&#34;)
+	v.Add(&#34;friend&#34;, &#34;Sarah&#34;)
+	v.Add(&#34;friend&#34;, &#34;Zoe&#34;)
+	fmt.Println(v.Encode())
+	fmt.Println(v.Get(&#34;name&#34;))
+	fmt.Println(v.Get(&#34;friend&#34;))
+	fmt.Println(v[&#34;friend&#34;])
+}
+</textarea></div>
+        <div class="output"><pre>friend=Jess&amp;friend=Sarah&amp;friend=Zoe&amp;name=Ava
+Ava
+Jess
+[Jess Sarah Zoe]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="ParseQuery">func <a href="/src/net/url/url.go?s=28186:28231#L942">ParseQuery</a>
+					
+					
+				</h3>
+				<pre>func ParseQuery(query <a href="/pkg/builtin/#string">string</a>) (<a href="#Values">Values</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ParseQuery 解析经过 URL 编码的查询字符串，并返回一个映射，列出每个键对应的值。它始终返回非 nil 的映射，包含找到的全部有效查询参数；如果发生错误，err 描述遇到的第一个解码错误。<p>查询字符串应是以 &amp; 分隔的一组 key=value 项。不含等号的项解释为对应键的值为空字符串。含有未经过 URL 编码的分号的项视为无效。<div id="example_ParseQuery" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/url&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	m, err := url.ParseQuery(`x=1&amp;y=2&amp;y=3`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(toJSON(m))
+}
+
+func toJSON(m any) string {
+	js, err := json.Marshal(m)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return strings.ReplaceAll(string(js), &#34;,&#34;, &#34;, &#34;)
+}
+</textarea></div>
+        <div class="output"><pre>{&#34;x&#34;:[&#34;1&#34;], &#34;y&#34;:[&#34;2&#34;, &#34;3&#34;]}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Values.Add">func (Values) <a href="/src/net/url/url.go?s=27149:27187#L904">Add</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Add(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Add 为 key 添加一个值，将其追加到该键已有值的后面。<div id="example_Values_Add" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau&#34;)
+	fmt.Println(v[&#34;cat sounds&#34;])
+
+}
+</textarea></div>
+        <div class="output"><pre>[meow mew mau]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Values.Clone">func (Values) <a href="/src/net/url/url.go?s=27491:27522#L920">Clone</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (vs <a href="#Values">Values</a>) Clone() <a href="#Values">Values</a></pre>
+				<p>Clone 创建该 <a href="#Values">Values</a> 的深拷贝。<h3 id="Values.Del">func (Values) <a href="/src/net/url/url.go?s=27272:27303#L909">Del</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Del(key <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Del 删除与 key 关联的所有值。<div id="example_Values_Del" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau&#34;)
+	fmt.Println(v[&#34;cat sounds&#34;])
+
+	v.Del(&#34;cat sounds&#34;)
+	fmt.Println(v[&#34;cat sounds&#34;])
+
+}
+</textarea></div>
+        <div class="output"><pre>[meow mew mau]
+[]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Values.Encode">func (Values) <a href="/src/net/url/url.go?s=29674:29705#L1005">Encode</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Encode() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Encode 按键排序，将值编码为 URL 编码形式（&quot;bar=baz&amp;foo=quux&quot;）。<div id="example_Values_Encode" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew/&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau$&#34;)
+	fmt.Println(v.Encode())
+
+}
+</textarea></div>
+        <div class="output"><pre>cat+sounds=meow&amp;cat+sounds=mew%2F&amp;cat+sounds=mau%24
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Values.Get">func (Values) <a href="/src/net/url/url.go?s=26819:26857#L888">Get</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Get(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Get 获取给定键关联的第一个值。如果该键没有关联值，返回空字符串。要访问多个值，请直接操作映射。<div id="example_Values_Get" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau&#34;)
+	fmt.Printf(&#34;%q\n&#34;, v.Get(&#34;cat sounds&#34;))
+	fmt.Printf(&#34;%q\n&#34;, v.Get(&#34;dog sounds&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>&#34;meow&#34;
+&#34;&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Values.Has">func (Values) <a href="/src/net/url/url.go?s=27367:27403#L914">Has</a>
+					
+					<span title="自 Go 1.17 起提供">1.17</span>
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Has(key <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Has 检查给定键是否已设置。<div id="example_Values_Has" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau&#34;)
+	fmt.Println(v.Has(&#34;cat sounds&#34;))
+	fmt.Println(v.Has(&#34;dog sounds&#34;))
+
+}
+</textarea></div>
+        <div class="output"><pre>true
+false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Values.Set">func (Values) <a href="/src/net/url/url.go?s=26991:27029#L898">Set</a>
+					
+					
+				</h3>
+				<pre>func (v <a href="#Values">Values</a>) Set(key, value <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Set 将 key 对应的值设置为 value，替换已有的所有值。<div id="example_Values_Set" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;net/url&#34;
+)
+
+func main() {
+	v := url.Values{}
+	v.Add(&#34;cat sounds&#34;, &#34;meow&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mew&#34;)
+	v.Add(&#34;cat sounds&#34;, &#34;mau&#34;)
+	fmt.Println(v[&#34;cat sounds&#34;])
+
+	v.Set(&#34;cat sounds&#34;, &#34;meow&#34;)
+	fmt.Println(v[&#34;cat sounds&#34;])
+
+}
+</textarea></div>
+        <div class="output"><pre>[meow mew mau]
+[meow]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

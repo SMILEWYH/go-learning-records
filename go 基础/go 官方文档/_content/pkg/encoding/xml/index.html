@@ -1,0 +1,1594 @@
+<!--{
+  "Title": "encoding/xml 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package xml</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/xml"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>xml 包实现了一个支持 XML 命名空间的简单 XML 1.0 解析器。
+
+				
+
+
+<div id="example__customMarshalXML" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (CustomMarshalXML)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (CustomMarshalXML)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/xml&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+type Animal int
+
+const (
+	Unknown Animal = iota
+	Gopher
+	Zebra
+)
+
+func (a *Animal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var s string
+	if err := d.DecodeElement(&amp;s, &amp;start); err != nil {
+		return err
+	}
+	switch strings.ToLower(s) {
+	default:
+		*a = Unknown
+	case &#34;gopher&#34;:
+		*a = Gopher
+	case &#34;zebra&#34;:
+		*a = Zebra
+	}
+
+	return nil
+}
+
+func (a Animal) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	var s string
+	switch a {
+	default:
+		s = &#34;unknown&#34;
+	case Gopher:
+		s = &#34;gopher&#34;
+	case Zebra:
+		s = &#34;zebra&#34;
+	}
+	return e.EncodeElement(s, start)
+}
+
+func main() {
+	blob := `
+	&lt;animals&gt;
+		&lt;animal&gt;gopher&lt;/animal&gt;
+		&lt;animal&gt;armadillo&lt;/animal&gt;
+		&lt;animal&gt;zebra&lt;/animal&gt;
+		&lt;animal&gt;unknown&lt;/animal&gt;
+		&lt;animal&gt;gopher&lt;/animal&gt;
+		&lt;animal&gt;bee&lt;/animal&gt;
+		&lt;animal&gt;gopher&lt;/animal&gt;
+		&lt;animal&gt;zebra&lt;/animal&gt;
+	&lt;/animals&gt;`
+	var zoo struct {
+		Animals []Animal `xml:&#34;animal&#34;`
+	}
+	if err := xml.Unmarshal([]byte(blob), &amp;zoo); err != nil {
+		log.Fatal(err)
+	}
+
+	census := make(map[Animal]int)
+	for _, animal := range zoo.Animals {
+		census[animal] &#43;= 1
+	}
+
+	fmt.Printf(&#34;Zoo Census:\n* Gophers: %d\n* Zebras:  %d\n* Unknown: %d\n&#34;,
+		census[Gopher], census[Zebra], census[Unknown])
+
+}
+</textarea></div>
+        <div class="output"><pre>Zoo Census:
+* Gophers: 3
+* Zebras:  2
+* Unknown: 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__textMarshalXML" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TextMarshalXML)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TextMarshalXML)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/xml&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+type Size int
+
+const (
+	Unrecognized Size = iota
+	Small
+	Large
+)
+
+func (s *Size) UnmarshalText(text []byte) error {
+	switch strings.ToLower(string(text)) {
+	default:
+		*s = Unrecognized
+	case &#34;small&#34;:
+		*s = Small
+	case &#34;large&#34;:
+		*s = Large
+	}
+	return nil
+}
+
+func (s Size) MarshalText() ([]byte, error) {
+	var name string
+	switch s {
+	default:
+		name = &#34;unrecognized&#34;
+	case Small:
+		name = &#34;small&#34;
+	case Large:
+		name = &#34;large&#34;
+	}
+	return []byte(name), nil
+}
+
+func main() {
+	blob := `
+	&lt;sizes&gt;
+		&lt;size&gt;small&lt;/size&gt;
+		&lt;size&gt;regular&lt;/size&gt;
+		&lt;size&gt;large&lt;/size&gt;
+		&lt;size&gt;unrecognized&lt;/size&gt;
+		&lt;size&gt;small&lt;/size&gt;
+		&lt;size&gt;normal&lt;/size&gt;
+		&lt;size&gt;small&lt;/size&gt;
+		&lt;size&gt;large&lt;/size&gt;
+	&lt;/sizes&gt;`
+	var inventory struct {
+		Sizes []Size `xml:&#34;size&#34;`
+	}
+	if err := xml.Unmarshal([]byte(blob), &amp;inventory); err != nil {
+		log.Fatal(err)
+	}
+
+	counts := make(map[Size]int)
+	for _, size := range inventory.Sizes {
+		counts[size] &#43;= 1
+	}
+
+	fmt.Printf(&#34;Inventory Counts:\n* Small:        %d\n* Large:        %d\n* Unrecognized: %d\n&#34;,
+		counts[Small], counts[Large], counts[Unrecognized])
+
+}
+</textarea></div>
+        <div class="output"><pre>Inventory Counts:
+* Small:        3
+* Large:        2
+* Unrecognized: 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Escape">func Escape(w io.Writer, s []byte)</a></dd>
+			
+				<dd><a href="#EscapeText">func EscapeText(w io.Writer, s []byte) error</a></dd>
+			
+				<dd><a href="#Marshal">func Marshal(v any) ([]byte, error)</a></dd>
+			
+				<dd><a href="#MarshalIndent">func MarshalIndent(v any, prefix, indent string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Unmarshal">func Unmarshal(data []byte, v any) error</a></dd>
+			
+			
+				
+				<dd><a href="#Attr">type Attr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#CharData">type CharData</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#CharData.Copy">func (c CharData) Copy() CharData</a></dd>
+				
+			
+				
+				<dd><a href="#Comment">type Comment</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Comment.Copy">func (c Comment) Copy() Comment</a></dd>
+				
+			
+				
+				<dd><a href="#Decoder">type Decoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDecoder">func NewDecoder(r io.Reader) *Decoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTokenDecoder">func NewTokenDecoder(t TokenReader) *Decoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Decode">func (d *Decoder) Decode(v any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.DecodeElement">func (d *Decoder) DecodeElement(v any, start *StartElement) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.InputOffset">func (d *Decoder) InputOffset() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.InputPos">func (d *Decoder) InputPos() (line, column int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.RawToken">func (d *Decoder) RawToken() (Token, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Skip">func (d *Decoder) Skip() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Token">func (d *Decoder) Token() (Token, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Directive">type Directive</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Directive.Copy">func (d Directive) Copy() Directive</a></dd>
+				
+			
+				
+				<dd><a href="#Encoder">type Encoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewEncoder">func NewEncoder(w io.Writer) *Encoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Close">func (enc *Encoder) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Encode">func (enc *Encoder) Encode(v any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.EncodeElement">func (enc *Encoder) EncodeElement(v any, start StartElement) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.EncodeToken">func (enc *Encoder) EncodeToken(t Token) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Flush">func (enc *Encoder) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Indent">func (enc *Encoder) Indent(prefix, indent string)</a></dd>
+				
+			
+				
+				<dd><a href="#EndElement">type EndElement</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Marshaler">type Marshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#MarshalerAttr">type MarshalerAttr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Name">type Name</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ProcInst">type ProcInst</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ProcInst.Copy">func (p ProcInst) Copy() ProcInst</a></dd>
+				
+			
+				
+				<dd><a href="#StartElement">type StartElement</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StartElement.Copy">func (e StartElement) Copy() StartElement</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StartElement.End">func (e StartElement) End() EndElement</a></dd>
+				
+			
+				
+				<dd><a href="#SyntaxError">type SyntaxError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntaxError.Error">func (e *SyntaxError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#TagPathError">type TagPathError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TagPathError.Error">func (e *TagPathError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Token">type Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CopyToken">func CopyToken(t Token) Token</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TokenReader">type TokenReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnmarshalError">type UnmarshalError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalError.Error">func (e UnmarshalError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Unmarshaler">type Unmarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnmarshalerAttr">type UnmarshalerAttr</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnsupportedTypeError">type UnsupportedTypeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnsupportedTypeError.Error">func (e *UnsupportedTypeError) Error() string</a></dd>
+				
+			
+			
+				<dd><a href="#pkg-note-BUG">已知问题</a></dd>
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Encoder">Encoder</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MarshalIndent">MarshalIndent</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unmarshal">Unmarshal</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__customMarshalXML">包 (CustomMarshalXML)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__textMarshalXML">包 (TextMarshalXML)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/xml/marshal.go">marshal.go</a>
+			
+				<a href="/src/encoding/xml/read.go">read.go</a>
+			
+				<a href="/src/encoding/xml/typeinfo.go">typeinfo.go</a>
+			
+				<a href="/src/encoding/xml/xml.go">xml.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				
+				<pre>const (
+    <span class="comment">// Header 是一个通用 XML 头部，适用于 [Marshal] 的输出。</span>
+    <span class="comment">// 本包不会自动将它添加到任何输出中，</span>
+    <span class="comment">// 提供它只是为了方便使用。</span>
+    <span id="Header">Header</span> = `&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;` + &#34;\n&#34;
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>HTMLAutoClose 是应视为自动闭合的 HTML 元素集合。
+<p>参见 <a href="#Decoder.Strict">Decoder.Strict</a> 和 <a href="#Decoder.Entity">Decoder.Entity</a> 字段的文档。
+
+				<pre>var <span id="HTMLAutoClose">HTMLAutoClose</span> []<a href="/pkg/builtin/#string">string</a> = htmlAutoClose</pre>
+			
+				<p>HTMLEntity 是一个实体映射，包含标准 HTML 实体字符的替换值。
+<p>参见 <a href="#Decoder.Strict">Decoder.Strict</a> 和 <a href="#Decoder.Entity">Decoder.Entity</a> 字段的文档。
+
+				<pre>var <span id="HTMLEntity">HTMLEntity</span> map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a> = htmlEntity</pre>
+			
+		
+		
+			
+			<h2 id="Escape">func <a href="/src/encoding/xml/xml.go?s=47188:47222#L2001">Escape</a>
+				
+				
+			</h2>
+			<pre>func Escape(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, s []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>Escape 类似于 <a href="#EscapeText">EscapeText</a>，但省略了错误返回值。它用于向后兼容 Go 1.0。面向 Go 1.1 或更高版本的代码应使用 <a href="#EscapeText">EscapeText</a>。
+
+			
+		
+			
+			<h2 id="EscapeText">func <a href="/src/encoding/xml/xml.go?s=45302:45346#L1907">EscapeText</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func EscapeText(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, s []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>EscapeText 将纯文本数据 s 适当转义后的等价 XML 内容写入 w。
+
+			
+		
+			
+			<h2 id="Marshal">func <a href="/src/encoding/xml/marshal.go?s=3463:3498#L72">Marshal</a>
+				
+				
+			</h2>
+			<pre>func Marshal(v <a href="/pkg/builtin/#any">any</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Marshal 返回 v 的 XML 编码。
+<p>Marshal 处理数组或切片时，会序列化每个元素。处理指针时，会序列化指针指向的值；如果指针为 nil，则不写入任何内容。处理接口值时，会序列化接口中包含的值；如果接口值为 nil，则不写入任何内容。处理其他数据时，会写入一个或多个包含该数据的 XML 元素。
+<p>XML 元素的名称按以下优先顺序选取：
+<ul>
+<li>如果数据是结构体，使用 XMLName 字段上的标签
+<li>类型为 <a href="#Name">Name</a> 的 XMLName 字段的值
+<li>用于获取该数据的结构体字段上的标签
+<li>用于获取该数据的结构体字段名
+<li>被序列化类型的名称
+</ul>
+<p>结构体对应的 XML 元素包含该结构体每个导出字段序列化后的元素，但以下情况除外：
+<ul>
+<li>省略上述 XMLName 字段。
+<li>省略标签为“-”的字段。
+<li>标签为“name,attr”的字段成为 XML 元素中具有指定名称的属性。
+<li>标签为“,attr”的字段成为 XML 元素中以字段名命名的属性。
+<li>标签为“,chardata”的字段作为字符数据写入，而非 XML 元素。
+<li>标签为“,cdata”的字段作为字符数据写入，由一个或多个 &lt;![CDATA[ ... ]]&gt; 标签包裹，而非作为 XML 元素。
+<li>标签为“,innerxml”的字段原样写入，不经过通常的序列化过程。
+<li>标签为“,comment”的字段作为 XML 注释写入，不经过通常的序列化过程。其内容不得包含“--”字符串。
+<li>如果字段标签含有“omitempty”选项，且字段值为空，则省略该字段。空值包括 false、0、任何 nil 指针或接口值，以及长度为零的数组、切片、映射或字符串。
+<li>匿名结构体字段的处理方式与将其值的各字段视为外层结构体的一部分相同。
+<li>接口类型的匿名结构体字段会以该类型名作为字段名处理，而不视为匿名字段。
+<li>实现了 <a href="#Marshaler">Marshaler</a> 的字段通过调用其 MarshalXML 方法写入。
+<li>实现了 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 的字段通过将其 MarshalText 方法的结果编码为文本来写入。
+</ul>
+<p>如果字段使用标签“a&gt;b&gt;c”，则元素 c 会嵌套在父元素 a 和 b 内。彼此相邻且指定相同父元素的字段会被包含在同一个 XML 元素中。
+<p>如果结构体字段的 XML 名称同时由字段标签和该结构体的 XMLName 字段定义，则这两个名称必须一致。
+<p>示例见 <a href="#MarshalIndent">MarshalIndent</a>。
+<p>如果要求序列化通道、函数或映射，Marshal 会返回错误。
+
+			
+		
+			
+			<h2 id="MarshalIndent">func <a href="/src/encoding/xml/marshal.go?s=5392:5456#L122">MarshalIndent</a>
+				
+				
+			</h2>
+			<pre>func MarshalIndent(v <a href="/pkg/builtin/#any">any</a>, prefix, indent <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MarshalIndent 的行为类似于 <a href="#Marshal">Marshal</a>，但每个 XML 元素都从一个新的缩进行开始。该行以 prefix 开头，后面根据嵌套深度跟随一个或多个 indent。
+
+			
+
+
+<div id="example_MarshalIndent" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/xml&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	type Address struct {
+		City, State string
+	}
+	type Person struct {
+		XMLName   xml.Name `xml:&#34;person&#34;`
+		Id        int      `xml:&#34;id,attr&#34;`
+		FirstName string   `xml:&#34;name&gt;first&#34;`
+		LastName  string   `xml:&#34;name&gt;last&#34;`
+		Age       int      `xml:&#34;age&#34;`
+		Height    float32  `xml:&#34;height,omitempty&#34;`
+		Married   bool
+		Address
+		Comment string `xml:&#34;,comment&#34;`
+	}
+
+	v := &amp;Person{Id: 13, FirstName: &#34;John&#34;, LastName: &#34;Doe&#34;, Age: 42}
+	v.Comment = &#34; Need more details. &#34;
+	v.Address = Address{&#34;Hanga Roa&#34;, &#34;Easter Island&#34;}
+
+	output, err := xml.MarshalIndent(v, &#34;  &#34;, &#34;    &#34;)
+	if err != nil {
+		fmt.Printf(&#34;error: %v\n&#34;, err)
+	}
+
+	os.Stdout.Write(output)
+}
+</textarea></div>
+        <div class="output"><pre>  &lt;person id=&#34;13&#34;&gt;
+      &lt;name&gt;
+          &lt;first&gt;John&lt;/first&gt;
+          &lt;last&gt;Doe&lt;/last&gt;
+      &lt;/name&gt;
+      &lt;age&gt;42&lt;/age&gt;
+      &lt;Married&gt;false&lt;/Married&gt;
+      &lt;City&gt;Hanga Roa&lt;/City&gt;
+      &lt;State&gt;Easter Island&lt;/State&gt;
+      &lt;!-- Need more details. --&gt;
+  &lt;/person&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Unmarshal">func <a href="/src/encoding/xml/read.go?s=5757:5797#L123">Unmarshal</a>
+				
+				
+			</h2>
+			<pre>func Unmarshal(data []<a href="/pkg/builtin/#byte">byte</a>, v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Unmarshal 解析 XML 编码的数据，并将结果存入 v 指向的值中；该值必须是任意结构体、切片或字符串。格式正确但无法放入 v 的数据会被丢弃。
+<p>由于 Unmarshal 使用 reflect 包，它只能给导出的字段（以大写字母开头）赋值。Unmarshal 采用区分大小写的比较，将 XML 元素名与标签值和结构体字段名匹配。
+<p>Unmarshal 按以下规则将 XML 元素映射到结构体。规则中的字段标签指结构体字段标签内与键“xml”关联的值（见上面的示例）。
+<ul>
+<li><p>如果结构体有一个 []byte 或 string 类型的字段，且标签为“,innerxml”，Unmarshal 会将元素内部嵌套的原始 XML 累积到该字段中。其余规则仍然适用。
+<li><p>如果结构体有一个名为 XMLName、类型为 Name 的字段，Unmarshal 会将元素名称记录到该字段中。
+<li><p>如果 XMLName 字段带有“name”或“namespace-URL name”形式的标签，XML 元素必须具有给定名称（以及可选的命名空间），否则 Unmarshal 会返回错误。
+<li><p>如果 XML 元素有一个属性，其名称与标签包含“,attr”的结构体字段名匹配，或与“name,attr”形式的结构体字段标签中显式指定的名称匹配，Unmarshal 会将该属性值记录到相应字段中。
+<li><p>如果 XML 元素有一个属性未被上一条规则处理，且结构体中存在标签包含“,any,attr”的字段，Unmarshal 会将该属性值记录到第一个这样的字段中。
+<li><p>如果 XML 元素包含字符数据，该数据会累积到第一个标签为“,chardata”的结构体字段中。该字段可以是 []byte 或 string 类型。如果不存在这样的字段，则丢弃字符数据。
+<li><p>如果 XML 元素包含注释，它们会累积到第一个标签为“,comment”的结构体字段中。该字段可以是 []byte 或 string 类型。如果不存在这样的字段，则丢弃注释。
+<li><p>如果 XML 元素包含子元素，且其名称与“a”或“a&gt;b&gt;c”形式标签的前缀匹配，Unmarshal 会深入 XML 结构，查找具有给定名称的元素，并将最内层的元素映射到该结构体字段。以“&gt;”开头的标签等价于以字段名加“&gt;”开头的标签。
+<li><p>如果 XML 元素包含子元素，其名称与某个结构体字段的 XMLName 标签匹配，且该字段没有按上一条规则显式指定名称标签，Unmarshal 会将该子元素映射到此字段。
+<li><p>如果 XML 元素包含子元素，其名称与一个没有任何模式标志（“,attr”、“,chardata”等）的字段匹配，Unmarshal 会将该子元素映射到此字段。
+<li><p>如果 XML 元素包含子元素，但该子元素不匹配上述任何规则，且结构体存在标签为“,any”的字段，Unmarshal 会将该子元素映射到此字段。
+<li><p>匿名结构体字段的处理方式与将其值的各字段视为外层结构体的一部分相同。
+<li><p>标签为“-”的结构体字段永远不会被写入反序列化结果。
+</ul>
+<p>如果 Unmarshal 遇到实现了 Unmarshaler 接口的字段类型，它会调用该字段的 UnmarshalXML 方法，从 XML 元素生成值。否则，如果该值实现了 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>，Unmarshal 会调用该值的 UnmarshalText 方法。
+<p>Unmarshal 将 XML 元素映射到 string 或 []byte 时，会将该元素的字符数据拼接后保存在字符串或 []byte 中。保存的 []byte 永远不会是 nil。
+<p>Unmarshal 将属性值映射到 string 或 []byte 时，会将该值保存在字符串或切片中。
+<p>Unmarshal 将属性值映射到 <a href="#Attr">Attr</a> 时，会将包含名称在内的整个属性保存在 Attr 中。
+<p>Unmarshal 将 XML 元素或属性值映射到切片时，会扩展切片长度，并将该元素或属性映射到新创建的值。
+<p>Unmarshal 将 XML 元素或属性值映射到 bool 时，会将其设为字符串表示的布尔值。首尾空白会被去除并忽略。
+<p>Unmarshal 将 XML 元素或属性值映射到整数或浮点字段时，会按十进制解释字符串值，并将结果赋给该字段。不检查溢出。首尾空白会被去除并忽略。
+<p>Unmarshal 将 XML 元素映射到 Name 时，会记录元素名称。
+<p>Unmarshal 将 XML 元素映射到指针时，会将指针指向新分配的值，再将元素映射到该值。
+<p>缺失的元素或空属性值会被反序列化为零值。如果字段是切片，则向该字段追加一个零值；否则，将字段设为其零值。
+
+			
+
+
+<div id="example_Unmarshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>此示例展示将一段 XML 反序列化到部分字段已预设值的变量中。注意，Phone 字段没有被修改，XML 中的 &lt;Company&gt; 元素被忽略，而 Groups 字段根据其标签中指定的元素路径进行赋值。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/xml&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	type Email struct {
+		Where string `xml:&#34;where,attr&#34;`
+		Addr  string
+	}
+	type Address struct {
+		City, State string
+	}
+	type Result struct {
+		XMLName xml.Name `xml:&#34;Person&#34;`
+		Name    string   `xml:&#34;FullName&#34;`
+		Phone   string
+		Email   []Email
+		Groups  []string `xml:&#34;Group&gt;Value&#34;`
+		Address
+	}
+	v := Result{Name: &#34;none&#34;, Phone: &#34;none&#34;}
+
+	data := `
+		&lt;Person&gt;
+			&lt;FullName&gt;Grace R. Emlin&lt;/FullName&gt;
+			&lt;Company&gt;Example Inc.&lt;/Company&gt;
+			&lt;Email where=&#34;home&#34;&gt;
+				&lt;Addr&gt;gre@example.com&lt;/Addr&gt;
+			&lt;/Email&gt;
+			&lt;Email where=&#39;work&#39;&gt;
+				&lt;Addr&gt;gre@work.com&lt;/Addr&gt;
+			&lt;/Email&gt;
+			&lt;Group&gt;
+				&lt;Value&gt;Friends&lt;/Value&gt;
+				&lt;Value&gt;Squash&lt;/Value&gt;
+			&lt;/Group&gt;
+			&lt;City&gt;Hanga Roa&lt;/City&gt;
+			&lt;State&gt;Easter Island&lt;/State&gt;
+		&lt;/Person&gt;
+	`
+	err := xml.Unmarshal([]byte(data), &amp;v)
+	if err != nil {
+		fmt.Printf(&#34;error: %v&#34;, err)
+		return
+	}
+	fmt.Printf(&#34;XMLName: %#v\n&#34;, v.XMLName)
+	fmt.Printf(&#34;Name: %q\n&#34;, v.Name)
+	fmt.Printf(&#34;Phone: %q\n&#34;, v.Phone)
+	fmt.Printf(&#34;Email: %v\n&#34;, v.Email)
+	fmt.Printf(&#34;Groups: %v\n&#34;, v.Groups)
+	fmt.Printf(&#34;Address: %v\n&#34;, v.Address)
+}
+</textarea></div>
+        <div class="output"><pre>XMLName: xml.Name{Space:&#34;&#34;, Local:&#34;Person&#34;}
+Name: &#34;Grace R. Emlin&#34;
+Phone: &#34;none&#34;
+Email: [{home gre@example.com} {work gre@work.com}]
+Groups: [Friends Squash]
+Address: {Hanga Roa Easter Island}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Attr">type <a href="/src/encoding/xml/xml.go?s=1094:1140#L35">Attr</a>
+				
+				
+			</h2>
+			<p>Attr 表示 XML 元素中的一个属性（Name=Value）。
+
+			<pre>type Attr struct {
+<span id="Attr.Name"></span>    Name  <a href="#Name">Name</a>
+<span id="Attr.Value"></span>    Value <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="CharData">type <a href="/src/encoding/xml/xml.go?s=1933:1953#L71">CharData</a>
+				
+				
+			</h2>
+			<p>CharData 表示 XML 字符数据（原始文本），其中 XML 转义序列已替换为其表示的字符。
+
+			<pre>type CharData []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CharData.Copy">func (CharData) <a href="/src/encoding/xml/xml.go?s=1995:2028#L74">Copy</a>
+					
+					
+				</h3>
+				<pre>func (c <a href="#CharData">CharData</a>) Copy() <a href="#CharData">CharData</a></pre>
+				<p>Copy 创建 CharData 的新副本。
+
+				
+			
+		
+			
+			<h2 id="Comment">type <a href="/src/encoding/xml/xml.go?s=2195:2214#L78">Comment</a>
+				
+				
+			</h2>
+			<p>Comment 表示形如 &lt;!--comment--&gt; 的 XML 注释。其字节不包含 &lt;!-- 和 --&gt; 注释标记。
+
+			<pre>type Comment []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Comment.Copy">func (Comment) <a href="/src/encoding/xml/xml.go?s=2255:2286#L81">Copy</a>
+					
+					
+				</h3>
+				<pre>func (c <a href="#Comment">Comment</a>) Copy() <a href="#Comment">Comment</a></pre>
+				<p>Copy 创建 Comment 的新副本。
+
+				
+			
+		
+			
+			<h2 id="Decoder">type <a href="/src/encoding/xml/xml.go?s=4064:6436#L138">Decoder</a>
+				
+				
+			</h2>
+			<p>Decoder 表示从特定输入流读取的 XML 解析器。解析器假定输入使用 UTF-8 编码。
+
+			<pre>type Decoder struct {
+<span id="Decoder.Strict"></span>    <span class="comment">// Strict 默认为 true，强制遵守</span>
+    <span class="comment">// XML 规范的要求。</span>
+    <span class="comment">// 如果设为 false，解析器允许输入包含以下</span>
+    <span class="comment">// 常见错误：</span>
+    <span class="comment">//	* 如果元素缺少结束标签，解析器会按需补充</span>
+    <span class="comment">//	  结束标签，使 Token 返回的值</span>
+    <span class="comment">//	  正确配对。</span>
+    <span class="comment">//	* 在属性值和字符数据中，未知或格式错误的</span>
+    <span class="comment">//	  字符实体（以 &amp; 开头的序列）会保持原样。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 设置：</span>
+    <span class="comment">//</span>
+    <span class="comment">//	d.Strict = false</span>
+    <span class="comment">//	d.AutoClose = xml.HTMLAutoClose</span>
+    <span class="comment">//	d.Entity = xml.HTMLEntity</span>
+    <span class="comment">//</span>
+    <span class="comment">// 可以创建一个能够处理常见 HTML 的解析器。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 严格模式不会强制遵守 XML 命名空间技术建议书的要求。</span>
+    <span class="comment">// 尤其是，它不会拒绝使用未定义前缀的命名空间标签。</span>
+    <span class="comment">// 这些标签会将未知前缀作为命名空间 URL 记录。</span>
+    Strict <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// 当 Strict == false 时，AutoClose 指定一组元素，</span>
+    <span class="comment">// 这些元素在打开后立即被视为已关闭，</span>
+    <span class="comment">// 无论是否存在结束元素。</span>
+<span id="Decoder.AutoClose"></span>    AutoClose []<a href="/pkg/builtin/#string">string</a>
+
+<span id="Decoder.Entity"></span>    <span class="comment">// Entity 可用于将非标准实体名映射到替换字符串。</span>
+    <span class="comment">// 无论映射的实际内容如何，解析器的行为都相当于</span>
+    <span class="comment">// 映射中包含以下标准项：</span>
+    <span class="comment">//</span>
+    <span class="comment">//	"lt": "&lt;",</span>
+    <span class="comment">//	"gt": "&gt;",</span>
+    <span class="comment">//	"amp": "&amp;",</span>
+    <span class="comment">//	"apos": "'",</span>
+    <span class="comment">//	"quot": `"`,</span>
+    Entity map[<a href="/pkg/builtin/#string">string</a>]<a href="/pkg/builtin/#string">string</a>
+
+<span id="Decoder.CharsetReader"></span>    <span class="comment">// CharsetReader 非 nil 时，指定一个生成字符集转换</span>
+    <span class="comment">// 读取器的函数，将给定的非 UTF-8 字符集</span>
+    <span class="comment">// 转换为 UTF-8。如果 CharsetReader 为 nil 或</span>
+    <span class="comment">// 返回错误，解析会停止并报错。CharsetReader</span>
+    <span class="comment">// 返回的结果值中至少有一个必须非 nil。</span>
+    CharsetReader func(charset <a href="/pkg/builtin/#string">string</a>, input <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, <a href="/pkg/builtin/#error">error</a>)
+
+<span id="Decoder.DefaultSpace"></span>    <span class="comment">// DefaultSpace 设置无修饰标签所用的默认命名空间，</span>
+    <span class="comment">// 相当于整个 XML 流被包裹在一个带有</span>
+    <span class="comment">// xmlns="DefaultSpace" 属性的元素中。</span>
+    DefaultSpace <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.1</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDecoder">func <a href="/src/encoding/xml/xml.go?s=6578:6615#L212">NewDecoder</a>
+					
+					
+				</h3>
+				<pre>func NewDecoder(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Decoder">Decoder</a></pre>
+				<p>NewDecoder 创建一个从 r 读取数据的新 XML 解析器。如果 r 未实现 <a href="/pkg/io/#ByteReader">io.ByteReader</a>，NewDecoder 会自行进行缓冲。
+
+				
+			
+				<h3 id="NewTokenDecoder">func <a href="/src/encoding/xml/xml.go?s=6835:6879#L224">NewTokenDecoder</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func NewTokenDecoder(t <a href="#TokenReader">TokenReader</a>) *<a href="#Decoder">Decoder</a></pre>
+				<p>NewTokenDecoder 基于底层 token 流创建一个新的 XML 解析器。
+
+				
+			
+
+			
+				<h3 id="Decoder.Decode">func (*Decoder) <a href="/src/encoding/xml/read.go?s=5954:5991#L129">Decode</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) Decode(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Decode 的行为类似于 <a href="#Unmarshal">Unmarshal</a>，但它会读取解码器的数据流以查找起始元素。
+
+				
+			
+				<h3 id="Decoder.DecodeElement">func (*Decoder) <a href="/src/encoding/xml/read.go?s=6270:6335#L137">DecodeElement</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) DecodeElement(v <a href="/pkg/builtin/#any">any</a>, start *<a href="#StartElement">StartElement</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>DecodeElement 的行为类似于 <a href="#Unmarshal">Unmarshal</a>，但它接收一个指向起始 XML 元素的指针，并将对应元素解码到 v。使用者自行读取一些原始 XML token，同时希望将部分元素交由 <a href="#Unmarshal">Unmarshal</a> 处理时，这个方法很有用。
+
+				
+			
+				<h3 id="Decoder.InputOffset">func (*Decoder) <a href="/src/encoding/xml/xml.go?s=22985:23022#L931">InputOffset</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) InputOffset() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InputOffset 返回解码器当前位置在输入流中的字节偏移量。该偏移量指向最近返回的 token 的结尾，也就是下一个 token 的开头。
+
+				
+			
+				<h3 id="Decoder.InputPos">func (*Decoder) <a href="/src/encoding/xml/xml.go?s=23236:23283#L938">InputPos</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) InputPos() (line, column <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>InputPos 返回解码器当前位置所在的行号，以及从 1 开始计数的行内输入位置。该位置指向最近返回的 token 的结尾。
+
+				
+			
+				<h3 id="Decoder.RawToken">func (*Decoder) <a href="/src/encoding/xml/xml.go?s=14844:14887#L541">RawToken</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) RawToken() (<a href="#Token">Token</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>RawToken 类似于 <a href="#Decoder.Token">Decoder.Token</a>，但不验证起始元素与结束元素是否匹配，也不将命名空间前缀转换为对应的 URL。
+
+				
+			
+				<h3 id="Decoder.Skip">func (*Decoder) <a href="/src/encoding/xml/read.go?s=22372:22402#L763">Skip</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) Skip() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Skip 持续读取 token，直到读取到与最近已读起始元素匹配的结束元素，同时跳过嵌套结构。如果找到匹配的结束元素，则返回 nil；否则返回描述问题的错误。
+
+				
+			
+				<h3 id="Decoder.Token">func (*Decoder) <a href="/src/encoding/xml/xml.go?s=8248:8288#L265">Token</a>
+					
+					
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) Token() (<a href="#Token">Token</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Token 返回输入流中的下一个 XML token。到达输入流末尾时，Token 返回 nil、<a href="/pkg/io/#EOF">io.EOF</a>。
+<p>返回的 token 数据中的字节切片引用解析器的内部缓冲区，仅在下次调用 Token 之前有效。若要获取这些字节的副本，请调用 <a href="#CopyToken">CopyToken</a> 或该 token 的 Copy 方法。
+<p>Token 会将 &lt;br&gt; 等自闭合元素展开为独立的起始元素和结束元素，并通过连续调用分别返回。
+<p>Token 保证返回的 <a href="#StartElement">StartElement</a> 和 <a href="#EndElement">EndElement</a> token 正确嵌套且相互匹配：如果遇到意外的结束元素，或在所有预期的结束元素出现之前遇到 EOF，Token 会返回错误。
+<p>如果调用了 <a href="#Decoder.CharsetReader">Decoder.CharsetReader</a> 且它返回错误，该错误会被包装后返回。
+<p>Token 按照 <a href="https://www.w3.org/TR/REC-xml-names/">https://www.w3.org/TR/REC-xml-names/</a> 实现 XML 命名空间。Token 中包含的每个 <a href="#Name">Name</a> 结构，如果其命名空间已知，Space 都会设为标识该命名空间的 URL。如果遇到无法识别的命名空间前缀，Token 会将该前缀用作 Space，而不会报告错误。
+
+				
+			
+		
+			
+			<h2 id="Directive">type <a href="/src/encoding/xml/xml.go?s=2695:2716#L97">Directive</a>
+				
+				
+			</h2>
+			<p>Directive 表示形如 &lt;!text&gt; 的 XML 指令。其字节不包含 &lt;! 和 &gt; 标记。
+
+			<pre>type Directive []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Directive.Copy">func (Directive) <a href="/src/encoding/xml/xml.go?s=2759:2794#L100">Copy</a>
+					
+					
+				</h3>
+				<pre>func (d <a href="#Directive">Directive</a>) Copy() <a href="#Directive">Directive</a></pre>
+				<p>Copy 创建 Directive 的新副本。
+
+				
+			
+		
+			
+			<h2 id="Encoder">type <a href="/src/encoding/xml/marshal.go?s=5725:5759#L136">Encoder</a>
+				
+				
+			</h2>
+			<p>Encoder 向输出流写入 XML 数据。
+
+			<pre>type Encoder struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Encoder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;encoding/xml&#34;
+	&#34;fmt&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	type Address struct {
+		City, State string
+	}
+	type Person struct {
+		XMLName   xml.Name `xml:&#34;person&#34;`
+		Id        int      `xml:&#34;id,attr&#34;`
+		FirstName string   `xml:&#34;name&gt;first&#34;`
+		LastName  string   `xml:&#34;name&gt;last&#34;`
+		Age       int      `xml:&#34;age&#34;`
+		Height    float32  `xml:&#34;height,omitempty&#34;`
+		Married   bool
+		Address
+		Comment string `xml:&#34;,comment&#34;`
+	}
+
+	v := &amp;Person{Id: 13, FirstName: &#34;John&#34;, LastName: &#34;Doe&#34;, Age: 42}
+	v.Comment = &#34; Need more details. &#34;
+	v.Address = Address{&#34;Hanga Roa&#34;, &#34;Easter Island&#34;}
+
+	enc := xml.NewEncoder(os.Stdout)
+	enc.Indent(&#34;  &#34;, &#34;    &#34;)
+	if err := enc.Encode(v); err != nil {
+		fmt.Printf(&#34;error: %v\n&#34;, err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>  &lt;person id=&#34;13&#34;&gt;
+      &lt;name&gt;
+          &lt;first&gt;John&lt;/first&gt;
+          &lt;last&gt;Doe&lt;/last&gt;
+      &lt;/name&gt;
+      &lt;age&gt;42&lt;/age&gt;
+      &lt;Married&gt;false&lt;/Married&gt;
+      &lt;City&gt;Hanga Roa&lt;/City&gt;
+      &lt;State&gt;Easter Island&lt;/State&gt;
+      &lt;!-- Need more details. --&gt;
+  &lt;/person&gt;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewEncoder">func <a href="/src/encoding/xml/marshal.go?s=5815:5852#L141">NewEncoder</a>
+					
+					
+				</h3>
+				<pre>func NewEncoder(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Encoder">Encoder</a></pre>
+				<p>NewEncoder 返回一个向 w 写入的新编码器。
+
+				
+			
+
+			
+				<h3 id="Encoder.Close">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=10735:10768#L306">Close</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 Encoder，表示不会再写入数据。它会将所有缓冲的 XML 刷新到底层写入器；如果已写入的 XML 无效（例如包含未闭合元素），则返回错误。
+
+				
+			
+				<h3 id="Encoder.Encode">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=6444:6483#L161">Encode</a>
+					
+					
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Encode(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Encode 将 v 的 XML 编码写入流。
+<p>将 Go 值转换为 XML 的详细规则见 <a href="#Marshal">Marshal</a> 文档。
+<p>Encode 在返回前调用 <a href="#Encoder.Flush">Encoder.Flush</a>。
+
+				
+			
+				<h3 id="Encoder.EncodeElement">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=6876:6942#L176">EncodeElement</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) EncodeElement(v <a href="/pkg/builtin/#any">any</a>, start <a href="#StartElement">StartElement</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>EncodeElement 将 v 的 XML 编码写入流，并使用 start 作为编码中最外层的标签。
+<p>将 Go 值转换为 XML 的详细规则见 <a href="#Marshal">Marshal</a> 文档。
+<p>EncodeElement 在返回前调用 <a href="#Encoder.Flush">Encoder.Flush</a>。
+
+				
+			
+				<h3 id="Encoder.EncodeToken">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=7890:7936#L202">EncodeToken</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) EncodeToken(t <a href="#Token">Token</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>EncodeToken 将给定的 XML token 写入流。如果 <a href="#StartElement">StartElement</a> 和 <a href="#EndElement">EndElement</a> token 没有正确匹配，则返回错误。
+<p>EncodeToken 不调用 <a href="#Encoder.Flush">Encoder.Flush</a>，因为它通常是 <a href="#Encoder.Encode">Encoder.Encode</a> 或 <a href="#Encoder.EncodeElement">Encoder.EncodeElement</a> 等更大操作的一部分（也可能由这些操作调用的自定义 <a href="#Marshaler">Marshaler</a> 的 MarshalXML 使用），而这些操作会在完成时调用 Flush。创建 Encoder 后，如果直接调用 EncodeToken，而不使用 Encode 或 EncodeElement，调用者就需要在完成后调用 Flush，以确保 XML 写入底层写入器。
+<p>EncodeToken 仅允许在流的第一个 token 处写入 Target 为“xml”的 <a href="#ProcInst">ProcInst</a>。
+
+				
+			
+				<h3 id="Encoder.Flush">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=10454:10487#L299">Flush</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush 将所有缓冲的 XML 刷新到底层写入器。何时需要调用它，详见 <a href="#Encoder.EncodeToken">Encoder.EncodeToken</a> 文档。
+
+				
+			
+				<h3 id="Encoder.Indent">func (*Encoder) <a href="/src/encoding/xml/marshal.go?s=6137:6186#L150">Indent</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Indent(prefix, indent <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Indent 设置编码器，使生成的 XML 中每个元素都从一个新的缩进行开始。该行以 prefix 开头，后面根据嵌套深度跟随一个或多个 indent。
+
+				
+			
+		
+			
+			<h2 id="EndElement">type <a href="/src/encoding/xml/xml.go?s=1749:1786#L64">EndElement</a>
+				
+				
+			</h2>
+			<p>EndElement 表示一个 XML 结束元素。
+
+			<pre>type EndElement struct {
+<span id="EndElement.Name"></span>    Name <a href="#Name">Name</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Marshaler">type <a href="/src/encoding/xml/marshal.go?s=4488:4566#L100">Marshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Marshaler 接口由能够将自身序列化为有效 XML 元素的对象实现。
+<p>MarshalXML 将接收者编码为零个或多个 XML 元素。按惯例，数组或切片通常编码为一系列元素，每个条目对应一个元素。不要求使用 start 作为元素标签，但这样做可使 <a href="#Unmarshal">Unmarshal</a> 将 XML 元素匹配到正确的结构体字段。常见的实现方式是构造一个独立值，使其布局对应所需的 XML，再用 e.EncodeElement 编码。另一种常见方式是反复调用 e.EncodeToken，逐个 token 生成 XML 输出。编码后的 token 序列必须构成零个或多个有效的 XML 元素。
+
+			<pre>type Marshaler interface {
+    MarshalXML(e *<a href="#Encoder">Encoder</a>, start <a href="#StartElement">StartElement</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="MarshalerAttr">type <a href="/src/encoding/xml/marshal.go?s=5117:5190#L115">MarshalerAttr</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>MarshalerAttr 接口由能够将自身序列化为有效 XML 属性的对象实现。
+<p>MarshalXMLAttr 返回包含接收者编码值的 XML 属性。不要求使用 name 作为属性名，但这样做可使 <a href="#Unmarshal">Unmarshal</a> 将属性匹配到正确的结构体字段。如果 MarshalXMLAttr 返回零值属性 <a href="#Attr">Attr</a>{}，输出中不会生成属性。MarshalXMLAttr 仅用于字段标签中带有“attr”选项的结构体字段。
+
+			<pre>type MarshalerAttr interface {
+    MarshalXMLAttr(name <a href="#Name">Name</a>) (<a href="#Attr">Attr</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Name">type <a href="/src/encoding/xml/xml.go?s=984:1025#L30">Name</a>
+				
+				
+			</h2>
+			<p>Name 表示附带命名空间标识符（Space）的 XML 名称（Local）。在 <a href="#Decoder.Token">Decoder.Token</a> 返回的 token 中，Space 标识符以规范 URL 给出，而不是待解析文档中使用的简短前缀。
+
+			<pre>type Name struct {
+<span id="Name.Space"></span>    Space, Local <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ProcInst">type <a href="/src/encoding/xml/xml.go?s=2406:2460#L84">ProcInst</a>
+				
+				
+			</h2>
+			<p>ProcInst 表示形如 &lt;?target inst?&gt; 的 XML 处理指令。
+
+			<pre>type ProcInst struct {
+<span id="ProcInst.Target"></span>    Target <a href="/pkg/builtin/#string">string</a>
+<span id="ProcInst.Inst"></span>    Inst   []<a href="/pkg/builtin/#byte">byte</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ProcInst.Copy">func (ProcInst) <a href="/src/encoding/xml/xml.go?s=2502:2535#L90">Copy</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ProcInst">ProcInst</a>) Copy() <a href="#ProcInst">ProcInst</a></pre>
+				<p>Copy 创建 ProcInst 的新副本。
+
+				
+			
+		
+			
+			<h2 id="StartElement">type <a href="/src/encoding/xml/xml.go?s=1352:1404#L45">StartElement</a>
+				
+				
+			</h2>
+			<p>StartElement 表示一个 XML 起始元素。
+
+			<pre>type StartElement struct {
+<span id="StartElement.Name"></span>    Name <a href="#Name">Name</a>
+<span id="StartElement.Attr"></span>    Attr []<a href="#Attr">Attr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StartElement.Copy">func (StartElement) <a href="/src/encoding/xml/xml.go?s=1450:1491#L51">Copy</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#StartElement">StartElement</a>) Copy() <a href="#StartElement">StartElement</a></pre>
+				<p>Copy 创建 StartElement 的新副本。
+
+				
+			
+				<h3 id="StartElement.End">func (StartElement) <a href="/src/encoding/xml/xml.go?s=1630:1668#L59">End</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (e <a href="#StartElement">StartElement</a>) End() <a href="#EndElement">EndElement</a></pre>
+				<p>End 返回对应的 XML 结束元素。
+
+				
+			
+		
+			
+			<h2 id="SyntaxError">type <a href="/src/encoding/xml/xml.go?s=570:620#L16">SyntaxError</a>
+				
+				
+			</h2>
+			<p>SyntaxError 表示 XML 输入流中的语法错误。
+
+			<pre>type SyntaxError struct {
+<span id="SyntaxError.Msg"></span>    Msg  <a href="/pkg/builtin/#string">string</a>
+<span id="SyntaxError.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyntaxError.Error">func (*SyntaxError) <a href="/src/encoding/xml/xml.go?s=622:658#L21">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#SyntaxError">SyntaxError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="TagPathError">type <a href="/src/encoding/xml/typeinfo.go?s=8732:8829#L320">TagPathError</a>
+				
+				
+			</h2>
+			<p>TagPathError 表示在反序列化过程中，由使用路径相互冲突的字段标签导致的错误。
+
+			<pre>type TagPathError struct {
+<span id="TagPathError.Struct"></span>    Struct       <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+<span id="TagPathError.Field1"></span>    Field1, Tag1 <a href="/pkg/builtin/#string">string</a>
+<span id="TagPathError.Field2"></span>    Field2, Tag2 <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TagPathError.Error">func (*TagPathError) <a href="/src/encoding/xml/typeinfo.go?s=8831:8868#L326">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#TagPathError">TagPathError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Token">type <a href="/src/encoding/xml/xml.go?s=1285:1299#L42">Token</a>
+				
+				
+			</h2>
+			<p>Token 是一个接口，包含以下 token 类型之一：<a href="#StartElement">StartElement</a>、<a href="#EndElement">EndElement</a>、<a href="#CharData">CharData</a>、<a href="#Comment">Comment</a>、<a href="#ProcInst">ProcInst</a> 或 <a href="#Directive">Directive</a>。
+
+			<pre>type Token <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CopyToken">func <a href="/src/encoding/xml/xml.go?s=2873:2902#L103">CopyToken</a>
+					
+					
+				</h3>
+				<pre>func CopyToken(t <a href="#Token">Token</a>) <a href="#Token">Token</a></pre>
+				<p>CopyToken 返回 Token 的副本。
+
+				
+			
+
+			
+		
+			
+			<h2 id="TokenReader">type <a href="/src/encoding/xml/xml.go?s=3877:3931#L132">TokenReader</a>
+				
+				<span title="自 Go 1.10 起提供">1.10</span>
+			</h2>
+			<p>TokenReader 是任何能够解码 XML token 流的对象，包括 <a href="#Decoder">Decoder</a>。
+<p>Token 在成功读取一个 token 后遇到错误或文件结束时，会返回该 token。它可以在同一次调用中返回非 nil 错误，也可以在后续调用中返回该错误（并返回 nil token）。这种一般情况的一个实例是：TokenReader 在 token 流末尾返回非 nil token 时，可以同时返回 io.EOF，也可以返回 nil 错误。下一次 Read 应返回 nil、<a href="/pkg/io/#EOF">io.EOF</a>。
+<p>不建议 Token 的实现同时返回 nil token 和 nil 错误。调用者应将 nil、nil 视为没有发生任何操作；尤其不能将其解释为 EOF。
+
+			<pre>type TokenReader interface {
+    Token() (<a href="#Token">Token</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnmarshalError">type <a href="/src/encoding/xml/read.go?s=6648:6674#L150">UnmarshalError</a>
+				
+				
+			</h2>
+			<p>UnmarshalError 表示反序列化过程中的错误。
+
+			<pre>type UnmarshalError <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnmarshalError.Error">func (UnmarshalError) <a href="/src/encoding/xml/read.go?s=6676:6714#L152">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#UnmarshalError">UnmarshalError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Unmarshaler">type <a href="/src/encoding/xml/read.go?s=7433:7515#L169">Unmarshaler</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>Unmarshaler 接口由能够从描述自身的 XML 元素进行反序列化的对象实现。
+<p>UnmarshalXML 解码一个以给定起始元素开头的 XML 元素。如果它返回错误，外层 Unmarshal 调用会停止并返回该错误。UnmarshalXML 必须恰好消耗一个 XML 元素。常见的实现方式是使用 d.DecodeElement 反序列化到一个独立值中，使其布局与预期 XML 匹配，再将该值的数据复制到接收者。另一种常见方式是使用 d.Token，逐个 token 处理 XML 对象。UnmarshalXML 不得使用 d.RawToken。
+
+			<pre>type Unmarshaler interface {
+    UnmarshalXML(d *<a href="#Decoder">Decoder</a>, start <a href="#StartElement">StartElement</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnmarshalerAttr">type <a href="/src/encoding/xml/read.go?s=7882:7951#L181">UnmarshalerAttr</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>UnmarshalerAttr 接口由能够从描述自身的 XML 属性进行反序列化的对象实现。
+<p>UnmarshalXMLAttr 解码单个 XML 属性。如果它返回错误，外层 <a href="#Unmarshal">Unmarshal</a> 调用会停止并返回该错误。UnmarshalXMLAttr 仅用于字段标签中带有“attr”选项的结构体字段。
+
+			<pre>type UnmarshalerAttr interface {
+    UnmarshalXMLAttr(attr <a href="#Attr">Attr</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnsupportedTypeError">type <a href="/src/encoding/xml/marshal.go?s=31568:31623#L1118">UnsupportedTypeError</a>
+				
+				
+			</h2>
+			<p>当 <a href="#Marshal">Marshal</a> 遇到无法转换为 XML 的类型时，会返回 UnsupportedTypeError。
+
+			<pre>type UnsupportedTypeError struct {
+<span id="UnsupportedTypeError.Type"></span>    Type <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnsupportedTypeError.Error">func (*UnsupportedTypeError) <a href="/src/encoding/xml/marshal.go?s=31625:31670#L1122">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnsupportedTypeError">UnsupportedTypeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+		<h2 id="pkg-note-BUG">已知问题</h2>
+		<ul style="list-style: none; padding: 0;">
+		
+		<li><a href="/src/encoding/xml/read.go?s=267:592#L8" style="float: left;">&#x261e;</a> <p>XML 元素与数据结构之间的映射存在固有缺陷：XML 元素是依赖顺序的匿名值集合，而数据结构是不依赖顺序的具名值集合。更适合数据结构的文本表示见 <a href="/pkg/encoding/json/">encoding/json</a>。
+</li>
+		
+		</ul>
+	
+
+
+
+
+</article>

@@ -1,0 +1,488 @@
+<!--{
+  "Title": "crypto/sha3 package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package sha3</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/sha3"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package sha3 implements the SHA-3 hash algorithms and the SHAKE extendable
+output functions defined in FIPS 202.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Sum224">func Sum224(data []byte) [28]byte</a></dd>
+			
+				<dd><a href="#Sum256">func Sum256(data []byte) [32]byte</a></dd>
+			
+				<dd><a href="#Sum384">func Sum384(data []byte) [48]byte</a></dd>
+			
+				<dd><a href="#Sum512">func Sum512(data []byte) [64]byte</a></dd>
+			
+				<dd><a href="#SumSHAKE128">func SumSHAKE128(data []byte, length int) []byte</a></dd>
+			
+				<dd><a href="#SumSHAKE256">func SumSHAKE256(data []byte, length int) []byte</a></dd>
+			
+			
+				
+				<dd><a href="#SHA3">type SHA3</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New224">func New224() *SHA3</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New256">func New256() *SHA3</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New384">func New384() *SHA3</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#New512">func New512() *SHA3</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.AppendBinary">func (s *SHA3) AppendBinary(p []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.BlockSize">func (s *SHA3) BlockSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.Clone">func (d *SHA3) Clone() (hash.Cloner, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.MarshalBinary">func (s *SHA3) MarshalBinary() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.Reset">func (s *SHA3) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.Size">func (s *SHA3) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.Sum">func (s *SHA3) Sum(b []byte) []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.UnmarshalBinary">func (s *SHA3) UnmarshalBinary(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHA3.Write">func (s *SHA3) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#SHAKE">type SHAKE</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCSHAKE128">func NewCSHAKE128(N, S []byte) *SHAKE</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewCSHAKE256">func NewCSHAKE256(N, S []byte) *SHAKE</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSHAKE128">func NewSHAKE128() *SHAKE</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSHAKE256">func NewSHAKE256() *SHAKE</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.AppendBinary">func (s *SHAKE) AppendBinary(p []byte) ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.BlockSize">func (s *SHAKE) BlockSize() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.MarshalBinary">func (s *SHAKE) MarshalBinary() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.Read">func (s *SHAKE) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.Reset">func (s *SHAKE) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.UnmarshalBinary">func (s *SHAKE) UnmarshalBinary(data []byte) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SHAKE.Write">func (s *SHAKE) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/sha3/sha3.go">sha3.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Sum224">func <a href="/src/crypto/sha3/sha3.go?s=733:766#L14">Sum224</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Sum224(data []<a href="/pkg/builtin/#byte">byte</a>) [28]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum224 returns the SHA3-224 hash of data.
+
+			
+		
+			
+			<h2 id="Sum256">func <a href="/src/crypto/sha3/sha3.go?s=898:931#L23">Sum256</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Sum256(data []<a href="/pkg/builtin/#byte">byte</a>) [32]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum256 returns the SHA3-256 hash of data.
+
+			
+		
+			
+			<h2 id="Sum384">func <a href="/src/crypto/sha3/sha3.go?s=1063:1096#L32">Sum384</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Sum384(data []<a href="/pkg/builtin/#byte">byte</a>) [48]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum384 returns the SHA3-384 hash of data.
+
+			
+		
+			
+			<h2 id="Sum512">func <a href="/src/crypto/sha3/sha3.go?s=1228:1261#L41">Sum512</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func Sum512(data []<a href="/pkg/builtin/#byte">byte</a>) [64]<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>Sum512 returns the SHA3-512 hash of data.
+
+			
+		
+			
+			<h2 id="SumSHAKE128">func <a href="/src/crypto/sha3/sha3.go?s=1474:1522#L51">SumSHAKE128</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func SumSHAKE128(data []<a href="/pkg/builtin/#byte">byte</a>, length <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>SumSHAKE128 applies the SHAKE128 extendable output function to data and
+returns an output of the given length in bytes.
+
+			
+		
+			
+			<h2 id="SumSHAKE256">func <a href="/src/crypto/sha3/sha3.go?s=2008:2056#L71">SumSHAKE256</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<pre>func SumSHAKE256(data []<a href="/pkg/builtin/#byte">byte</a>, length <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>SumSHAKE256 applies the SHAKE256 extendable output function to data and
+returns an output of the given length in bytes.
+
+			
+		
+		
+			
+			<h2 id="SHA3">type <a href="/src/crypto/sha3/sha3.go?s=2528:2563#L91">SHA3</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>SHA3 is an instance of a SHA-3 hash. It implements <a href="/pkg/hash/#Hash">hash.Hash</a>.
+The zero value is a usable SHA3-256 hash.
+
+			<pre>type SHA3 struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="New224">func <a href="/src/crypto/sha3/sha3.go?s=2758:2777#L102">New224</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func New224() *<a href="#SHA3">SHA3</a></pre>
+				<p>New224 creates a new SHA3-224 hash.
+
+				
+			
+				<h3 id="New256">func <a href="/src/crypto/sha3/sha3.go?s=2852:2871#L107">New256</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func New256() *<a href="#SHA3">SHA3</a></pre>
+				<p>New256 creates a new SHA3-256 hash.
+
+				
+			
+				<h3 id="New384">func <a href="/src/crypto/sha3/sha3.go?s=2946:2965#L112">New384</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func New384() *<a href="#SHA3">SHA3</a></pre>
+				<p>New384 creates a new SHA3-384 hash.
+
+				
+			
+				<h3 id="New512">func <a href="/src/crypto/sha3/sha3.go?s=3040:3059#L117">New512</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func New512() *<a href="#SHA3">SHA3</a></pre>
+				<p>New512 creates a new SHA3-512 hash.
+
+				
+			
+
+			
+				<h3 id="SHA3.AppendBinary">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3960:4013#L164">AppendBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) AppendBinary(p []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendBinary implements <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a>.
+
+				
+			
+				<h3 id="SHA3.BlockSize">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3690:3720#L152">BlockSize</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) BlockSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>BlockSize returns the hash&apos;s rate.
+
+				
+			
+				<h3 id="SHA3.Clone">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=4251:4294#L176">Clone</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (d *<a href="#SHA3">SHA3</a>) Clone() (<a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Cloner">Cloner</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Clone implements <a href="/pkg/hash/#Cloner">hash.Cloner</a>.
+
+				
+			
+				<h3 id="SHA3.MarshalBinary">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3816:3862#L158">MarshalBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) MarshalBinary() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalBinary implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>.
+
+				
+			
+				<h3 id="SHA3.Reset">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3487:3509#L140">Reset</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) Reset()</pre>
+				<p>Reset resets the hash to its initial state.
+
+				
+			
+				<h3 id="SHA3.Size">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3592:3617#L146">Size</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size returns the number of bytes Sum will produce.
+
+				
+			
+				<h3 id="SHA3.Sum">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3370:3405#L134">Sum</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) Sum(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>Sum appends the current hash to b and returns the resulting slice.
+
+				
+			
+				<h3 id="SHA3.UnmarshalBinary">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=4117:4166#L170">UnmarshalBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) UnmarshalBinary(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalBinary implements <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a>.
+
+				
+			
+				<h3 id="SHA3.Write">func (*SHA3) <a href="/src/crypto/sha3/sha3.go?s=3214:3263#L128">Write</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHA3">SHA3</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write absorbs more data into the hash&apos;s state.
+
+				
+			
+		
+			
+			<h2 id="SHAKE">type <a href="/src/crypto/sha3/sha3.go?s=4433:4468#L183">SHAKE</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>SHAKE is an instance of a SHAKE extendable output function.
+The zero value is a usable SHAKE256 hash.
+
+			<pre>type SHAKE struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewCSHAKE128">func <a href="/src/crypto/sha3/sha3.go?s=5040:5077#L208">NewCSHAKE128</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func NewCSHAKE128(N, S []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#SHAKE">SHAKE</a></pre>
+				<p>NewCSHAKE128 creates a new cSHAKE128 XOF.
+<p>N is used to define functions based on cSHAKE, it can be empty when plain
+cSHAKE is desired. S is a customization byte string used for domain
+separation. When N and S are both empty, this is equivalent to NewSHAKE128.
+
+				
+			
+				<h3 id="NewCSHAKE256">func <a href="/src/crypto/sha3/sha3.go?s=5399:5436#L217">NewCSHAKE256</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func NewCSHAKE256(N, S []<a href="/pkg/builtin/#byte">byte</a>) *<a href="#SHAKE">SHAKE</a></pre>
+				<p>NewCSHAKE256 creates a new cSHAKE256 XOF.
+<p>N is used to define functions based on cSHAKE, it can be empty when plain
+cSHAKE is desired. S is a customization byte string used for domain
+separation. When N and S are both empty, this is equivalent to NewSHAKE256.
+
+				
+			
+				<h3 id="NewSHAKE128">func <a href="/src/crypto/sha3/sha3.go?s=4588:4613#L194">NewSHAKE128</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func NewSHAKE128() *<a href="#SHAKE">SHAKE</a></pre>
+				<p>NewSHAKE128 creates a new SHAKE128 XOF.
+
+				
+			
+				<h3 id="NewSHAKE256">func <a href="/src/crypto/sha3/sha3.go?s=4698:4723#L199">NewSHAKE256</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func NewSHAKE256() *<a href="#SHAKE">SHAKE</a></pre>
+				<p>NewSHAKE256 creates a new SHAKE256 XOF.
+
+				
+			
+
+			
+				<h3 id="SHAKE.AppendBinary">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=6269:6323#L256">AppendBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) AppendBinary(p []<a href="/pkg/builtin/#byte">byte</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>AppendBinary implements <a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a>.
+
+				
+			
+				<h3 id="SHAKE.BlockSize">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=5997:6028#L244">BlockSize</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) BlockSize() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>BlockSize returns the rate of the XOF.
+
+				
+			
+				<h3 id="SHAKE.MarshalBinary">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=6124:6171#L250">MarshalBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) MarshalBinary() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalBinary implements <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>.
+
+				
+			
+				<h3 id="SHAKE.Read">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=5772:5821#L232">Read</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read squeezes more output from the XOF.
+<p>Any call to Write after a call to Read will panic.
+
+				
+			
+				<h3 id="SHAKE.Reset">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=5903:5926#L238">Reset</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) Reset()</pre>
+				<p>Reset resets the XOF to its initial state.
+
+				
+			
+				<h3 id="SHAKE.UnmarshalBinary">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=6427:6477#L262">UnmarshalBinary</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) UnmarshalBinary(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalBinary implements <a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a>.
+
+				
+			
+				<h3 id="SHAKE.Write">func (*SHAKE) <a href="/src/crypto/sha3/sha3.go?s=5585:5635#L224">Write</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#SHAKE">SHAKE</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write absorbs more data into the XOF&apos;s state.
+<p>It panics if any output has already been read.
+
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

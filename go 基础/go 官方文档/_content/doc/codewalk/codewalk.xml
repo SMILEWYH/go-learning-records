@@ -1,0 +1,93 @@
+<codewalk title="如何编写代码导读">
+
+<step title="简介" src="doc/codewalk/codewalk.xml">
+	代码导读（codewalk）是对一段代码的分步讲解。
+	它由一系列步骤组成，每一步通常解释一段高亮显示的代码。
+	<br/><br/>
+	
+	<a href="/cmd/godoc">godoc</a> Web 服务器会将主窗口中展示的这类 XML 文件转换为你现在看到的 HTML 页面。
+	<br/><br/>
+	
+	URL 路径为 <code>/doc/codewalk/</code><i>name</i> 的代码导读，加载自输入文件 <code>$GOROOT/doc/codewalk/</code><i>name</i><code>.xml</code>。
+	<br/><br/>
+	
+	本篇通过分析自身的源码 <code><a href="/doc/codewalk/codewalk.xml">$GOROOT/doc/codewalk/codewalk.xml</a></code>，介绍如何编写代码导读。
+	源码显示在左侧主窗口中。
+</step>
+
+<step title="标题" src="doc/codewalk/codewalk.xml:/title=/">
+	代码导读的输入文件是一个 XML 文件，其中包含唯一的 <code>&lt;codewalk&gt;</code> 根元素。
+	该元素的 <code>title</code> 属性指定导读标题，这个标题同时用于代码导读页面和导读列表。
+</step>
+
+<step title="步骤" src="doc/codewalk/codewalk.xml:/&lt;step/,/step&gt;/">
+	代码导读的每一步，都是嵌套在主 <code>&lt;codewalk&gt;</code> 元素中的一个 <code>&lt;step&gt;</code> 元素。
+	step 元素的 <code>title</code> 属性指定该步骤的标题，它会显示在步骤正文上方带底色的标题栏中。
+	该元素的 <code>src</code> 属性指定主窗口要显示的源代码，还可以指定需要高亮的行范围。
+	<br/><br/>
+	
+	本篇代码导读的第一步没有高亮任何行，因为它的 <code>src</code> 只是一个文件名。
+</step>
+
+<step title="指定源码行" src='doc/codewalk/codewalk.xml:/title="标题"/'>
+	代码导读格式中最复杂的部分，是指定哪些行需要高亮。
+	它不使用普通行号，而是采用一种定位表达式语法，根据内容描述匹配位置。
+	这样即使文件经过编辑，这种描述性定位表达式也更有可能继续指向正确的代码部分。
+	<br/><br/>
+
+	要指定源码行，请将 <code>src</code> 属性写成 <i>filename</i><code>:</code><i>address</i> 的形式，
+	其中 <i>address</i> 使用文本编辑器 <i>sam</i> 和 <i>acme</i> 的定位表达式语法。
+	<br/><br/>
+	
+	最简单的定位表达式是单个正则表达式。
+	主窗口中的高亮行表明，“标题”步骤使用的定位表达式是 <code>/title=/</code>，
+	它会匹配文件中首次出现的<a href="/pkg/regexp">正则表达式</a> <code>title=</code>。
+</step>
+
+<step title="指定源码范围" src='doc/codewalk/codewalk.xml:/title="步骤"/'>
+	要高亮一段源码行，最简单的方式是使用两个正则表达式组成的定位表达式：
+	<code>/</code><i>regexp1</i><code>/,/</code><i>regexp2</i><code>/</code>。
+	高亮从 <i>regexp1</i> 首次匹配所在的行开始，到 <i>regexp1</i> 的这次匹配结束位置之后，<i>regexp2</i> 首次匹配所在的行结束。
+	忽略 HTML 实体转义后，首个 <i>regexp1</i> 匹配所在的行就是高亮的第一行，之后首个 <i>regexp2</i> 匹配所在的行就是最后一行。
+	<br/><br/>
+	
+	定位表达式 <code>/&lt;step/,/step&gt;/</code> 先查找文件中首次出现的 <code>&lt;step</code>，再从该位置之后查找首次出现的 <code>step&gt;</code>。
+	点击上面的“步骤”这一项，就能看到高亮效果。
+	注意，为了构成合法的 XML，<code>&lt;</code> 和 <code>&gt;</code> 必须使用 XML 实体转义形式书写。
+</step>
+
+<step title="高级定位表达式" src="doc/codewalk/codewalk.xml:/高级定位表达式/,/step&gt;/">
+	<code>/</code><i>regexp</i><code>/</code> 与 <code>/</code><i>regexp1</i><code>/,/</code><i>regexp2</i><code>/</code> 这两种形式足以满足大多数高亮需求。
+ 	<br/><br/>
+
+	下表概括了完整的定位表达式语法，摘自<a href="https://9p.io/sys/doc/sam/sam.html">《文本编辑器 <code>sam</code>》</a>的表 II：
+	<br/><br/>
+
+	<table>
+	<tr><td colspan="2"><b>简单定位表达式</b></td></tr>
+	<tr><td><code>#</code><i>n</i></td>
+	    <td>第 <i>n</i> 个字符之后的空字符串位置</td></tr>
+	<tr><td><i>n</i></td>
+	    <td>第 <i>n</i> 行</td></tr>
+	<tr><td><code>/</code><i>regexp</i><code>/</code></td>
+	    <td>向后查找该正则表达式的第一个匹配</td></tr>
+	<!-- not supported (yet?)
+	<tr><td><code>–/</code><i>regexp</i><code>/</code></td>
+	    <td>The first previous match of the regular expression</td></tr>
+	-->
+	<tr><td><code>$</code></td>
+	    <td>文件末尾的空字符串位置</td></tr>
+
+	<tr><td colspan="2"><b>复合定位表达式</b></td></tr>
+	<tr><td><i>a1</i><code>+</code><i>a2</i></td>
+	    <td>从 <i>a1</i> 的右端开始计算定位表达式 <i>a2</i></td></tr>
+	<tr><td><i>a1</i><code>-</code><i>a2</i></td>
+	    <td>从 <i>a1</i> 的左端开始，反向计算定位表达式 <i>a2</i></td></tr>
+	<tr><td><i>a1</i><code>,</code><i>a2</i></td>
+	    <td>从 <i>a1</i> 的左端到 <i>a2</i> 的右端（默认为 <code>0,$</code>）。</td></tr>
+	</table>
+</step>
+
+
+	
+</codewalk>

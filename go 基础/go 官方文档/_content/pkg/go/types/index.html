@@ -1,0 +1,4388 @@
+<!--{
+  "Title": "go/types 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/types 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/types"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>types 包声明用于 Go 包类型检查的数据类型，并实现相应算法。使用 <a href="#Config.Check">Config.Check</a> 可以对一个包调用类型检查器。也可以用 <a href="#NewChecker">NewChecker</a> 创建新的类型检查器，再调用 <a href="#Checker.Files">Checker.Files</a> 增量检查。<p>类型检查由多个相互依赖的阶段组成：<p>名称解析将程序中的每个标识符（<a href="/pkg/go/ast/#Ident">ast.Ident</a>）映射到它表示的符号（<a href="#Object">Object</a>）。使用 <a href="#Info">Info</a> 的 Defs 和 Uses 字段或 <a href="#Info.ObjectOf">Info.ObjectOf</a> 方法，可以查找标识符对应的符号；使用 <a href="#Info">Info</a> 的 Implicits 字段，可以查找某些其他语法节点对应的符号。<p>常量折叠计算每个编译期常量表达式（<a href="/pkg/go/ast/#Expr">ast.Expr</a>）的精确常量值（<a href="/pkg/go/constant/#Value">constant.Value</a>）。使用 <a href="#Info">Info</a> 的 Types 字段，可以取得表达式的常量折叠结果。<p>类型推导计算每个表达式（<a href="/pkg/go/ast/#Expr">ast.Expr</a>）的类型（<a href="#Type">Type</a>），并检查其是否符合语言规范。使用 <a href="#Info">Info</a> 的 Types 字段，可以取得类型推导结果。<p>对于需要对一个或多个完整 Go 源码包进行类型检查的应用，使用 <a href="/pkg/golang.org/x/tools/go/packages/">golang.org/x/tools/go/packages</a> 包的 Load 函数，可能比直接调用类型检查器更方便。<p>教程参见 <a href="/s/types-tutorial">https://go.dev/s/types-tutorial</a>。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AssertableTo">func AssertableTo(V *Interface, T Type) bool</a></dd>
+			
+				<dd><a href="#AssignableTo">func AssignableTo(V, T Type) bool</a></dd>
+			
+				<dd><a href="#CheckExpr">func CheckExpr(fset *token.FileSet, pkg *Package, pos token.Pos, expr ast.Expr, info *Info) (err error)</a></dd>
+			
+				<dd><a href="#Comparable">func Comparable(T Type) bool</a></dd>
+			
+				<dd><a href="#ConvertibleTo">func ConvertibleTo(V, T Type) bool</a></dd>
+			
+				<dd><a href="#DefPredeclaredTestFuncs">func DefPredeclaredTestFuncs()</a></dd>
+			
+				<dd><a href="#ExprString">func ExprString(x ast.Expr) string</a></dd>
+			
+				<dd><a href="#Id">func Id(pkg *Package, name string) string</a></dd>
+			
+				<dd><a href="#Identical">func Identical(x, y Type) bool</a></dd>
+			
+				<dd><a href="#IdenticalIgnoreTags">func IdenticalIgnoreTags(x, y Type) bool</a></dd>
+			
+				<dd><a href="#Implements">func Implements(V Type, T *Interface) bool</a></dd>
+			
+				<dd><a href="#IsInterface">func IsInterface(t Type) bool</a></dd>
+			
+				<dd><a href="#ObjectString">func ObjectString(obj Object, qf Qualifier) string</a></dd>
+			
+				<dd><a href="#Satisfies">func Satisfies(V Type, T *Interface) bool</a></dd>
+			
+				<dd><a href="#SelectionString">func SelectionString(s *Selection, qf Qualifier) string</a></dd>
+			
+				<dd><a href="#TypeString">func TypeString(typ Type, qf Qualifier) string</a></dd>
+			
+				<dd><a href="#WriteExpr">func WriteExpr(buf *bytes.Buffer, x ast.Expr)</a></dd>
+			
+				<dd><a href="#WriteSignature">func WriteSignature(buf *bytes.Buffer, sig *Signature, qf Qualifier)</a></dd>
+			
+				<dd><a href="#WriteType">func WriteType(buf *bytes.Buffer, typ Type, qf Qualifier)</a></dd>
+			
+			
+				
+				<dd><a href="#Alias">type Alias</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewAlias">func NewAlias(obj *TypeName, rhs Type) *Alias</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.Obj">func (a *Alias) Obj() *TypeName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.Origin">func (a *Alias) Origin() *Alias</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.Rhs">func (a *Alias) Rhs() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.SetTypeParams">func (a *Alias) SetTypeParams(tparams []*TypeParam)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.String">func (a *Alias) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.TypeArgs">func (a *Alias) TypeArgs() *TypeList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.TypeParams">func (a *Alias) TypeParams() *TypeParamList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Alias.Underlying">func (a *Alias) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#ArgumentError">type ArgumentError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ArgumentError.Error">func (e *ArgumentError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ArgumentError.Unwrap">func (e *ArgumentError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#Array">type Array</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewArray">func NewArray(elem Type, len int64) *Array</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Array.Elem">func (a *Array) Elem() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Array.Len">func (a *Array) Len() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Array.String">func (a *Array) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Array.Underlying">func (a *Array) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Basic">type Basic</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Basic.Info">func (b *Basic) Info() BasicInfo</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Basic.Kind">func (b *Basic) Kind() BasicKind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Basic.Name">func (b *Basic) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Basic.String">func (b *Basic) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Basic.Underlying">func (b *Basic) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#BasicInfo">type BasicInfo</a></dd>
+				
+				
+			
+				
+				<dd><a href="#BasicKind">type BasicKind</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Builtin">type Builtin</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Exported">func (obj *Builtin) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Id">func (obj *Builtin) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Name">func (obj *Builtin) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Parent">func (obj *Builtin) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Pkg">func (obj *Builtin) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Pos">func (obj *Builtin) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.String">func (obj *Builtin) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Builtin.Type">func (obj *Builtin) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Chan">type Chan</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewChan">func NewChan(dir ChanDir, elem Type) *Chan</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Chan.Dir">func (c *Chan) Dir() ChanDir</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Chan.Elem">func (c *Chan) Elem() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Chan.String">func (c *Chan) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Chan.Underlying">func (c *Chan) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#ChanDir">type ChanDir</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Checker">type Checker</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewChecker">func NewChecker(conf *Config, fset *token.FileSet, pkg *Package, info *Info) *Checker</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Checker.Files">func (check *Checker) Files(files []*ast.File) (err error)</a></dd>
+				
+			
+				
+				<dd><a href="#Config">type Config</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.Check">func (conf *Config) Check(path string, fset *token.FileSet, files []*ast.File, info *Info) (*Package, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Const">type Const</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewConst">func NewConst(pos token.Pos, pkg *Package, name string, typ Type, val constant.Value) *Const</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Exported">func (obj *Const) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Id">func (obj *Const) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Name">func (obj *Const) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Parent">func (obj *Const) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Pkg">func (obj *Const) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Pos">func (obj *Const) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.String">func (obj *Const) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Type">func (obj *Const) Type() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Const.Val">func (obj *Const) Val() constant.Value</a></dd>
+				
+			
+				
+				<dd><a href="#Context">type Context</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewContext">func NewContext() *Context</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (err Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MissingMethod">func MissingMethod(V Type, T *Interface, static bool) (method *Func, wrongType bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewFunc">func NewFunc(pos token.Pos, pkg *Package, name string, sig *Signature) *Func</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Exported">func (obj *Func) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.FullName">func (obj *Func) FullName() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Id">func (obj *Func) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Name">func (obj *Func) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Origin">func (obj *Func) Origin() *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Parent">func (obj *Func) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Pkg">func (obj *Func) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Pos">func (obj *Func) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Scope">func (obj *Func) Scope() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Signature">func (obj *Func) Signature() *Signature</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.String">func (obj *Func) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Type">func (obj *Func) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Hasher">type Hasher</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Hasher.Equal">func (Hasher) Equal(x, y Type) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hasher.Hash">func (Hasher) Hash(h *maphash.Hash, t Type)</a></dd>
+				
+			
+				
+				<dd><a href="#HasherIgnoreTags">type HasherIgnoreTags</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#HasherIgnoreTags.Equal">func (HasherIgnoreTags) Equal(x, y Type) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#HasherIgnoreTags.Hash">func (HasherIgnoreTags) Hash(h *maphash.Hash, t Type)</a></dd>
+				
+			
+				
+				<dd><a href="#ImportMode">type ImportMode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Importer">type Importer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ImporterFrom">type ImporterFrom</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Info">type Info</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Info.ObjectOf">func (info *Info) ObjectOf(id *ast.Ident) Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Info.PkgNameOf">func (info *Info) PkgNameOf(imp *ast.ImportSpec) *PkgName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Info.TypeOf">func (info *Info) TypeOf(e ast.Expr) Type</a></dd>
+				
+			
+				
+				<dd><a href="#Initializer">type Initializer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Initializer.String">func (init *Initializer) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Instance">type Instance</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Instance.String">func (inst Instance) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Interface">type Interface</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewInterface">func NewInterface(methods []*Func, embeddeds []*Named) *Interface</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewInterfaceType">func NewInterfaceType(methods []*Func, embeddeds []Type) *Interface</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Complete">func (t *Interface) Complete() *Interface</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Embedded">func (t *Interface) Embedded(i int) *Named</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.EmbeddedType">func (t *Interface) EmbeddedType(i int) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.EmbeddedTypes">func (t *Interface) EmbeddedTypes() iter.Seq[Type]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Empty">func (t *Interface) Empty() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.ExplicitMethod">func (t *Interface) ExplicitMethod(i int) *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.ExplicitMethods">func (t *Interface) ExplicitMethods() iter.Seq[*Func]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.IsComparable">func (t *Interface) IsComparable() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.IsImplicit">func (t *Interface) IsImplicit() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.IsMethodSet">func (t *Interface) IsMethodSet() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.MarkImplicit">func (t *Interface) MarkImplicit()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Method">func (t *Interface) Method(i int) *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Methods">func (t *Interface) Methods() iter.Seq[*Func]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.NumEmbeddeds">func (t *Interface) NumEmbeddeds() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.NumExplicitMethods">func (t *Interface) NumExplicitMethods() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.NumMethods">func (t *Interface) NumMethods() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.String">func (t *Interface) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Interface.Underlying">func (t *Interface) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Label">type Label</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewLabel">func NewLabel(pos token.Pos, pkg *Package, name string) *Label</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Exported">func (obj *Label) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Id">func (obj *Label) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Name">func (obj *Label) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Parent">func (obj *Label) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Pkg">func (obj *Label) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Pos">func (obj *Label) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.String">func (obj *Label) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Label.Type">func (obj *Label) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Map">type Map</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMap">func NewMap(key, elem Type) *Map</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Elem">func (m *Map) Elem() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Key">func (m *Map) Key() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.String">func (t *Map) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Map.Underlying">func (t *Map) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#MethodSet">type MethodSet</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewMethodSet">func NewMethodSet(T Type) *MethodSet</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MethodSet.At">func (s *MethodSet) At(i int) *Selection</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MethodSet.Len">func (s *MethodSet) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MethodSet.Lookup">func (s *MethodSet) Lookup(pkg *Package, name string) *Selection</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MethodSet.Methods">func (s *MethodSet) Methods() iter.Seq[*Selection]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MethodSet.String">func (s *MethodSet) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Named">type Named</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewNamed">func NewNamed(obj *TypeName, underlying Type, methods []*Func) *Named</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.AddMethod">func (t *Named) AddMethod(m *Func)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.Method">func (t *Named) Method(i int) *Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.Methods">func (t *Named) Methods() iter.Seq[*Func]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.NumMethods">func (t *Named) NumMethods() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.Obj">func (t *Named) Obj() *TypeName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.Origin">func (t *Named) Origin() *Named</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.SetTypeParams">func (t *Named) SetTypeParams(tparams []*TypeParam)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.SetUnderlying">func (t *Named) SetUnderlying(u Type)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.String">func (t *Named) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.TypeArgs">func (t *Named) TypeArgs() *TypeList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.TypeParams">func (t *Named) TypeParams() *TypeParamList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Named.Underlying">func (n *Named) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Nil">type Nil</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Exported">func (obj *Nil) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Id">func (obj *Nil) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Name">func (obj *Nil) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Parent">func (obj *Nil) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Pkg">func (obj *Nil) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Pos">func (obj *Nil) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.String">func (obj *Nil) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Nil.Type">func (obj *Nil) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Object">type Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LookupFieldOrMethod">func LookupFieldOrMethod(T Type, addressable bool, pkg *Package, name string) (obj Object, index []int, indirect bool)</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Package">type Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPackage">func NewPackage(path, name string) *Package</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Complete">func (pkg *Package) Complete() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.GoVersion">func (pkg *Package) GoVersion() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Imports">func (pkg *Package) Imports() []*Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.MarkComplete">func (pkg *Package) MarkComplete()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Name">func (pkg *Package) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Path">func (pkg *Package) Path() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.Scope">func (pkg *Package) Scope() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.SetImports">func (pkg *Package) SetImports(list []*Package)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.SetName">func (pkg *Package) SetName(name string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Package.String">func (pkg *Package) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#PkgName">type PkgName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPkgName">func NewPkgName(pos token.Pos, pkg *Package, name string, imported *Package) *PkgName</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Exported">func (obj *PkgName) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Id">func (obj *PkgName) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Imported">func (obj *PkgName) Imported() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Name">func (obj *PkgName) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Parent">func (obj *PkgName) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Pkg">func (obj *PkgName) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Pos">func (obj *PkgName) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.String">func (obj *PkgName) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PkgName.Type">func (obj *PkgName) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Pointer">type Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewPointer">func NewPointer(elem Type) *Pointer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Elem">func (p *Pointer) Elem() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.String">func (p *Pointer) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Underlying">func (p *Pointer) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Qualifier">type Qualifier</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#RelativeTo">func RelativeTo(pkg *Package) Qualifier</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Scope">type Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewScope">func NewScope(parent *Scope, pos, end token.Pos, comment string) *Scope</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Child">func (s *Scope) Child(i int) *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Children">func (s *Scope) Children() iter.Seq[*Scope]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Contains">func (s *Scope) Contains(pos token.Pos) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.End">func (s *Scope) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Innermost">func (s *Scope) Innermost(pos token.Pos) *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Insert">func (s *Scope) Insert(obj Object) Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Len">func (s *Scope) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Lookup">func (s *Scope) Lookup(name string) Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.LookupParent">func (s *Scope) LookupParent(name string, pos token.Pos) (*Scope, Object)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Names">func (s *Scope) Names() []string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.NumChildren">func (s *Scope) NumChildren() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Parent">func (s *Scope) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.Pos">func (s *Scope) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.String">func (s *Scope) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scope.WriteTo">func (s *Scope) WriteTo(w io.Writer, n int, recurse bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Selection">type Selection</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LookupSelection">func LookupSelection(T Type, addressable bool, pkg *Package, name string) (Selection, bool)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Index">func (s *Selection) Index() []int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Indirect">func (s *Selection) Indirect() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Kind">func (s *Selection) Kind() SelectionKind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Obj">func (s *Selection) Obj() Object</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Recv">func (s *Selection) Recv() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.String">func (s *Selection) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Selection.Type">func (s *Selection) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#SelectionKind">type SelectionKind</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Signature">type Signature</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSignature">func NewSignature(recv *Var, params, results *Tuple, variadic bool) *Signature</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSignatureType">func NewSignatureType(recv *Var, recvTypeParams, typeParams []*TypeParam, params, results *Tuple, variadic bool) *Signature</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.Params">func (s *Signature) Params() *Tuple</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.Recv">func (s *Signature) Recv() *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.RecvTypeParams">func (s *Signature) RecvTypeParams() *TypeParamList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.Results">func (s *Signature) Results() *Tuple</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.String">func (s *Signature) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.TypeParams">func (s *Signature) TypeParams() *TypeParamList</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.Underlying">func (s *Signature) Underlying() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Signature.Variadic">func (s *Signature) Variadic() bool</a></dd>
+				
+			
+				
+				<dd><a href="#Sizes">type Sizes</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SizesFor">func SizesFor(compiler, arch string) Sizes</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Slice">type Slice</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSlice">func NewSlice(elem Type) *Slice</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Slice.Elem">func (s *Slice) Elem() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Slice.String">func (s *Slice) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Slice.Underlying">func (s *Slice) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#StdSizes">type StdSizes</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StdSizes.Alignof">func (s *StdSizes) Alignof(T Type) (result int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StdSizes.Offsetsof">func (s *StdSizes) Offsetsof(fields []*Var) []int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StdSizes.Sizeof">func (s *StdSizes) Sizeof(T Type) int64</a></dd>
+				
+			
+				
+				<dd><a href="#Struct">type Struct</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewStruct">func NewStruct(fields []*Var, tags []string) *Struct</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.Field">func (s *Struct) Field(i int) *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.Fields">func (s *Struct) Fields() iter.Seq[*Var]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.NumFields">func (s *Struct) NumFields() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.String">func (t *Struct) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.Tag">func (s *Struct) Tag(i int) string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Struct.Underlying">func (t *Struct) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Term">type Term</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTerm">func NewTerm(tilde bool, typ Type) *Term</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Term.String">func (t *Term) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Term.Tilde">func (t *Term) Tilde() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Term.Type">func (t *Term) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Tuple">type Tuple</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTuple">func NewTuple(x ...*Var) *Tuple</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Tuple.At">func (t *Tuple) At(i int) *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tuple.Len">func (t *Tuple) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tuple.String">func (t *Tuple) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tuple.Underlying">func (t *Tuple) Underlying() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Tuple.Variables">func (t *Tuple) Variables() iter.Seq[*Var]</a></dd>
+				
+			
+				
+				<dd><a href="#Type">type Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Default">func Default(t Type) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Instantiate">func Instantiate(ctxt *Context, orig Type, targs []Type, validate bool) (Type, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Unalias">func Unalias(t Type) Type</a></dd>
+				
+				
+			
+				
+				<dd><a href="#TypeAndValue">type TypeAndValue</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Eval">func Eval(fset *token.FileSet, pkg *Package, pos token.Pos, expr string) (_ TypeAndValue, err error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.Addressable">func (tv TypeAndValue) Addressable() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.Assignable">func (tv TypeAndValue) Assignable() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.HasOk">func (tv TypeAndValue) HasOk() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.IsBuiltin">func (tv TypeAndValue) IsBuiltin() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.IsNil">func (tv TypeAndValue) IsNil() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.IsType">func (tv TypeAndValue) IsType() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.IsValue">func (tv TypeAndValue) IsValue() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAndValue.IsVoid">func (tv TypeAndValue) IsVoid() bool</a></dd>
+				
+			
+				
+				<dd><a href="#TypeList">type TypeList</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeList.At">func (l *TypeList) At(i int) Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeList.Len">func (l *TypeList) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeList.String">func (l *TypeList) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeList.Types">func (l *TypeList) Types() iter.Seq[Type]</a></dd>
+				
+			
+				
+				<dd><a href="#TypeName">type TypeName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTypeName">func NewTypeName(pos token.Pos, pkg *Package, name string, typ Type) *TypeName</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Exported">func (obj *TypeName) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Id">func (obj *TypeName) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.IsAlias">func (obj *TypeName) IsAlias() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Name">func (obj *TypeName) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Parent">func (obj *TypeName) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Pkg">func (obj *TypeName) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Pos">func (obj *TypeName) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.String">func (obj *TypeName) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeName.Type">func (obj *TypeName) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#TypeParam">type TypeParam</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewTypeParam">func NewTypeParam(obj *TypeName, constraint Type) *TypeParam</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.Constraint">func (t *TypeParam) Constraint() Type</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.Index">func (t *TypeParam) Index() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.Obj">func (t *TypeParam) Obj() *TypeName</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.SetConstraint">func (t *TypeParam) SetConstraint(bound Type)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.String">func (t *TypeParam) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParam.Underlying">func (t *TypeParam) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#TypeParamList">type TypeParamList</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParamList.At">func (l *TypeParamList) At(i int) *TypeParam</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParamList.Len">func (l *TypeParamList) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParamList.String">func (l *TypeParamList) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeParamList.TypeParams">func (l *TypeParamList) TypeParams() iter.Seq[*TypeParam]</a></dd>
+				
+			
+				
+				<dd><a href="#Union">type Union</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewUnion">func NewUnion(terms []*Term) *Union</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Union.Len">func (u *Union) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Union.String">func (u *Union) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Union.Term">func (u *Union) Term(i int) *Term</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Union.Terms">func (u *Union) Terms() iter.Seq[*Term]</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Union.Underlying">func (u *Union) Underlying() Type</a></dd>
+				
+			
+				
+				<dd><a href="#Var">type Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewField">func NewField(pos token.Pos, pkg *Package, name string, typ Type, embedded bool) *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewParam">func NewParam(pos token.Pos, pkg *Package, name string, typ Type) *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewVar">func NewVar(pos token.Pos, pkg *Package, name string, typ Type) *Var</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Anonymous">func (obj *Var) Anonymous() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Embedded">func (obj *Var) Embedded() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Exported">func (obj *Var) Exported() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Id">func (obj *Var) Id() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.IsField">func (obj *Var) IsField() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Kind">func (v *Var) Kind() VarKind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Name">func (obj *Var) Name() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Origin">func (obj *Var) Origin() *Var</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Parent">func (obj *Var) Parent() *Scope</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Pkg">func (obj *Var) Pkg() *Package</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Pos">func (obj *Var) Pos() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.SetKind">func (v *Var) SetKind(kind VarKind)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.String">func (obj *Var) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Var.Type">func (obj *Var) Type() Type</a></dd>
+				
+			
+				
+				<dd><a href="#VarKind">type VarKind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#VarKind.String">func (kind VarKind) String() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Info">Info</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MethodSet">MethodSet</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Scope">Scope</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/types/alias.go">alias.go</a>
+			
+				<a href="/src/go/types/api.go">api.go</a>
+			
+				<a href="/src/go/types/api_predicates.go">api_predicates.go</a>
+			
+				<a href="/src/go/types/array.go">array.go</a>
+			
+				<a href="/src/go/types/assignments.go">assignments.go</a>
+			
+				<a href="/src/go/types/badlinkname.go">badlinkname.go</a>
+			
+				<a href="/src/go/types/basic.go">basic.go</a>
+			
+				<a href="/src/go/types/builtins.go">builtins.go</a>
+			
+				<a href="/src/go/types/call.go">call.go</a>
+			
+				<a href="/src/go/types/chan.go">chan.go</a>
+			
+				<a href="/src/go/types/check.go">check.go</a>
+			
+				<a href="/src/go/types/const.go">const.go</a>
+			
+				<a href="/src/go/types/context.go">context.go</a>
+			
+				<a href="/src/go/types/conversions.go">conversions.go</a>
+			
+				<a href="/src/go/types/cycles.go">cycles.go</a>
+			
+				<a href="/src/go/types/decl.go">decl.go</a>
+			
+				<a href="/src/go/types/errors.go">errors.go</a>
+			
+				<a href="/src/go/types/errsupport.go">errsupport.go</a>
+			
+				<a href="/src/go/types/eval.go">eval.go</a>
+			
+				<a href="/src/go/types/expr.go">expr.go</a>
+			
+				<a href="/src/go/types/exprstring.go">exprstring.go</a>
+			
+				<a href="/src/go/types/format.go">format.go</a>
+			
+				<a href="/src/go/types/gccgosizes.go">gccgosizes.go</a>
+			
+				<a href="/src/go/types/gcsizes.go">gcsizes.go</a>
+			
+				<a href="/src/go/types/generate.go">generate.go</a>
+			
+				<a href="/src/go/types/hash.go">hash.go</a>
+			
+				<a href="/src/go/types/index.go">index.go</a>
+			
+				<a href="/src/go/types/infer.go">infer.go</a>
+			
+				<a href="/src/go/types/initorder.go">initorder.go</a>
+			
+				<a href="/src/go/types/instantiate.go">instantiate.go</a>
+			
+				<a href="/src/go/types/interface.go">interface.go</a>
+			
+				<a href="/src/go/types/iter.go">iter.go</a>
+			
+				<a href="/src/go/types/labels.go">labels.go</a>
+			
+				<a href="/src/go/types/literals.go">literals.go</a>
+			
+				<a href="/src/go/types/lookup.go">lookup.go</a>
+			
+				<a href="/src/go/types/map.go">map.go</a>
+			
+				<a href="/src/go/types/methodset.go">methodset.go</a>
+			
+				<a href="/src/go/types/mono.go">mono.go</a>
+			
+				<a href="/src/go/types/named.go">named.go</a>
+			
+				<a href="/src/go/types/object.go">object.go</a>
+			
+				<a href="/src/go/types/objset.go">objset.go</a>
+			
+				<a href="/src/go/types/operand.go">operand.go</a>
+			
+				<a href="/src/go/types/package.go">package.go</a>
+			
+				<a href="/src/go/types/pointer.go">pointer.go</a>
+			
+				<a href="/src/go/types/predicates.go">predicates.go</a>
+			
+				<a href="/src/go/types/range.go">range.go</a>
+			
+				<a href="/src/go/types/recording.go">recording.go</a>
+			
+				<a href="/src/go/types/resolver.go">resolver.go</a>
+			
+				<a href="/src/go/types/return.go">return.go</a>
+			
+				<a href="/src/go/types/scope.go">scope.go</a>
+			
+				<a href="/src/go/types/scope2.go">scope2.go</a>
+			
+				<a href="/src/go/types/selection.go">selection.go</a>
+			
+				<a href="/src/go/types/signature.go">signature.go</a>
+			
+				<a href="/src/go/types/sizes.go">sizes.go</a>
+			
+				<a href="/src/go/types/slice.go">slice.go</a>
+			
+				<a href="/src/go/types/stmt.go">stmt.go</a>
+			
+				<a href="/src/go/types/struct.go">struct.go</a>
+			
+				<a href="/src/go/types/subst.go">subst.go</a>
+			
+				<a href="/src/go/types/termlist.go">termlist.go</a>
+			
+				<a href="/src/go/types/trie.go">trie.go</a>
+			
+				<a href="/src/go/types/tuple.go">tuple.go</a>
+			
+				<a href="/src/go/types/type.go">type.go</a>
+			
+				<a href="/src/go/types/typelists.go">typelists.go</a>
+			
+				<a href="/src/go/types/typeparam.go">typeparam.go</a>
+			
+				<a href="/src/go/types/typeset.go">typeset.go</a>
+			
+				<a href="/src/go/types/typestring.go">typestring.go</a>
+			
+				<a href="/src/go/types/typeterm.go">typeterm.go</a>
+			
+				<a href="/src/go/types/typexpr.go">typexpr.go</a>
+			
+				<a href="/src/go/types/under.go">under.go</a>
+			
+				<a href="/src/go/types/unify.go">unify.go</a>
+			
+				<a href="/src/go/types/union.go">union.go</a>
+			
+				<a href="/src/go/types/universe.go">universe.go</a>
+			
+				<a href="/src/go/types/util.go">util.go</a>
+			
+				<a href="/src/go/types/validtype.go">validtype.go</a>
+			
+				<a href="/src/go/types/version.go">version.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>Typ 包含预声明的 *Basic 类型，以相应的 BasicKind 为索引。<p>Typ[Byte] 对应的 *Basic 类型名为 "uint8"。要取得名称为 "byte" 的特定别名基本类型，请使用 Universe.Lookup("byte").Type()（"rune" 同理）。<pre>var <span id="Typ">Typ</span> = []*<a href="#Basic">Basic</a>{
+    <a href="#Invalid">Invalid</a>: {<a href="#Invalid">Invalid</a>, 0, &#34;invalid type&#34;},
+
+    <a href="#Bool">Bool</a>:          {<a href="#Bool">Bool</a>, <a href="#IsBoolean">IsBoolean</a>, &#34;bool&#34;},
+    <a href="#Int">Int</a>:           {<a href="#Int">Int</a>, <a href="#IsInteger">IsInteger</a>, &#34;int&#34;},
+    <a href="#Int8">Int8</a>:          {<a href="#Int8">Int8</a>, <a href="#IsInteger">IsInteger</a>, &#34;int8&#34;},
+    <a href="#Int16">Int16</a>:         {<a href="#Int16">Int16</a>, <a href="#IsInteger">IsInteger</a>, &#34;int16&#34;},
+    <a href="#Int32">Int32</a>:         {<a href="#Int32">Int32</a>, <a href="#IsInteger">IsInteger</a>, &#34;int32&#34;},
+    <a href="#Int64">Int64</a>:         {<a href="#Int64">Int64</a>, <a href="#IsInteger">IsInteger</a>, &#34;int64&#34;},
+    <a href="#Uint">Uint</a>:          {<a href="#Uint">Uint</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uint&#34;},
+    <a href="#Uint8">Uint8</a>:         {<a href="#Uint8">Uint8</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uint8&#34;},
+    <a href="#Uint16">Uint16</a>:        {<a href="#Uint16">Uint16</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uint16&#34;},
+    <a href="#Uint32">Uint32</a>:        {<a href="#Uint32">Uint32</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uint32&#34;},
+    <a href="#Uint64">Uint64</a>:        {<a href="#Uint64">Uint64</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uint64&#34;},
+    <a href="#Uintptr">Uintptr</a>:       {<a href="#Uintptr">Uintptr</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUnsigned">IsUnsigned</a>, &#34;uintptr&#34;},
+    <a href="#Float32">Float32</a>:       {<a href="#Float32">Float32</a>, <a href="#IsFloat">IsFloat</a>, &#34;float32&#34;},
+    <a href="#Float64">Float64</a>:       {<a href="#Float64">Float64</a>, <a href="#IsFloat">IsFloat</a>, &#34;float64&#34;},
+    <a href="#Complex64">Complex64</a>:     {<a href="#Complex64">Complex64</a>, <a href="#IsComplex">IsComplex</a>, &#34;complex64&#34;},
+    <a href="#Complex128">Complex128</a>:    {<a href="#Complex128">Complex128</a>, <a href="#IsComplex">IsComplex</a>, &#34;complex128&#34;},
+    <a href="#String">String</a>:        {<a href="#String">String</a>, <a href="#IsString">IsString</a>, &#34;string&#34;},
+    <a href="#UnsafePointer">UnsafePointer</a>: {<a href="#UnsafePointer">UnsafePointer</a>, 0, &#34;Pointer&#34;},
+
+    <a href="#UntypedBool">UntypedBool</a>:    {<a href="#UntypedBool">UntypedBool</a>, <a href="#IsBoolean">IsBoolean</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped bool&#34;},
+    <a href="#UntypedInt">UntypedInt</a>:     {<a href="#UntypedInt">UntypedInt</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped int&#34;},
+    <a href="#UntypedRune">UntypedRune</a>:    {<a href="#UntypedRune">UntypedRune</a>, <a href="#IsInteger">IsInteger</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped rune&#34;},
+    <a href="#UntypedFloat">UntypedFloat</a>:   {<a href="#UntypedFloat">UntypedFloat</a>, <a href="#IsFloat">IsFloat</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped float&#34;},
+    <a href="#UntypedComplex">UntypedComplex</a>: {<a href="#UntypedComplex">UntypedComplex</a>, <a href="#IsComplex">IsComplex</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped complex&#34;},
+    <a href="#UntypedString">UntypedString</a>:  {<a href="#UntypedString">UntypedString</a>, <a href="#IsString">IsString</a> | <a href="#IsUntyped">IsUntyped</a>, &#34;untyped string&#34;},
+    <a href="#UntypedNil">UntypedNil</a>:     {<a href="#UntypedNil">UntypedNil</a>, <a href="#IsUntyped">IsUntyped</a>, &#34;untyped nil&#34;},
+}</pre>
+			
+		
+		
+			
+			<h2 id="AssertableTo">func <a href="/src/go/types/api_predicates.go?s=702:746#L9">AssertableTo</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func AssertableTo(V *<a href="#Interface">Interface</a>, T <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>AssertableTo 报告是否可以将 V 类型的值断言为 T 类型。<p>以下三种情况下，AssertableTo 的行为未指定：<ul>
+<li>T 为 Typ[Invalid]<li>V 是广义接口，即只能在 Go 代码中用作类型约束的接口<li>T 是尚未实例化的泛型类型</ul>
+
+			
+		
+			
+			<h2 id="AssignableTo">func <a href="/src/go/types/api_predicates.go?s=1161:1194#L23">AssignableTo</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func AssignableTo(V, T <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>AssignableTo 报告 V 类型的值是否可赋给 T 类型的变量。<p>如果 V 或 T 为 Typ[Invalid] 或尚未实例化的泛型类型，AssignableTo 的行为未指定。<h2 id="CheckExpr">func <a href="/src/go/types/eval.go?s=1977:2080#L46">CheckExpr</a>
+				
+				<span title="自 Go 1.13 起提供">1.13</span>
+			</h2>
+			<pre>func CheckExpr(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, pkg *<a href="#Package">Package</a>, pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, expr <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>, info *<a href="#Info">Info</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>CheckExpr 对表达式 expr 进行类型检查，视同它出现在包 pkg 的 pos 位置。表达式的<a href="#Type">类型</a>信息记录在 info 中。表达式可以是表示尚未实例化的泛型函数或类型的标识符。<p>如果 pkg == nil，使用 <a href="#Universe">Universe</a> 作用域，并忽略提供的位置 pos。如果 pkg != nil 且 pos 无效，则使用包作用域。否则，pos 必须属于该包。<p>如果 pos 不在包内，或无法对节点进行类型检查，则返回错误。<p>注意：不应使用 <a href="#Eval">Eval</a> 和 CheckExpr 代替 Check 来计算类型和值，而应将它们作为 Check 的补充，因为这些函数忽略表达式使用的上下文（例如赋值）。因此，顶层无类型常量会返回无类型的类型，而不是对应上下文中的具体类型。<h2 id="Comparable">func <a href="/src/go/types/predicates.go?s=5728:5756#L143">Comparable</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Comparable(T <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Comparable 报告 T 类型的值是否可比较。<h2 id="ConvertibleTo">func <a href="/src/go/types/api_predicates.go?s=1531:1565#L34">ConvertibleTo</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ConvertibleTo(V, T <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>ConvertibleTo 报告 V 类型的值是否可转换为 T 类型的值。<p>如果 V 或 T 为 Typ[Invalid] 或尚未实例化的泛型类型，ConvertibleTo 的行为未指定。<h2 id="DefPredeclaredTestFuncs">func <a href="/src/go/types/universe.go?s=6517:6547#L222">DefPredeclaredTestFuncs</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func DefPredeclaredTestFuncs()</pre>
+			<p>DefPredeclaredTestFuncs 定义内置函数 assert 和 trace。这些内置函数仅用于本包的调试和测试。<h2 id="ExprString">func <a href="/src/go/types/exprstring.go?s=446:480#L8">ExprString</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ExprString(x <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>ExprString 返回 x 的字符串表示，可能会缩写。缩写表示适用于用户界面，但不一定遵循 Go 语法。<h2 id="Id">func <a href="/src/go/types/object.go?s=2715:2756#L66">Id</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Id(pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>如果 name 是导出名称，Id 返回 name；否则返回用包路径限定的名称。<h2 id="Identical">func <a href="/src/go/types/api_predicates.go?s=3207:3237#L78">Identical</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Identical(x, y <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Identical 报告 x 和 y 是否是相同类型。忽略 <a href="#Signature">Signature</a> 类型的接收者。<p><a href="#Identical">Identical</a>、<a href="#Implements">Implements</a>、<a href="#Satisfies">Satisfies</a> 等判定函数假定两个操作数都属于一致的符号集合（<a href="#Object">Object</a> 值）。例如，只有两个 <a href="#Named">Named</a> 类型的 <a href="#Named.Obj">Named.Obj</a> 方法返回同一个 <a href="#TypeName">TypeName</a> 符号时，它们才可能相同。如果对于路径为 P 的每个逻辑包，在创建这些符号时至多调用一次 <a href="#NewPackage">NewPackage</a>(P, ...)，该符号集合就是一致的。为确保一致性，应对所有加载的包及其依赖使用同一个 <a href="#Importer">Importer</a>。更多信息参见 <a href="https://github.com/golang/go/issues/57497">https://github.com/golang/go/issues/57497</a>。<h2 id="IdenticalIgnoreTags">func <a href="/src/go/types/api_predicates.go?s=3425:3465#L85">IdenticalIgnoreTags</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func IdenticalIgnoreTags(x, y <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IdenticalIgnoreTags 报告忽略标签时 x 和 y 是否是相同类型。忽略 <a href="#Signature">Signature</a> 类型的接收者。<h2 id="Implements">func <a href="/src/go/types/api_predicates.go?s=1852:1894#L43">Implements</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func Implements(V <a href="#Type">Type</a>, T *<a href="#Interface">Interface</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Implements 报告类型 V 是否实现接口 T。<p>如果 V 为 Typ[Invalid] 或尚未实例化的泛型类型，Implements 的行为未指定。<h2 id="IsInterface">func <a href="/src/go/types/predicates.go?s=4223:4252#L102">IsInterface</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func IsInterface(t <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>IsInterface 报告 t 是否为接口类型。<h2 id="ObjectString">func <a href="/src/go/types/object.go?s=20321:20371#L631">ObjectString</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ObjectString(obj <a href="#Object">Object</a>, qf <a href="#Qualifier">Qualifier</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>ObjectString 返回 obj 的字符串形式。Qualifier 控制包级对象的输出方式，可以为 nil。<h2 id="Satisfies">func <a href="/src/go/types/api_predicates.go?s=2369:2410#L60">Satisfies</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<pre>func Satisfies(V <a href="#Type">Type</a>, T *<a href="#Interface">Interface</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Satisfies 报告类型 V 是否满足约束 T。<p>如果 V 为 Typ[Invalid] 或尚未实例化的泛型类型，Satisfies 的行为未指定。<h2 id="SelectionString">func <a href="/src/go/types/selection.go?s=5648:5703#L151">SelectionString</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func SelectionString(s *<a href="#Selection">Selection</a>, qf <a href="#Qualifier">Qualifier</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>SelectionString 返回 s 的字符串形式。Qualifier 控制包级对象的输出方式，可以为 nil。<p>示例：<pre>&quot;field (T) f int&quot;
+&quot;method (T) f(X) Y&quot;
+&quot;method expr (T) f(X) Y&quot;
+</pre>
+
+			
+		
+			
+			<h2 id="TypeString">func <a href="/src/go/types/typestring.go?s=1451:1497#L40">TypeString</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func TypeString(typ <a href="#Type">Type</a>, qf <a href="#Qualifier">Qualifier</a>) <a href="/pkg/builtin/#string">string</a></pre>
+			<p>TypeString 返回 typ 的字符串表示。<a href="#Qualifier">Qualifier</a> 控制包级对象的输出方式，可以为 nil。<h2 id="WriteExpr">func <a href="/src/go/types/exprstring.go?s=737:782#L17">WriteExpr</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func WriteExpr(buf *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, x <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>)</pre>
+			<p>WriteExpr 将 x 的字符串表示写入 buf，可能会缩写。缩写表示适用于用户界面，但不一定遵循 Go 语法。<h2 id="WriteSignature">func <a href="/src/go/types/typestring.go?s=2008:2076#L56">WriteSignature</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func WriteSignature(buf *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, sig *<a href="#Signature">Signature</a>, qf <a href="#Qualifier">Qualifier</a>)</pre>
+			<p>WriteSignature 将签名 sig 的表示写入 buf，不包含开头的 "func" 关键字。<a href="#Qualifier">Qualifier</a> 控制包级对象的输出方式，可以为 nil。<h2 id="WriteType">func <a href="/src/go/types/typestring.go?s=1719:1776#L49">WriteType</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func WriteType(buf *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, typ <a href="#Type">Type</a>, qf <a href="#Qualifier">Qualifier</a>)</pre>
+			<p>WriteType 将 typ 的字符串表示写入 buf。<a href="#Qualifier">Qualifier</a> 控制包级对象的输出方式，可以为 nil。<h2 id="Alias">type <a href="/src/go/types/alias.go?s=792:1174#L17">Alias</a>
+				
+				<span title="自 Go 1.22 起提供">1.22</span>
+			</h2>
+			<p>Alias 表示别名类型。<p>别名类型由别名声明创建，例如：<pre>type A = int
+</pre>
+<p>可以通过 <a href="#Alias.Rhs">Alias.Rhs</a> 访问声明右侧的类型。该类型本身也可能是别名。调用 <a href="#Unalias">Unalias</a> 可以取得别名类型声明链中的第一个非别名类型。<p>与定义类型（<a href="#Named">Named</a>）一样，别名类型也有名称。使用 <a href="#Alias.Obj">Alias.Obj</a> 方法可以访问其 <a href="#TypeName">TypeName</a> 对象。<pre>type Alias struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewAlias">func <a href="/src/go/types/alias.go?s=1290:1335#L28">NewAlias</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func NewAlias(obj *<a href="#TypeName">TypeName</a>, rhs <a href="#Type">Type</a>) *<a href="#Alias">Alias</a></pre>
+				<p>NewAlias 用给定的类型名和 rhs 创建新的 Alias 类型。如果 rhs 为 nil，该别名是不完整的。<h3 id="Alias.Obj">func (*Alias) <a href="/src/go/types/alias.go?s=1616:1647#L37">Obj</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) Obj() *<a href="#TypeName">TypeName</a></pre>
+				<p>Obj 返回定义别名类型 a 的声明中的类型名。对于实例化后的类型，这与其原始类型的类型名相同。<h3 id="Alias.Origin">func (*Alias) <a href="/src/go/types/alias.go?s=2186:2217#L50">Origin</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) Origin() *<a href="#Alias">Alias</a></pre>
+				<p>Origin 返回 a 所实例化自的泛型 Alias 类型。如果 a 不是泛型别名的实例，则返回 a。<h3 id="Alias.Rhs">func (*Alias) <a href="/src/go/types/alias.go?s=2981:3007#L69">Rhs</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) Rhs() <a href="#Type">Type</a></pre>
+				<p>Rhs 返回别名声明 "type A = R" 右侧的类型 R，它可能是另一个别名。<h3 id="Alias.SetTypeParams">func (*Alias) <a href="/src/go/types/alias.go?s=2550:2601#L58">SetTypeParams</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) SetTypeParams(tparams []*<a href="#TypeParam">TypeParam</a>)</pre>
+				<p>SetTypeParams 设置别名类型 a 的类型形参。别名 a 不得带有类型实参。<h3 id="Alias.String">func (*Alias) <a href="/src/go/types/alias.go?s=1671:1702#L39">String</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Alias.TypeArgs">func (*Alias) <a href="/src/go/types/alias.go?s=2806:2842#L65">TypeArgs</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) TypeArgs() *<a href="#TypeList">TypeList</a></pre>
+				<p>TypeArgs 返回用于实例化 Alias 类型的类型实参。如果 a 不是泛型别名的实例，则结果为 nil。<h3 id="Alias.TypeParams">func (*Alias) <a href="/src/go/types/alias.go?s=2376:2419#L54">TypeParams</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) TypeParams() *<a href="#TypeParamList">TypeParamList</a></pre>
+				<p>TypeParams 返回别名类型 a 的类型形参，或 nil。泛型 Alias 及其实例具有相同的类型形参。<h3 id="Alias.Underlying">func (*Alias) <a href="/src/go/types/alias.go?s=1983:2016#L46">Underlying</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (a *<a href="#Alias">Alias</a>) Underlying() <a href="#Type">Type</a></pre>
+				<p>Underlying 返回别名类型 a 的<a href="/ref/spec#Underlying_types.">底层类型</a>，即被别名引用的类型的底层类型。底层类型绝不会是 Named、TypeParam 或 Alias 类型。<h2 id="ArgumentError">type <a href="/src/go/types/api.go?s=2846:2899#L64">ArgumentError</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>ArgumentError 保存与某个实参索引相关的错误。<pre>type ArgumentError struct {
+<span id="ArgumentError.Index"></span>    Index <a href="/pkg/builtin/#int">int</a>
+<span id="ArgumentError.Err"></span>    Err   <a href="/pkg/builtin/#error">error</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ArgumentError.Error">func (*ArgumentError) <a href="/src/go/types/api.go?s=2901:2939#L69">Error</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (e *<a href="#ArgumentError">ArgumentError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="ArgumentError.Unwrap">func (*ArgumentError) <a href="/src/go/types/api.go?s=2965:3003#L70">Unwrap</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (e *<a href="#ArgumentError">ArgumentError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Array">type <a href="/src/go/types/array.go?s=338:382#L1">Array</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Array 表示数组类型。<pre>type Array struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewArray">func <a href="/src/go/types/array.go?s=510:552#L8">NewArray</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewArray(elem <a href="#Type">Type</a>, len <a href="/pkg/builtin/#int64">int64</a>) *<a href="#Array">Array</a></pre>
+				<p>NewArray 返回具有给定元素类型和长度的新数组类型。负长度表示长度未知。<h3 id="Array.Elem">func (*Array) <a href="/src/go/types/array.go?s=769:796#L15">Elem</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (a *<a href="#Array">Array</a>) Elem() <a href="#Type">Type</a></pre>
+				<p>Elem 返回数组 a 的元素类型。<h3 id="Array.Len">func (*Array) <a href="/src/go/types/array.go?s=682:709#L12">Len</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (a *<a href="#Array">Array</a>) Len() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Len 返回数组 a 的长度。负数结果表示长度未知。<h3 id="Array.String">func (*Array) <a href="/src/go/types/array.go?s=863:894#L18">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (a *<a href="#Array">Array</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Array.Underlying">func (*Array) <a href="/src/go/types/array.go?s=816:849#L17">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (a *<a href="#Array">Array</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Basic">type <a href="/src/go/types/basic.go?s=1166:1232#L59">Basic</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Basic 表示基本类型。<pre>type Basic struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Basic.Info">func (*Basic) <a href="/src/go/types/basic.go?s=1390:1422#L69">Info</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Basic">Basic</a>) Info() <a href="#BasicInfo">BasicInfo</a></pre>
+				<p>Info 返回基本类型 b 的属性信息。<h3 id="Basic.Kind">func (*Basic) <a href="/src/go/types/basic.go?s=1276:1308#L66">Kind</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Basic">Basic</a>) Kind() <a href="#BasicKind">BasicKind</a></pre>
+				<p>Kind 返回基本类型 b 的种类。<h3 id="Basic.Name">func (*Basic) <a href="/src/go/types/basic.go?s=1484:1513#L72">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Basic">Basic</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回基本类型 b 的名称。<h3 id="Basic.String">func (*Basic) <a href="/src/go/types/basic.go?s=1580:1611#L75">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Basic">Basic</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Basic.Underlying">func (*Basic) <a href="/src/go/types/basic.go?s=1533:1566#L74">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (b *<a href="#Basic">Basic</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="BasicInfo">type <a href="/src/go/types/basic.go?s=830:848#L41">BasicInfo</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>BasicInfo 是描述基本类型属性的一组标志。<pre>type BasicInfo <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>基本类型的属性。<pre>const (
+    <span id="IsBoolean">IsBoolean</span> <a href="#BasicInfo">BasicInfo</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a>
+    <span id="IsInteger">IsInteger</span>
+    <span id="IsUnsigned">IsUnsigned</span>
+    <span id="IsFloat">IsFloat</span>
+    <span id="IsComplex">IsComplex</span>
+    <span id="IsString">IsString</span>
+    <span id="IsUntyped">IsUntyped</span>
+
+    <span id="IsOrdered">IsOrdered</span>   = <a href="#IsInteger">IsInteger</a> | <a href="#IsFloat">IsFloat</a> | <a href="#IsString">IsString</a>
+    <span id="IsNumeric">IsNumeric</span>   = <a href="#IsInteger">IsInteger</a> | <a href="#IsFloat">IsFloat</a> | <a href="#IsComplex">IsComplex</a>
+    <span id="IsConstType">IsConstType</span> = <a href="#IsBoolean">IsBoolean</a> | <a href="#IsNumeric">IsNumeric</a> | <a href="#IsString">IsString</a>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="BasicKind">type <a href="/src/go/types/basic.go?s=347:365#L1">BasicKind</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>BasicKind 描述基本类型的种类。<pre>type BasicKind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="Invalid">Invalid</span> <a href="#BasicKind">BasicKind</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 类型无效</span>
+
+    <span class="comment">// 预声明类型</span>
+    <span id="Bool">Bool</span>
+    <span id="Int">Int</span>
+    <span id="Int8">Int8</span>
+    <span id="Int16">Int16</span>
+    <span id="Int32">Int32</span>
+    <span id="Int64">Int64</span>
+    <span id="Uint">Uint</span>
+    <span id="Uint8">Uint8</span>
+    <span id="Uint16">Uint16</span>
+    <span id="Uint32">Uint32</span>
+    <span id="Uint64">Uint64</span>
+    <span id="Uintptr">Uintptr</span>
+    <span id="Float32">Float32</span>
+    <span id="Float64">Float64</span>
+    <span id="Complex64">Complex64</span>
+    <span id="Complex128">Complex128</span>
+    <span id="String">String</span>
+    <span id="UnsafePointer">UnsafePointer</span>
+
+    <span class="comment">// 无类型值的类型</span>
+    <span id="UntypedBool">UntypedBool</span>
+    <span id="UntypedInt">UntypedInt</span>
+    <span id="UntypedRune">UntypedRune</span>
+    <span id="UntypedFloat">UntypedFloat</span>
+    <span id="UntypedComplex">UntypedComplex</span>
+    <span id="UntypedString">UntypedString</span>
+    <span id="UntypedNil">UntypedNil</span>
+
+    <span class="comment">// 别名</span>
+    <span id="Byte">Byte</span> = <a href="#Uint8">Uint8</a>
+    <span id="Rune">Rune</span> = <a href="#Int32">Int32</a>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Builtin">type <a href="/src/go/types/object.go?s=17494:17539#L496">Builtin</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Builtin 表示内置函数。内置函数没有有效类型。<pre>type Builtin struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Builtin.Exported">func (*Builtin) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Builtin.Id">func (*Builtin) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Builtin.Name">func (*Builtin) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Builtin.Parent">func (*Builtin) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Builtin.Pkg">func (*Builtin) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="Builtin.Pos">func (*Builtin) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Builtin.String">func (*Builtin) <a href="/src/go/types/object.go?s=20874:20909#L643">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Builtin.Type">func (*Builtin) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Builtin">Builtin</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="Chan">type <a href="/src/go/types/chan.go?s=336:381#L1">Chan</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Chan 表示通道类型。<pre>type Chan struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewChan">func <a href="/src/go/types/chan.go?s=657:699#L17">NewChan</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewChan(dir <a href="#ChanDir">ChanDir</a>, elem <a href="#Type">Type</a>) *<a href="#Chan">Chan</a></pre>
+				<p>NewChan 返回具有给定方向和元素类型的新通道类型。<h3 id="Chan.Dir">func (*Chan) <a href="/src/go/types/chan.go?s=784:812#L22">Dir</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Chan">Chan</a>) Dir() <a href="#ChanDir">ChanDir</a></pre>
+				<p>Dir 返回通道 c 的方向。<h3 id="Chan.Elem">func (*Chan) <a href="/src/go/types/chan.go?s=878:904#L25">Elem</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Chan">Chan</a>) Elem() <a href="#Type">Type</a></pre>
+				<p>Elem 返回通道 c 的元素类型。<h3 id="Chan.String">func (*Chan) <a href="/src/go/types/chan.go?s=970:1000#L28">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Chan">Chan</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Chan.Underlying">func (*Chan) <a href="/src/go/types/chan.go?s=924:956#L27">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Chan">Chan</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="ChanDir">type <a href="/src/go/types/chan.go?s=433:449#L7">ChanDir</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>ChanDir 值表示通道方向。<pre>type ChanDir <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				<p>通道方向由以下常量之一表示。<pre>const (
+    <span id="SendRecv">SendRecv</span> <a href="#ChanDir">ChanDir</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="SendOnly">SendOnly</span>
+    <span id="RecvOnly">RecvOnly</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Checker">type <a href="/src/go/types/check.go?s=4349:7513#L108">Checker</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Checker 维护类型检查器的状态。必须用 <a href="#NewChecker">NewChecker</a> 创建。<pre>type Checker struct {
+    *<a href="#Info">Info</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewChecker">func <a href="/src/go/types/check.go?s=9650:9735#L226">NewChecker</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewChecker(conf *<a href="#Config">Config</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, pkg *<a href="#Package">Package</a>, info *<a href="#Info">Info</a>) *<a href="#Checker">Checker</a></pre>
+				<p>NewChecker 为给定的包返回新的 <a href="#Checker">Checker</a> 实例。可以通过 checker.Files 增量添加<a href="#Package">包</a>文件。<h3 id="Checker.Files">func (*Checker) <a href="/src/go/types/check.go?s=15181:15239#L399">Files</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (check *<a href="#Checker">Checker</a>) Files(files []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>) (err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Files 将提供的文件作为检查器所属包的一部分进行检查。<h2 id="Config">type <a href="/src/go/types/api.go?s=4793:7489#L112">Config</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Config 指定类型检查配置。Config 的零值是可直接使用的默认配置。<pre>type Config struct {
+<span id="Config.Context"></span>    <span class="comment">// Context 是用于解析全局标识符的上下文。如果为 nil，</span>
+    <span class="comment">// 类型检查器会创建新上下文来初始化此字段。</span>
+    Context *<a href="#Context">Context</a> <span class="comment">// Go 1.18</span>
+
+<span id="Config.GoVersion"></span>    <span class="comment">// GoVersion 描述接受的 Go 语言版本。字符串必须</span>
+    <span class="comment">// 以 "go%d.%d" 形式开头（例如 "go1.20"、"go1.21rc1" 或</span>
+    <span class="comment">// "go1.21.0"），或者为空；空字符串会禁用 Go 语言</span>
+    <span class="comment">// 版本检查。如果格式无效，调用类型检查器</span>
+    <span class="comment">// 会产生错误。</span>
+    GoVersion <a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.18</span>
+
+    <span class="comment">// 如果设置 IgnoreFuncBodies，则不对函数体</span>
+    <span class="comment">// 进行类型检查。</span>
+<span id="Config.IgnoreFuncBodies"></span>    IgnoreFuncBodies <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// 如果设置 FakeImportC，`import "C"`（用于需要 Cgo 的包）</span>
+    <span class="comment">// 会声明空的 "C" 包，并忽略引用 C 包的限定标识符</span>
+    <span class="comment">// 产生的错误（这些标识符找不到对应对象）。</span>
+    <span class="comment">// 此功能供标准库的 cmd/api 工具使用。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意：后续错误可能导致不可预测的影响。</span>
+    <span class="comment">//       不要随意使用！</span>
+<span id="Config.FakeImportC"></span>    FakeImportC <a href="/pkg/builtin/#bool">bool</a>
+
+    <span class="comment">// 如果 Error != nil，类型检查期间发现的每个错误</span>
+    <span class="comment">// 都会传给它；err 的动态类型为 Error。</span>
+    <span class="comment">// 次级错误（例如，为列举无效递归类型声明中</span>
+    <span class="comment">// 涉及的所有类型而产生的错误）的</span>
+    <span class="comment">// 错误字符串以 '\t' 字符开头。</span>
+    <span class="comment">// 如果 Error == nil，类型检查在发现</span>
+    <span class="comment">// 第一个错误时停止。</span>
+<span id="Config.Error"></span>    Error func(err <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// 导入器用于导入 import 声明</span>
+    <span class="comment">// 引用的包。</span>
+    <span class="comment">// 如果配置的导入器实现 ImporterFrom，类型检查器</span>
+    <span class="comment">// 会调用 ImportFrom，而不是 Import。</span>
+    <span class="comment">// 如果需要导入器却未配置，</span>
+    <span class="comment">// 类型检查器会报告错误。</span>
+<span id="Config.Importer"></span>    Importer <a href="#Importer">Importer</a>
+
+    <span class="comment">// 如果 Sizes != nil，它提供 unsafe 包的尺寸计算函数。</span>
+    <span class="comment">// 否则使用 SizesFor("gc", "amd64")。</span>
+<span id="Config.Sizes"></span>    Sizes <a href="#Sizes">Sizes</a>
+
+    <span class="comment">// 如果设置 DisableUnusedImportCheck，则不检查包中</span>
+    <span class="comment">// 是否存在未使用的导入。</span>
+<span id="Config.DisableUnusedImportCheck"></span>    DisableUnusedImportCheck <a href="/pkg/builtin/#bool">bool</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Config.Check">func (*Config) <a href="/src/go/types/api.go?s=17785:17893#L474">Check</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (conf *<a href="#Config">Config</a>) Check(path <a href="/pkg/builtin/#string">string</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, files []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>, info *<a href="#Info">Info</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Check 对包进行类型检查，返回得到的包对象和首个错误（如果有）。此外，如果 info != nil，Check 会填充 <a href="#Info">Info</a> 结构体中每个非 nil 的映射。<p>没有错误时，包被标记为完整，否则为不完整。如何控制出错时的行为，参见 <a href="#Config.Error">Config.Error</a>。<p>包由 *ast.File 列表、相应的文件集以及用于标识该包的包路径指定。清理后的路径不得为空或句点（"."）。<h2 id="Const">type <a href="/src/go/types/object.go?s=7092:7141#L211">Const</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Const 表示声明的常量。<pre>type Const struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewConst">func <a href="/src/go/types/object.go?s=7264:7356#L218">NewConst</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewConst(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, typ <a href="#Type">Type</a>, val <a href="/pkg/go/constant/">constant</a>.<a href="/pkg/go/constant/#Value">Value</a>) *<a href="#Const">Const</a></pre>
+				<p>NewConst 返回值为 val 的新常量。其余参数设置所有 Object 都具有的属性。<h3 id="Const.Exported">func (*Const) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Const.Id">func (*Const) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Const.Name">func (*Const) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Const.Parent">func (*Const) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Const.Pkg">func (*Const) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="Const.Pos">func (*Const) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Const.String">func (*Const) <a href="/src/go/types/object.go?s=20519:20552#L638">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Const.Type">func (*Const) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h3 id="Const.Val">func (*Const) <a href="/src/go/types/object.go?s=7463:7501#L223">Val</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Const">Const</a>) Val() <a href="/pkg/go/constant/">constant</a>.<a href="/pkg/go/constant/#Value">Value</a></pre>
+				<p>Val 返回常量的值。<h2 id="Context">type <a href="/src/go/types/context.go?s=1606:1833#L34">Context</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>Context 是不透明的类型检查上下文，可用于在已完成类型检查的包之间，或多次 Instantiate 调用之间，共享相同的类型实例。Context 可以安全地并发使用。<p>使用共享 context 并不保证在所有情况下都会对相同实例去重。<pre>type Context struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewContext">func <a href="/src/go/types/context.go?s=1963:1989#L48">NewContext</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func NewContext() *<a href="#Context">Context</a></pre>
+				<p>NewContext 创建新的 Context。<h2 id="Error">type <a href="/src/go/types/api.go?s=2000:2582#L41">Error</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Error 描述类型检查错误，实现 error 接口。“软”错误仍允许对包作出有效解释（例如“未使用的变量”）；“硬”错误如果被忽略，可能导致不可预测的行为。<pre>type Error struct {
+<span id="Error.Fset"></span>    Fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a> <span class="comment">// 用于解释 Pos 的文件集</span>
+<span id="Error.Pos"></span>    Pos  <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>      <span class="comment">// 错误位置</span>
+<span id="Error.Msg"></span>    Msg  <a href="/pkg/builtin/#string">string</a>         <span class="comment">// 错误消息</span>
+<span id="Error.Soft"></span>    Soft <a href="/pkg/builtin/#bool">bool</a>           <span class="comment">// 若设置，则为“软”错误</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (Error) <a href="/src/go/types/api.go?s=2672:2703#L59">Error</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (err <a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Error 返回按以下格式组织的错误字符串：
+filename:line:column: message<h2 id="Func">type <a href="/src/go/types/object.go?s=13491:13715#L390">Func</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Func 表示声明的函数、具体方法或抽象（接口）方法。其 Type() 始终为 *Signature。由于嵌入，抽象方法可能属于多个接口。<pre>type Func struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MissingMethod">func <a href="/src/go/types/lookup.go?s=13141:13225#L358">MissingMethod</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func MissingMethod(V <a href="#Type">Type</a>, T *<a href="#Interface">Interface</a>, static <a href="/pkg/builtin/#bool">bool</a>) (method *<a href="#Func">Func</a>, wrongType <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>如果 V 实现 T，MissingMethod 返回 (nil, false)；否则返回 T 所要求但缺失的方法，以及它是确实缺失还是仅类型错误：接收者为指针，或者签名不正确。<p>对于非接口类型 V，或者当 static 已设置时，只要 T 的所有方法都存在于 V 中，V 就实现 T。否则（V 是接口且 static 未设置），MissingMethod 只检查同时出现在 V 中的 T 方法是否具有匹配的类型（例如类型断言 x.(T)，其中 x 的接口类型为 V）。<h3 id="NewFunc">func <a href="/src/go/types/object.go?s=13814:13890#L399">NewFunc</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewFunc(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, sig *<a href="#Signature">Signature</a>) *<a href="#Func">Func</a></pre>
+				<p>NewFunc 返回具有给定签名的新函数，该签名表示函数的类型。<h3 id="Func.Exported">func (*Func) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Func.FullName">func (*Func) <a href="/src/go/types/object.go?s=14923:14957#L430">FullName</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) FullName() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>FullName 返回用包或接收者类型限定的函数或方法 obj 的名称。<h3 id="Func.Id">func (*Func) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Func.Name">func (*Func) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Func.Origin">func (*Func) <a href="/src/go/types/object.go?s=15702:15733#L448">Origin</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Origin() *<a href="#Func">Func</a></pre>
+				<p>Origin 返回接收者对应的规范 Func，即 Info.Defs 中记录的 Func 对象。<p>对于实例化过程中创建的合成函数（例如实例化 Named 类型上的方法，或依赖类型实参的接口方法），返回其泛型（尚未实例化）类型上对应的 Func。对于其他所有 Func，Origin 返回接收者本身。<h3 id="Func.Parent">func (*Func) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Func.Pkg">func (*Func) <a href="/src/go/types/object.go?s=15983:16014#L459">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回函数所属的包。<p>对于 Universe 作用域中类型的方法，结果为 nil，例如内置接口类型 error 的 Error 方法。<h3 id="Func.Pos">func (*Func) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Func.Scope">func (*Func) <a href="/src/go/types/object.go?s=15238:15269#L439">Scope</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Scope() *<a href="#Scope">Scope</a></pre>
+				<p>Scope 返回函数体块的作用域。对于导入或实例化的函数和方法，结果为 nil（不过，也没有机制可以取得实例化后的函数）。<h3 id="Func.Signature">func (*Func) <a href="/src/go/types/object.go?s=14330:14369#L413">Signature</a>
+					
+					<span title="自 Go 1.23 起提供">1.23</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Signature() *<a href="#Signature">Signature</a></pre>
+				<p>Signature 返回函数或方法的签名（类型）。<h3 id="Func.String">func (*Func) <a href="/src/go/types/object.go?s=20732:20764#L641">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Func.Type">func (*Func) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Func">Func</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="Hasher">type <a href="/src/go/types/hash.go?s=407:422#L8">Hasher</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Hasher 为 [Types] 定义与 <a href="#Identical">Identical</a> 一致的哈希函数和等价关系。Hasher 是无状态的。<pre>type Hasher struct{}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Hasher.Equal">func (Hasher) <a href="/src/go/types/hash.go?s=1054:1089#L33">Equal</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (<a href="#Hasher">Hasher</a>) Equal(x, y <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="Hasher.Hash">func (Hasher) <a href="/src/go/types/hash.go?s=640:683#L20">Hash</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (<a href="#Hasher">Hasher</a>) Hash(h *<a href="/pkg/hash/maphash/">maphash</a>.<a href="/pkg/hash/maphash/#Hash">Hash</a>, t <a href="#Type">Type</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="HasherIgnoreTags">type <a href="/src/go/types/hash.go?s=522:547#L12">HasherIgnoreTags</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>HasherIgnoreTags 是 <a href="#Hasher">Hasher</a> 的变体，与 <a href="#IdenticalIgnoreTags">IdenticalIgnoreTags</a> 一致。<pre>type HasherIgnoreTags struct{}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="HasherIgnoreTags.Equal">func (HasherIgnoreTags) <a href="/src/go/types/hash.go?s=1127:1172#L34">Equal</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (<a href="#HasherIgnoreTags">HasherIgnoreTags</a>) Equal(x, y <a href="#Type">Type</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="HasherIgnoreTags.Hash">func (HasherIgnoreTags) <a href="/src/go/types/hash.go?s=939:992#L28">Hash</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (<a href="#HasherIgnoreTags">HasherIgnoreTags</a>) Hash(h *<a href="/pkg/hash/maphash/">maphash</a>.<a href="/pkg/hash/maphash/#Hash">Hash</a>, t <a href="#Type">Type</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="ImportMode">type <a href="/src/go/types/api.go?s=3576:3595#L85">ImportMode</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<p>ImportMode 保留供将来使用。<pre>type ImportMode <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Importer">type <a href="/src/go/types/api.go?s=3274:3532#L77">Importer</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Importer 将导入路径解析为 Package。<p>注意：此接口不支持导入本地 vendor 目录中的包。参见 <a href="/golang.org/s/go15vendor">https://golang.org/s/go15vendor</a>。如果可能，外部实现应实现 <a href="#ImporterFrom">ImporterFrom</a>。<pre>type Importer interface {
+    <span class="comment">// Import 返回给定导入路径对应的导入包。</span>
+    <span class="comment">// 语义与 ImporterFrom.ImportFrom 类似，但忽略</span>
+    <span class="comment">// 不存在于此接口中的 dir 和 mode。</span>
+    Import(path <a href="/pkg/builtin/#string">string</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ImporterFrom">type <a href="/src/go/types/api.go?s=3774:4662#L90">ImporterFrom</a>
+				
+				<span title="自 Go 1.6 起提供">1.6</span>
+			</h2>
+			<p>ImporterFrom 将导入路径解析为包；它支持 <a href="/golang.org/s/go15vendor">https://golang.org/s/go15vendor</a> 所述的 vendoring。可使用 go/importer 获取 ImporterFrom 实现。<pre>type ImporterFrom interface {
+    <span class="comment">// Importer 为向后兼容而保留。调用</span>
+    <span class="comment">// Import(path) 等价于调用 ImportFrom(path, "", 0)；</span>
+    <span class="comment">// 也就是说，可能找不到本地 vendor 目录中的包。</span>
+    <span class="comment">// 如果存在 ImporterFrom，types 包</span>
+    <span class="comment">// 不会调用 Import。</span>
+    <a href="#Importer">Importer</a>
+
+    <span class="comment">// ImportFrom 返回位于 dir 中的包文件使用给定</span>
+    <span class="comment">// 导入路径导入的包。</span>
+    <span class="comment">// 如果导入失败，除返回错误外，也建议 ImportFrom</span>
+    <span class="comment">// 在已创建包对象的情况下缓存并返回该包。</span>
+    <span class="comment">// 这会减少包之间的不一致，</span>
+    <span class="comment">// 以及缺失包导致的后续类型检查错误。</span>
+    <span class="comment">// mode 必须为 0；它保留供将来使用。</span>
+    <span class="comment">// 以相同 path 和 dir 两次调用 ImportFrom，</span>
+    <span class="comment">// 必须返回同一个包。</span>
+    ImportFrom(path, dir <a href="/pkg/builtin/#string">string</a>, mode <a href="#ImportMode">ImportMode</a>) (*<a href="#Package">Package</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Info">type <a href="/src/go/types/api.go?s=7855:13301#L192">Info</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Info 保存已进行类型检查的包所得的类型信息。仅收集为其提供了映射的信息。如果包存在类型错误，所收集的信息可能不完整。<pre>type Info struct {
+<span id="Info.Types"></span>    <span class="comment">// Types 将表达式映射到其类型；对于常量</span>
+    <span class="comment">// 表达式，还包含其值。无效表达式</span>
+    <span class="comment">// 会被省略。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于表示内置函数的标识符（可能带括号），</span>
+    <span class="comment">// 记录的签名取决于调用位置：</span>
+    <span class="comment">// 如果调用结果不是常量，记录的类型就是</span>
+    <span class="comment">// 针对具体实参的签名。否则，记录的类型</span>
+    <span class="comment">// 为无效类型。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Types 映射不会记录每个标识符的类型，</span>
+    <span class="comment">// 只记录出现在允许任意表达式的位置上的</span>
+    <span class="comment">// 标识符。例如：</span>
+    <span class="comment">// - 选择器表达式 x.f 中的标识符 f</span>
+    <span class="comment">//   仅存在于 Selections 映射；</span>
+    <span class="comment">// - 变量声明 'var z int' 中的标识符 z</span>
+    <span class="comment">//   仅存在于 Defs 映射；</span>
+    <span class="comment">// - 限定标识符 p.X 中表示包的标识符 p</span>
+    <span class="comment">//   仅存在于 Uses 映射。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 同样，FuncDecl.Type 字段中的合成 FuncType</span>
+    <span class="comment">// 节点也不会记录类型，因为这种情况下源码中没有</span>
+    <span class="comment">// 对应的函数类型表达式语法。</span>
+    <span class="comment">// 应改为在对应函数声明的</span>
+    <span class="comment">// Defs 映射项中查找函数类型。</span>
+    Types map[<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>]<a href="#TypeAndValue">TypeAndValue</a>
+
+<span id="Info.Instances"></span>    <span class="comment">// Instances 将表示泛型类型或函数的标识符映射到</span>
+    <span class="comment">// 其类型实参和实例化后的类型。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 例如，Instances 会将类型实例化</span>
+    <span class="comment">// T[int, string] 中的标识符 'T' 映射到类型实参 [int, string]，</span>
+    <span class="comment">// 以及由此产生的实例化 *Named 类型。对于泛型函数</span>
+    <span class="comment">// func F[A any](A)，Instances 会将调用表达式</span>
+    <span class="comment">// F(int(1)) 中的标识符 'F' 映射到推断的类型实参 [int]，</span>
+    <span class="comment">// 以及由此产生的实例化 *Signature。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不变式：用 Instances[id].TypeArgs 实例化 Uses[id].Type()，</span>
+    <span class="comment">// 结果等价于 Instances[id].Type。</span>
+    Instances map[*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Ident">Ident</a>]<a href="#Instance">Instance</a> <span class="comment">// Go 1.18</span>
+
+<span id="Info.Defs"></span>    <span class="comment">// Defs 将标识符映射到它们定义的对象（包括</span>
+    <span class="comment">// 包名、点导入的点 "."，以及空白标识符 "_"）。</span>
+    <span class="comment">// 对于不表示对象的标识符（例如 package 子句中的包名，</span>
+    <span class="comment">// 或类型 switch 头部 t := x.(type) 中的符号变量 t），</span>
+    <span class="comment">// 对应对象为 nil。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于嵌入字段，Defs 返回其定义的字段 *Var。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在类型有误的代码中，例如同名重复声明，</span>
+    <span class="comment">// Defs 可能缺少某个声明标识符对应的条目。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不变式：Defs[id] == nil || Defs[id].Pos() == id.Pos()</span>
+    Defs map[*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Ident">Ident</a>]<a href="#Object">Object</a>
+
+<span id="Info.Uses"></span>    <span class="comment">// Uses 将标识符映射到它们表示的对象。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 对于嵌入字段，Uses 返回其表示的 *TypeName。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 不变式：Uses[id].Pos() != id.Pos()</span>
+    Uses map[*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Ident">Ident</a>]<a href="#Object">Object</a>
+
+<span id="Info.Implicits"></span>    <span class="comment">// Implicits 将节点映射到它们隐式声明的对象（如果有）。</span>
+    <span class="comment">// 可能出现以下节点和对象类型：</span>
+    <span class="comment">//</span>
+    <span class="comment">//     节点               声明的对象</span>
+    <span class="comment">//</span>
+    <span class="comment">//     *ast.ImportSpec    未重命名的导入对应的 *PkgName</span>
+    <span class="comment">//     *ast.CaseClause    每个类型 switch case 子句（包括 default）中特定类型的 *Var</span>
+    <span class="comment">//     *ast.Field         匿名参数 *Var（包括未命名结果）</span>
+    <span class="comment">//</span>
+    Implicits map[<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Node">Node</a>]<a href="#Object">Object</a>
+
+<span id="Info.Selections"></span>    <span class="comment">// Selections 将选择器表达式（不包括限定标识符）</span>
+    <span class="comment">// 映射到相应的选择。</span>
+    Selections map[*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#SelectorExpr">SelectorExpr</a>]*<a href="#Selection">Selection</a>
+
+<span id="Info.Scopes"></span>    <span class="comment">// Scopes 将 ast.Node 映射到它们定义的作用域。包作用域不与</span>
+    <span class="comment">// 特定节点关联，而是与属于该包的全部文件关联。</span>
+    <span class="comment">// 因此，可以在完成类型检查的 Package 对象中找到包作用域。</span>
+    <span class="comment">// 作用域相互嵌套：Universe 是最外层作用域，包含</span>
+    <span class="comment">// 包作用域；包作用域包含一个或多个文件作用域，后者包含</span>
+    <span class="comment">// 函数作用域，而函数作用域又包含语句和函数字面量作用域。</span>
+    <span class="comment">// 注意，虽然包级函数在包作用域中声明，</span>
+    <span class="comment">// 但函数作用域嵌套在包含其声明的</span>
+    <span class="comment">// 文件的文件作用域中。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 函数的 Scope 包含所有类型形参、</span>
+    <span class="comment">// 参数和具名结果的声明，以及</span>
+    <span class="comment">// 函数体块中的所有局部声明。</span>
+    <span class="comment">// 其范围与该函数语法（[*ast.FuncDecl] 或 [*ast.FuncLit]）的</span>
+    <span class="comment">// 完整范围相同。</span>
+    <span class="comment">// Scopes 映射不包含函数体（[*ast.BlockStmt]）</span>
+    <span class="comment">// 对应的条目；函数作用域与</span>
+    <span class="comment">// [*ast.FuncType] 关联。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Scopes 中可能出现以下节点类型：</span>
+    <span class="comment">//</span>
+    <span class="comment">//     *ast.File</span>
+    <span class="comment">//     *ast.FuncType</span>
+    <span class="comment">//     *ast.TypeSpec</span>
+    <span class="comment">//     *ast.BlockStmt</span>
+    <span class="comment">//     *ast.IfStmt</span>
+    <span class="comment">//     *ast.SwitchStmt</span>
+    <span class="comment">//     *ast.TypeSwitchStmt</span>
+    <span class="comment">//     *ast.CaseClause</span>
+    <span class="comment">//     *ast.CommClause</span>
+    <span class="comment">//     *ast.ForStmt</span>
+    <span class="comment">//     *ast.RangeStmt</span>
+    <span class="comment">//</span>
+    Scopes map[<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Node">Node</a>]*<a href="#Scope">Scope</a>
+
+<span id="Info.InitOrder"></span>    <span class="comment">// InitOrder 按必须执行的顺序列出包级初始化器。</span>
+    <span class="comment">// 如果初始化器引用的变量之间存在初始化依赖，</span>
+    <span class="comment">// 则按拓扑顺序排列；其他初始化器</span>
+    <span class="comment">// 按源码顺序排列。没有初始化表达式的变量</span>
+    <span class="comment">// 不会出现在此列表中。</span>
+    InitOrder []*<a href="#Initializer">Initializer</a>
+
+<span id="Info.FileVersions"></span>    <span class="comment">// FileVersions 将文件映射到其 Go 版本字符串。</span>
+    <span class="comment">// 如果文件未指定版本，返回的</span>
+    <span class="comment">// 字符串就是 Config.GoVersion。</span>
+    <span class="comment">// 版本字符串以 “go” 开头，例如 “go1.21”，</span>
+    <span class="comment">// 适合与 [go/version] 包配合使用。</span>
+    FileVersions map[*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#File">File</a>]<a href="/pkg/builtin/#string">string</a> <span class="comment">// Go 1.22</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Info" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleInfo 输出类型检查器在 types.Info 结构体中记录的各种信息：每个具名对象的定义和引用，以及包中每个表达式的类型、值和模式。</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 解析单个源文件。</span>
+const input = `
+package fib
+
+type S string
+
+var a, b, c = len(b), S(c), &#34;hello&#34;
+
+func fib(x int) int {
+    if x &lt; 2 {
+        return x
+    }
+    return fib(x-1) - fib(x-2)
+}`
+<span class="comment">// 下面的测试需要特定的文件集来处理位置。</span>
+<span class="comment">// 不能使用 typecheck 辅助函数。</span>
+fset := token.NewFileSet()
+f := mustParse(fset, input)
+
+<span class="comment">// 对包进行类型检查。</span>
+<span class="comment">// 为每种感兴趣的信息创建空映射，</span>
+<span class="comment">// Check 会填充它们。</span>
+info := types.Info{
+    Types: make(map[ast.Expr]types.TypeAndValue),
+    Defs:  make(map[*ast.Ident]types.Object),
+    Uses:  make(map[*ast.Ident]types.Object),
+}
+var conf types.Config
+pkg, err := conf.Check(&#34;fib&#34;, fset, []*ast.File{f}, &amp;info)
+if err != nil {
+    log.Fatal(err)
+}
+
+<span class="comment">// 按初始化顺序输出包级变量。</span>
+fmt.Printf(&#34;InitOrder: %v\n\n&#34;, info.InitOrder)
+
+<span class="comment">// 对于每个具名对象，输出其定义及每次使用位置的</span>
+<span class="comment">// 行号和列号。</span>
+fmt.Println(&#34;Defs and Uses of each named object:&#34;)
+usesByObj := make(map[types.Object][]string)
+for id, obj := range info.Uses {
+    posn := fset.Position(id.Pos())
+    lineCol := fmt.Sprintf(&#34;%d:%d&#34;, posn.Line, posn.Column)
+    usesByObj[obj] = append(usesByObj[obj], lineCol)
+}
+var items []string
+for obj, uses := range usesByObj {
+    slices.Sort(uses)
+    item := fmt.Sprintf(&#34;%s:\n  defined at %s\n  used at %s&#34;,
+        types.ObjectString(obj, types.RelativeTo(pkg)),
+        fset.Position(obj.Pos()),
+        strings.Join(uses, &#34;, &#34;))
+    items = append(items, item)
+}
+slices.Sort(items) <span class="comment">// 实际按行号:列号排序</span>
+fmt.Println(strings.Join(items, &#34;\n&#34;))
+fmt.Println()
+
+fmt.Println(&#34;Types and Values of each expression:&#34;)
+items = nil
+for expr, tv := range info.Types {
+    var buf strings.Builder
+    posn := fset.Position(expr.Pos())
+    tvstr := tv.Type.String()
+    if tv.Value != nil {
+        tvstr += &#34; = &#34; + tv.Value.String()
+    }
+    <span class="comment">// line:col | expr | mode : type = value</span>
+    fmt.Fprintf(&amp;buf, &#34;%2d:%2d | %-19s | %-7s : %s&#34;,
+        posn.Line, posn.Column, exprString(fset, expr),
+        mode(tv), tvstr)
+    items = append(items, buf.String())
+}
+slices.Sort(items)
+fmt.Println(strings.Join(items, &#34;\n&#34;))
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">InitOrder: [c = &#34;hello&#34; b = S(c) a = len(b)]
+
+Defs and Uses of each named object:
+builtin len:
+  defined at -
+  used at 6:15
+func fib(x int) int:
+  defined at fib:8:6
+  used at 12:20, 12:9
+type S string:
+  defined at fib:4:6
+  used at 6:23
+type int:
+  defined at -
+  used at 8:12, 8:17
+type string:
+  defined at -
+  used at 4:8
+var b S:
+  defined at fib:6:8
+  used at 6:19
+var c string:
+  defined at fib:6:11
+  used at 6:25
+var x int:
+  defined at fib:8:10
+  used at 10:10, 12:13, 12:24, 9:5
+
+Types and Values of each expression:
+ 4: 8 | string              | type    : string
+ 6:15 | len                 | builtin : func(fib.S) int
+ 6:15 | len(b)              | value   : int
+ 6:19 | b                   | var     : fib.S
+ 6:23 | S                   | type    : fib.S
+ 6:23 | S(c)                | value   : fib.S
+ 6:25 | c                   | var     : string
+ 6:29 | &#34;hello&#34;             | value   : string = &#34;hello&#34;
+ 8:12 | int                 | type    : int
+ 8:17 | int                 | type    : int
+ 9: 5 | x                   | var     : int
+ 9: 5 | x &lt; 2               | value   : untyped bool
+ 9: 9 | 2                   | value   : int = 2
+10:10 | x                   | var     : int
+12: 9 | fib                 | value   : func(x int) int
+12: 9 | fib(x - 1)          | value   : int
+12: 9 | fib(x-1) - fib(x-2) | value   : int
+12:13 | x                   | var     : int
+12:13 | x - 1               | value   : int
+12:15 | 1                   | value   : int = 1
+12:20 | fib                 | value   : func(x int) int
+12:20 | fib(x - 2)          | value   : int
+12:24 | x                   | var     : int
+12:24 | x - 2               | value   : int
+12:26 | 2                   | value   : int = 2
+</pre>
+      
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+				<h3 id="Info.ObjectOf">func (*Info) <a href="/src/go/types/api.go?s=13999:14047#L345">ObjectOf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (info *<a href="#Info">Info</a>) ObjectOf(id *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Ident">Ident</a>) <a href="#Object">Object</a></pre>
+				<p>ObjectOf 返回指定 id 表示的对象；未找到时返回 nil。<p>如果 id 是嵌入的结构体字段，<a href="#Info.ObjectOf">Info.ObjectOf</a> 返回它定义的字段（*<a href="#Var">Var</a>），而不是它使用的类型（*<a href="#TypeName">TypeName</a>）。<p>前提条件：Uses 和 Defs 映射已填充。<h3 id="Info.PkgNameOf">func (*Info) <a href="/src/go/types/api.go?s=14331:14388#L358">PkgNameOf</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (info *<a href="#Info">Info</a>) PkgNameOf(imp *<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#ImportSpec">ImportSpec</a>) *<a href="#PkgName">PkgName</a></pre>
+				<p>PkgNameOf 返回该导入定义的局部包名；未找到时返回 nil。<p>对于点导入，包名为 "."。<p>前提条件：Defs 和 Implicts 映射已填充。（译注：原文 Implicts 为拼写错误，此处指 Info.Implicits 字段。）<h3 id="Info.TypeOf">func (*Info) <a href="/src/go/types/api.go?s=13498:13539#L326">TypeOf</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (info *<a href="#Info">Info</a>) TypeOf(e <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>) <a href="#Type">Type</a></pre>
+				<p>TypeOf 返回表达式 e 的类型；未找到时返回 nil。前提条件：Types、Uses 和 Defs 映射已填充。<h2 id="Initializer">type <a href="/src/go/types/api.go?s=16910:16980#L445">Initializer</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Initializer 描述包级变量（如果初始化表达式返回多个值，则为变量列表）及其对应的初始化表达式。<pre>type Initializer struct {
+<span id="Initializer.Lhs"></span>    Lhs []*<a href="#Var">Var</a> <span class="comment">// var Lhs = Rhs</span>
+<span id="Initializer.Rhs"></span>    Rhs <a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#Expr">Expr</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Initializer.String">func (*Initializer) <a href="/src/go/types/api.go?s=16982:17022#L450">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (init *<a href="#Initializer">Initializer</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Instance">type <a href="/src/go/types/api.go?s=16568:16627#L433">Instance</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>Instance 记录类型和函数实例化所用的类型实参，以及实例化后的类型。对于类型实例化，<a href="#Type">Type</a> 的动态类型为 *<a href="#Named">Named</a>；对于函数实例化，<a href="#Type">Type</a> 的动态类型为 *Signature。<pre>type Instance struct {
+<span id="Instance.TypeArgs"></span>    TypeArgs *<a href="#TypeList">TypeList</a>
+<span id="Instance.Type"></span>    Type     <a href="#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Instance.String">func (Instance) <a href="/src/go/types/api.go?s=16629:16665#L438">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (inst <a href="#Instance">Instance</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Interface">type <a href="/src/go/types/interface.go?s=370:1011#L7">Interface</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Interface 表示接口类型。<pre>type Interface struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewInterface">func <a href="/src/go/types/interface.go?s=1569:1634#L29">NewInterface</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewInterface(methods []*<a href="#Func">Func</a>, embeddeds []*<a href="#Named">Named</a>) *<a href="#Interface">Interface</a></pre>
+				<p>NewInterface 根据给定方法和嵌入类型返回新接口。NewInterface 接管所提供方法的所有权，并可能通过补充缺失的接收者来修改其类型。<p>已弃用：请改用允许任意嵌入类型的 NewInterfaceType。<h3 id="NewInterfaceType">func <a href="/src/go/types/interface.go?s=2129:2196#L43">NewInterfaceType</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func NewInterfaceType(methods []*<a href="#Func">Func</a>, embeddeds []<a href="#Type">Type</a>) *<a href="#Interface">Interface</a></pre>
+				<p>NewInterfaceType 根据给定方法和嵌入类型返回新接口。NewInterfaceType 接管所提供方法的所有权，并可能通过补充缺失的接收者来修改其类型。<p>为避免竞态条件，应在并发使用接口之前显式调用 Complete，计算其类型集。<h3 id="Interface.Complete">func (*Interface) <a href="/src/go/types/interface.go?s=5529:5570#L129">Complete</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Complete() *<a href="#Interface">Interface</a></pre>
+				<p>Complete 计算接口的类型集。<a href="#NewInterfaceType">NewInterfaceType</a> 和 <a href="#NewInterface">NewInterface</a> 的使用者必须在接口的嵌入类型完全定义后调用它；在此之前，接口类型只能用于构造其他类型，不得以其他方式使用。接口不得包含重复方法，否则会引发 panic。Complete 返回接收者。<p>已完成计算的接口类型可以安全地并发使用。<h3 id="Interface.Embedded">func (*Interface) <a href="/src/go/types/interface.go?s=3920:3962#L97">Embedded</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Embedded(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Named">Named</a></pre>
+				<p>Embedded 返回接口 t 的第 i 个嵌入的定义类型（*<a href="#Named">Named</a>），其中 0 &lt;= i &lt; t.NumEmbeddeds()。如果第 i 个嵌入类型不是定义类型，结果为 nil。<p>已弃用：请使用不局限于定义类型（*<a href="#Named">Named</a>）的 <a href="#Interface.EmbeddedType">Interface.EmbeddedType</a>。<h3 id="Interface.EmbeddedType">func (*Interface) <a href="/src/go/types/interface.go?s=4092:4136#L100">EmbeddedType</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) EmbeddedType(i <a href="/pkg/builtin/#int">int</a>) <a href="#Type">Type</a></pre>
+				<p>EmbeddedType 返回接口 t 的第 i 个嵌入类型，其中 0 &lt;= i &lt; t.NumEmbeddeds()。<h3 id="Interface.EmbeddedTypes">func (*Interface) <a href="/src/go/types/iter.go?s=1384:1434#L37">EmbeddedTypes</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) EmbeddedTypes() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Type">Type</a>]</pre>
+				<p>EmbeddedTypes 返回 Go 1.23 迭代器，用于遍历接口中嵌入的类型。<p>示例：for e := range t.EmbeddedTypes() { ... }<h3 id="Interface.Empty">func (*Interface) <a href="/src/go/types/interface.go?s=4554:4586#L110">Empty</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Empty() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Empty 报告 t 是否为空接口。<h3 id="Interface.ExplicitMethod">func (*Interface) <a href="/src/go/types/interface.go?s=3432:3479#L88">ExplicitMethod</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) ExplicitMethod(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Func">Func</a></pre>
+				<p>ExplicitMethod 返回接口 t 显式声明的第 i 个方法，其中 0 &lt;= i &lt; t.NumExplicitMethods()。方法按其唯一 <a href="#Id">Id</a> 排序。<h3 id="Interface.ExplicitMethods">func (*Interface) <a href="/src/go/types/iter.go?s=1040:1093#L24">ExplicitMethods</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) ExplicitMethods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Func">Func</a>]</pre>
+				<p>ExplicitMethods 返回 Go 1.23 迭代器，按 Id 顺序遍历接口的显式方法。<p>示例：for m := range t.ExplicitMethods() { ... }<h3 id="Interface.IsComparable">func (*Interface) <a href="/src/go/types/interface.go?s=4702:4741#L113">IsComparable</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) IsComparable() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsComparable 报告接口 t 的类型集中的每个类型是否都可比较。<h3 id="Interface.IsImplicit">func (*Interface) <a href="/src/go/types/interface.go?s=5032:5069#L120">IsImplicit</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) IsImplicit() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsImplicit 报告接口 t 是否是类型集字面量的包装。<h3 id="Interface.IsMethodSet">func (*Interface) <a href="/src/go/types/interface.go?s=4872:4910#L117">IsMethodSet</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) IsMethodSet() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsMethodSet 报告接口 t 是否完全由其方法集描述。<h3 id="Interface.MarkImplicit">func (*Interface) <a href="/src/go/types/interface.go?s=3050:3084#L79">MarkImplicit</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) MarkImplicit()</pre>
+				<p>MarkImplicit 将接口 t 标记为隐式，表示此接口对应 ~T 或 A|B 这样的约束字面量，而没有显式的 interface 嵌入。在并发使用隐式接口之前，应先调用 MarkImplicit。<h3 id="Interface.Method">func (*Interface) <a href="/src/go/types/interface.go?s=4429:4468#L107">Method</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Method(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Func">Func</a></pre>
+				<p>Method 返回接口 t 的第 i 个方法，其中 0 &lt;= i &lt; t.NumMethods()。方法按其唯一 Id 排序。<h3 id="Interface.Methods">func (*Interface) <a href="/src/go/types/iter.go?s=700:745#L10">Methods</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Methods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Func">Func</a>]</pre>
+				<p>Methods 返回 Go 1.23 迭代器，按 Id 顺序遍历接口的所有方法。<p>示例：for m := range t.Methods() { ... }<h3 id="Interface.NumEmbeddeds">func (*Interface) <a href="/src/go/types/interface.go?s=3574:3612#L91">NumEmbeddeds</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) NumEmbeddeds() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumEmbeddeds 返回接口 t 中嵌入类型的数量。<h3 id="Interface.NumExplicitMethods">func (*Interface) <a href="/src/go/types/interface.go?s=3197:3241#L84">NumExplicitMethods</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) NumExplicitMethods() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumExplicitMethods 返回接口 t 中显式声明的方法数。<h3 id="Interface.NumMethods">func (*Interface) <a href="/src/go/types/interface.go?s=4230:4266#L103">NumMethods</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) NumMethods() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumMethods 返回接口 t 的方法总数。<h3 id="Interface.String">func (*Interface) <a href="/src/go/types/interface.go?s=5726:5761#L138">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Interface.Underlying">func (*Interface) <a href="/src/go/types/interface.go?s=5675:5712#L137">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Interface">Interface</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Label">type <a href="/src/go/types/object.go?s=17159:17228#L484">Label</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Label 表示声明的标签。标签没有类型。<pre>type Label struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewLabel">func <a href="/src/go/types/object.go?s=17263:17325#L490">NewLabel</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewLabel(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>) *<a href="#Label">Label</a></pre>
+				<p>NewLabel 返回新标签。<h3 id="Label.Exported">func (*Label) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Label.Id">func (*Label) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Label.Name">func (*Label) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Label.Parent">func (*Label) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Label.Pkg">func (*Label) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="Label.Pos">func (*Label) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Label.String">func (*Label) <a href="/src/go/types/object.go?s=20803:20836#L642">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Label.Type">func (*Label) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Label">Label</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="Map">type <a href="/src/go/types/map.go?s=330:365#L1">Map</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Map 表示映射类型。<pre>type Map struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewMap">func <a href="/src/go/types/map.go?s=432:464#L6">NewMap</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewMap(key, elem <a href="#Type">Type</a>) *<a href="#Map">Map</a></pre>
+				<p>NewMap 返回具有给定键类型和元素类型的新映射类型。<h3 id="Map.Elem">func (*Map) <a href="/src/go/types/map.go?s=629:654#L14">Elem</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Elem() <a href="#Type">Type</a></pre>
+				<p>Elem 返回映射 m 的元素类型。<h3 id="Map.Key">func (*Map) <a href="/src/go/types/map.go?s=543:567#L11">Key</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (m *<a href="#Map">Map</a>) Key() <a href="#Type">Type</a></pre>
+				<p>Key 返回映射 m 的键类型。<h3 id="Map.String">func (*Map) <a href="/src/go/types/map.go?s=719:748#L17">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Map">Map</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Map.Underlying">func (*Map) <a href="/src/go/types/map.go?s=674:705#L16">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Map">Map</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="MethodSet">type <a href="/src/go/types/methodset.go?s=487:531#L8">MethodSet</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>MethodSet 是具体方法或抽象（接口）方法的有序集合；每个方法是一个 <a href="#MethodVal">MethodVal</a> 选择，按 m.Obj().Id() 的升序排列。MethodSet 的零值是可直接使用的空方法集。<pre>type MethodSet struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_MethodSet" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleMethodSet 输出各种类型的方法集。</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 解析单个源文件。</span>
+const input = `
+package temperature
+import &#34;fmt&#34;
+type Celsius float64
+func (c Celsius) String() string  { return fmt.Sprintf(&#34;%g°C&#34;, c) }
+func (c *Celsius) SetF(f float64) { *c = Celsius(f - 32 / 9 * 5) }
+
+type S struct { I; m int }
+type I interface { m() byte }
+`
+fset := token.NewFileSet()
+f := mustParse(fset, input)
+
+<span class="comment">// 对由此文件组成的包进行类型检查。</span>
+<span class="comment">// 导入包的类型信息</span>
+<span class="comment">// 来自 $GOROOT/pkg/$GOOS_$GOOARCH/fmt.a。</span>
+conf := types.Config{Importer: defaultImporter(fset)}
+pkg, err := conf.Check(&#34;temperature&#34;, fset, []*ast.File{f}, nil)
+if err != nil {
+    log.Fatal(err)
+}
+
+<span class="comment">// 输出 Celsius 和 *Celsius 的方法集。</span>
+celsius := pkg.Scope().Lookup(&#34;Celsius&#34;).Type()
+for _, t := range []types.Type{celsius, types.NewPointer(celsius)} {
+    fmt.Printf(&#34;Method set of %s:\n&#34;, t)
+    for m := range types.NewMethodSet(t).Methods() {
+        fmt.Println(m)
+    }
+    fmt.Println()
+}
+
+<span class="comment">// 输出 S 的方法集。</span>
+styp := pkg.Scope().Lookup(&#34;S&#34;).Type()
+fmt.Printf(&#34;Method set of %s:\n&#34;, styp)
+fmt.Println(types.NewMethodSet(styp))
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">Method set of temperature.Celsius:
+method (temperature.Celsius) String() string
+
+Method set of *temperature.Celsius:
+method (*temperature.Celsius) SetF(f float64)
+method (*temperature.Celsius) String() string
+
+Method set of temperature.S:
+MethodSet {}
+</pre>
+      
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewMethodSet">func <a href="/src/go/types/methodset.go?s=1811:1847#L62">NewMethodSet</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewMethodSet(T <a href="#Type">Type</a>) *<a href="#MethodSet">MethodSet</a></pre>
+				<p>NewMethodSet 返回给定类型 T 的方法集。即使方法集为空，也始终返回非 nil 的方法集。<h3 id="MethodSet.At">func (*MethodSet) <a href="/src/go/types/methodset.go?s=945:985#L30">At</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#MethodSet">MethodSet</a>) At(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Selection">Selection</a></pre>
+				<p>At 返回 s 中的第 i 个方法，其中 0 &lt;= i &lt; s.Len()。<h3 id="MethodSet.Len">func (*MethodSet) <a href="/src/go/types/methodset.go?s=834:863#L27">Len</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#MethodSet">MethodSet</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回 s 中的方法数。<h3 id="MethodSet.Lookup">func (*MethodSet) <a href="/src/go/types/methodset.go?s=1090:1154#L33">Lookup</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#MethodSet">MethodSet</a>) Lookup(pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>) *<a href="#Selection">Selection</a></pre>
+				<p>Lookup 返回与包和名称匹配的方法；未找到时返回 nil。<h3 id="MethodSet.Methods">func (*MethodSet) <a href="/src/go/types/iter.go?s=2908:2958#L102">Methods</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#MethodSet">MethodSet</a>) Methods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Selection">Selection</a>]</pre>
+				<p>Methods 返回 Go 1.23 迭代器，用于遍历方法集中的方法。<p>示例：for method := range s.Methods() { ... }<h3 id="MethodSet.String">func (*MethodSet) <a href="/src/go/types/methodset.go?s=533:568#L12">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#MethodSet">MethodSet</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Named">type <a href="/src/go/types/named.go?s=5394:6628#L98">Named</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Named 表示具名的定义类型。<p>例如，以下声明：<pre>type S struct { ... }
+</pre>
+<p>创建一个底层类型为结构体的定义类型，并将其绑定到 <a href="#TypeName">TypeName</a> 对象 S。使用 <a href="#Named.Underlying">Named.Underlying</a> 可以访问底层类型。使用 <a href="#Named.Obj">Named.Obj</a> 可以取得对象 S。<p>在引入类型别名（Go 1.9）之前，规范将定义类型称为“具名类型”。<pre>type Named struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewNamed">func <a href="/src/go/types/named.go?s=9121:9190#L179">NewNamed</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewNamed(obj *<a href="#TypeName">TypeName</a>, underlying <a href="#Type">Type</a>, methods []*<a href="#Func">Func</a>) *<a href="#Named">Named</a></pre>
+				<p>NewNamed 根据给定的类型名、底层类型和关联方法返回新的具名类型。如果给定类型名 obj 尚无类型，就将其类型设置为返回的具名类型。底层类型不得为 *Named。<h3 id="Named.AddMethod">func (*Named) <a href="/src/go/types/named.go?s=20086:20120#L544">AddMethod</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) AddMethod(m *<a href="#Func">Func</a>)</pre>
+				<p>AddMethod 添加方法 m，除非它已存在于方法列表中。该方法必须与 t 位于同一个包中，且 t 不得带有类型实参。<h3 id="Named.Method">func (*Named) <a href="/src/go/types/named.go?s=16784:16819#L423">Method</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) Method(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Func">Func</a></pre>
+				<p>Method 返回具名类型 t 的第 i 个方法，其中 0 &lt;= i &lt; t.NumMethods()。<p>对于普通类型或已实例化的类型 t，此方法的接收者基类型就是具名类型 t。返回的 Func 的 Signature 不包含接收者类型形参。<p>对于尚未实例化的泛型类型 t，每个方法接收者都用其接收者类型形参进行实例化。返回的 Func 的 Signature 包含用于实例化接收者的接收者类型形参。<p>方法编号是确定性的：只要向类型检查器提供相同的源文件列表，或进行相同顺序的 NewMethod 和 AddMethod 调用，方法索引到对应方法的映射就保持不变。不过，具体顺序未作规定，将来可能改变，因此不得依赖该顺序。<h3 id="Named.Methods">func (*Named) <a href="/src/go/types/iter.go?s=1702:1743#L50">Methods</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) Methods() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Func">Func</a>]</pre>
+				<p>Methods 返回 Go 1.23 迭代器，用于遍历具名类型声明的方法。<p>示例：for m := range t.Methods() { ... }<h3 id="Named.NumMethods">func (*Named) <a href="/src/go/types/named.go?s=15867:15899#L404">NumMethods</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) NumMethods() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumMethods 返回为 t 定义的显式方法数。<h3 id="Named.Obj">func (*Named) <a href="/src/go/types/named.go?s=14846:14877#L368">Obj</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) Obj() *<a href="#TypeName">TypeName</a></pre>
+				<p>Obj 返回定义具名类型 t 的声明中的类型名。对于实例化后的类型，这与其原始类型的类型名相同。<h3 id="Named.Origin">func (*Named) <a href="/src/go/types/named.go?s=15079:15110#L377">Origin</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) Origin() *<a href="#Named">Named</a></pre>
+				<p>Origin 返回具名类型 t 所实例化自的泛型类型。如果 t 不是实例化后的类型，则结果为 t。<h3 id="Named.SetTypeParams">func (*Named) <a href="/src/go/types/named.go?s=15500:15551#L390">SetTypeParams</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) SetTypeParams(tparams []*<a href="#TypeParam">TypeParam</a>)</pre>
+				<p>SetTypeParams 设置具名类型 t 的类型形参。t 不得带有类型实参。<h3 id="Named.SetUnderlying">func (*Named) <a href="/src/go/types/named.go?s=19485:19522#L521">SetUnderlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) SetUnderlying(u <a href="#Type">Type</a>)</pre>
+				<p>SetUnderlying 设置底层类型，并将 t 标记为完整。t 不得带有类型实参。<h3 id="Named.String">func (*Named) <a href="/src/go/types/named.go?s=21662:21693#L609">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Named.TypeArgs">func (*Named) <a href="/src/go/types/named.go?s=15700:15736#L396">TypeArgs</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) TypeArgs() *<a href="#TypeList">TypeList</a></pre>
+				<p>TypeArgs 返回用于实例化具名类型 t 的类型实参。<h3 id="Named.TypeParams">func (*Named) <a href="/src/go/types/named.go?s=15327:15370#L386">TypeParams</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Named">Named</a>) TypeParams() *<a href="#TypeParamList">TypeParamList</a></pre>
+				<p>TypeParams 返回具名类型 t 的类型形参，或 nil。对于原本为泛型的类型，即使已经实例化，结果也非 nil。<h3 id="Named.Underlying">func (*Named) <a href="/src/go/types/named.go?s=21214:21247#L591">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (n *<a href="#Named">Named</a>) Underlying() <a href="#Type">Type</a></pre>
+				<p>Underlying 返回具名类型 t 的<a href="/ref/spec#Underlying_types.">底层类型</a>，并解析所有转发声明。底层类型绝不会是 Named、TypeParam 或 Alias 类型。<h2 id="Nil">type <a href="/src/go/types/object.go?s=17711:17738#L506">Nil</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Nil 表示预声明值 nil。<pre>type Nil struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Nil.Exported">func (*Nil) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Nil.Id">func (*Nil) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Nil.Name">func (*Nil) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Nil.Parent">func (*Nil) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Nil.Pkg">func (*Nil) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="Nil.Pos">func (*Nil) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Nil.String">func (*Nil) <a href="/src/go/types/object.go?s=20945:20976#L644">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Nil.Type">func (*Nil) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Nil">Nil</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="Object">type <a href="/src/go/types/object.go?s=819:2502#L19">Object</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Object 是具名的语言实体，可以是常量（<a href="#Const">Const</a>）、类型名（<a href="#TypeName">TypeName</a>）、变量或结构体字段（<a href="#Var">Var</a>）、函数或方法（<a href="#Func">Func</a>）、导入的包（<a href="#PkgName">PkgName</a>）、标签（<a href="#Label">Label</a>）、内置函数（<a href="#Builtin">Builtin</a>），或预声明标识符 nil（<a href="#Nil">Nil</a>）。<p>环境以 Scope 树组织，将每个名称映射到它表示的唯一 Object。<pre>type Object interface {
+    Parent() *<a href="#Scope">Scope</a> <span class="comment">// 声明此对象的作用域；方法和结构体字段为 nil</span>
+    Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a> <span class="comment">// 声明中对象标识符的位置</span>
+    Pkg() *<a href="#Package">Package</a>  <span class="comment">// 此对象所属的包；标签和 Universe 作用域中的对象为 nil</span>
+    Name() <a href="/pkg/builtin/#string">string</a>   <span class="comment">// 对象在包内的名称</span>
+    Type() <a href="#Type">Type</a>     <span class="comment">// 对象类型</span>
+    Exported() <a href="/pkg/builtin/#bool">bool</a> <span class="comment">// 报告名称是否以大写字母开头</span>
+    Id() <a href="/pkg/builtin/#string">string</a>     <span class="comment">// 导出时为对象名，未导出时为限定名（参见 Id 函数）</span>
+
+    <span class="comment">// String 返回便于人阅读的对象字符串。</span>
+    <span class="comment">// 使用 [ObjectString] 可控制字符串中包名的格式。</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+    <span class="comment">// 包含已过滤或未导出的方法</span>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LookupFieldOrMethod">func <a href="/src/go/types/lookup.go?s=3510:3628#L78">LookupFieldOrMethod</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func LookupFieldOrMethod(T <a href="#Type">Type</a>, addressable <a href="/pkg/builtin/#bool">bool</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>) (obj <a href="#Object">Object</a>, index []<a href="/pkg/builtin/#int">int</a>, indirect <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LookupFieldOrMethod 在 T 中查找具有给定包和名称的字段或方法，返回对应的 *Var 或 *Func、索引序列，以及表示通向该字段或方法的路径上是否存在指针间接访问的布尔值。如果 addressable 已设置，T 就是可寻址变量的类型（仅对方法查找有意义）。T 不得为 nil。<p>索引序列的最后一项，是在找到该条目的类型（可能是嵌入类型）中的字段或方法索引，具体为以下之一：<ol>
+<li>具名类型声明的方法列表；或<li>接口类型的全部方法列表（方法集）；或<li>结构体类型的字段列表。</ol>
+<p>之前的索引项是从深度 0 开始，为找到该条目而遍历的嵌入结构体字段的索引。<p>如果未找到条目，返回 nil 对象。此时，返回的 index 和 indirect 具有以下含义：<ul>
+<li><p>如果 index != nil，该索引序列指向有歧义的条目（同一嵌入层级中，同名条目出现不止一次）。<li><p>如果 indirect 已设置，表示找到了指针接收者类型的方法，但从实际接收者类型到该方法形式接收者基类型的路径上没有指针，且接收者也不可寻址。</ul>
+<p>另见 <a href="#LookupSelection">LookupSelection</a>，它将结果作为 <a href="#Selection">Selection</a> 返回。<h2 id="Package">type <a href="/src/go/types/package.go?s=358:787#L5">Package</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Package 描述 Go 包。<pre>type Package struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+				<p>Unsafe 包是导入器为导入路径 "unsafe" 返回的包。<pre>var <span id="Unsafe">Unsafe</span> *<a href="#Package">Package</a></pre>
+			
+
+			
+
+			
+				<h3 id="NewPackage">func <a href="/src/go/types/package.go?s=927:970#L18">NewPackage</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewPackage(path, name <a href="/pkg/builtin/#string">string</a>) *<a href="#Package">Package</a></pre>
+				<p>NewPackage 根据给定的包路径和名称返回新 Package。该包尚不完整，且不包含显式导入。<h3 id="Package.Complete">func (*Package) <a href="/src/go/types/package.go?s=2132:2167#L51">Complete</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) Complete() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>如果包作用域中至少包含全部导出对象，该包就是完整的；否则是不完整的。<h3 id="Package.GoVersion">func (*Package) <a href="/src/go/types/package.go?s=1649:1687#L36">GoVersion</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) GoVersion() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>GoVersion 返回此包要求的最低 Go 版本。如果最低版本未知，则返回空字符串。单个源文件可以指定不同的最低 Go 版本，记录在 <a href="/pkg/go/ast/#File.GoVersion">go/ast.File.GoVersion</a> 字段中。<h3 id="Package.Imports">func (*Package) <a href="/src/go/types/package.go?s=2742:2782#L65">Imports</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) Imports() []*<a href="#Package">Package</a></pre>
+				<p>Imports 返回 pkg 直接导入的包列表，按源码顺序排列。<p>如果 pkg 从导出数据加载，Imports 包含提供被 pkg 引用的包级对象的包。这个集合可能多于，也可能少于 pkg 源码直接导入的包集合。<p>如果 pkg 使用 cgo 且启用了 FakeImportC 配置选项，导入列表中可能包含伪造的 "C" 包。<h3 id="Package.MarkComplete">func (*Package) <a href="/src/go/types/package.go?s=2238:2272#L54">MarkComplete</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) MarkComplete()</pre>
+				<p>MarkComplete 将包标记为完整。<h3 id="Package.Name">func (*Package) <a href="/src/go/types/package.go?s=1230:1263#L27">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回包名。<h3 id="Package.Path">func (*Package) <a href="/src/go/types/package.go?s=1141:1174#L24">Path</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) Path() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Path 返回包路径。<h3 id="Package.Scope">func (*Package) <a href="/src/go/types/package.go?s=1925:1959#L42">Scope</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) Scope() *<a href="#Scope">Scope</a></pre>
+				<p>Scope 返回保存包级声明对象（TypeName、Const、Var 和 Func）的包作用域，可以完整，也可以不完整。对于 nil 的 pkg 接收者，Scope 返回 Universe 作用域。<h3 id="Package.SetImports">func (*Package) <a href="/src/go/types/package.go?s=2952:2999#L69">SetImports</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) SetImports(list []*<a href="#Package">Package</a>)</pre>
+				<p>SetImports 将显式导入包的列表设置为 list。调用方负责确保 list 中的元素唯一。<h3 id="Package.SetName">func (*Package) <a href="/src/go/types/package.go?s=1319:1359#L30">SetName</a>
+					
+					<span title="自 Go 1.6 起提供">1.6</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) SetName(name <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>SetName 设置包名。<h3 id="Package.String">func (*Package) <a href="/src/go/types/package.go?s=3024:3059#L71">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (pkg *<a href="#Package">Package</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="PkgName">type <a href="/src/go/types/object.go?s=6479:6529#L195">PkgName</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>PkgName 表示导入的 Go 包。PkgName 没有类型。<pre>type PkgName struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewPkgName">func <a href="/src/go/types/object.go?s=6678:6763#L202">NewPkgName</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewPkgName(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, imported *<a href="#Package">Package</a>) *<a href="#PkgName">PkgName</a></pre>
+				<p>NewPkgName 返回表示导入包的新 PkgName 对象。其余参数设置所有 Object 都具有的属性。<h3 id="PkgName.Exported">func (*PkgName) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="PkgName.Id">func (*PkgName) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="PkgName.Imported">func (*PkgName) <a href="/src/go/types/object.go?s=6984:7023#L208">Imported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Imported() *<a href="#Package">Package</a></pre>
+				<p>Imported 返回被导入的包。这与 Pkg() 不同，后者返回包含该导入语句的包。<h3 id="PkgName.Name">func (*PkgName) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="PkgName.Parent">func (*PkgName) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="PkgName.Pkg">func (*PkgName) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="PkgName.Pos">func (*PkgName) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="PkgName.String">func (*PkgName) <a href="/src/go/types/object.go?s=20448:20483#L637">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="PkgName.Type">func (*PkgName) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#PkgName">PkgName</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="Pointer">type <a href="/src/go/types/pointer.go?s=342:392#L1">Pointer</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Pointer 表示指针类型。<pre>type Pointer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewPointer">func <a href="/src/go/types/pointer.go?s=470:505#L6">NewPointer</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewPointer(elem <a href="#Type">Type</a>) *<a href="#Pointer">Pointer</a></pre>
+				<p>NewPointer 返回具有给定元素（基）类型的新指针类型。<h3 id="Pointer.Elem">func (*Pointer) <a href="/src/go/types/pointer.go?s=597:626#L9">Elem</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (p *<a href="#Pointer">Pointer</a>) Elem() <a href="#Type">Type</a></pre>
+				<p>Elem 返回给定指针 p 的元素类型。<h3 id="Pointer.String">func (*Pointer) <a href="/src/go/types/pointer.go?s=695:728#L12">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (p *<a href="#Pointer">Pointer</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Pointer.Underlying">func (*Pointer) <a href="/src/go/types/pointer.go?s=646:681#L11">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (p *<a href="#Pointer">Pointer</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Qualifier">type <a href="/src/go/types/typestring.go?s=964:1000#L21">Qualifier</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Qualifier 控制调用 <a href="#TypeString">TypeString</a>、<a href="#ObjectString">ObjectString</a> 和 <a href="#SelectionString">SelectionString</a> 时，具名包级对象的输出方式。<p>这三个格式化例程会对每个包级对象 O 调用 Qualifier。如果 Qualifier 返回非空字符串 p，则以 p.O 形式输出该对象；如果返回空字符串，就只输出对象名 O。<p>使用 nil Qualifier 等价于使用 (*<a href="#Package">Package</a>).Path：以导入路径限定对象，例如 "encoding/json.Marshal"。<pre>type Qualifier func(*<a href="#Package">Package</a>) <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="RelativeTo">func <a href="/src/go/types/typestring.go?s=1102:1141#L25">RelativeTo</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func RelativeTo(pkg *<a href="#Package">Package</a>) <a href="#Qualifier">Qualifier</a></pre>
+				<p>RelativeTo 返回 <a href="#Qualifier">Qualifier</a>，对 pkg 以外所有包的成员使用完全限定名。<h2 id="Scope">type <a href="/src/go/types/scope.go?s=619:1013#L15">Scope</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Scope 维护对象集合，以及指向包含它的（父）作用域和被它包含的（子）作用域的链接。可以按名称插入和查找对象。Scope 的零值是可直接使用的空作用域。<pre>type Scope struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+				<p>Universe 作用域包含 Go 的全部预声明对象。它是任意嵌套作用域链的最外层作用域。<pre>var <span id="Universe">Universe</span> *<a href="#Scope">Scope</a></pre>
+			
+
+			
+
+
+<div id="example_Scope" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>ExampleScope 输出由一组已解析文件创建的包的 Scope 树。</p>
+    
+    
+      <p>代码：</p>
+      <pre class="code"><span class="comment">// 解析包的源文件。</span>
+fset := token.NewFileSet()
+var files []*ast.File
+for _, src := range []string{
+    `package main
+import &#34;fmt&#34;
+func main() {
+    freezing := FToC(-18)
+    fmt.Println(freezing, Boiling) }
+`,
+    `package main
+import &#34;fmt&#34;
+type Celsius float64
+func (c Celsius) String() string { return fmt.Sprintf(&#34;%g°C&#34;, c) }
+func FToC(f float64) Celsius { return Celsius(f - 32 / 9 * 5) }
+const Boiling Celsius = 100
+func Unused() { {}; {{ var x int; _ = x }} } // make sure empty block scopes get printed
+`,
+} {
+    files = append(files, mustParse(fset, src))
+}
+
+<span class="comment">// 对由这些文件组成的包进行类型检查。</span>
+<span class="comment">// 导入的 "fmt" 包的类型信息</span>
+<span class="comment">// 来自 $GOROOT/pkg/$GOOS_$GOOARCH/fmt.a。</span>
+conf := types.Config{Importer: defaultImporter(fset)}
+pkg, err := conf.Check(&#34;temperature&#34;, fset, files, nil)
+if err != nil {
+    log.Fatal(err)
+}
+
+<span class="comment">// 输出作用域树。</span>
+<span class="comment">// 为确保结果确定，隐藏地址。</span>
+var buf strings.Builder
+pkg.Scope().WriteTo(&amp;buf, 0, true)
+rx := regexp.MustCompile(` 0x[a-fA-F\d]*`)
+fmt.Println(rx.ReplaceAllString(buf.String(), &#34;&#34;))
+
+<span class="comment"></pre>
+      
+        <p>输出：</p>
+        <pre class="output">package &#34;temperature&#34; scope {
+.  const temperature.Boiling temperature.Celsius
+.  type temperature.Celsius float64
+.  func temperature.FToC(f float64) temperature.Celsius
+.  func temperature.Unused()
+.  func temperature.main()
+.  main scope {
+.  .  package fmt
+.  .  function scope {
+.  .  .  var freezing temperature.Celsius
+.  .  }
+.  }
+.  main scope {
+.  .  package fmt
+.  .  function scope {
+.  .  .  var c temperature.Celsius
+.  .  }
+.  .  function scope {
+.  .  .  var f float64
+.  .  }
+.  .  function scope {
+.  .  .  block scope {
+.  .  .  }
+.  .  .  block scope {
+.  .  .  .  block scope {
+.  .  .  .  .  var x int
+.  .  .  .  }
+.  .  .  }
+.  .  }
+.  }
+}
+</pre>
+      
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewScope">func <a href="/src/go/types/scope.go?s=1137:1208#L27">NewScope</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewScope(parent *<a href="#Scope">Scope</a>, pos, end <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, comment <a href="/pkg/builtin/#string">string</a>) *<a href="#Scope">Scope</a></pre>
+				<p>NewScope 返回新的空作用域，包含在给定父作用域中（如果有）。comment 仅用于调试。<h3 id="Scope.Child">func (*Scope) <a href="/src/go/types/scope.go?s=2078:2113#L59">Child</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Child(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Scope">Scope</a></pre>
+				<p>Child 返回第 i 个子作用域，其中 0 &lt;= i &lt; NumChildren()。<h3 id="Scope.Children">func (*Scope) <a href="/src/go/types/iter.go?s=2016:2059#L63">Children</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Children() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Scope">Scope</a>]</pre>
+				<p>Children 返回 Go 1.23 迭代器，用于遍历嵌套在作用域 s 中的子作用域。<p>示例：for child := range scope.Children() { ... }<h3 id="Scope.Contains">func (*Scope) <a href="/src/go/types/scope2.go?s=1786:1830#L33">Contains</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Contains(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Contains 报告 pos 是否位于作用域范围内。只有经过类型检查的 AST 具有完整位置信息时，才保证结果有效。<h3 id="Scope.End">func (*Scope) <a href="/src/go/types/scope2.go?s=1567:1598#L28">End</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				
+				
+			
+				<h3 id="Scope.Innermost">func (*Scope) <a href="/src/go/types/scope2.go?s=2170:2217#L42">Innermost</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Innermost(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>) *<a href="#Scope">Scope</a></pre>
+				<p>Innermost 返回包含 pos 的最内层（子）作用域。如果 pos 不在任何作用域中，结果为 nil。对于 Universe 作用域，结果也为 nil。只有经过类型检查的 AST 具有完整位置信息时，才保证结果有效。<h3 id="Scope.Insert">func (*Scope) <a href="/src/go/types/scope.go?s=3038:3079#L83">Insert</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Insert(obj <a href="#Object">Object</a>) <a href="#Object">Object</a></pre>
+				<p>Insert 尝试将对象 obj 插入作用域 s。如果 s 已包含另一个同名对象 alt，则保持 s 不变并返回 alt。否则插入 obj；如果该对象尚未设置父作用域，则设置其父作用域；最后返回 nil。<h3 id="Scope.Len">func (*Scope) <a href="/src/go/types/scope.go?s=1607:1632#L41">Len</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回作用域中的元素数量。<h3 id="Scope.Lookup">func (*Scope) <a href="/src/go/types/scope.go?s=2258:2300#L63">Lookup</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Lookup(name <a href="/pkg/builtin/#string">string</a>) <a href="#Object">Object</a></pre>
+				<p>Lookup 返回作用域 s 中具有给定名称的对象；如果不存在，则返回 nil。<h3 id="Scope.LookupParent">func (*Scope) <a href="/src/go/types/scope2.go?s=1033:1106#L14">LookupParent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) LookupParent(name <a href="/pkg/builtin/#string">string</a>, pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>) (*<a href="#Scope">Scope</a>, <a href="#Object">Object</a>)</pre>
+				<p>LookupParent 从 s 开始沿父作用域链查找，直到找到 Lookup(name) 返回非 nil 对象的作用域，然后返回该作用域和对象。如果提供了有效位置 pos，则仅考虑在 pos 处或之前声明的对象。如果不存在这样的作用域和对象，结果为 (nil, nil)。只有经过类型检查的 AST 具有完整位置信息时，才保证结果有效。<p>注意，如果对象插入该作用域时已经有父作用域，obj.Parent() 可能与返回的作用域不同（参见 Insert）。这仅可能发生在点导入的对象上，其父作用域是导出该对象的包的作用域。<h3 id="Scope.Names">func (*Scope) <a href="/src/go/types/scope.go?s=1718:1750#L44">Names</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Names() []<a href="/pkg/builtin/#string">string</a></pre>
+				<p>Names 返回作用域中按名称排序的元素名。<h3 id="Scope.NumChildren">func (*Scope) <a href="/src/go/types/scope.go?s=1950:1983#L56">NumChildren</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) NumChildren() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumChildren 返回嵌套在 s 中的作用域数量。<h3 id="Scope.Parent">func (*Scope) <a href="/src/go/types/scope.go?s=1509:1540#L38">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回包含此作用域的父作用域。<h3 id="Scope.Pos">func (*Scope) <a href="/src/go/types/scope2.go?s=1518:1549#L27">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 和 End 描述作用域的源码范围 [pos, end)。只有经过类型检查的 AST 具有完整位置信息时，才保证结果有效。Universe 和包作用域的范围未定义。<h3 id="Scope.String">func (*Scope) <a href="/src/go/types/scope.go?s=5027:5058#L148">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回作用域的字符串表示，用于调试。<h3 id="Scope.WriteTo">func (*Scope) <a href="/src/go/types/scope.go?s=4558:4615#L127">WriteTo</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Scope">Scope</a>) WriteTo(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, n <a href="/pkg/builtin/#int">int</a>, recurse <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>WriteTo 将作用域的字符串表示写入 w，其中的元素按名称排序。缩进层级由 n &gt;= 0 控制，n == 0 表示不缩进。如果设置了 recurse，还会写出嵌套的子作用域。<h2 id="Selection">type <a href="/src/go/types/selection.go?s=2792:3025#L65">Selection</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Selection 描述选择器表达式 x.f。对于以下声明：<pre>type T struct{ x int; E }
+type E struct{}
+func (e E) m() {}
+var p *T
+</pre>
+<p>存在以下关系：<pre>选择器    Kind          Recv    Obj    Type       Index     Indirect
+
+p.x         FieldVal      T       x      int        {0}       true
+p.m         MethodVal     *T      m      func()     {1, 0}    true
+T.m         MethodExpr    T       m      func(T)    {1, 0}    false
+</pre>
+
+			<pre>type Selection struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LookupSelection">func <a href="/src/go/types/lookup.go?s=1441:1532#L30">LookupSelection</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func LookupSelection(T <a href="#Type">Type</a>, addressable <a href="/pkg/builtin/#bool">bool</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>) (<a href="#Selection">Selection</a>, <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>LookupSelection 在 T 类型的值上选择 ID 为 Id(pkg, name) 的字段或方法。如果 addressable 已设置，则 T 是可寻址变量的类型（这仅对方法查找有意义）。T 不得为 nil。<p>如果该选择有效：<ul>
+<li><a href="#Selection.Obj">Selection.Obj</a> 返回字段（<a href="#Var">Var</a>）或方法（<a href="#Func">Func</a>）；<li><a href="#Selection.Indirect">Selection.Indirect</a> 报告通向该字段或方法的路径上是否存在指针间接访问。<li><a href="#Selection.Index">Selection.Index</a> 返回下文定义的索引序列。</ul>
+<p>索引序列的最后一项，是在找到该条目的类型（可能是嵌入类型）中的字段或方法索引，具体为以下之一：<ol>
+<li>具名类型声明的方法列表；或<li>接口类型的全部方法列表（方法集）；或<li>结构体类型的字段列表。</ol>
+<p>之前的索引项是从深度 0 开始，为找到该条目而遍历的嵌入结构体字段的索引。<p>另见 <a href="#LookupFieldOrMethod">LookupFieldOrMethod</a>，它分别返回各个组成部分。<h3 id="Selection.Index">func (*Selection) <a href="/src/go/types/selection.go?s=4919:4952#L129">Index</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Index() []<a href="/pkg/builtin/#int">int</a></pre>
+				<p>Index 描述 x.f 中从 x 到 f 的路径。索引序列的最后一项，是声明 f 的类型中的字段或方法索引，具体为以下之一：<ol>
+<li>具名类型声明的方法列表；或<li>接口类型的方法列表；或<li>结构体类型的字段列表。</ol>
+<p>之前的索引项是从嵌入深度 0 开始，从 x 的类型到 f 所隐式遍历的嵌入字段的索引。<h3 id="Selection.Indirect">func (*Selection) <a href="/src/go/types/selection.go?s=5293:5328#L138">Indirect</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Indirect() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Indirect 报告在 x.f 中从 x 到 f 是否需要任何指针间接访问。<p>注意：对于接收者实参和形参均为 *T 类型、因此不存在间接访问的 MethodVal 选择，Indirect 会错误地返回 true（Go 问题 #8353）。遗憾的是，修复此问题的风险过大。<h3 id="Selection.Kind">func (*Selection) <a href="/src/go/types/selection.go?s=3063:3103#L74">Kind</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Kind() <a href="#SelectionKind">SelectionKind</a></pre>
+				<p>Kind 返回选择的种类。<h3 id="Selection.Obj">func (*Selection) <a href="/src/go/types/selection.go?s=3319:3351#L81">Obj</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Obj() <a href="#Object">Object</a></pre>
+				<p>Obj 返回 x.f 表示的对象：字段选择返回 *Var，其他情况均返回 *Func。<h3 id="Selection.Recv">func (*Selection) <a href="/src/go/types/selection.go?s=3161:3192#L77">Recv</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Recv() <a href="#Type">Type</a></pre>
+				<p>Recv 返回 x.f 中 x 的类型。<h3 id="Selection.String">func (*Selection) <a href="/src/go/types/selection.go?s=5352:5387#L140">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Selection.Type">func (*Selection) <a href="/src/go/types/selection.go?s=3485:3516#L85">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Selection">Selection</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回 x.f 的类型，它可能与 f 的类型不同。更多信息参见 Selection。<h2 id="SelectionKind">type <a href="/src/go/types/selection.go?s=2077:2099#L42">SelectionKind</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>SelectionKind 描述选择器表达式 x.f 的种类（不包括限定标识符）。<p>如果 x 是结构体或结构体指针，选择器表达式 x.f 可以表示选择操作序列 x.a.b.c.f。SelectionKind 描述最后一次显式操作的种类；之前的隐式操作始终都是字段选择。Indices 的每个元素都通过隐式字段（a、b、c）在字段选择操作数的结构体类型中的索引来指定该字段。<p>对于 FieldVal 操作，最后一次选择引用 Selection.Obj 指定的字段。<p>对于 MethodVal 操作，最后一次选择引用方法。如果方法声明的接收者是否为指针，与隐式字段选择后实际接收者是否为指针不一致，就会对接收者变量或值隐式应用 &amp; 或 * 操作。因此，当 f 要求指针接收者、而 x.a.b.c 是非指针变量时，x.f 表示 (&amp;x.a.b.c).f；当 f 要求非指针接收者、而 x.a.b.c 是指针值时，x.f 表示 (*x.a.b.c).f。<p>所有指针间接访问，无论来自隐式或显式字段选择，还是为匹配指针属性而插入的 * 操作，只要作用于 nil 指针都会引发 panic。因此，方法调用 x.f() 甚至可能在函数调用之前就引发 panic。<p>相比之下，MethodExpr 操作 T.f 本质上等价于以下形式的函数字面量：<pre>func(x T, args) (results) { return x.f(args) }
+</pre>
+<p>因此，任何隐式字段选择，以及为匹配指针属性而插入的 * 操作，直到函数被调用时才会求值，所以 T.f 或 (*T).f 表达式本身绝不会引发 panic。<pre>type SelectionKind <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="FieldVal">FieldVal</span>   <a href="#SelectionKind">SelectionKind</a> = <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// x.f 是结构体字段选择器</span>
+    <span id="MethodVal">MethodVal</span>                       <span class="comment">// x.f 是方法选择器</span>
+    <span id="MethodExpr">MethodExpr</span>                      <span class="comment">// x.f 是方法表达式</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Signature">type <a href="/src/go/types/signature.go?s=493:1983#L11">Signature</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Signature 表示非内置函数或方法的类型。比较签名是否相同时会忽略接收者。<pre>type Signature struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewSignature">func <a href="/src/go/types/signature.go?s=2438:2516#L48">NewSignature</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewSignature(recv *<a href="#Var">Var</a>, params, results *<a href="#Tuple">Tuple</a>, variadic <a href="/pkg/builtin/#bool">bool</a>) *<a href="#Signature">Signature</a></pre>
+				<p>NewSignature 根据给定接收者、参数和结果返回新函数类型，这三者均可以为 nil。如果设置 variadic，该函数为可变参数函数，必须至少有一个参数，且最后一个参数必须是非具名切片类型。<p>已弃用：请改用支持类型形参的 <a href="#NewSignatureType">NewSignatureType</a>。<h3 id="NewSignatureType">func <a href="/src/go/types/signature.go?s=3320:3443#L66">NewSignatureType</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func NewSignatureType(recv *<a href="#Var">Var</a>, recvTypeParams, typeParams []*<a href="#TypeParam">TypeParam</a>, params, results *<a href="#Tuple">Tuple</a>, variadic <a href="/pkg/builtin/#bool">bool</a>) *<a href="#Signature">Signature</a></pre>
+				<p>NewSignatureType 根据给定的接收者、接收者类型形参、类型形参、参数和结果创建新函数类型。<p>如果设置 variadic，params 必须至少包含一个参数，且最后一个参数必须是非具名切片，或者是类型集中具有非具名切片作为共同底层类型的类型形参。<p>作为特殊情况，为支持 append([]byte, str...)，可变参数签名的最后一个参数也可以是字符串类型，或类型集中混合包含字节切片和字符串类型的类型形参。它甚至可以是实例化这种类型形参得到的具名 []byte 切片类型。<p>如果 recvTypeParams 非空，recv 必须非 nil。<h3 id="Signature.Params">func (*Signature) <a href="/src/go/types/signature.go?s=5744:5779#L136">Params</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) Params() *<a href="#Tuple">Tuple</a></pre>
+				<p>Params 返回签名 s 的参数，或 nil。可变参数函数的详情参见 <a href="#NewSignatureType">NewSignatureType</a>。<h3 id="Signature.Recv">func (*Signature) <a href="/src/go/types/signature.go?s=5286:5317#L126">Recv</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) Recv() *<a href="#Var">Var</a></pre>
+				<p>如果 s 是方法签名，Recv 返回其接收者；如果是函数签名，则返回 nil。比较签名是否相同时会忽略接收者。<p>对于抽象方法，Recv 返回包含该方法的接口，类型为 *<a href="#Named">Named</a> 或 *<a href="#Interface">Interface</a>。由于嵌入，一个接口可能包含接收者类型为其他接口的方法。<h3 id="Signature.RecvTypeParams">func (*Signature) <a href="/src/go/types/signature.go?s=5552:5603#L132">RecvTypeParams</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) RecvTypeParams() *<a href="#TypeParamList">TypeParamList</a></pre>
+				<p>RecvTypeParams 返回签名 s 的接收者类型形参，或 nil。<h3 id="Signature.Results">func (*Signature) <a href="/src/go/types/signature.go?s=5856:5892#L139">Results</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) Results() *<a href="#Tuple">Tuple</a></pre>
+				<p>Results 返回签名 s 的结果，或 nil。<h3 id="Signature.String">func (*Signature) <a href="/src/go/types/signature.go?s=6082:6117#L145">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Signature.TypeParams">func (*Signature) <a href="/src/go/types/signature.go?s=5403:5450#L129">TypeParams</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) TypeParams() *<a href="#TypeParamList">TypeParamList</a></pre>
+				<p>TypeParams 返回签名 s 的类型形参，或 nil。<h3 id="Signature.Underlying">func (*Signature) <a href="/src/go/types/signature.go?s=6031:6068#L144">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+				<h3 id="Signature.Variadic">func (*Signature) <a href="/src/go/types/signature.go?s=5972:6007#L142">Variadic</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Signature">Signature</a>) Variadic() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Variadic 报告签名 s 是否为可变参数。<h2 id="Sizes">type <a href="/src/go/types/sizes.go?s=390:1051#L3">Sizes</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Sizes 定义 unsafe 包使用的尺寸计算函数。<pre>type Sizes interface {
+    <span class="comment">// Alignof 返回 T 类型变量的对齐值。</span>
+    <span class="comment">// Alignof 必须实现规范要求的对齐保证。</span>
+    <span class="comment">// 结果必须 &gt;= 1。</span>
+    Alignof(T <a href="#Type">Type</a>) <a href="/pkg/builtin/#int64">int64</a>
+
+    <span class="comment">// Offsetsof 返回给定结构体字段的偏移量，单位为字节。</span>
+    <span class="comment">// Offsetsof 必须实现规范要求的偏移保证。</span>
+    <span class="comment">// 结果中的负数项表示结构体过大。</span>
+    Offsetsof(fields []*<a href="#Var">Var</a>) []<a href="/pkg/builtin/#int64">int64</a>
+
+    <span class="comment">// Sizeof 返回 T 类型变量的大小。</span>
+    <span class="comment">// Sizeof 必须实现规范要求的大小保证。</span>
+    <span class="comment">// 负数结果表示 T 过大。</span>
+    Sizeof(T <a href="#Type">Type</a>) <a href="/pkg/builtin/#int64">int64</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SizesFor">func <a href="/src/go/types/sizes.go?s=7209:7251#L250">SizesFor</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func SizesFor(compiler, arch <a href="/pkg/builtin/#string">string</a>) <a href="#Sizes">Sizes</a></pre>
+				<p>SizesFor 返回指定编译器在指定架构上使用的 Sizes。如果该编译器/架构组合未知，则结果为 nil。<p>编译器 "gc" 支持的架构："386"、 "amd64"、 "amd64p32"、 "arm"、 "arm64"、 "loong64"、 "mips"、 "mipsle"、 "mips64"、 "mips64le"、 "ppc64"、 "ppc64le"、 "riscv64"、 "s390x"、 "sparc64"、 "wasm"。<h2 id="Slice">type <a href="/src/go/types/slice.go?s=336:368#L1">Slice</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Slice 表示切片类型。<pre>type Slice struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewSlice">func <a href="/src/go/types/slice.go?s=435:466#L6">NewSlice</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewSlice(elem <a href="#Type">Type</a>) *<a href="#Slice">Slice</a></pre>
+				<p>NewSlice 返回具有给定元素类型的新切片类型。<h3 id="Slice.Elem">func (*Slice) <a href="/src/go/types/slice.go?s=543:570#L9">Elem</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Slice">Slice</a>) Elem() <a href="#Type">Type</a></pre>
+				<p>Elem 返回切片 s 的元素类型。<h3 id="Slice.String">func (*Slice) <a href="/src/go/types/slice.go?s=637:668#L12">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Slice">Slice</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Slice.Underlying">func (*Slice) <a href="/src/go/types/slice.go?s=590:623#L11">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Slice">Slice</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="StdSizes">type <a href="/src/go/types/sizes.go?s=1957:2104#L38">StdSizes</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>StdSizes 是创建常用 Sizes 的便捷类型。它采用以下简化假设：<ul>
+<li>显式指定大小的基本类型（int16 等）的大小就是指定大小。<li>字符串和接口的大小为 2*WordSize。<li>切片的大小为 3*WordSize。<li>含 n 个元素的数组大小，对应于具有 n 个连续字段、各字段类型均为数组元素类型的结构体大小。<li>结构体的大小为最后一个字段的偏移量加上该字段的大小。与所有元素类型一样，如果结构体用于数组，其大小必须先向上对齐为该结构体对齐值的整数倍。<li>其他所有类型的大小均为 WordSize。<li>数组和结构体按规范定义对齐；其他所有类型采用自然对齐，最大对齐值为 MaxAlign。</ul>
+<p>*StdSizes 实现 Sizes。<pre>type StdSizes struct {
+<span id="StdSizes.WordSize"></span>    WordSize <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 字长，单位为字节；必须 &gt;= 4（32 位）</span>
+<span id="StdSizes.MaxAlign"></span>    MaxAlign <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 最大对齐值，单位为字节；必须 &gt;= 1</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StdSizes.Alignof">func (*StdSizes) <a href="/src/go/types/sizes.go?s=2106:2155#L43">Alignof</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#StdSizes">StdSizes</a>) Alignof(T <a href="#Type">Type</a>) (result <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				
+				
+			
+				<h3 id="StdSizes.Offsetsof">func (*StdSizes) <a href="/src/go/types/sizes.go?s=4149:4200#L119">Offsetsof</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#StdSizes">StdSizes</a>) Offsetsof(fields []*<a href="#Var">Var</a>) []<a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+				<h3 id="StdSizes.Sizeof">func (*StdSizes) <a href="/src/go/types/sizes.go?s=4904:4943#L157">Sizeof</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#StdSizes">StdSizes</a>) Sizeof(T <a href="#Type">Type</a>) <a href="/pkg/builtin/#int64">int64</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Struct">type <a href="/src/go/types/struct.go?s=373:550#L8">Struct</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Struct 表示结构体类型。<pre>type Struct struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewStruct">func <a href="/src/go/types/struct.go?s=850:902#L17">NewStruct</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewStruct(fields []*<a href="#Var">Var</a>, tags []<a href="/pkg/builtin/#string">string</a>) *<a href="#Struct">Struct</a></pre>
+				<p>NewStruct 根据给定字段及其对应标签返回新结构体类型。如果索引为 i 的字段有标签，则 tags[i] 必须是该标签；不过，len(tags) 只需足以容纳最大索引 i 处的标签。因此，如果没有字段带标签，tags 可以为 nil。<h3 id="Struct.Field">func (*Struct) <a href="/src/go/types/struct.go?s=1401:1435#L36">Field</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Struct">Struct</a>) Field(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Var">Var</a></pre>
+				<p>Field 返回第 i 个字段，其中 0 &lt;= i &lt; NumFields()。<h3 id="Struct.Fields">func (*Struct) <a href="/src/go/types/iter.go?s=2318:2358#L76">Fields</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (s *<a href="#Struct">Struct</a>) Fields() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Var">Var</a>]</pre>
+				<p>Fields 返回 Go 1.23 迭代器，用于遍历结构体类型的字段。<p>示例：for field := range s.Fields() { ... }<h3 id="Struct.NumFields">func (*Struct) <a href="/src/go/types/struct.go?s=1284:1316#L33">NumFields</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Struct">Struct</a>) NumFields() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>NumFields 返回结构体中的字段数（包括空白字段和嵌入字段）。<h3 id="Struct.String">func (*Struct) <a href="/src/go/types/struct.go?s=1663:1695#L47">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Struct">Struct</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Struct.Tag">func (*Struct) <a href="/src/go/types/struct.go?s=1520:1554#L39">Tag</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (s *<a href="#Struct">Struct</a>) Tag(i <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Tag 返回第 i 个字段标签，其中 0 &lt;= i &lt; NumFields()。<h3 id="Struct.Underlying">func (*Struct) <a href="/src/go/types/struct.go?s=1615:1649#L46">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Struct">Struct</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Term">type <a href="/src/go/types/union.go?s=1009:1023#L27">Term</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>Term 表示 <a href="#Union">Union</a> 中的一个项。<pre>type Term term</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTerm">func <a href="/src/go/types/union.go?s=1062:1102#L30">NewTerm</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func NewTerm(tilde <a href="/pkg/builtin/#bool">bool</a>, typ <a href="#Type">Type</a>) *<a href="#Term">Term</a></pre>
+				<p>NewTerm 返回新的联合项。<h3 id="Term.String">func (*Term) <a href="/src/go/types/union.go?s=1231:1261#L34">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Term">Term</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Term.Tilde">func (*Term) <a href="/src/go/types/union.go?s=1133:1160#L32">Tilde</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Term">Term</a>) Tilde() <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="Term.Type">func (*Term) <a href="/src/go/types/union.go?s=1183:1209#L33">Type</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#Term">Term</a>) Type() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Tuple">type <a href="/src/go/types/tuple.go?s=530:564#L3">Tuple</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Tuple 表示变量的有序列表；nil *Tuple 是有效的空元组。元组用于组成签名，以及表示多重赋值的类型；它们不是 Go 的一等类型。<pre>type Tuple struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTuple">func <a href="/src/go/types/tuple.go?s=623:654#L8">NewTuple</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewTuple(x ...*<a href="#Var">Var</a>) *<a href="#Tuple">Tuple</a></pre>
+				<p>NewTuple 根据给定变量返回新元组。<h3 id="Tuple.At">func (*Tuple) <a href="/src/go/types/tuple.go?s=889:919#L24">At</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Tuple">Tuple</a>) At(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Var">Var</a></pre>
+				<p>At 返回元组 t 中的第 i 个变量。<h3 id="Tuple.Len">func (*Tuple) <a href="/src/go/types/tuple.go?s=765:790#L16">Len</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Tuple">Tuple</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回元组 t 中的变量数。<h3 id="Tuple.String">func (*Tuple) <a href="/src/go/types/tuple.go?s=989:1020#L27">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Tuple">Tuple</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Tuple.Underlying">func (*Tuple) <a href="/src/go/types/tuple.go?s=942:975#L26">Underlying</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (t *<a href="#Tuple">Tuple</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+				<h3 id="Tuple.Variables">func (*Tuple) <a href="/src/go/types/iter.go?s=2621:2663#L89">Variables</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (t *<a href="#Tuple">Tuple</a>) Variables() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Var">Var</a>]</pre>
+				<p>Variables 返回 Go 1.23 迭代器，用于遍历元组类型的变量。<p>示例：for v := range tuple.Variables() { ... }<h2 id="Type">type <a href="/src/go/types/type.go?s=253:540#L1">Type</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Type 表示 Go 类型。所有类型都实现 Type 接口。<pre>type Type interface {
+    <span class="comment">// Underlying 返回类型的底层类型。</span>
+    <span class="comment">// 底层类型绝不会是 Named、TypeParam 或 Alias 类型。</span>
+    <span class="comment">//</span>
+    <span class="comment">// See https://go.dev/ref/spec#Underlying_types.</span>
+    Underlying() <a href="#Type">Type</a>
+
+    <span class="comment">// String 返回类型的字符串表示。</span>
+    String() <a href="/pkg/builtin/#string">string</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Default">func <a href="/src/go/types/predicates.go?s=16582:16607#L513">Default</a>
+					
+					<span title="自 Go 1.8 起提供">1.8</span>
+				</h3>
+				<pre>func Default(t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>Default 返回“无类型”类型对应的默认“有类型”类型；其他类型均原样返回。无类型 nil 的默认类型仍为无类型 nil。<h3 id="Instantiate">func <a href="/src/go/types/instantiate.go?s=2331:2416#L44">Instantiate</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func Instantiate(ctxt *<a href="#Context">Context</a>, orig <a href="#Type">Type</a>, targs []<a href="#Type">Type</a>, validate <a href="/pkg/builtin/#bool">bool</a>) (<a href="#Type">Type</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Instantiate 使用给定的类型实参 targs 实例化类型 orig。orig 必须是泛型 *Alias、*Named 或 *Signature 类型。如果没有错误，得到的 Type 是同种类的实例化类型（分别为 *Alias、*Named 或 *Signature）。<p>附属于 *Named 类型的方法也会被实例化，并与新 *Func 关联；该 *Func 与原方法位置相同，但函数作用域为 nil。<p>如果 ctxt 非 nil，可用它将当前实例与先前具有相同身份的实例去重。作为特殊情况，泛型 *Signature 原始类型仅在指针相等时才被视为相同，因此对不同的（即使可能类型相同的）签名进行实例化，会产生不同实例。使用共享上下文并不保证在所有情况下都会对相同实例去重。<p>如果设置 validate，Instantiate 会验证 orig 确实为泛型类型、类型实参与形参数量相符，以及类型实参满足各自的类型约束。如果验证失败，产生的错误可能包装 *ArgumentError，指出哪个类型实参未满足其类型形参约束，以及失败原因。<p>如果未设置 validate，Instantiate 不检查 orig 是否为泛型，不验证类型实参数量，也不检查类型实参是否满足约束。Instantiate 保证不返回错误，但可能引发 panic。具体而言，对于 *Signature 类型，如果类型实参数量不正确，会立即引发 panic；对于 *Named 类型，可能稍后在 *Named API 内引发 panic。<h3 id="Unalias">func <a href="/src/go/types/alias.go?s=3275:3300#L76">Unalias</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func Unalias(t <a href="#Type">Type</a>) <a href="#Type">Type</a></pre>
+				<p>如果 t 不是别名类型，Unalias 返回 t；否则沿 t 的别名链查找，直到遇到非别名类型并返回它。因此，结果绝不会是别名类型。如果别名不完整，则返回 nil。<h2 id="TypeAndValue">type <a href="/src/go/types/api.go?s=14642:14723#L371">TypeAndValue</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>TypeAndValue 记录对应表达式的类型和值（对于常量）。<pre>type TypeAndValue struct {
+<span id="TypeAndValue.Type"></span>    Type  <a href="#Type">Type</a>
+<span id="TypeAndValue.Value"></span>    Value <a href="/pkg/go/constant/">constant</a>.<a href="/pkg/go/constant/#Value">Value</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Eval">func <a href="/src/go/types/eval.go?s=691:791#L14">Eval</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func Eval(fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, pkg *<a href="#Package">Package</a>, pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, expr <a href="/pkg/builtin/#string">string</a>) (_ <a href="#TypeAndValue">TypeAndValue</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Eval 返回在包 pkg 的 pos 位置求值的表达式 expr 的类型；如果表达式是常量，还返回其值。pkg 必须来自对 AST 的类型检查，且该 AST 相对于提供的文件集具有完整位置信息。<p>参数 fset、pkg 和 pos 的含义与 <a href="#CheckExpr">CheckExpr</a> 相同。如果无法成功解析 expr，或无法对所得 expr AST 进行类型检查，则返回错误。<h3 id="TypeAndValue.Addressable">func (TypeAndValue) <a href="/src/go/types/api.go?s=15836:15877#L413">Addressable</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) Addressable() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Addressable 报告对应表达式是否可寻址（<a href="/golang.org/ref/spec#Address_operators">https://golang.org/ref/spec#Address_operators</a>）。<h3 id="TypeAndValue.Assignable">func (TypeAndValue) <a href="/src/go/types/api.go?s=16028:16068#L419">Assignable</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) Assignable() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Assignable 报告是否可以给对应表达式赋值（假定提供类型正确的值）。<h3 id="TypeAndValue.HasOk">func (TypeAndValue) <a href="/src/go/types/api.go?s=16231:16266#L425">HasOk</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) HasOk() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>HasOk 报告对应表达式是否可以用于 comma-ok 赋值的右侧。<h3 id="TypeAndValue.IsBuiltin">func (TypeAndValue) <a href="/src/go/types/api.go?s=15145:15184#L390">IsBuiltin</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) IsBuiltin() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsBuiltin 报告对应表达式是否表示内置函数（可能带有括号）。<h3 id="TypeAndValue.IsNil">func (TypeAndValue) <a href="/src/go/types/api.go?s=15613:15648#L407">IsNil</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) IsNil() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsNil 报告对应表达式是否表示预声明值 nil。<h3 id="TypeAndValue.IsType">func (TypeAndValue) <a href="/src/go/types/api.go?s=14961:14997#L384">IsType</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) IsType() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsType 报告对应表达式是否指定类型。<h3 id="TypeAndValue.IsValue">func (TypeAndValue) <a href="/src/go/types/api.go?s=15366:15403#L397">IsValue</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) IsValue() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValue 报告对应表达式是否为值。内置函数不被视为值。常量值的 Value 非 nil。<h3 id="TypeAndValue.IsVoid">func (TypeAndValue) <a href="/src/go/types/api.go?s=14819:14855#L379">IsVoid</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (tv <a href="#TypeAndValue">TypeAndValue</a>) IsVoid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsVoid 报告对应表达式是否是不返回结果的函数调用。<h2 id="TypeList">type <a href="/src/go/types/typelists.go?s=1236:1272#L36">TypeList</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>TypeList 保存类型列表。<pre>type TypeList struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeList.At">func (*TypeList) <a href="/src/go/types/typelists.go?s=1627:1660#L51">At</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (l *<a href="#TypeList">TypeList</a>) At(i <a href="/pkg/builtin/#int">int</a>) <a href="#Type">Type</a></pre>
+				<p>At 返回列表中的第 i 个类型。<h3 id="TypeList.Len">func (*TypeList) <a href="/src/go/types/typelists.go?s=1531:1559#L48">Len</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (l *<a href="#TypeList">TypeList</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回列表中的类型数。对 nil 接收者调用是安全的。<h3 id="TypeList.String">func (*TypeList) <a href="/src/go/types/typelists.go?s=1920:1954#L63">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (l *<a href="#TypeList">TypeList</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeList.Types">func (*TypeList) <a href="/src/go/types/iter.go?s=3807:3848#L141">Types</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (l *<a href="#TypeList">TypeList</a>) Types() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="#Type">Type</a>]</pre>
+				<p>Types 返回 Go 1.23 迭代器，用于遍历类型列表中的元素。<p>示例：for t := range l.Types() { ... }<h2 id="TypeName">type <a href="/src/go/types/object.go?s=7825:7857#L232">TypeName</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>TypeName 是表示具有名称的类型的 <a href="#Object">Object</a>：可以是定义类型（<a href="#Named">Named</a>）、别名类型（<a href="#Alias">Alias</a>）、类型形参（<a href="#TypeParam">TypeParam</a>），或 int、error 等预声明类型。<pre>type TypeName struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTypeName">func <a href="/src/go/types/object.go?s=8215:8293#L243">NewTypeName</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewTypeName(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, typ <a href="#Type">Type</a>) *<a href="#TypeName">TypeName</a></pre>
+				<p>NewTypeName 返回表示给定 typ 的新类型名。其余参数设置所有 Object 都具有的属性。<p>typ 参数可以是定义类型（Named）或别名类型，也可以为 nil，从而将返回的 TypeName 用作 NewNamed 的参数；NewNamed 会顺带设置 TypeName 的类型。<h3 id="TypeName.Exported">func (*TypeName) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="TypeName.Id">func (*TypeName) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="TypeName.IsAlias">func (*TypeName) <a href="/src/go/types/object.go?s=8810:8845#L257">IsAlias</a>
+					
+					<span title="自 Go 1.9 起提供">1.9</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) IsAlias() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsAlias 报告 obj 是否是某个类型的别名名称。<h3 id="TypeName.Name">func (*TypeName) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="TypeName.Parent">func (*TypeName) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="TypeName.Pkg">func (*TypeName) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="TypeName.Pos">func (*TypeName) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="TypeName.String">func (*TypeName) <a href="/src/go/types/object.go?s=20590:20626#L639">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeName.Type">func (*TypeName) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#TypeName">TypeName</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="TypeParam">type <a href="/src/go/types/typeparam.go?s=847:1202#L15">TypeParam</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>TypeParam 表示泛型声明中类型形参的类型。<p>TypeParam 具有名称；可通过 <a href="#TypeParam.Obj">TypeParam.Obj</a> 方法访问其 <a href="#TypeName">TypeName</a> 对象。<pre>type TypeParam struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewTypeParam">func <a href="/src/go/types/typeparam.go?s=1525:1585#L29">NewTypeParam</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func NewTypeParam(obj *<a href="#TypeName">TypeName</a>, constraint <a href="#Type">Type</a>) *<a href="#TypeParam">TypeParam</a></pre>
+				<p>NewTypeParam 返回新的 TypeParam。可以调用 SetTypeParams，为 Named 类型设置类型形参。将同一个类型形参设置到多个类型上会导致 panic。<p>constraint 参数可以为 nil，之后通过 SetConstraint 设置。如果 constraint 非 nil，则必须已完全定义。<h3 id="TypeParam.Constraint">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=2587:2624#L65">Constraint</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) Constraint() <a href="#Type">Type</a></pre>
+				<p>Constraint 返回为 t 指定的类型约束。<h3 id="TypeParam.Index">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=2475:2506#L60">Index</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) Index() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Index 返回类型形参在其形参列表中的索引；如果尚未将其绑定到类型，则返回 -1。<h3 id="TypeParam.Obj">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=2288:2323#L56">Obj</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) Obj() *<a href="#TypeName">TypeName</a></pre>
+				<p>Obj 返回类型形参 t 的类型名。<h3 id="TypeParam.SetConstraint">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=2950:2995#L75">SetConstraint</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) SetConstraint(bound <a href="#Type">Type</a>)</pre>
+				<p>SetConstraint 设置 t 的类型约束。<p>NewTypeParam 的使用者必须在约束的底层类型完全定义后调用 SetConstraint；在此之前，该类型形参只能用于构造其他类型，不得以其他方式使用。SetConstraint 返回接收者后，t 就可以安全地并发使用。<h3 id="TypeParam.String">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=3470:3505#L93">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeParam.Underlying">func (*TypeParam) <a href="/src/go/types/typeparam.go?s=3409:3446#L89">Underlying</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (t *<a href="#TypeParam">TypeParam</a>) Underlying() <a href="#Type">Type</a></pre>
+				<p>Underlying 返回类型形参 t 的<a href="/ref/spec#Underlying_types.">底层类型</a>，即其约束的底层类型。该类型始终是接口。<h2 id="TypeParamList">type <a href="/src/go/types/typelists.go?s=370:419#L3">TypeParamList</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>TypeParamList 保存类型形参列表。<pre>type TypeParamList struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeParamList.At">func (*TypeParamList) <a href="/src/go/types/typelists.go?s=631:675#L10">At</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (l *<a href="#TypeParamList">TypeParamList</a>) At(i <a href="/pkg/builtin/#int">int</a>) *<a href="#TypeParam">TypeParam</a></pre>
+				<p>At 返回列表中的第 i 个类型形参。<h3 id="TypeParamList.Len">func (*TypeParamList) <a href="/src/go/types/typelists.go?s=520:553#L7">Len</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (l *<a href="#TypeParamList">TypeParamList</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Len 返回列表中的类型形参数量。对 nil 接收者调用是安全的。<h3 id="TypeParamList.String">func (*TypeParamList) <a href="/src/go/types/typelists.go?s=961:1000#L22">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (l *<a href="#TypeParamList">TypeParamList</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeParamList.TypeParams">func (*TypeParamList) <a href="/src/go/types/iter.go?s=3499:3556#L128">TypeParams</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (l *<a href="#TypeParamList">TypeParamList</a>) TypeParams() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#TypeParam">TypeParam</a>]</pre>
+				<p>TypeParams 返回 Go 1.23 迭代器，用于遍历类型形参列表。<p>示例：for tparam := range l.TypeParams() { ... }<h2 id="Union">type <a href="/src/go/types/union.go?s=389:485#L7">Union</a>
+				
+				<span title="自 Go 1.18 起提供">1.18</span>
+			</h2>
+			<p>Union 表示嵌入接口中的项的联合。<pre>type Union struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewUnion">func <a href="/src/go/types/union.go?s=629:664#L13">NewUnion</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func NewUnion(terms []*<a href="#Term">Term</a>) *<a href="#Union">Union</a></pre>
+				<p>NewUnion 根据给定的项返回新 <a href="#Union">Union</a> 类型。创建空联合是错误的；语法上不可能存在空联合。<h3 id="Union.Len">func (*Union) <a href="/src/go/types/union.go?s=740:765#L20">Len</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (u *<a href="#Union">Union</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				
+				
+			
+				<h3 id="Union.String">func (*Union) <a href="/src/go/types/union.go?s=902:933#L24">String</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (u *<a href="#Union">Union</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Union.Term">func (*Union) <a href="/src/go/types/union.go?s=798:831#L21">Term</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (u *<a href="#Union">Union</a>) Term(i <a href="/pkg/builtin/#int">int</a>) *<a href="#Term">Term</a></pre>
+				
+				
+			
+				<h3 id="Union.Terms">func (*Union) <a href="/src/go/types/iter.go?s=3205:3244#L115">Terms</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (u *<a href="#Union">Union</a>) Terms() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[*<a href="#Term">Term</a>]</pre>
+				<p>Terms 返回 Go 1.23 迭代器，用于遍历联合中的项。<p>示例：for term := range union.Terms() { ... }<h3 id="Union.Underlying">func (*Union) <a href="/src/go/types/union.go?s=855:888#L23">Underlying</a>
+					
+					<span title="自 Go 1.18 起提供">1.18</span>
+				</h3>
+				<pre>func (u *<a href="#Union">Union</a>) Underlying() <a href="#Type">Type</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Var">type <a href="/src/go/types/object.go?s=9757:9971#L285">Var</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Var 表示声明的变量（包括函数参数、结果和结构体字段）。<pre>type Var struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewField">func <a href="/src/go/types/object.go?s=11885:11970#L349">NewField</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewField(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, typ <a href="#Type">Type</a>, embedded <a href="/pkg/builtin/#bool">bool</a>) *<a href="#Var">Var</a></pre>
+				<p>NewField 返回表示结构体字段的新变量。对于嵌入字段，name 是访问该字段所用的未限定类型名。<h3 id="NewParam">func <a href="/src/go/types/object.go?s=11597:11667#L342">NewParam</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewParam(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, typ <a href="#Type">Type</a>) *<a href="#Var">Var</a></pre>
+				<p>NewParam 返回表示函数参数的新变量。<p>如果期望的 Var 种类不是 <a href="#ParamVar">ParamVar</a>，例如是 <a href="#RecvVar">RecvVar</a> 或 <a href="#ResultVar">ResultVar</a>，调用方必须随后调用 <a href="#Var.SetKind">Var.SetKind</a>。<h3 id="NewVar">func <a href="/src/go/types/object.go?s=11263:11331#L334">NewVar</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func NewVar(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, pkg *<a href="#Package">Package</a>, name <a href="/pkg/builtin/#string">string</a>, typ <a href="#Type">Type</a>) *<a href="#Var">Var</a></pre>
+				<p>NewVar 返回新变量。各参数设置所有 Object 都具有的属性。<p>如果期望的 Var 种类不是 <a href="#PackageVar">PackageVar</a>，调用方必须随后调用 <a href="#Var.SetKind">Var.SetKind</a>。<h3 id="Var.Anonymous">func (*Var) <a href="/src/go/types/object.go?s=12438:12470#L363">Anonymous</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Anonymous() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Anonymous 报告变量是否是嵌入字段。与 Embedded 相同，仅为向后兼容而保留。<h3 id="Var.Embedded">func (*Var) <a href="/src/go/types/object.go?s=12559:12590#L366">Embedded</a>
+					
+					<span title="自 Go 1.11 起提供">1.11</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Embedded() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Embedded 报告变量是否是嵌入字段。<h3 id="Var.Exported">func (*Var) <a href="/src/go/types/object.go?s=4342:4376#L115">Exported</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Exported() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Exported 报告对象是否导出（以大写字母开头）。它不考虑对象是否位于局部（函数）作用域中。<h3 id="Var.Id">func (*Var) <a href="/src/go/types/object.go?s=4460:4490#L118">Id</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Id() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Id 包装 Id(obj.Pkg(), obj.Name())。<h3 id="Var.IsField">func (*Var) <a href="/src/go/types/object.go?s=12675:12705#L369">IsField</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) IsField() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsField 报告变量是否是结构体字段。<h3 id="Var.Kind">func (*Var) <a href="/src/go/types/object.go?s=10851:10879#L323">Kind</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (v *<a href="#Var">Var</a>) Kind() <a href="#VarKind">VarKind</a></pre>
+				<p>Kind 报告变量 v 的种类。<h3 id="Var.Name">func (*Var) <a href="/src/go/types/object.go?s=4026:4058#L107">Name</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回对象在包内的、未限定的名称。<h3 id="Var.Origin">func (*Var) <a href="/src/go/types/object.go?s=13101:13130#L378">Origin</a>
+					
+					<span title="自 Go 1.19 起提供">1.19</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Origin() *<a href="#Var">Var</a></pre>
+				<p>Origin 返回接收者对应的规范 Var，即 Info.Defs 中记录的 Var 对象。<p>对于实例化过程中创建的合成 Var（例如依赖类型实参的结构体字段或函数参数），返回其泛型（尚未实例化）类型上对应的 Var。对于其他所有 Var，Origin 返回接收者本身。<h3 id="Var.Parent">func (*Var) <a href="/src/go/types/object.go?s=3604:3638#L97">Parent</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Parent() *<a href="#Scope">Scope</a></pre>
+				<p>Parent 返回声明该对象的作用域。对于方法和结构体字段，结果为 nil。<h3 id="Var.Pkg">func (*Var) <a href="/src/go/types/object.go?s=3908:3941#L104">Pkg</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Pkg() *<a href="#Package">Package</a></pre>
+				<p>Pkg 返回对象所属的包。对于标签以及 Universe 作用域中的对象，结果为 nil。<h3 id="Var.Pos">func (*Var) <a href="/src/go/types/object.go?s=3730:3764#L100">Pos</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Pos() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>Pos 返回对象标识符的声明位置。<h3 id="Var.SetKind">func (*Var) <a href="/src/go/types/object.go?s=11009:11044#L327">SetKind</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (v *<a href="#Var">Var</a>) SetKind(kind <a href="#VarKind">VarKind</a>)</pre>
+				<p>SetKind 设置变量的种类。仅应在 <a href="#NewVar">NewVar</a> 或 <a href="#NewParam">NewParam</a> 之后立即使用。<h3 id="Var.String">func (*Var) <a href="/src/go/types/object.go?s=20661:20692#L640">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="Var.Type">func (*Var) <a href="/src/go/types/object.go?s=4115:4145#L110">Type</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (obj *<a href="#Var">Var</a>) Type() <a href="#Type">Type</a></pre>
+				<p>Type 返回对象的类型。<h2 id="VarKind">type <a href="/src/go/types/object.go?s=10032:10050#L293">VarKind</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>VarKind 区分各种变量种类。<pre>type VarKind <a href="/pkg/builtin/#uint8">uint8</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="PackageVar">PackageVar</span> <a href="#VarKind">VarKind</a> <span class="comment">// 包级变量</span>
+    <span id="LocalVar">LocalVar</span>           <span class="comment">// 局部变量</span>
+    <span id="RecvVar">RecvVar</span>            <span class="comment">// 方法接收者变量</span>
+    <span id="ParamVar">ParamVar</span>           <span class="comment">// 函数参数变量</span>
+    <span id="ResultVar">ResultVar</span>          <span class="comment">// 函数结果变量</span>
+    <span id="FieldVar">FieldVar</span>           <span class="comment">// 结构体字段</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="VarKind.String">func (VarKind) <a href="/src/go/types/object.go?s=10645:10680#L315">String</a>
+					
+					<span title="自 Go 1.25 起提供">1.25</span>
+				</h3>
+				<pre>func (kind <a href="#VarKind">VarKind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+
+</article>

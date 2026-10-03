@@ -1,0 +1,586 @@
+<!--{
+  "Title": "net/smtp 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package smtp</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "net/smtp"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>smtp 包实现了 RFC 5321 定义的简单邮件传输协议，也实现了以下扩展：
+<pre>8BITMIME  RFC 1652
+AUTH      RFC 2554
+STARTTLS  RFC 3207
+</pre>
+<p>其他扩展可以由客户端自行处理。
+<p>smtp 包已冻结，不再接受新功能。一些外部包提供了更多功能。参见：
+<pre>https://godoc.org/?q=smtp
+</pre>
+
+				
+
+
+<div id="example_" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"net/smtp"
+)
+
+func main() {
+	// 连接到远程 SMTP 服务器。
+	c, err := smtp.Dial("mail.example.com:25")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 先设置发件人和收件人
+	if err := c.Mail("sender@example.org"); err != nil {
+		log.Fatal(err)
+	}
+	if err := c.Rcpt("recipient@example.net"); err != nil {
+		log.Fatal(err)
+	}
+
+	// 发送邮件正文。
+	wc, err := c.Data()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = fmt.Fprintf(wc, "This is the email body")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = wc.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 发送 QUIT 命令并关闭连接。
+	err = c.Quit()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#SendMail">func SendMail(addr string, a Auth, from string, to []string, msg []byte) error</a></dd>
+			
+			
+				
+				<dd><a href="#Auth">type Auth</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CRAMMD5Auth">func CRAMMD5Auth(username, secret string) Auth</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PlainAuth">func PlainAuth(identity, username, password, host string) Auth</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Client">type Client</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Dial">func Dial(addr string) (*Client, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewClient">func NewClient(conn net.Conn, host string) (*Client, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Auth">func (c *Client) Auth(a Auth) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Close">func (c *Client) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Data">func (c *Client) Data() (io.WriteCloser, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Extension">func (c *Client) Extension(ext string) (bool, string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Hello">func (c *Client) Hello(localName string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Mail">func (c *Client) Mail(from string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Noop">func (c *Client) Noop() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Quit">func (c *Client) Quit() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Rcpt">func (c *Client) Rcpt(to string) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Reset">func (c *Client) Reset() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.StartTLS">func (c *Client) StartTLS(config *tls.Config) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.TLSConnectionState">func (c *Client) TLSConnectionState() (state tls.ConnectionState, ok bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Client.Verify">func (c *Client) Verify(addr string) error</a></dd>
+				
+			
+				
+				<dd><a href="#ServerInfo">type ServerInfo</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_">包</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_PlainAuth">PlainAuth</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SendMail">SendMail</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/net/smtp/auth.go">auth.go</a>
+			
+				<a href="/src/net/smtp/smtp.go">smtp.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="SendMail">func <a href="/src/net/smtp/smtp.go?s=9353:9431#L311">SendMail</a>
+				
+				
+			</h2>
+			<pre>func SendMail(addr <a href="/pkg/builtin/#string">string</a>, a <a href="#Auth">Auth</a>, from <a href="/pkg/builtin/#string">string</a>, to []<a href="/pkg/builtin/#string">string</a>, msg []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>SendMail 连接到 addr 指定的服务器，在可能时切换到 TLS，在可能时使用可选的机制 a 进行认证，然后从地址 from 向地址列表 to 发送内容为 msg 的邮件。addr 必须包含端口，例如“mail.example.com:smtp”。
+<p>to 参数中的地址是 SMTP RCPT 地址。
+<p>msg 参数应是一封 RFC 822 风格的邮件，依次包含头部、一个空行和消息正文。msg 的每一行都应以 CRLF 结束。msg 头部通常应包含“From”、“To”、“Subject”和“Cc”等字段。发送“Bcc”密送邮件时，应将邮件地址包含在 to 参数中，但不将其包含在 msg 头部中。
+<p>SendMail 函数和 net/smtp 包属于底层机制，不支持 DKIM 签名、MIME 附件（参见 mime/multipart 包）或其他邮件功能。标准库之外有更高层的包可用。
+
+			
+
+
+<div id="example_SendMail" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"net/smtp"
+)
+
+func main() {
+	// 设置认证信息。
+	auth := smtp.PlainAuth("", "user@example.com", "password", "mail.example.com")
+
+	// 一步完成连接服务器、认证、设置发件人和收件人，
+	// 以及发送邮件。
+	to := []string{"recipient@example.net"}
+	msg := []byte("To: recipient@example.net\r\n" +
+		"Subject: discount Gophers!\r\n" +
+		"\r\n" +
+		"This is the email body.\r\n")
+	err := smtp.SendMail("mail.example.com:25", auth, "sender@example.org", to, msg)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Auth">type <a href="/src/net/smtp/auth.go?s=292:1106#L5">Auth</a>
+				
+				
+			</h2>
+			<p>Auth 接口由 SMTP 认证机制实现。
+
+			<pre>type Auth interface {
+    <span class="comment">// Start 开始与服务器进行认证。</span>
+    <span class="comment">// 它返回认证协议的名称，</span>
+    <span class="comment">// 以及可选的数据，这些数据将包含在发送给服务器的</span>
+    <span class="comment">// 初始 AUTH 消息中。</span>
+    <span class="comment">// 如果返回非 nil 错误，SMTP 客户端会中止</span>
+    <span class="comment">// 认证尝试并关闭连接。</span>
+    Start(server *<a href="#ServerInfo">ServerInfo</a>) (proto <a href="/pkg/builtin/#string">string</a>, toServer []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+
+    <span class="comment">// Next 继续认证。服务器刚刚发送了</span>
+    <span class="comment">// fromServer 数据。如果 more 为 true，服务器预期收到</span>
+    <span class="comment">// 响应，Next 应通过 toServer 返回该响应；否则</span>
+    <span class="comment">// Next 应返回 toServer == nil。</span>
+    <span class="comment">// 如果 Next 返回非 nil 错误，SMTP 客户端会中止</span>
+    <span class="comment">// 认证尝试并关闭连接。</span>
+    Next(fromServer []<a href="/pkg/builtin/#byte">byte</a>, more <a href="/pkg/builtin/#bool">bool</a>) (toServer []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CRAMMD5Auth">func <a href="/src/net/smtp/auth.go?s=3294:3340#L83">CRAMMD5Auth</a>
+					
+					
+				</h3>
+				<pre>func CRAMMD5Auth(username, secret <a href="/pkg/builtin/#string">string</a>) <a href="#Auth">Auth</a></pre>
+				<p>CRAMMD5Auth 返回一个实现 RFC 2195 定义的 CRAM-MD5 认证机制的 <a href="#Auth">Auth</a>。返回的 Auth 使用给定用户名和密钥，通过质询—响应机制向服务器进行认证。
+
+				
+			
+				<h3 id="PlainAuth">func <a href="/src/net/smtp/auth.go?s=1921:1983#L43">PlainAuth</a>
+					
+					
+				</h3>
+				<pre>func PlainAuth(identity, username, password, host <a href="/pkg/builtin/#string">string</a>) <a href="#Auth">Auth</a></pre>
+				<p>PlainAuth 返回一个实现 RFC 4616 定义的 PLAIN 认证机制的 <a href="#Auth">Auth</a>。返回的 Auth 使用给定用户名和密码向 host 认证，并以 identity 指定的身份操作。identity 通常应为空字符串，表示使用 username 的身份。
+<p>仅当连接使用 TLS 或连接到 localhost 时，PlainAuth 才会发送凭据。否则认证会失败并返回错误，且不会发送凭据。
+
+				
+
+
+<div id="example_PlainAuth" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"log"
+	"net/smtp"
+)
+
+// 这些变量用于让 ExamplePlainAuth 通过编译，
+// 避免在该示例中加入无关代码。
+var (
+	from       = "gopher@example.net"
+	msg        = []byte("dummy message")
+	recipients = []string{"foo@example.com"}
+)
+
+func main() {
+	// PlainAuth 使用 hostname 来验证 TLS 证书。
+	hostname := "mail.example.com"
+	auth := smtp.PlainAuth("", "user@example.com", "password", hostname)
+
+	err := smtp.SendMail(hostname+":25", auth, from, recipients, msg)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+</textarea></div>
+        <div class="output"><pre></pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="Client">type <a href="/src/net/smtp/smtp.go?s=755:1345#L22">Client</a>
+				
+				
+			</h2>
+			<p>Client 表示到 SMTP 服务器的客户端连接。
+
+			<pre>type Client struct {
+<span id="Client.Text"></span>    <span class="comment">// Text 是 Client 使用的 textproto.Conn。导出它是为了允许</span>
+    <span class="comment">// 客户端添加扩展。</span>
+    Text *<a href="/pkg/net/textproto/">textproto</a>.<a href="/pkg/net/textproto/#Conn">Conn</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Dial">func <a href="/src/net/smtp/smtp.go?s=1479:1518#L43">Dial</a>
+					
+					
+				</h3>
+				<pre>func Dial(addr <a href="/pkg/builtin/#string">string</a>) (*<a href="#Client">Client</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Dial 返回一个连接到 addr 所指定 SMTP 服务器的新 <a href="#Client">Client</a>。addr 必须包含端口，例如“mail.example.com:smtp”。
+
+				
+			
+				<h3 id="NewClient">func <a href="/src/net/smtp/smtp.go?s=1793:1852#L54">NewClient</a>
+					
+					
+				</h3>
+				<pre>func NewClient(conn <a href="/pkg/net/">net</a>.<a href="/pkg/net/#Conn">Conn</a>, host <a href="/pkg/builtin/#string">string</a>) (*<a href="#Client">Client</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewClient 使用现有连接返回一个新的 <a href="#Client">Client</a>，并将 host 作为认证时使用的服务器名称。
+
+				
+			
+
+			
+				<h3 id="Client.Auth">func (*Client) <a href="/src/net/smtp/smtp.go?s=5532:5567#L187">Auth</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Auth(a <a href="#Auth">Auth</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Auth 使用给定的认证机制对客户端进行认证。认证失败会关闭连接。只有声明支持 AUTH 扩展的服务器才支持此功能。
+
+				
+			
+				<h3 id="Client.Close">func (*Client) <a href="/src/net/smtp/smtp.go?s=2137:2167#L67">Close</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭连接。
+
+				
+			
+				<h3 id="Client.Data">func (*Client) <a href="/src/net/smtp/smtp.go?s=8097:8144#L281">Data</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Data() (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#WriteCloser">WriteCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Data 向服务器发送 DATA 命令，并返回一个可用于写入邮件头部和正文的写入器。调用者应在调用 c 的其他方法之前关闭该写入器。调用 Data 之前，必须已调用一次或多次 <a href="#Client.Rcpt">Client.Rcpt</a>。
+
+				
+			
+				<h3 id="Client.Extension">func (*Client) <a href="/src/net/smtp/smtp.go?s=10681:10734#L372">Extension</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Extension(ext <a href="/pkg/builtin/#string">string</a>) (<a href="/pkg/builtin/#bool">bool</a>, <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Extension 报告服务器是否支持某个扩展。扩展名称不区分大小写。如果支持该扩展，Extension 还会返回一个字符串，其中包含服务器为该扩展指定的所有参数。
+
+				
+			
+				<h3 id="Client.Hello">func (*Client) <a href="/src/net/smtp/smtp.go?s=2718:2764#L88">Hello</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Hello(localName <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Hello 以给定主机名向服务器发送 HELO 或 EHLO。只有当客户端需要控制所用主机名时，才需要调用此方法；否则客户端会自动以“localhost”介绍自己。如果要调用 Hello，必须在调用任何其他方法之前调用它。
+
+				
+			
+				<h3 id="Client.Mail">func (*Client) <a href="/src/net/smtp/smtp.go?s=6891:6931#L235">Mail</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Mail(from <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Mail 使用给定的邮件地址向服务器发送 MAIL 命令。如果服务器支持 8BITMIME 扩展，Mail 会添加 BODY=8BITMIME 参数。如果服务器支持 SMTPUTF8 扩展，Mail 会添加 SMTPUTF8 参数。此操作发起一个邮件事务，之后应调用一次或多次 <a href="#Client.Rcpt">Client.Rcpt</a>。
+
+				
+			
+				<h3 id="Client.Noop">func (*Client) <a href="/src/net/smtp/smtp.go?s=11248:11277#L396">Noop</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Noop() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Noop 向服务器发送 NOOP 命令。除检查与服务器的连接是否正常外，不执行任何操作。
+
+				
+			
+				<h3 id="Client.Quit">func (*Client) <a href="/src/net/smtp/smtp.go?s=11451:11480#L405">Quit</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Quit() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Quit 发送 QUIT 命令并关闭与服务器的连接。
+
+				
+			
+				<h3 id="Client.Rcpt">func (*Client) <a href="/src/net/smtp/smtp.go?s=7497:7535#L258">Rcpt</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Rcpt(to <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Rcpt 使用给定的邮件地址向服务器发送 RCPT 命令。调用 Rcpt 之前必须先调用 <a href="#Client.Mail">Client.Mail</a>，之后可以调用 <a href="#Client.Data">Client.Data</a> 或再次调用 Rcpt。
+
+				
+			
+				<h3 id="Client.Reset">func (*Client) <a href="/src/net/smtp/smtp.go?s=10998:11028#L386">Reset</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Reset() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Reset 向服务器发送 RSET 命令，中止当前邮件事务。
+
+				
+			
+				<h3 id="Client.StartTLS">func (*Client) <a href="/src/net/smtp/smtp.go?s=4275:4326#L144">StartTLS</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) StartTLS(config *<a href="/pkg/crypto/tls/">tls</a>.<a href="/pkg/crypto/tls/#Config">Config</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>StartTLS 发送 STARTTLS 命令，并加密此后的所有通信。只有声明支持 STARTTLS 扩展的服务器才支持此功能。
+
+				
+			
+				<h3 id="Client.TLSConnectionState">func (*Client) <a href="/src/net/smtp/smtp.go?s=4706:4780#L161">TLSConnectionState</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) TLSConnectionState() (state <a href="/pkg/crypto/tls/">tls</a>.<a href="/pkg/crypto/tls/#ConnectionState">ConnectionState</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>TLSConnectionState 返回客户端的 TLS 连接状态。如果 <a href="#Client.StartTLS">Client.StartTLS</a> 未成功，则返回各返回类型的零值。
+
+				
+			
+				<h3 id="Client.Verify">func (*Client) <a href="/src/net/smtp/smtp.go?s=5120:5162#L173">Verify</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="#Client">Client</a>) Verify(addr <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Verify 检查服务器上某个邮件地址是否有效。如果 Verify 返回 nil，该地址有效。返回非 nil 并不一定表示地址无效，因为许多服务器出于安全考虑不会验证地址。
+
+				
+			
+		
+			
+			<h2 id="ServerInfo">type <a href="/src/net/smtp/auth.go?s=1164:1341#L24">ServerInfo</a>
+				
+				
+			</h2>
+			<p>ServerInfo 记录 SMTP 服务器的信息。
+
+			<pre>type ServerInfo struct {
+<span id="ServerInfo.Name"></span>    Name <a href="/pkg/builtin/#string">string</a>   <span class="comment">// SMTP 服务器名称</span>
+<span id="ServerInfo.TLS"></span>    TLS  <a href="/pkg/builtin/#bool">bool</a>     <span class="comment">// 使用 TLS，且证书对 Name 有效</span>
+<span id="ServerInfo.Auth"></span>    Auth []<a href="/pkg/builtin/#string">string</a> <span class="comment">// 服务器声明支持的认证机制</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

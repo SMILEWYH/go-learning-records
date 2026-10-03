@@ -1,0 +1,287 @@
+<!--{
+  "Title": "go/printer 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/printer 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/printer"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>printer 包实现抽象语法树（AST）节点的打印。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Fprint">func Fprint(output io.Writer, fset *token.FileSet, node any) error</a></dd>
+			
+			
+				
+				<dd><a href="#CommentedNode">type CommentedNode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Config">type Config</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Config.Fprint">func (cfg *Config) Fprint(output io.Writer, fset *token.FileSet, node any) error</a></dd>
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Fprint">Fprint</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/printer/comment.go">comment.go</a>
+			
+				<a href="/src/go/printer/gobuild.go">gobuild.go</a>
+			
+				<a href="/src/go/printer/math.go">math.go</a>
+			
+				<a href="/src/go/printer/nodes.go">nodes.go</a>
+			
+				<a href="/src/go/printer/printer.go">printer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Fprint">func <a href="/src/go/printer/printer.go?s=42475:42541#L1423">Fprint</a>
+				
+				
+			</h2>
+			<pre>func Fprint(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, node <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Fprint 将 AST 节点以易读的格式写入 output。它使用默认设置调用 <a href="#Config.Fprint">Config.Fprint</a>。注意，gofmt 使用制表符缩进、空格对齐；如需与 gofmt 一致的输出，请使用 go/format 包中的 format.Node。<div id="example_Fprint" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;go/ast&#34;
+	&#34;go/parser&#34;
+	&#34;go/printer&#34;
+	&#34;go/token&#34;
+	&#34;strings&#34;
+)
+
+func parseFunc(filename, functionname string) (fun *ast.FuncDecl, fset *token.FileSet) {
+	fset = token.NewFileSet()
+	if file, err := parser.ParseFile(fset, filename, nil, parser.SkipObjectResolution); err == nil {
+		for _, d := range file.Decls {
+			if f, ok := d.(*ast.FuncDecl); ok &amp;&amp; f.Name.Name == functionname {
+				fun = f
+				return
+			}
+		}
+	}
+	panic(&#34;function not found&#34;)
+}
+
+func printSelf() {
+	// 解析源文件，提取此函数不带注释的 AST，
+	// 其中的位置信息相对于
+	// 文件集 fset。
+	funcAST, fset := parseFunc(&#34;example_test.go&#34;, &#34;printSelf&#34;)
+
+	// 将函数体打印到缓冲区 buf。
+	// 将文件集提供给打印器，使其了解
+	// 原始源代码的格式，从而可以在原源文件
+	// 存在换行的位置添加额外换行。
+	var buf bytes.Buffer
+	printer.Fprint(&amp;buf, fset, funcAST.Body)
+
+	// 移除包围函数体的花括号 {}，撤销缩进，
+	// 并裁去开头和结尾的空白。
+	s := buf.String()
+	s = s[1 : len(s)-1]
+	s = strings.TrimSpace(strings.ReplaceAll(s, &#34;\n\t&#34;, &#34;\n&#34;))
+
+	// 将整理后的函数体文本打印到标准输出。
+	fmt.Println(s)
+}
+
+func main() {
+	printSelf()
+
+}
+</textarea></div>
+        <div class="output"><pre>funcAST, fset := parseFunc(&#34;example_test.go&#34;, &#34;printSelf&#34;)
+
+var buf bytes.Buffer
+printer.Fprint(&amp;buf, fset, funcAST.Body)
+
+s := buf.String()
+s = s[1 : len(s)-1]
+s = strings.TrimSpace(strings.ReplaceAll(s, &#34;\n\t&#34;, &#34;\n&#34;))
+
+fmt.Println(s)
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="CommentedNode">type <a href="/src/go/printer/printer.go?s=41636:41768#L1406">CommentedNode</a>
+				
+				
+			</h2>
+			<p>CommentedNode 将 AST 节点与对应的注释组合在一起，可以作为任意 <a href="#Fprint">Fprint</a> 函数的实参。<pre>type CommentedNode struct {
+<span id="CommentedNode.Node"></span>    Node     <a href="/pkg/builtin/#any">any</a> <span class="comment">// *ast.File，或 ast.Expr、ast.Decl、ast.Spec、ast.Stmt</span>
+<span id="CommentedNode.Comments"></span>    Comments []*<a href="/pkg/go/ast/">ast</a>.<a href="/pkg/go/ast/#CommentGroup">CommentGroup</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Config">type <a href="/src/go/printer/printer.go?s=38930:39084#L1309">Config</a>
+				
+				
+			</h2>
+			<p>Config 节点控制 Fprint 的输出。<pre>type Config struct {
+<span id="Config.Mode"></span>    Mode     <a href="#Mode">Mode</a> <span class="comment">// 默认值：0</span>
+<span id="Config.Tabwidth"></span>    Tabwidth <a href="/pkg/builtin/#int">int</a>  <span class="comment">// 默认值：8</span>
+<span id="Config.Indent"></span>    Indent   <a href="/pkg/builtin/#int">int</a>  <span class="comment">// 默认值：0（所有代码至少缩进此数量）；Go 1.1 新增</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Config.Fprint">func (*Config) <a href="/src/go/printer/printer.go?s=42085:42165#L1415">Fprint</a>
+					
+					
+				</h3>
+				<pre>func (cfg *<a href="#Config">Config</a>) Fprint(output <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, fset *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#FileSet">FileSet</a>, node <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Fprint 根据给定配置 cfg，将 AST 节点以易读的格式写入 output。位置信息相对于文件集 fset 解释。node 的类型必须是 *<a href="/pkg/go/ast/#File">ast.File</a>、*<a href="#CommentedNode">CommentedNode</a>、[]<a href="/pkg/go/ast/#Decl">ast.Decl</a>、[]<a href="/pkg/go/ast/#Stmt">ast.Stmt</a>，或可赋值给 <a href="/pkg/go/ast/#Expr">ast.Expr</a>、<a href="/pkg/go/ast/#Decl">ast.Decl</a>、<a href="/pkg/go/ast/#Spec">ast.Spec</a> 或 <a href="/pkg/go/ast/#Stmt">ast.Stmt</a>。<h2 id="Mode">type <a href="/src/go/printer/printer.go?s=37840:37854#L1283">Mode</a>
+				
+				
+			</h2>
+			<p>Mode 值是一组标志（也可以为 0），用于控制打印行为。<pre>type Mode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="RawFormat">RawFormat</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 不使用 tabwriter；若设置此标志，则忽略 UseSpaces</span>
+    <span id="TabIndent">TabIndent</span>                  <span class="comment">// 使用制表符缩进，不受 UseSpaces 影响</span>
+    <span id="UseSpaces">UseSpaces</span>                  <span class="comment">// 使用空格而非制表符对齐</span>
+    <span id="SourcePos">SourcePos</span>                  <span class="comment">// 输出 //line 指令，以保留原始源代码位置</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

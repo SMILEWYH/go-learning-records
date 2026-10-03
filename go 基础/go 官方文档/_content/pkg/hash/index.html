@@ -1,0 +1,391 @@
+<!--{
+  "Title": "hash 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>hash 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "hash"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>hash 包为哈希函数提供接口。<div id="example__binaryMarshaler" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (BinaryMarshaler)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (BinaryMarshaler)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;crypto/sha256&#34;
+	&#34;encoding&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+)
+
+func main() {
+	const (
+		input1 = &#34;The tunneling gopher digs downwards, &#34;
+		input2 = &#34;unaware of what he will find.&#34;
+	)
+
+	first := sha256.New()
+	first.Write([]byte(input1))
+
+	marshaler, ok := first.(encoding.BinaryMarshaler)
+	if !ok {
+		log.Fatal(&#34;first does not implement encoding.BinaryMarshaler&#34;)
+	}
+	state, err := marshaler.MarshalBinary()
+	if err != nil {
+		log.Fatal(&#34;unable to marshal hash:&#34;, err)
+	}
+
+	second := sha256.New()
+
+	unmarshaler, ok := second.(encoding.BinaryUnmarshaler)
+	if !ok {
+		log.Fatal(&#34;second does not implement encoding.BinaryUnmarshaler&#34;)
+	}
+	if err := unmarshaler.UnmarshalBinary(state); err != nil {
+		log.Fatal(&#34;unable to unmarshal hash:&#34;, err)
+	}
+
+	first.Write([]byte(input2))
+	second.Write([]byte(input2))
+
+	fmt.Printf(&#34;%x\n&#34;, first.Sum(nil))
+	fmt.Println(bytes.Equal(first.Sum(nil), second.Sum(nil)))
+}
+</textarea></div>
+        <div class="output"><pre>57d51a066f3a39942649cd9a76c77e97ceab246756ff3888659e6aa5a07f4a52
+true
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="#Cloner">type Cloner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Hash">type Hash</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Hash32">type Hash32</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Hash64">type Hash64</a></dd>
+				
+				
+			
+				
+				<dd><a href="#XOF">type XOF</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example__binaryMarshaler">包 (BinaryMarshaler)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/hash/hash.go">hash.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+		
+			
+			<h2 id="Cloner">type <a href="/src/hash/hash.go?s=2634:2690#L59">Cloner</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>Cloner 是其状态可以被克隆的哈希函数，克隆结果具有等价且独立的状态。<p>除非设置了 GOFIPS140=v1.0.0，否则标准库中的所有 <a href="#Hash">Hash</a> 实现都实现此接口。<p>如果哈希只能在运行时确定自己是否可克隆（例如它包装了另一个哈希），则 Clone 可以返回包装了 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a> 的错误。否则，Clone 必须始终返回 nil 错误。<pre>type Cloner interface {
+    <a href="#Hash">Hash</a>
+    Clone() (<a href="#Cloner">Cloner</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Hash">type <a href="/src/hash/hash.go?s=1283:1932#L16">Hash</a>
+				
+				
+			</h2>
+			<p>Hash 是所有哈希函数实现的通用接口。<p>标准库中的 Hash 实现（例如 <a href="/pkg/hash/crc32/">hash/crc32</a> 和 <a href="/pkg/crypto/sha256/">crypto/sha256</a>）实现了 <a href="/pkg/encoding/#BinaryMarshaler">encoding.BinaryMarshaler</a>、<a href="/pkg/encoding/#BinaryAppender">encoding.BinaryAppender</a>、<a href="/pkg/encoding/#BinaryUnmarshaler">encoding.BinaryUnmarshaler</a> 和 <a href="#Cloner">Cloner</a> 接口。序列化哈希实现可保存其内部状态，以便稍后继续处理，而无须重新写入先前已写入哈希的数据。哈希状态可能包含原始形式的部分输入，使用者应处理由此可能带来的安全影响。<p>兼容性：未来对 hash 或 crypto 包的更改会尽力保持与先前版本编码状态的兼容性。也就是说，在考虑安全修复等问题的前提下，这些包的任何已发布版本都应能够解码任意更早已发布版本写入的数据。背景信息见 Go 兼容性文档：<a href="/golang.org/doc/go1compat">https://golang.org/doc/go1compat</a>。<pre>type Hash interface {
+    <span class="comment">// Write（通过嵌入的 io.Writer 接口）将更多数据加入正在计算的哈希。</span>
+    <span class="comment">// 它从不返回错误。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+
+    <span class="comment">// Sum 将当前哈希值追加到 b，并返回所得切片。</span>
+    <span class="comment">// 它不会改变底层哈希状态。</span>
+    Sum(b []<a href="/pkg/builtin/#byte">byte</a>) []<a href="/pkg/builtin/#byte">byte</a>
+
+    <span class="comment">// Reset 将 Hash 重置为初始状态。</span>
+    Reset()
+
+    <span class="comment">// Size 返回 Sum 将返回的字节数。</span>
+    Size() <a href="/pkg/builtin/#int">int</a>
+
+    <span class="comment">// BlockSize 返回哈希的底层块大小。</span>
+    <span class="comment">// Write 方法必须能够接受任意数量的</span>
+    <span class="comment">// 数据，但如果每次写入的数据大小都是</span>
+    <span class="comment">// 块大小的整数倍，执行效率可能更高。</span>
+    BlockSize() <a href="/pkg/builtin/#int">int</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Hash32">type <a href="/src/hash/hash.go?s=2010:2057#L39">Hash32</a>
+				
+				
+			</h2>
+			<p>Hash32 是所有 32 位哈希函数实现的通用接口。<pre>type Hash32 interface {
+    <a href="#Hash">Hash</a>
+    Sum32() <a href="/pkg/builtin/#uint32">uint32</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Hash64">type <a href="/src/hash/hash.go?s=2135:2182#L45">Hash64</a>
+				
+				
+			</h2>
+			<p>Hash64 是所有 64 位哈希函数实现的通用接口。<pre>type Hash64 interface {
+    <a href="#Hash">Hash</a>
+    Sum64() <a href="/pkg/builtin/#uint64">uint64</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="XOF">type <a href="/src/hash/hash.go?s=2790:3319#L65">XOF</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>XOF（可扩展输出函数）是输出长度任意或无限的哈希函数。<pre>type XOF interface {
+    <span class="comment">// Write 将更多数据吸收进 XOF 的状态。如果在 Read</span>
+    <span class="comment">// 之后调用，则会引发 panic。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>
+
+    <span class="comment">// Read 从 XOF 读取更多输出。如果 XOF 的输出长度</span>
+    <span class="comment">// 存在上限，则可能返回 io.EOF。</span>
+    <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>
+
+    <span class="comment">// Reset 将 XOF 重置为初始状态。</span>
+    Reset()
+
+    <span class="comment">// BlockSize 返回 XOF 的底层块大小。</span>
+    <span class="comment">// Write 方法必须能够接受任意数量的</span>
+    <span class="comment">// 数据，但如果每次写入的数据大小都是</span>
+    <span class="comment">// 块大小的整数倍，执行效率可能更高。</span>
+    BlockSize() <a href="/pkg/builtin/#int">int</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="adler32/">adler32</a>
+					</td>
+				
+					<td class="pkg-synopsis">adler32 包实现 Adler-32 校验和。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="crc32/">crc32</a>
+					</td>
+				
+					<td class="pkg-synopsis">crc32 包实现 32 位循环冗余校验（CRC-32）校验和。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="crc64/">crc64</a>
+					</td>
+				
+					<td class="pkg-synopsis">crc64 包实现 64 位循环冗余校验（CRC-64）校验和。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="fnv/">fnv</a>
+					</td>
+				
+					<td class="pkg-synopsis">fnv 包实现 FNV-1 和 FNV-1a，它们是由 Glenn Fowler、Landon Curt Noll 和 Phong Vo 创建的非加密哈希函数。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="maphash/">maphash</a>
+					</td>
+				
+					<td class="pkg-synopsis">maphash 包提供作用于字节序列和可比较值的哈希函数。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

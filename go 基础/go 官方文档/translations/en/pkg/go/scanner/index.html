@@ -1,0 +1,510 @@
+<!--{
+  "Title": "go/scanner package",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package scanner</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/scanner"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>Package scanner implements a scanner for Go source text.
+It takes a []byte as source which can then be tokenized
+through repeated calls to the Scan method.
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#PrintError">func PrintError(w io.Writer, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#ErrorHandler">type ErrorHandler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ErrorList">type ErrorList</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Add">func (p *ErrorList) Add(pos token.Position, msg string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Err">func (p ErrorList) Err() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Error">func (p ErrorList) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Len">func (p ErrorList) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Less">func (p ErrorList) Less(i, j int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.RemoveMultiples">func (p *ErrorList) RemoveMultiples()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Reset">func (p *ErrorList) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Sort">func (p ErrorList) Sort()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Swap">func (p ErrorList) Swap(i, j int)</a></dd>
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.End">func (s *Scanner) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Init">func (s *Scanner) Init(file *token.File, src []byte, err ErrorHandler, mode Mode)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Scan">func (s *Scanner) Scan() (pos token.Pos, tok token.Token, lit string)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_Scan">Scanner.Scan</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/scanner/errors.go">errors.go</a>
+			
+				<a href="/src/go/scanner/scanner.go">scanner.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="PrintError">func <a href="/src/go/scanner/errors.go?s=2990:3029#L104">PrintError</a>
+				
+				
+			</h2>
+			<pre>func PrintError(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>PrintError is a utility function that prints a list of errors to w,
+one error per line, if the err parameter is an <a href="#ErrorList">ErrorList</a>. Otherwise
+it prints the err string.
+
+			
+		
+		
+			
+			<h2 id="Error">type <a href="/src/go/scanner/errors.go?s=412:465#L8">Error</a>
+				
+				
+			</h2>
+			<p>In an <a href="#ErrorList">ErrorList</a>, an error is represented by an *Error.
+The position Pos, if valid, points to the beginning of
+the offending token, and the error condition is described
+by Msg.
+
+			<pre>type Error struct {
+<span id="Error.Pos"></span>    Pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>
+<span id="Error.Msg"></span>    Msg <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (Error) <a href="/src/go/scanner/errors.go?s=598:627#L16">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Error implements the error interface.
+
+				
+			
+		
+			
+			<h2 id="ErrorHandler">type <a href="/src/go/scanner/scanner.go?s=683:737#L14">ErrorHandler</a>
+				
+				
+			</h2>
+			<p>An ErrorHandler may be provided to <a href="#Scanner.Init">Scanner.Init</a>. If a syntax error is
+encountered and a handler was installed, the handler is called with a
+position and an error message. The position points to the beginning of
+the offending token.
+
+			<pre>type ErrorHandler func(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>, msg <a href="/pkg/builtin/#string">string</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ErrorList">type <a href="/src/go/scanner/errors.go?s=939:962#L27">ErrorList</a>
+				
+				
+			</h2>
+			<p>ErrorList is a list of *Errors.
+The zero value for an ErrorList is an empty ErrorList ready to use.
+
+			<pre>type ErrorList []*<a href="#Error">Error</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ErrorList.Add">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=1044:1099#L30">Add</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) Add(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>, msg <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Add adds an <a href="#Error">Error</a> with given position and error message to an <a href="#ErrorList">ErrorList</a>.
+
+				
+			
+				<h3 id="ErrorList.Err">func (ErrorList) <a href="/src/go/scanner/errors.go?s=2737:2767#L94">Err</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Err() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err returns an error equivalent to this error list.
+If the list is empty, Err returns nil.
+
+				
+			
+				<h3 id="ErrorList.Error">func (ErrorList) <a href="/src/go/scanner/errors.go?s=2457:2490#L82">Error</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>An <a href="#ErrorList">ErrorList</a> implements the error interface.
+
+				
+			
+				<h3 id="ErrorList.Len">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1279:1307#L38">Len</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p><a href="#ErrorList">ErrorList</a> implements the sort Interface.
+
+				
+			
+				<h3 id="ErrorList.Less">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1394:1432#L41">Less</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="ErrorList.RemoveMultiples">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=2118:2155#L67">RemoveMultiples</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) RemoveMultiples()</pre>
+				<p>RemoveMultiples sorts an <a href="#ErrorList">ErrorList</a> and removes all but the first error per line.
+
+				
+			
+				<h3 id="ErrorList.Reset">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=1185:1212#L35">Reset</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) Reset()</pre>
+				<p>Reset resets an <a href="#ErrorList">ErrorList</a> to no errors.
+
+				
+			
+				<h3 id="ErrorList.Sort">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1987:2012#L62">Sort</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Sort()</pre>
+				<p>Sort sorts an <a href="#ErrorList">ErrorList</a>. *<a href="#Error">Error</a> entries are sorted by position,
+other errors are sorted by error message, and before any *<a href="#Error">Error</a>
+entry.
+
+				
+			
+				<h3 id="ErrorList.Swap">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1331:1364#L39">Swap</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Swap(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Mode">type <a href="/src/go/scanner/scanner.go?s=3468:3482#L105">Mode</a>
+				
+				
+			</h2>
+			<p>A Mode value is a set of flags (or 0).
+They control scanner behavior.
+
+			<pre>type Mode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="ScanComments">ScanComments</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// return comments as COMMENT tokens</span>
+
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Scanner">type <a href="/src/go/scanner/scanner.go?s=933:1713#L19">Scanner</a>
+				
+				
+			</h2>
+			<p>A Scanner holds the scanner&apos;s internal state while processing
+a given text. It can be allocated as part of another data
+structure but must be initialized via <a href="#Scanner.Init">Scanner.Init</a> before use.
+
+			<pre>type Scanner struct {
+
+    <span class="comment">// public state - ok to modify</span>
+<span id="Scanner.ErrorCount"></span>    ErrorCount <a href="/pkg/builtin/#int">int</a> <span class="comment">// number of errors encountered</span>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Scanner.End">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=19826:19859#L767">End</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>End returns the position immediately after the last scanned token.
+If <a href="#Scanner.Scan">Scanner.Scan</a> has not been called yet, End returns <a href="/pkg/go/token/#NoPos">token.NoPos</a>.
+
+				
+			
+				<h3 id="Scanner.Init">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=4435:4516#L126">Init</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Init(file *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#File">File</a>, src []<a href="/pkg/builtin/#byte">byte</a>, err <a href="#ErrorHandler">ErrorHandler</a>, mode <a href="#Mode">Mode</a>)</pre>
+				<p>Init prepares the scanner s to tokenize the text src by setting the
+scanner at the beginning of src. The scanner uses the file set file
+for position information and it adds line information for each line.
+It is ok to re-use the same file when re-scanning the same file as
+line information which is already present is ignored. Init causes a
+panic if the file size does not match the src size.
+<p>Calls to <a href="#Scanner.Scan">Scanner.Scan</a> will invoke the error handler err if they encounter a
+syntax error and err is not nil. Also, for each error encountered,
+the <a href="#Scanner">Scanner</a> field ErrorCount is incremented by one. The mode parameter
+determines how comments are handled.
+<p>Note that Init may call err if there is an error in the first character
+of the file.
+
+				
+			
+				<h3 id="Scanner.Scan">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=21821:21890#L812">Scan</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Scan() (pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, tok <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, lit <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Scan scans the next token and returns the token position, the token,
+and its literal string if applicable. The source end is indicated by
+<a href="/pkg/go/token/#EOF">token.EOF</a>.
+<p>If the returned token is a literal (<a href="/pkg/go/token/#IDENT">token.IDENT</a>, <a href="/pkg/go/token/#INT">token.INT</a>, <a href="/pkg/go/token/#FLOAT">token.FLOAT</a>,
+<a href="/pkg/go/token/#IMAG">token.IMAG</a>, <a href="/pkg/go/token/#CHAR">token.CHAR</a>, <a href="/pkg/go/token/#STRING">token.STRING</a>) or <a href="/pkg/go/token/#COMMENT">token.COMMENT</a>, the literal string
+has the corresponding value.
+<p>If the returned token is a keyword, the literal string is the keyword.
+<p>If the returned token is <a href="/pkg/go/token/#SEMICOLON">token.SEMICOLON</a>, the corresponding
+literal string is &quot;;&quot; if the semicolon was present in the source,
+and &quot;\n&quot; if the semicolon was inserted because of a newline or
+at EOF. If the newline is within a /*...*/ comment, the SEMICOLON token
+is synthesized immediately after the COMMENT token; its position is that
+of the actual newline within the comment.
+<p>If the returned token is <a href="/pkg/go/token/#ILLEGAL">token.ILLEGAL</a>, the literal string is the
+offending character.
+<p>In all other cases, Scan returns an empty literal string.
+<p>For more tolerant parsing, Scan will return a valid token if
+possible even if a syntax error was encountered. Thus, even
+if the resulting token sequence contains no illegal tokens,
+a client may not assume that no error occurred. Instead it
+must check the scanner&apos;s ErrorCount or the number of calls
+of the error handler, if there was one installed.
+<p>Scan adds line information to the file added to the file
+set with Init. Token positions are relative to that file
+and thus relative to the file set.
+
+				
+
+
+<div id="example_Scanner_Scan" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/scanner&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src is the input that we want to tokenize.
+	src := []byte(&#34;cos(x) &#43; 1i*sin(x) // Euler&#34;)
+
+	// Initialize the scanner.
+	var s scanner.Scanner
+	fset := token.NewFileSet()                      // positions are relative to fset
+	file := fset.AddFile(&#34;&#34;, fset.Base(), len(src)) // register input &#34;file&#34;
+	s.Init(file, src, nil /* no error handler */, scanner.ScanComments)
+
+	// Repeated calls to Scan yield the token sequence found in the input.
+	for {
+		pos, tok, lit := s.Scan()
+		if tok == token.EOF {
+			break
+		}
+		fmt.Printf(&#34;%s\t%s\t%q\n&#34;, fset.Position(pos), tok, lit)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>1:1	IDENT	&#34;cos&#34;
+1:4	(	&#34;&#34;
+1:5	IDENT	&#34;x&#34;
+1:6	)	&#34;&#34;
+1:8	+	&#34;&#34;
+1:10	IMAG	&#34;1i&#34;
+1:12	*	&#34;&#34;
+1:13	IDENT	&#34;sin&#34;
+1:16	(	&#34;&#34;
+1:17	IDENT	&#34;x&#34;
+1:18	)	&#34;&#34;
+1:20	COMMENT	&#34;// Euler&#34;
+1:28	;	&#34;\n&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

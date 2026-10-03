@@ -1,0 +1,1191 @@
+<!--{
+  "Title": "encoding/json/jsontext 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>encoding/json/jsontext 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/json/jsontext"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>jsontext 包按 RFC 4627、RFC 7159、RFC 7493、RFC 8259 和 RFC 8785 的规定实现 JSON 的语法处理。JSON 是一种简单的数据交换格式，既能表示布尔值、字符串和数字等基本数据类型，也能表示对象和数组等结构化数据类型。<p><a href="#Encoder">Encoder</a> 和 <a href="#Decoder">Decoder</a> 类型用于对 JSON 词法单元或值的流进行编码或解码。<h3 id="hdr-Tokens_and_Values">词法单元与值</h3>
+<p>JSON 词法单元（token）指 JSON 的基本结构元素：<ul>
+<li>JSON 字面量（即 null、true 或 false）<li>JSON 字符串（例如 &quot;hello, world!&quot;）<li>JSON 数字（例如 123.456）<li>JSON 对象的起始或结束分隔符（即 &apos;{&apos; 或 &apos;}&apos;）<li>JSON 数组的起始或结束分隔符（即 &apos;[&apos; 或 &apos;]&apos;）</ul>
+<p>JSON 词法单元在 Go 中由 <a href="#Token">Token</a> 类型表示。严格来说，还有两个结构字符（即 &apos;:&apos; 和 &apos;,&apos;），但它们没有对应的 <a href="#Token">Token</a> 表示，因为可从 JSON 文法的结构推断它们的存在。例如，JSON 对象成员的名称和值之间始终隐含一个冒号。<p>JSON 值指一个完整的 JSON 数据单元：<ul>
+<li>JSON 字面量、字符串或数字<li>JSON 对象（例如 `{&quot;name&quot;:&quot;value&quot;}`）<li>JSON 数组（例如 `[1,2,3]`）</ul>
+<p>JSON 值在 Go 中由 <a href="#Value">Value</a> 类型表示，它是一个包含该值原始文本表示的 []byte。词法单元和值有一部分重叠，两者都包括字面量、字符串和数字；但只有值才能表示整个 JSON 对象或数组。<p><a href="#Encoder">Encoder</a> 和 <a href="#Decoder">Decoder</a> 提供读取或写入序列中下一个 <a href="#Token">Token</a> 或 <a href="#Value">Value</a> 的方法。它们维护一个状态机，验证 JSON 词法单元和/或值组成的序列是否构成有效 JSON。可以向 <a href="#NewEncoder">NewEncoder</a> 或 <a href="#NewDecoder">NewDecoder</a> 构造函数传入 <a href="#Options">Options</a>，配置编码和解码行为。<h3 id="hdr-Terminology">术语</h3>
+<p>“编码”（encode）和“解码”（decode）用于描述依据 JSON 文法进行处理的语法层功能；“序列化”（marshal）和“反序列化”（unmarshal）用于描述决定 JSON 值与 Go 值之间对应含义的语义层功能。本包处理 JSON 语法，<a href="/pkg/encoding/json/v2/">encoding/json/v2</a> 则处理 JSON 语义。这样做是为了明确区分纯粹的编码功能与序列化功能。例如，可以直接编码 JSON 词法单元流，而无须先将表示它们的具体 Go 值序列化；同样，也可以解码 JSON 词法单元流，而无须将它们反序列化为具体 Go 值。<p>本包讨论 JSON 时采用 JSON 术语，这些术语可能与 Go 或其他计算机文献中的相关概念不同。<ul>
+<li>JSON“对象”指名称/值成员的无序集合。<li>JSON“数组”指元素的有序序列。<li>JSON“值”指字面量（即 null、false 或 true）、字符串、数字、对象或数组。</ul>
+<p>更多信息参见 RFC 8259。<h3 id="hdr-Specifications">规范</h3>
+<p>相关规范包括 RFC 4627、RFC 7159、RFC 7493、RFC 8259 和 RFC 8785。每个 RFC 通常是另一个 RFC 的更严格子集。按严格程度递增排列如下：<ul>
+<li>RFC 4627 和 RFC 7159 不强制要求（但建议）使用 UTF-8，也不强制要求（但建议）对象成员名称唯一。<li>RFC 8259 要求使用 UTF-8，但不强制要求（只建议）对象成员名称唯一。<li>RFC 7493 要求使用 UTF-8，且对象成员名称必须唯一。<li>RFC 8785 定义规范化表示，要求使用 UTF-8，对象成员名称必须唯一且按特定顺序排列，并精确规定字符串和数字的格式。</ul>
+<p>RFC 4627 与 RFC 7159 的主要区别是：前者将顶层值限制为 JSON 对象和数组，而 RFC 7159 及后续 RFC 还允许顶层值为 JSON null、布尔值、字符串或数字。<p>默认情况下，本包按 RFC 7493 运行，也可配置为遵循其他 RFC。RFC 7493 是 RFC 8259 的更严格子集，与后者完全兼容。具体而言，它对 RFC 8259 中未定义的行为做出明确选择，以提高互操作性。<h3 id="hdr-Security_Considerations">安全注意事项</h3>
+<p>参见 <a href="/pkg/encoding/json/v2/">encoding/json/v2</a> 中的“安全注意事项”章节。<div id="example__stringReplace" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (StringReplace)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (StringReplace)</span></p>
+    <p>本例演示如何使用 [Encoder] 和 [Decoder] 解析并修改 JSON，而无须将其反序列化为具体 Go 类型。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json/jsontext&#34;
+)
+
+func main() {
+	// 示例输入中使用了不规范的名称“Golang”，应改为“Go”。
+	const input = `{
+		&#34;title&#34;: &#34;Golang version 1 is released&#34;,
+		&#34;author&#34;: &#34;Andrew Gerrand&#34;,
+		&#34;date&#34;: &#34;2012-03-28&#34;,
+		&#34;text&#34;: &#34;Today marks a major milestone in the development of the Golang programming language.&#34;,
+		&#34;otherArticles&#34;: [
+			&#34;Twelve Years of Golang&#34;,
+			&#34;The Laws of Reflection&#34;,
+			&#34;Learn Golang from your browser&#34;
+		]
+	}`
+
+	// 使用 Decoder 和 Encoder，可以遍历每个词法单元，
+	// 在必要时检查并修改它，
+	// 然后将词法单元写入输出。
+	var replacements []jsontext.Pointer
+	in := strings.NewReader(input)
+	dec := jsontext.NewDecoder(in)
+	out := new(bytes.Buffer)
+	enc := jsontext.NewEncoder(out, jsontext.Multiline(true)) // 展开以提高可读性
+	for {
+		// 从输入读取一个词法单元。
+		tok, err := dec.ReadToken()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+
+		// 检查词法单元是否包含字符串“Golang”，
+		// 将每一处都替换为“Go”。
+		if tok.Kind() == &#39;&#34;&#39; &amp;&amp; strings.Contains(tok.String(), &#34;Golang&#34;) {
+			replacements = append(replacements, dec.StackPointer())
+			tok = jsontext.String(strings.ReplaceAll(tok.String(), &#34;Golang&#34;, &#34;Go&#34;))
+		}
+
+		// 将可能已经修改的词法单元写入输出。
+		if err := enc.WriteToken(tok); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// 输出替换列表和调整后的 JSON。
+	if len(replacements) &gt; 0 {
+		fmt.Println(`Replaced &#34;Golang&#34; with &#34;Go&#34; in:`)
+		for _, where := range replacements {
+			fmt.Println(&#34;\t&#34; &#43; where)
+		}
+		fmt.Println()
+	}
+	fmt.Println(&#34;Result:&#34;, out.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>Replaced &#34;Golang&#34; with &#34;Go&#34; in:
+	/title
+	/text
+	/otherArticles/0
+	/otherArticles/2
+
+Result: {
+	&#34;title&#34;: &#34;Go version 1 is released&#34;,
+	&#34;author&#34;: &#34;Andrew Gerrand&#34;,
+	&#34;date&#34;: &#34;2012-03-28&#34;,
+	&#34;text&#34;: &#34;Today marks a major milestone in the development of the Go programming language.&#34;,
+	&#34;otherArticles&#34;: [
+		&#34;Twelve Years of Go&#34;,
+		&#34;The Laws of Reflection&#34;,
+		&#34;Learn Go from your browser&#34;
+	]
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#AppendFloat">func AppendFloat(dst []byte, src float64, bits int) []byte</a></dd>
+			
+				<dd><a href="#AppendFormat">func AppendFormat[Bytes ~[]byte | ~string](dst []byte, src Bytes, opts ...Options) ([]byte, error)</a></dd>
+			
+				<dd><a href="#AppendQuote">func AppendQuote[Bytes ~[]byte | ~string](dst []byte, src Bytes) ([]byte, error)</a></dd>
+			
+				<dd><a href="#AppendUnquote">func AppendUnquote[Bytes ~[]byte | ~string](dst []byte, src Bytes) ([]byte, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Decoder">type Decoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDecoder">func NewDecoder(r io.Reader, opts ...Options) *Decoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.InputOffset">func (d *Decoder) InputOffset() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Options">func (d *Decoder) Options() Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.PeekKind">func (d *Decoder) PeekKind() Kind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.ReadToken">func (d *Decoder) ReadToken() (Token, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.ReadValue">func (d *Decoder) ReadValue() (Value, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Reset">func (d *Decoder) Reset(r io.Reader, opts ...Options)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.SkipValue">func (d *Decoder) SkipValue() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.StackDepth">func (d *Decoder) StackDepth() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.StackIndex">func (d *Decoder) StackIndex(i int) (Kind, int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.StackPointer">func (d *Decoder) StackPointer() Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.UnreadBuffer">func (d *Decoder) UnreadBuffer() []byte</a></dd>
+				
+			
+				
+				<dd><a href="#Encoder">type Encoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewEncoder">func NewEncoder(w io.Writer, opts ...Options) *Encoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.AvailableBuffer">func (e *Encoder) AvailableBuffer() []byte</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Options">func (e *Encoder) Options() Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.OutputOffset">func (e *Encoder) OutputOffset() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Reset">func (e *Encoder) Reset(w io.Writer, opts ...Options)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.StackDepth">func (e *Encoder) StackDepth() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.StackIndex">func (e *Encoder) StackIndex(i int) (Kind, int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.StackPointer">func (e *Encoder) StackPointer() Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.WriteToken">func (e *Encoder) WriteToken(t Token) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.WriteValue">func (e *Encoder) WriteValue(v Value) error</a></dd>
+				
+			
+				
+				<dd><a href="#Kind">type Kind</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Kind.String">func (k Kind) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Options">type Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AllowDuplicateNames">func AllowDuplicateNames(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AllowInvalidUTF8">func AllowInvalidUTF8(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CanonicalizeRawFloats">func CanonicalizeRawFloats(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CanonicalizeRawInts">func CanonicalizeRawInts(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#EscapeForHTML">func EscapeForHTML(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#EscapeForJS">func EscapeForJS(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Multiline">func Multiline(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PreserveRawStrings">func PreserveRawStrings(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReorderRawObjects">func ReorderRawObjects(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SpaceAfterColon">func SpaceAfterColon(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SpaceAfterComma">func SpaceAfterComma(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithIndent">func WithIndent(indent string) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#WithIndentPrefix">func WithIndentPrefix(prefix string) Options</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Pointer">type Pointer</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.AppendToken">func (p Pointer) AppendToken(tok string) Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Contains">func (p Pointer) Contains(pc Pointer) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.IsValid">func (p Pointer) IsValid() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.LastToken">func (p Pointer) LastToken() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Parent">func (p Pointer) Parent() Pointer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pointer.Tokens">func (p Pointer) Tokens() iter.Seq[string]</a></dd>
+				
+			
+				
+				<dd><a href="#SyntacticError">type SyntacticError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntacticError.Error">func (e *SyntacticError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntacticError.Unwrap">func (e *SyntacticError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#Token">type Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Bool">func Bool(b bool) Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float">func Float(n float64) Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Float32">func Float32(n float32) Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Int">func Int(n int64) Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#String">func String(s string) Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Uint">func Uint(n uint64) Token</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Bool">func (t Token) Bool() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Clone">func (t Token) Clone() Token</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Float">func (t Token) Float() (float64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Float32">func (t Token) Float32() (float32, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Int">func (t Token) Int() (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Kind">func (t Token) Kind() Kind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.String">func (t Token) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Token.Uint">func (t Token) Uint() (uint64, error)</a></dd>
+				
+			
+				
+				<dd><a href="#Value">type Value</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Canonicalize">func (v *Value) Canonicalize(opts ...Options) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Clone">func (v Value) Clone() Value</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Compact">func (v *Value) Compact(opts ...Options) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Format">func (v *Value) Format(opts ...Options) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Indent">func (v *Value) Indent(opts ...Options) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.IsValid">func (v Value) IsValid(opts ...Options) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.Kind">func (v Value) Kind() Kind</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.MarshalJSON">func (v Value) MarshalJSON() ([]byte, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.String">func (v Value) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Value.UnmarshalJSON">func (v *Value) UnmarshalJSON(b []byte) error</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_EscapeForHTML">EscapeForHTML</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Multiline">Multiline</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__stringReplace">包 (StringReplace)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/json/jsontext/decode.go">decode.go</a>
+			
+				<a href="/src/encoding/json/jsontext/doc.go">doc.go</a>
+			
+				<a href="/src/encoding/json/jsontext/encode.go">encode.go</a>
+			
+				<a href="/src/encoding/json/jsontext/errors.go">errors.go</a>
+			
+				<a href="/src/encoding/json/jsontext/export.go">export.go</a>
+			
+				<a href="/src/encoding/json/jsontext/options.go">options.go</a>
+			
+				<a href="/src/encoding/json/jsontext/pools.go">pools.go</a>
+			
+				<a href="/src/encoding/json/jsontext/quote.go">quote.go</a>
+			
+				<a href="/src/encoding/json/jsontext/state.go">state.go</a>
+			
+				<a href="/src/encoding/json/jsontext/token.go">token.go</a>
+			
+				<a href="/src/encoding/json/jsontext/value.go">value.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>ErrDuplicateName 表示某个 JSON 词法单元因导致 JSON 对象成员名称重复而无法编码或解码。产生此错误时，它会直接包装在 <a href="#SyntacticError">SyntacticError</a> 中。<p>可以按以下方式提取重复的 JSON 对象成员名称：<pre>err := ...
+serr, ok := errors.AsType[*jsontext.SyntacticError](err)
+if ok &amp;&amp; serr.Err == jsontext.ErrDuplicateName {
+	ptr := serr.JSONPointer // 指向重复名称的 JSON 指针
+	name := ptr.LastToken() // 重复名称本身
+	...
+}
+</pre>
+<p>仅当 <a href="#AllowDuplicateNames">AllowDuplicateNames</a> 为 false 时，才会返回此错误。<pre>var <span id="ErrDuplicateName">ErrDuplicateName</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;duplicate object member name&#34;)</pre>
+			
+				<p>ErrNonStringName 表示某个 JSON 词法单元因不是字符串而无法编码或解码；RFC 8259 第 4 节要求 JSON 对象成员名称必须为字符串。产生此错误时，它会直接包装在 <a href="#SyntacticError">SyntacticError</a> 中。<pre>var <span id="ErrNonStringName">ErrNonStringName</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;object member name must be a string&#34;)</pre>
+			
+				<p>Internal 仅供内部使用，不受 Go 兼容性约定约束。<pre>var <span id="Internal">Internal</span> exporter</pre>
+			
+		
+		
+			
+			<h2 id="AppendFloat">func <a href="/src/encoding/json/jsontext/value.go?s=1002:1060#L22">AppendFloat</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<pre>func AppendFloat(dst []<a href="/pkg/builtin/#byte">byte</a>, src <a href="/pkg/builtin/#float64">float64</a>, bits <a href="/pkg/builtin/#int">int</a>) []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>AppendFloat 按 RFC 8259 第 6 节将 src 作为 JSON 数字追加到 dst。<p>除了将 -0 格式化为 -0 而不是 0 这一点外，输出与 ECMA-262 第 10 版第 7.1.12.1 节相同；使用 64 位精度时，也与 RFC 8785 第 3.2.2.3 节相同。NaN、+Inf 和 -Inf 分别表示为值为 &quot;NaN&quot;、&quot;Infinity&quot; 和 &quot;-Infinity&quot; 的 JSON 字符串。<p>注意，大多数 JSON 库和标准都假设 JSON 数字是 64 位浮点数。因此，应优先使用 64 位精度，除非接收方能够从其他上下文得知编码的数字使用了 32 位精度。<h2 id="AppendFormat">func <a href="/src/encoding/json/jsontext/value.go?s=1470:1568#L35">AppendFormat</a>
+				
+				
+			</h2>
+			<pre>func AppendFormat[Bytes ~[]<a href="/pkg/builtin/#byte">byte</a> | ~<a href="/pkg/builtin/#string">string</a>](dst []<a href="/pkg/builtin/#byte">byte</a>, src <a href="#Bytes">Bytes</a>, opts ...<a href="#Options">Options</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>AppendFormat 按指定选项格式化 src 中的 JSON 值，并将其追加到 dst。格式化行为详见 <a href="#Value.Format">Value.Format</a>。<p>dst 和 src 可以重叠。如果报告错误，会将整个 src 追加到 dst。<h2 id="AppendQuote">func <a href="/src/encoding/json/jsontext/quote.go?s=686:766#L10">AppendQuote</a>
+				
+				
+			</h2>
+			<pre>func AppendQuote[Bytes ~[]<a href="/pkg/builtin/#byte">byte</a> | ~<a href="/pkg/builtin/#string">string</a>](dst []<a href="/pkg/builtin/#byte">byte</a>, src <a href="#Bytes">Bytes</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>AppendQuote 将表示 src 的双引号 JSON 字符串字面量追加到 dst，并返回扩展后的缓冲区。它采用 RFC 8785 第 3.2.2.2 节规定的最简字符串表示。无效的 UTF-8 字节会替换为 Unicode 替换字符，并在最后返回错误以说明存在无效 UTF-8。dst 不得与 src 重叠。<h2 id="AppendUnquote">func <a href="/src/encoding/json/jsontext/quote.go?s=1402:1484#L25">AppendUnquote</a>
+				
+				
+			</h2>
+			<pre>func AppendUnquote[Bytes ~[]<a href="/pkg/builtin/#byte">byte</a> | ~<a href="/pkg/builtin/#string">string</a>](dst []<a href="/pkg/builtin/#byte">byte</a>, src <a href="#Bytes">Bytes</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>AppendUnquote 将 src 作为双引号 JSON 字符串字面量解码，把解码结果追加到 dst，并返回扩展后的缓冲区。输入 src 必须是前后不带空白的 JSON 字符串。无效的 UTF-8 字节会替换为 Unicode 替换字符，并在最后返回错误以说明存在无效 UTF-8。JSON 字符串字面量之后的任何尾随字节都会导致错误。dst 不得与 src 重叠。<h2 id="Decoder">type <a href="/src/encoding/json/jsontext/decode.go?s=3092:3131#L68">Decoder</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Decoder 是用于原始 JSON 词法单元和值的流式解码器。它用于读取顶层 JSON 值的流，各值之间可用空白字符分隔。<p>可以交错调用 <a href="#Decoder.ReadToken">Decoder.ReadToken</a> 和 <a href="#Decoder.ReadValue">Decoder.ReadValue</a>。例如，以下 JSON 值：<pre>{&quot;name&quot;:&quot;value&quot;,&quot;array&quot;:[null,false,true,3.14159],&quot;object&quot;:{&quot;k&quot;:&quot;v&quot;}}
+</pre>
+<p>可以通过以下调用解析（为简洁起见，忽略错误）：<pre>d.ReadToken() // {
+d.ReadToken() // &quot;name&quot;
+d.ReadToken() // &quot;value&quot;
+d.ReadValue() // &quot;array&quot;
+d.ReadToken() // [
+d.ReadToken() // null
+d.ReadToken() // false
+d.ReadValue() // true
+d.ReadToken() // 3.14159
+d.ReadToken() // ]
+d.ReadValue() // &quot;object&quot;
+d.ReadValue() // {&quot;k&quot;:&quot;v&quot;}
+d.ReadToken() // }
+</pre>
+<p>以上只是多种可能调用顺序中的一种，对某个具体词法单元或值而言，未必采用了最合理的方法。例如，对于对象成员名称，更常见的做法可能是调用 <a href="#Decoder.ReadToken">Decoder.ReadToken</a> 获取字符串词法单元。<pre>type Decoder struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewDecoder">func <a href="/src/encoding/json/jsontext/decode.go?s=4474:4528#L112">NewDecoder</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func NewDecoder(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, opts ...<a href="#Options">Options</a>) *<a href="#Decoder">Decoder</a></pre>
+				<p>NewDecoder 构造一个从 r 读取数据的新流式解码器。<p>如果 r 是 <a href="/pkg/bytes/#Buffer">bytes.Buffer</a>，解码器会直接解析缓冲区，无须先将内容复制到中间缓冲区。使用解码器期间，不得再向该缓冲区写入数据。<h3 id="Decoder.InputOffset">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=36743:36780#L1126">InputOffset</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) InputOffset() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InputOffset 返回当前输入字节偏移量，即最近一次返回的词法单元或值之后紧接着的下一个字节的位置。由于内部缓冲，从底层 <a href="/pkg/io/#Reader">io.Reader</a> 实际读取的字节数可能大于此偏移量。<h3 id="Decoder.Options">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=5984:6019#L155">Options</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) Options() <a href="#Options">Options</a></pre>
+				<p>Options 返回构造解码器时使用的选项，还可能包含传给 <a href="/pkg/encoding/json/v2/#UnmarshalDecode">encoding/json/v2.UnmarshalDecode</a> 的语义选项。<p>如果在 <a href="/pkg/encoding/json/v2/#UnmarshalerFrom.UnmarshalJSONFrom">encoding/json/v2.UnmarshalerFrom.UnmarshalJSONFrom</a> 方法调用或 <a href="/pkg/encoding/json/v2/#UnmarshalFromFunc">encoding/json/v2.UnmarshalFromFunc</a> 函数调用内使用，则返回的选项仅在该次调用期间有效。<h3 id="Decoder.PeekKind">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=11753:11786#L304">PeekKind</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) PeekKind() <a href="#Kind">Kind</a></pre>
+				<p>PeekKind 获取下一个词法单元的类别，但不推进读取偏移量。<p>发生错误时返回 <a href="#KindInvalid">KindInvalid</a>。错误会缓存到下一次读取调用；调用方有责任在调用 PeekKind 后最终执行一次读取。<h3 id="Decoder.ReadToken">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=16640:16684#L459">ReadToken</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) ReadToken() (<a href="#Token">Token</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadToken 读取下一个 <a href="#Token">Token</a> 并推进读取偏移量。返回的词法单元仅在下一次 Peek、Read 或 Skip 调用前有效。如果没有更多词法单元，则返回 <a href="/pkg/io/#EOF">io.EOF</a>。<h3 id="Decoder.ReadValue">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=23221:23265#L667">ReadValue</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) ReadValue() (<a href="#Value">Value</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>ReadValue 返回下一个原始 JSON 值并推进读取偏移量。值的首尾空白会被移除，其余字节与输入完全一致；如果指定了 <a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>，其中可能含有无效 UTF-8。<p>返回值仅在下一次 Peek、Read 或 Skip 调用前有效，且只要 Decoder 仍在使用，就不得修改该值。如果解码器当前位于对象或数组的结束词法单元处，则报告 <a href="#SyntacticError">SyntacticError</a>，内部状态保持不变。如果没有更多值，则返回 <a href="/pkg/io/#EOF">io.EOF</a>。<h3 id="Decoder.Reset">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=4865:4918#L122">Reset</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) Reset(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, opts ...<a href="#Options">Options</a>)</pre>
+				<p>Reset 重置解码器，使其从 r 重新开始读取，并采用提供的选项。对于传给 <a href="/pkg/encoding/json/v2/#UnmarshalerFrom.UnmarshalJSONFrom">encoding/json/v2.UnmarshalerFrom.UnmarshalJSONFrom</a> 方法或 <a href="/pkg/encoding/json/v2/#UnmarshalFromFunc">encoding/json/v2.UnmarshalFromFunc</a> 函数的 Decoder，不得调用 Reset。<h3 id="Decoder.SkipValue">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=15104:15139#L403">SkipValue</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) SkipValue() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>SkipValue 在语义上等价于调用 <a href="#Decoder.ReadValue">Decoder.ReadValue</a> 后丢弃结果，但不会为了保存整个结果而浪费内存。<h3 id="Decoder.StackDepth">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=38840:38874#L1173">StackDepth</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) StackDepth() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>StackDepth 返回状态机中已读取 JSON 数据的栈深度。每一层表示一个嵌套的 JSON 对象或数组。遇到 <a href="#BeginObject">BeginObject</a> 或 <a href="#BeginArray">BeginArray</a> 词法单元时深度加一，遇到 <a href="#EndObject">EndObject</a> 或 <a href="#EndArray">EndArray</a> 时减一。<p>不在任何对象或数组内部时，StackDepth 返回 0。具体包括尚未读取任何词法单元、已读完任意顶层值，以及解码顶层值流（例如 NDJSON）时处于两个值之间。位于顶层对象或数组内部时返回 1，位于其嵌套的对象或数组内部时返回 2，依此类推。<p>例如，考虑解码以下 JSON：<pre>{&quot;a&quot;: [1, 2], &quot;b&quot;: {&quot;c&quot;: 3}}
+</pre>
+<p>解码过程中，StackDepth 的返回值如下：<ul>
+<li>开始时返回 0。<li>解码外层 &apos;{&apos; 后返回 1。<li>解码内层 &apos;[&apos; 后返回 2。<li>解码内层 &apos;]&apos; 后返回 1。<li>解码外层 &apos;}&apos; 后返回 0。</ul>
+
+				
+			
+				<h3 id="Decoder.StackIndex">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=39564:39613#L1190">StackIndex</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) StackIndex(i <a href="/pkg/builtin/#int">int</a>) (<a href="#Kind">Kind</a>, <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>StackIndex 返回指定栈层的信息。level 必须介于 0 和 <a href="#Decoder.StackDepth">Decoder.StackDepth</a> 之间（包含端点）。每层返回的类别为：<ul>
+<li>第 0 层为 <a href="#KindInvalid">KindInvalid</a>；<li>表示 JSON 对象的层为 <a href="#KindBeginObject">KindBeginObject</a>；<li>表示 JSON 数组的层为 <a href="#KindBeginArray">KindBeginArray</a>。</ul>
+<p>它还返回该 JSON 对象或数组目前已解码的长度。JSON 对象中的每个名称和值分别计数，因此实际成员数为长度的一半。完整 JSON 对象的长度必须为偶数。<h3 id="Decoder.StackPointer">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=39929:39969#L1203">StackPointer</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) StackPointer() <a href="#Pointer">Pointer</a></pre>
+				<p>StackPointer 返回指向最近读取的值的 JSON Pointer（RFC 6901）。<h3 id="Decoder.UnreadBuffer">func (*Decoder) <a href="/src/encoding/json/jsontext/decode.go?s=37641:37680#L1145">UnreadBuffer</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (d *<a href="#Decoder">Decoder</a>) UnreadBuffer() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>UnreadBuffer 返回未读缓冲区中剩余的数据，可能包含零个或多个字节。这些数据已从输入 <a href="/pkg/io/#Reader">io.Reader</a> 消耗，但尚未被 <a href="#Decoder.ReadToken">Decoder.ReadToken</a> 或 <a href="#Decoder.ReadValue">Decoder.ReadValue</a> 读取。由于还没有按 JSON 文法验证，它可能包含不构成有效 JSON 的字节。缓冲数据的确切数量属于 Decoder 的实现细节，可能随实现变化。<p>调用方有责任将此缓冲区与输入 Reader 中的剩余内容拼接，以获取最后读取的 JSON 词法单元或值之后的完整字节序列。<p>只要 Decoder 还在继续使用，就不得修改返回的缓冲区。缓冲区内容在下一次 Peek、Read 或 Skip 调用前有效。<h2 id="Encoder">type <a href="/src/encoding/json/jsontext/encode.go?s=1634:1673#L38">Encoder</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Encoder 是将数据编码为原始 JSON 词法单元和值的流式编码器。它用于写入顶层 JSON 值的流，每个值都以换行符结尾。<p>可以交错调用 <a href="#Encoder.WriteToken">Encoder.WriteToken</a> 和 <a href="#Encoder.WriteValue">Encoder.WriteValue</a>。例如，以下 JSON 值：<pre>{&quot;name&quot;:&quot;value&quot;,&quot;array&quot;:[null,false,true,3.14159],&quot;object&quot;:{&quot;k&quot;:&quot;v&quot;}}
+</pre>
+<p>可以通过以下调用构造（为简洁起见，忽略错误）：<pre>e.WriteToken(BeginObject)        // {
+e.WriteToken(String(&quot;name&quot;))     // &quot;name&quot;
+e.WriteToken(String(&quot;value&quot;))    // &quot;value&quot;
+e.WriteValue(Value(`&quot;array&quot;`))   // &quot;array&quot;
+e.WriteToken(BeginArray)         // [
+e.WriteToken(Null)               // null
+e.WriteToken(False)              // false
+e.WriteValue(Value(&quot;true&quot;))      // true
+e.WriteToken(Float(3.14159))     // 3.14159
+e.WriteToken(EndArray)           // ]
+e.WriteValue(Value(`&quot;object&quot;`))  // &quot;object&quot;
+e.WriteValue(Value(`{&quot;k&quot;:&quot;v&quot;}`)) // {&quot;k&quot;:&quot;v&quot;}
+e.WriteToken(EndObject)          // }
+</pre>
+<p>以上只是多种可能调用顺序中的一种，对某个具体词法单元或值而言，未必采用了最合理的方法。例如，对于对象成员名称，更常见的做法可能是使用字符串词法单元调用 <a href="#Encoder.WriteToken">Encoder.WriteToken</a>。<pre>type Encoder struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewEncoder">func <a href="/src/encoding/json/jsontext/encode.go?s=3082:3136#L81">NewEncoder</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func NewEncoder(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, opts ...<a href="#Options">Options</a>) *<a href="#Encoder">Encoder</a></pre>
+				<p>NewEncoder 构造一个向 w 写入数据、采用指定选项的新流式编码器。当内部缓冲区足够满，或已经写完一个顶层值时，会将缓冲内容写出。<p>如果 w 是 <a href="/pkg/bytes/#Buffer">bytes.Buffer</a>，编码器会直接向缓冲区追加内容，无须从中间缓冲区复制。<h3 id="Encoder.AvailableBuffer">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=29314:29356#L909">AvailableBuffer</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) AvailableBuffer() []<a href="/pkg/builtin/#byte">byte</a></pre>
+				<p>AvailableBuffer 返回长度为零、容量可能非零的缓冲区。此缓冲区用于填充一个 <a href="#Value">Value</a>，随后立即将它传给 <a href="#Encoder.WriteValue">Encoder.WriteValue</a>。<p>用法示例：<pre>b := e.AvailableBuffer()
+b = append(b, &apos;&quot;&apos;)
+b = appendString(b, v) // 追加 v 的字符串形式
+b = append(b, &apos;&quot;&apos;)
+... := e.WriteValue(b)
+</pre>
+<p>注意，WriteValue 要求有效的 JSON 值。直接在原始 []byte 中构造值，需要比使用 <a href="#String">String</a> 等构造函数更加谨慎；这些函数总会返回有效的 [Token] 或 [Value]。<h3 id="Encoder.Options">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=4812:4847#L130">Options</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) Options() <a href="#Options">Options</a></pre>
+				<p>Options 返回构造编码器时使用的选项，还可能包含传给 <a href="/pkg/encoding/json/v2/#MarshalEncode">encoding/json/v2.MarshalEncode</a> 的语义选项。<p>如果在 <a href="/pkg/encoding/json/v2/#MarshalerTo.MarshalJSONTo">encoding/json/v2.MarshalerTo.MarshalJSONTo</a> 方法调用或 <a href="/pkg/encoding/json/v2/#MarshalToFunc">encoding/json/v2.MarshalToFunc</a> 函数调用内使用，则返回的选项仅在该次调用期间有效。<h3 id="Encoder.OutputOffset">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=28625:28663#L890">OutputOffset</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) OutputOffset() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>OutputOffset 返回当前输出字节偏移量，即最近写入的词法单元或值之后紧接着的下一个字节的位置。由于内部缓冲，实际写入底层 <a href="/pkg/io/#Writer">io.Writer</a> 的字节数可能小于此偏移量。<h3 id="Encoder.Reset">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=3461:3514#L91">Reset</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) Reset(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, opts ...<a href="#Options">Options</a>)</pre>
+				<p>Reset 重置编码器，使其重新向 w 写入，并采用提供的选项。对于传给 <a href="/pkg/encoding/json/v2/#MarshalerTo.MarshalJSONTo">encoding/json/v2.MarshalerTo.MarshalJSONTo</a> 方法或 <a href="/pkg/encoding/json/v2/#MarshalToFunc">encoding/json/v2.MarshalToFunc</a> 函数的 Encoder，不得调用 Reset。<h3 id="Encoder.StackDepth">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=31093:31127#L946">StackDepth</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) StackDepth() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>StackDepth 返回状态机中已写入 JSON 数据的栈深度。每一层表示一个嵌套的 JSON 对象或数组。遇到 <a href="#BeginObject">BeginObject</a> 或 <a href="#BeginArray">BeginArray</a> 词法单元时深度加一，遇到 <a href="#EndObject">EndObject</a> 或 <a href="#EndArray">EndArray</a> 时减一。<p>不在任何对象或数组内部时，StackDepth 返回 0。具体包括尚未写入任何词法单元、已写完任意顶层值，以及编码顶层值流（例如 NDJSON）时处于两个值之间。位于顶层对象或数组内部时返回 1，位于其嵌套的对象或数组内部时返回 2，依此类推。<p>例如，考虑编码以下 JSON：<pre>{&quot;a&quot;: [1, 2], &quot;b&quot;: {&quot;c&quot;: 3}}
+</pre>
+<p>编码过程中，StackDepth 的返回值如下：<ul>
+<li>开始时返回 0。<li>编码外层 &apos;{&apos; 后返回 1。<li>编码内层 &apos;[&apos; 后返回 2。<li>编码内层 &apos;]&apos; 后返回 1。<li>编码外层 &apos;}&apos; 后返回 0。</ul>
+
+				
+			
+				<h3 id="Encoder.StackIndex">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=31817:31866#L963">StackIndex</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) StackIndex(i <a href="/pkg/builtin/#int">int</a>) (<a href="#Kind">Kind</a>, <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>StackIndex 返回指定栈层的信息。level 必须介于 0 和 <a href="#Encoder.StackDepth">Encoder.StackDepth</a> 之间（包含端点）。每层返回的类别为：<ul>
+<li>第 0 层为 <a href="#KindInvalid">KindInvalid</a>；<li>表示 JSON 对象的层为 <a href="#KindBeginObject">KindBeginObject</a>；<li>表示 JSON 数组的层为 <a href="#KindBeginArray">KindBeginArray</a>。</ul>
+<p>它还返回该 JSON 对象或数组目前已编码的长度。JSON 对象中的每个名称和值分别计数，因此实际成员数为长度的一半。完整 JSON 对象的长度必须为偶数。<h3 id="Encoder.StackPointer">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=32185:32225#L976">StackPointer</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) StackPointer() <a href="#Pointer">Pointer</a></pre>
+				<p>StackPointer 返回指向最近写入的值的 JSON Pointer（RFC 6901）。<h3 id="Encoder.WriteToken">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=12201:12244#L334">WriteToken</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) WriteToken(t <a href="#Token">Token</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteToken 写入下一个词法单元，并推进内部写入偏移量。<p>提供的词法单元类别必须符合 JSON 文法。例如，编码器期待对象成员名称（必须为字符串）时提供数字，或在结束数组时提供对象结束分隔符，都会出错。如果提供的词法单元无效，WriteToken 会报告 <a href="#SyntacticError">SyntacticError</a>，内部状态保持不变。<a href="#SyntacticError">SyntacticError</a> 中的偏移量等于 <a href="#Encoder.OutputOffset">Encoder.OutputOffset</a> 加上在该词法单元前本应出现的分隔符或空白字符数。<h3 id="Encoder.WriteValue">func (*Encoder) <a href="/src/encoding/json/jsontext/encode.go?s=17837:17880#L514">WriteValue</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#Encoder">Encoder</a>) WriteValue(v <a href="#Value">Value</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>WriteValue 写入下一个原始值，并推进内部写入偏移量。Encoder 并非直接原样复制该值，而是解析它以确保语法有效，并按照空白和字符串的格式配置重新格式化。如果指定了 <a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>，所有无效 UTF-8 都会替换为 Unicode 替换字符 U+FFFD。<p>提供的值类别必须符合 JSON 文法（参见 <a href="#Encoder.WriteToken">Encoder.WriteToken</a> 中的示例）。如果值无效，WriteValue 会报告 <a href="#SyntacticError">SyntacticError</a>，内部状态保持不变。<a href="#SyntacticError">SyntacticError</a> 中的偏移量等于 <a href="#Encoder.OutputOffset">Encoder.OutputOffset</a> 加上所遇语法错误在 v 中的偏移量。<h2 id="Kind">type <a href="/src/encoding/json/jsontext/token.go?s=21787:21801#L615">Kind</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Kind 表示 JSON 词法单元的类别。<p>Kind 是单个字节，取该类别在文法中符号的第一个字节以方便使用；数字例外，始终用 &apos;0&apos; 表示。<pre>type Kind <a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="KindInvalid">KindInvalid</span>     <a href="#Kind">Kind</a> = 0   <span class="comment">// 无效类别</span>
+    <span id="KindNull">KindNull</span>        <a href="#Kind">Kind</a> = &#39;n&#39; <span class="comment">// null</span>
+    <span id="KindFalse">KindFalse</span>       <a href="#Kind">Kind</a> = &#39;f&#39; <span class="comment">// false</span>
+    <span id="KindTrue">KindTrue</span>        <a href="#Kind">Kind</a> = &#39;t&#39; <span class="comment">// true</span>
+    <span id="KindString">KindString</span>      <a href="#Kind">Kind</a> = &#39;&#34;&#39; <span class="comment">// 字符串</span>
+    <span id="KindNumber">KindNumber</span>      <a href="#Kind">Kind</a> = &#39;0&#39; <span class="comment">// 数字</span>
+    <span id="KindBeginObject">KindBeginObject</span> <a href="#Kind">Kind</a> = &#39;{&#39; <span class="comment">// 对象开始</span>
+    <span id="KindEndObject">KindEndObject</span>   <a href="#Kind">Kind</a> = &#39;}&#39; <span class="comment">// 对象结束</span>
+    <span id="KindBeginArray">KindBeginArray</span>  <a href="#Kind">Kind</a> = &#39;[&#39; <span class="comment">// 数组开始</span>
+    <span id="KindEndArray">KindEndArray</span>    <a href="#Kind">Kind</a> = &#39;]&#39; <span class="comment">// 数组结束</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Kind.String">func (Kind) <a href="/src/encoding/json/jsontext/token.go?s=22289:22318#L633">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (k <a href="#Kind">Kind</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 k 的字符串表示。<h2 id="Options">type <a href="/src/encoding/json/jsontext/options.go?s=1730:1761#L35">Options</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Options 为 <a href="#NewEncoder">NewEncoder</a>、<a href="#Encoder.Reset">Encoder.Reset</a>、<a href="#NewDecoder">NewDecoder</a> 和 <a href="#Decoder.Reset">Decoder.Reset</a> 配置特定功能。各函数都接受可变数量的选项；后面的选项设置的属性会覆盖前面设置的同名属性。<p>编码和解码共用同一个 Options 类型。有些选项影响两种操作，另一些只影响其中一种：<ul>
+<li><a href="#AllowDuplicateNames">AllowDuplicateNames</a> 同时影响编码和解码<li><a href="#AllowInvalidUTF8">AllowInvalidUTF8</a> 同时影响编码和解码<li><a href="#EscapeForHTML">EscapeForHTML</a> 仅影响编码<li><a href="#EscapeForJS">EscapeForJS</a> 仅影响编码<li><a href="#PreserveRawStrings">PreserveRawStrings</a> 仅影响编码<li><a href="#CanonicalizeRawInts">CanonicalizeRawInts</a> 仅影响编码<li><a href="#CanonicalizeRawFloats">CanonicalizeRawFloats</a> 仅影响编码<li><a href="#ReorderRawObjects">ReorderRawObjects</a> 仅影响编码<li><a href="#SpaceAfterColon">SpaceAfterColon</a> 仅影响编码<li><a href="#SpaceAfterComma">SpaceAfterComma</a> 仅影响编码<li><a href="#Multiline">Multiline</a> 仅影响编码<li><a href="#WithIndent">WithIndent</a> 仅影响编码<li><a href="#WithIndentPrefix">WithIndentPrefix</a> 仅影响编码</ul>
+<p>不影响特定操作的选项会被忽略。<p>Options 类型与 <a href="/pkg/encoding/json/#Options">encoding/json.Options</a> 和 <a href="/pkg/encoding/json/v2/#Options">encoding/json/v2.Options</a> 完全相同。可以将其他包的选项传给本包的功能，但这些选项会被忽略；本包的选项也可用于其他包。<pre>type Options = <a href="/pkg/encoding/json/internal/jsonopts/">jsonopts</a>.<a href="/pkg/encoding/json/internal/jsonopts/#Options">Options</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AllowDuplicateNames">func <a href="/src/encoding/json/jsontext/options.go?s=2158:2198#L44">AllowDuplicateNames</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func AllowDuplicateNames(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>AllowDuplicateNames 指定 JSON 对象可以包含重复的成员名称。禁用重名检查可能提升性能，但不再符合 RFC 7493 第 2.3 节。输入或输出仍符合 RFC 8259，因为该规范未规定重复名称的处理方式。<p>此选项同时影响编码和解码。<h3 id="AllowInvalidUTF8">func <a href="/src/encoding/json/jsontext/options.go?s=2621:2658#L58">AllowInvalidUTF8</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func AllowInvalidUTF8(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>AllowInvalidUTF8 指定 JSON 字符串可以包含无效的 UTF-8，这些内容会被替换为 Unicode 替换字符 U+FFFD。这使编码器或解码器不再符合 RFC 7493 第 2.1 节和 RFC 8259 第 8.1 节。<p>此选项同时影响编码和解码。<h3 id="CanonicalizeRawFloats">func <a href="/src/encoding/json/jsontext/options.go?s=5746:5788#L143">CanonicalizeRawFloats</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func CanonicalizeRawFloats(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>CanonicalizeRawFloats 指定：编码 <a href="#Token">Token</a> 或 <a href="#Value">Value</a> 中的原始 JSON 浮点数（即含小数部分或指数的数字）时，按照 RFC 8785 第 3.2.2.3 节将其规范化。特殊情况是将 -0 规范化为 0。<p>JSON 数字被视为 IEEE 754 双精度数。对已序列化的单精度数进行规范化，再将其解析回单精度数，是安全的，可以得到相同的值。如果数字超出最大有限值 ±1.7976931348623157e+308，就将其限制在对应的边界值，并按该值格式化。<p>此选项仅影响编码，解码时会被忽略。<h3 id="CanonicalizeRawInts">func <a href="/src/encoding/json/jsontext/options.go?s=4877:4917#L122">CanonicalizeRawInts</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func CanonicalizeRawInts(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>CanonicalizeRawInts 指定：编码 <a href="#Token">Token</a> 或 <a href="#Value">Value</a> 中的原始 JSON 整数（即不含小数部分和指数的数字）时，按照 RFC 8785 第 3.2.2.3 节将其规范化。特殊情况是将 -0 规范化为 0。<p>JSON 数字被视为 IEEE 754 双精度数。超出该形式可表示精度的数字在规范化时会损失精度。例如，超出 ±2⁵³ 范围的整数会损失精度；1234567890123456789 会格式化为 1234567890123456800。<p>此选项仅影响编码，解码时会被忽略。<h3 id="EscapeForHTML">func <a href="/src/encoding/json/jsontext/options.go?s=3032:3066#L71">EscapeForHTML</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func EscapeForHTML(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>EscapeForHTML 指定将 JSON 字符串中的 &apos;&lt;&apos;、&apos;&gt;&apos; 和 &apos;&amp;&apos; 字符转义为十六进制 Unicode 码点形式（例如 \u003c），以便将输出安全地嵌入 HTML。<p>此选项仅影响编码，解码时会被忽略。<div id="example_EscapeForHTML" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>直接将 JSON 嵌入 HTML 需要进行特殊处理以保证安全。转义某些 rune，可以避免被直接当作 HTML 处理的 JSON 实施 &lt;script&gt; 注入。本例演示如何获得与 v1 [encoding/json] 包相同、但本包不再直接支持的行为。对于新编写的混用 JSON 和 HTML 的代码，应使用 [github.com/google/safehtml] 模块来保障安全。</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+
+	&#34;encoding/json/jsontext&#34;
+	&#34;encoding/json/v2&#34;
+)
+
+func main() {
+	page := struct {
+		Title string
+		Body  string
+	}{
+		Title: &#34;Example Embedded Javascript&#34;,
+		Body:  `&lt;script&gt; console.log(&#34;Hello, world!&#34;); &lt;/script&gt;`,
+	}
+
+	b, err := json.Marshal(&amp;page,
+		// 转义 JSON 字符串中的某些 rune，
+		// 使 JSON 可以安全地直接嵌入 HTML。
+		jsontext.EscapeForHTML(true),
+		jsontext.EscapeForJS(true),
+		jsontext.Multiline(true)) // 展开以提高可读性
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(b))
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;Title&#34;: &#34;Example Embedded Javascript&#34;,
+	&#34;Body&#34;: &#34;\u003cscript\u003e console.log(\&#34;Hello, world!\&#34;); \u003c/script\u003e&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="EscapeForJS">func <a href="/src/encoding/json/jsontext/options.go?s=3465:3497#L84">EscapeForJS</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func EscapeForJS(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>EscapeForJS 指定将 JSON 字符串中的 U+2028 和 U+2029 字符转义为十六进制 Unicode 码点形式（例如 \u2028），使输出可以合法地嵌入 JavaScript。参见 RFC 8259 第 12 节。<p>此选项仅影响编码，解码时会被忽略。<h3 id="Multiline">func <a href="/src/encoding/json/jsontext/options.go?s=7767:7797#L203">Multiline</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Multiline(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>Multiline 指定将 JSON 输出展开为多行，使每个 JSON 对象成员或数组元素都另起一行，并按嵌套深度缩进。<p>如果没有指定 <a href="#SpaceAfterColon">SpaceAfterColon</a>，默认值为 true；如果没有指定 <a href="#SpaceAfterComma">SpaceAfterComma</a>，默认值为 false；如果没有指定 <a href="#WithIndent">WithIndent</a>，默认值为 &quot;\t&quot;。<p>设为 false 时，输出为单行，出现的空白仅由当前 <a href="#SpaceAfterColon">SpaceAfterColon</a> 和 <a href="#SpaceAfterComma">SpaceAfterComma</a> 的值决定。<p>此选项仅影响编码，解码时会被忽略。<div id="example_Multiline" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+
+	&#34;encoding/json/jsontext&#34;
+	&#34;encoding/json/v2&#34;
+)
+
+func main() {
+	type Pet struct {
+		Name    string
+		Species string
+		Breed   string
+	}
+
+	p := Pet{
+		Name:    &#34;Oliver&#34;,
+		Species: &#34;Dog&#34;,
+		Breed:   &#34;Goldendoodle&#34;,
+	}
+
+	b, err := json.Marshal(p, jsontext.Multiline(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(b))
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;Name&#34;: &#34;Oliver&#34;,
+	&#34;Species&#34;: &#34;Dog&#34;,
+	&#34;Breed&#34;: &#34;Goldendoodle&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="PreserveRawStrings">func <a href="/src/encoding/json/jsontext/options.go?s=4039:4078#L101">PreserveRawStrings</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func PreserveRawStrings(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>PreserveRawStrings 指定：编码 <a href="#Token">Token</a> 或 <a href="#Value">Value</a> 中的原始 JSON 字符串时，保留其中已有的转义序列。不过，原始字符串仍遵循 <a href="#EscapeForHTML">EscapeForHTML</a> 和 <a href="#EscapeForJS">EscapeForJS</a>，会转义相关字符。如果启用了 <a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>，无效 UTF-8 字节也会原样保留在输出中。<p>此选项仅影响编码，解码时会被忽略。<h3 id="ReorderRawObjects">func <a href="/src/encoding/json/jsontext/options.go?s=6127:6165#L156">ReorderRawObjects</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func ReorderRawObjects(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>ReorderRawObjects 指定：编码 <a href="#Value">Value</a> 中的原始 JSON 对象时，按照 RFC 8785 第 3.2.3 节重新排列对象成员。<p>此选项仅影响编码，解码时会被忽略。<h3 id="SpaceAfterColon">func <a href="/src/encoding/json/jsontext/options.go?s=6549:6585#L169">SpaceAfterColon</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func SpaceAfterColon(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>SpaceAfterColon 指定在 JSON 对象成员名称后的每个冒号分隔符后输出一个空格。为 false 时，冒号后不输出空格。<p>此选项仅影响编码，解码时会被忽略。<h3 id="SpaceAfterComma">func <a href="/src/encoding/json/jsontext/options.go?s=6983:7019#L182">SpaceAfterComma</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func SpaceAfterComma(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>SpaceAfterComma 指定在 JSON 对象成员值或数组元素后的每个逗号分隔符后输出一个空格。为 false 时，逗号后不输出空格。<p>此选项仅影响编码，解码时会被忽略。<h3 id="WithIndent">func <a href="/src/encoding/json/jsontext/options.go?s=8500:8538#L222">WithIndent</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func WithIndent(indent <a href="/pkg/builtin/#string">string</a>) <a href="#Options">Options</a></pre>
+				<p>WithIndent 指定编码器输出多行内容，每个 JSON 对象成员或数组元素都另起一个缩进行。行首为缩进前缀（参见 <a href="#WithIndentPrefix">WithIndentPrefix</a>），随后按嵌套深度重复一次或多次 indent。indent 只能包含空格和制表符。<p>如果只希望输出缩进格式，而不关心具体缩进字符串，请改用 <a href="#Multiline">Multiline</a>。<p>此选项仅影响编码，解码时会被忽略。使用此选项隐含将 <a href="#Multiline">Multiline</a> 设为 true。<h3 id="WithIndentPrefix">func <a href="/src/encoding/json/jsontext/options.go?s=9756:9800#L255">WithIndentPrefix</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func WithIndentPrefix(prefix <a href="/pkg/builtin/#string">string</a>) <a href="#Options">Options</a></pre>
+				<p>WithIndentPrefix 指定编码器输出多行内容，每个 JSON 对象成员或数组元素都另起一个缩进行。行首为缩进前缀，随后按嵌套深度重复一次或多次 indent（参见 <a href="#WithIndent">WithIndent</a>）。prefix 只能包含空格和制表符。<p>此选项仅影响编码，解码时会被忽略。使用此选项隐含将 <a href="#Multiline">Multiline</a> 设为 true。<h2 id="Pointer">type <a href="/src/encoding/json/jsontext/state.go?s=3274:3293#L85">Pointer</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Pointer 是 JSON Pointer（RFC 6901），用于相对于顶层 JSON 值的根定位某个具体 JSON 值。<p>Pointer 是以斜杠分隔的引用片段列表，每个片段要么是 JSON 对象成员名称，要么是以十进制整数编码的 JSON 数组元素索引。如果不知道指针所引用的顶层 JSON 值的结构，就无法区分数组索引与恰好为十进制整数字符串的对象成员名称。<p>指向某个特定值的指针只有一种表示，因此比较 Pointer 值是否相等，就等价于检查它们是否指向同一个值。<pre>type Pointer <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pointer.AppendToken">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=4675:4723#L123">AppendToken</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) AppendToken(tok <a href="/pkg/builtin/#string">string</a>) <a href="#Pointer">Pointer</a></pre>
+				<p>AppendToken 将一个引用片段追加到 p 的末尾，并返回完整指针。<h3 id="Pointer.Contains">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=3892:3934#L103">Contains</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) Contains(pc <a href="#Pointer">Pointer</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Contains 报告 p 指向的 JSON 值是否就是 pc 指向的值，或包含 pc 指向的值。<h3 id="Pointer.IsValid">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=3450:3481#L89">IsValid</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) IsValid() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告 p 是否是符合 RFC 6901 的有效 JSON Pointer。注意，拼接两个有效指针仍会得到有效指针。<h3 id="Pointer.LastToken">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=4430:4465#L117">LastToken</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) LastToken() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>LastToken 返回指针中的最后一个引用片段。空 Pointer 的最后一个片段为空字符串。<h3 id="Pointer.Parent">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=4222:4255#L111">Parent</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) Parent() <a href="#Pointer">Pointer</a></pre>
+				<p>Parent 移除最后一个引用片段，并返回剩余指针。空 Pointer 的父指针为空字符串。<h3 id="Pointer.Tokens">func (Pointer) <a href="/src/encoding/json/jsontext/state.go?s=4997:5039#L132">Tokens</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (p <a href="#Pointer">Pointer</a>) Tokens() <a href="/pkg/iter/">iter</a>.<a href="/pkg/iter/#Seq">Seq</a>[<a href="/pkg/builtin/#string">string</a>]</pre>
+				<p>Tokens 返回按从前到后顺序遍历 JSON 指针各引用片段的迭代器。<h2 id="SyntacticError">type <a href="/src/encoding/json/jsontext/errors.go?s=1183:1550#L40">SyntacticError</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>SyntacticError 描述按文法编码或解码 JSON 时发生的错误。<p>本包生成的此类错误的内容可能随实现变化。<pre>type SyntacticError struct {
+
+<span id="SyntacticError.ByteOffset"></span>    <span class="comment">// ByteOffset 表示错误发生在此字节偏移量处或其后。</span>
+    ByteOffset <a href="/pkg/builtin/#int64">int64</a>
+<span id="SyntacticError.JSONPointer"></span>    <span class="comment">// JSONPointer 采用 JSON Pointer 表示法（参见 RFC 6901）</span>
+    <span class="comment">// 指出错误发生在哪个 JSON 值内部。</span>
+    JSONPointer <a href="#Pointer">Pointer</a>
+
+<span id="SyntacticError.Err"></span>    <span class="comment">// Err 是底层错误。</span>
+    Err <a href="/pkg/builtin/#error">error</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyntacticError.Error">func (*SyntacticError) <a href="/src/encoding/json/jsontext/errors.go?s=3830:3869#L110">Error</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#SyntacticError">SyntacticError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="SyntacticError.Unwrap">func (*SyntacticError) <a href="/src/encoding/json/jsontext/errors.go?s=4479:4518#L133">Unwrap</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#SyntacticError">SyntacticError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Token">type <a href="/src/encoding/json/jsontext/token.go?s=1973:5000#L46">Token</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Token 表示一个 JSON 词法单元，可以是以下之一：<ul>
+<li>JSON 字面量（即 null、true 或 false）<li>JSON 字符串（例如 &quot;hello, world!&quot;）<li>JSON 数字（例如 123.456）<li>JSON 对象的起始或结束分隔符（即 { 或 }）<li>JSON 数组的起始或结束分隔符（即 [ 或 ]）</ul>
+<p>Token 无法表示整个数组或对象值，而 <a href="#Value">Value</a> 可以。没有用于表示逗号和冒号的 Token，因为这些结构性词法单元可以从周围上下文推断。<p>Token 以以下两种形式之一存储数据：<ul>
+<li><p>原始 JSON 文本：依托 <a href="#Decoder">Decoder</a> 的内部缓冲区，仅由 <a href="#Decoder.ReadToken">Decoder.ReadToken</a> 产生。此类词法单元仅在下一次调用该 <a href="#Decoder">Decoder</a> 的任意方法前有效，例如 <a href="#Decoder.PeekKind">Decoder.PeekKind</a>、<a href="#Decoder.ReadToken">Decoder.ReadToken</a>、<a href="#Decoder.ReadValue">Decoder.ReadValue</a> 或 <a href="#Decoder.SkipValue">Decoder.SkipValue</a>。调用 <a href="#Token.Clone">Token.Clone</a> 可将原始文本复制到独立分配的内存中，使其在后续 <a href="#Decoder">Decoder</a> 调用后仍保持有效。<li><p>带类型的 Go 值：由构造函数（例如 <a href="#String">String</a>、<a href="#Int">Int</a>、<a href="#Uint">Uint</a>、<a href="#Float">Float</a>）产生的独立表示。此类词法单元一直有效，无须克隆。</ul>
+
+			<pre>type Token struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+				
+				<pre>var (
+    <span id="Null">Null</span>  <a href="#Token">Token</a> = rawToken(&#34;null&#34;)
+    <span id="False">False</span> <a href="#Token">Token</a> = rawToken(&#34;false&#34;)
+    <span id="True">True</span>  <a href="#Token">Token</a> = rawToken(&#34;true&#34;)
+
+    <span id="BeginObject">BeginObject</span> <a href="#Token">Token</a> = rawToken(&#34;{&#34;)
+    <span id="EndObject">EndObject</span>   <a href="#Token">Token</a> = rawToken(&#34;}&#34;)
+    <span id="BeginArray">BeginArray</span>  <a href="#Token">Token</a> = rawToken(&#34;[&#34;)
+    <span id="EndArray">EndArray</span>    <a href="#Token">Token</a> = rawToken(&#34;]&#34;)
+)</pre>
+			
+
+			
+
+			
+				<h3 id="Bool">func <a href="/src/encoding/json/jsontext/token.go?s=5694:5717#L123">Bool</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Bool(b <a href="/pkg/builtin/#bool">bool</a>) <a href="#Token">Token</a></pre>
+				<p>Bool 构造表示 JSON 布尔值的 Token。<h3 id="Float">func <a href="/src/encoding/json/jsontext/token.go?s=7335:7362#L165">Float</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Float(n <a href="/pkg/builtin/#float64">float64</a>) <a href="#Token">Token</a></pre>
+				<p>Float 构造表示 JSON 数字的 Token，使用 64 位浮点数，并按照 ECMA-262 第 10 版第 7.1.12.1 节与 RFC 8785 第 3.2.2.3 节格式化；例外是 -0 仍格式化为 -0。NaN、+Inf 和 -Inf 分别表示为值为 &quot;NaN&quot;、&quot;Infinity&quot; 和 &quot;-Infinity&quot; 的 JSON 字符串。<h3 id="Float32">func <a href="/src/encoding/json/jsontext/token.go?s=6739:6768#L152">Float32</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Float32(n <a href="/pkg/builtin/#float32">float32</a>) <a href="#Token">Token</a></pre>
+				<p>Float32 构造表示 JSON 数字的 Token，使用 32 位浮点数，并按照 ECMA-262 第 10 版第 7.1.12.1 节格式化；例外是 -0 仍格式化为 -0。NaN、+Inf 和 -Inf 分别表示为值为 &quot;NaN&quot;、&quot;Infinity&quot; 和 &quot;-Infinity&quot; 的 JSON 字符串。<p>注意，大多数 JSON 库和标准都假设 JSON 数字为 64 位浮点数。只有对应解码器知道该 JSON 数字词法单元预期仅有 32 位精度时，才应使用 32 位精度。其他情况应优先使用 <a href="#Float">Float</a> 构造函数。<h3 id="Int">func <a href="/src/encoding/json/jsontext/token.go?s=7681:7704#L180">Int</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Int(n <a href="/pkg/builtin/#int64">int64</a>) <a href="#Token">Token</a></pre>
+				<p>Int 从 int64 构造表示 JSON 数字的 Token。<h3 id="String">func <a href="/src/encoding/json/jsontext/token.go?s=5955:5982#L133">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func String(s <a href="/pkg/builtin/#string">string</a>) <a href="#Token">Token</a></pre>
+				<p>String 构造表示 JSON 字符串的 Token。提供的字符串应包含有效 UTF-8，否则无效字符可能被替换为 Unicode 替换字符。<h3 id="Uint">func <a href="/src/encoding/json/jsontext/token.go?s=7855:7880#L188">Uint</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func Uint(n <a href="/pkg/builtin/#uint64">uint64</a>) <a href="#Token">Token</a></pre>
+				<p>Uint 从 uint64 构造表示 JSON 数字的 Token。<h3 id="Token.Bool">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=9081:9107#L234">Bool</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Bool() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Bool 返回 JSON 布尔值。如果词法单元不是 JSON 布尔值，则引发 panic。<h3 id="Token.Clone">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=8227:8255#L199">Clone</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Clone() <a href="#Token">Token</a></pre>
+				<p>Clone 返回词法单元的副本；副本的值不依赖 <a href="#Decoder">Decoder</a> 缓冲区，因此在后续 <a href="#Decoder">Decoder</a> 调用后仍有效。对于由构造函数产生的词法单元，它没有影响，因为这些词法单元本来就是独立表示。<h3 id="Token.Float">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=13842:13881#L376">Float</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Float() (<a href="/pkg/builtin/#float64">float64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Float 返回按 64 位精度解析 JSON 数字得到的浮点值。<p>如果 JSON 数字超出 float64 的可表示范围，则返回 +Inf 或 -Inf，同时返回一个可通过 <a href="/pkg/errors/#Is">errors.Is</a> 匹配 <a href="/pkg/strconv/#ErrRange">strconv.ErrRange</a> 的错误。<p>对于值为 &quot;NaN&quot;、&quot;Infinity&quot; 或 &quot;-Infinity&quot; 的 JSON 字符串，分别返回 NaN、+Inf 或 -Inf。<p>如果词法单元既不是 JSON 数字，也不是具有上述值的 JSON 字符串，则引发 panic。<h3 id="Token.Float32">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=13236:13277#L359">Float32</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Float32() (<a href="/pkg/builtin/#float32">float32</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Float32 返回按 32 位精度解析 JSON 数字得到的浮点值。<p>如果 JSON 数字超出 float32 的可表示范围，则返回 +Inf 或 -Inf，同时返回一个可通过 <a href="/pkg/errors/#Is">errors.Is</a> 匹配 <a href="/pkg/strconv/#ErrRange">strconv.ErrRange</a> 的错误。<p>对于值为 &quot;NaN&quot;、&quot;Infinity&quot; 或 &quot;-Infinity&quot; 的 JSON 字符串，分别返回 NaN、+Inf 或 -Inf。<p>如果词法单元既不是 JSON 数字，也不是具有上述值的 JSON 字符串，则引发 panic。<p>注意，大多数 JSON 库和标准都假设 JSON 数字为 64 位浮点数。只有调用方从其他上下文得知该词法单元是仅按 32 位精度格式化的 JSON 数字（例如使用 <a href="#Float32">Float32</a> 构造函数编码）时，才应使用此方法。其他情况应优先使用 <a href="#Token.Float">Token.Float</a> 访问方法。<h3 id="Token.Int">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=16146:16181#L442">Int</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Int() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Int 返回 JSON 数字的带符号整数值。<p>如果 JSON 数字不符合仅允许带符号整数的受限文法，则报告一个可通过 <a href="/pkg/errors/#Is">errors.Is</a> 匹配 <a href="/pkg/strconv/#ErrSyntax">strconv.ErrSyntax</a> 的错误。如果 JSON 数字是带符号整数，但超出 int64 范围，则报告一个可通过 <a href="/pkg/errors/#Is">errors.Is</a> 匹配 <a href="/pkg/strconv/#ErrRange">strconv.ErrRange</a> 的错误。即使报告错误，仍会返回一个合理的值：忽略数字的小数部分（向零截断）；超出 int64 可表示范围的数字，会被限制为最接近的可表示值。<p>如果词法单元不是 JSON 数字，则引发 panic。<h3 id="Token.Kind">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=21256:21282#L593">Kind</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Kind() <a href="#Kind">Kind</a></pre>
+				<p>Kind 返回词法单元的类别。<h3 id="Token.String">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=10065:10095#L268">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 JSON 字符串经过反转义后的字符串值。对于其他 JSON 类别，返回原始 JSON 表示。<h3 id="Token.Uint">func (Token) <a href="/src/encoding/json/jsontext/token.go?s=18987:19024#L525">Uint</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (t <a href="#Token">Token</a>) Uint() (<a href="/pkg/builtin/#uint64">uint64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Uint 返回 JSON 数字的无符号整数值。<p>如果 JSON 数字不符合仅允许无符号整数的受限文法，则报告一个匹配 <a href="/pkg/strconv/#ErrSyntax">strconv.ErrSyntax</a> 的错误。如果 JSON 数字是无符号整数，但超出 uint64 可表示范围，则报告一个匹配 <a href="/pkg/strconv/#ErrRange">strconv.ErrRange</a> 的错误。即使报告错误，仍会返回一个合理的值：忽略数字的小数部分（向零截断）；超出 uint64 可表示范围的数字，会被限制为最接近的可表示值。<p>如果词法单元不是 JSON 数字，则引发 panic。<h2 id="Value">type <a href="/src/encoding/json/jsontext/value.go?s=2313:2330#L56">Value</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Value 表示单个原始 JSON 值，可以是以下之一：<ul>
+<li>JSON 字面量（即 null、true 或 false）<li>JSON 字符串（例如 &quot;hello, world!&quot;）<li>JSON 数字（例如 123.456）<li>整个 JSON 对象（例如 {&quot;fizz&quot;:&quot;buzz&quot;}）<li>整个 JSON 数组（例如 [1,2,3]）</ul>
+<p>Value 可以表示整个数组或对象值，而 <a href="#Token">Token</a> 不可以。Value 可以带有前导和/或尾随空白。<pre>type Value []<a href="/pkg/builtin/#byte">byte</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Value.Canonicalize">func (*Value) <a href="/src/encoding/json/jsontext/value.go?s=7893:7944#L213">Canonicalize</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Canonicalize(opts ...<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Canonicalize 按 RFC 8785 定义的 JSON 规范化方案（JCS）对原始 JSON 值进行规范化。所得 JSON 值与原值含义相同，并具有稳定性：对已经规范化的值再次调用 Canonicalize，不会产生变化。<p>JSON 字符串格式化为最简表示，JSON 数字按稳定的序列化算法格式化为双精度数，JSON 对象成员按名称升序排列，并移除全部空白。<p>Canonicalize 等价于使用以下选项调用 <a href="#Value.Format">Value.Format</a>：<ul>
+<li><a href="#CanonicalizeRawInts">CanonicalizeRawInts</a>(true)
+<li><a href="#CanonicalizeRawFloats">CanonicalizeRawFloats</a>(true)
+<li><a href="#ReorderRawObjects">ReorderRawObjects</a>(true)
+</ul>
+<p>调用方指定的选项在这组初始选项之后应用，因此可以有意覆盖前面的选项。<p>注意，JCS 将所有 JSON 数字视为 IEEE 754 双精度数。超出这种形式可表示精度的数字会在规范化时损失精度，例如超出 ±2⁵³ 范围的整数。要保留 JSON 整数的原始表示，可以另外将 <a href="#CanonicalizeRawInts">CanonicalizeRawInts</a> 设为 false：<pre>v.Canonicalize(jsontext.CanonicalizeRawInts(false))
+</pre>
+
+				
+			
+				<h3 id="Value.Clone">func (Value) <a href="/src/encoding/json/jsontext/value.go?s=2362:2390#L59">Clone</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Clone() <a href="#Value">Value</a></pre>
+				<p>Clone 返回 v 的副本。<h3 id="Value.Compact">func (*Value) <a href="/src/encoding/json/jsontext/value.go?s=5491:5537#L154">Compact</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Compact(opts ...<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Compact 移除原始 JSON 值中的所有空白。<p>它不会将 JSON 字符串或数字重新格式化为其他表示。为了尽可能支持更多 JSON 值，它允许重复名称和无效 UTF-8。<p>Compact 等价于使用以下选项调用 <a href="#Value.Format">Value.Format</a>：<ul>
+<li><a href="#AllowDuplicateNames">AllowDuplicateNames</a>(true)
+<li><a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>(true)
+<li><a href="#PreserveRawStrings">PreserveRawStrings</a>(true)
+</ul>
+<p>调用方指定的选项在这组初始选项之后应用，因此可以有意覆盖前面的选项。<h3 id="Value.Format">func (*Value) <a href="/src/encoding/json/jsontext/value.go?s=4291:4336#L120">Format</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Format(opts ...<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Format 就地格式化原始 JSON 值。<p>默认情况下（未指定任何选项时），它按 RFC 7493 验证，并产生最简 JSON 表示：省略所有空白，JSON 字符串使用最短编码。<p>相关选项包括：<ul>
+<li><a href="#AllowDuplicateNames">AllowDuplicateNames</a>
+<li><a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>
+<li><a href="#EscapeForHTML">EscapeForHTML</a>
+<li><a href="#EscapeForJS">EscapeForJS</a>
+<li><a href="#PreserveRawStrings">PreserveRawStrings</a>
+<li><a href="#CanonicalizeRawInts">CanonicalizeRawInts</a>
+<li><a href="#CanonicalizeRawFloats">CanonicalizeRawFloats</a>
+<li><a href="#ReorderRawObjects">ReorderRawObjects</a>
+<li><a href="#SpaceAfterColon">SpaceAfterColon</a>
+<li><a href="#SpaceAfterComma">SpaceAfterComma</a>
+<li><a href="#Multiline">Multiline</a>
+<li><a href="#WithIndent">WithIndent</a>
+<li><a href="#WithIndentPrefix">WithIndentPrefix</a>
+</ul>
+<p>所有其他选项都会被忽略。<p>如果该值按照同组选项是有效的，就保证操作成功。如果值已经是所需格式，则不会修改缓冲区。<h3 id="Value.Indent">func (*Value) <a href="/src/encoding/json/jsontext/value.go?s=6361:6406#L177">Indent</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) Indent(opts ...<a href="#Options">Options</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Indent 重新格式化原始 JSON 值中的空白，使 JSON 对象成员或数组元素各自另起一行，并按嵌套层级缩进。<p>它不会将 JSON 字符串或数字重新格式化为其他表示。为了尽可能支持更多 JSON 值，它允许重复名称和无效 UTF-8。<p>Indent 等价于使用以下选项调用 <a href="#Value.Format">Value.Format</a>：<ul>
+<li><a href="#AllowDuplicateNames">AllowDuplicateNames</a>(true)
+<li><a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>(true)
+<li><a href="#PreserveRawStrings">PreserveRawStrings</a>(true)
+<li><a href="#Multiline">Multiline</a>(true)
+</ul>
+<p>调用方指定的选项在这组初始选项之后应用，因此可以有意覆盖前面的选项。<h3 id="Value.IsValid">func (Value) <a href="/src/encoding/json/jsontext/value.go?s=3196:3240#L86">IsValid</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) IsValid(opts ...<a href="#Options">Options</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>IsValid 报告原始 JSON 值是否按照指定选项在语法上有效。<p>默认情况下（未指定任何选项时），它按 RFC 7493 验证，检查输入是否为正确的 UTF-8 编码、字符串中的转义序列是否解码为有效 Unicode 码点，以及每个对象中的名称是否唯一。它不验证数字是否处于任何常用数值类型（例如 float64、int64 或 uint64）的可表示范围内。<p>相关选项包括：<ul>
+<li><a href="#AllowDuplicateNames">AllowDuplicateNames</a>
+<li><a href="#AllowInvalidUTF8">AllowInvalidUTF8</a>
+</ul>
+<p>所有其他选项都会被忽略。<h3 id="Value.Kind">func (Value) <a href="/src/encoding/json/jsontext/value.go?s=8886:8912#L245">Kind</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) Kind() <a href="#Kind">Kind</a></pre>
+				<p>Kind 返回起始词法单元的类别。对于有效值，结果绝不会是 <a href="#KindEndObject">KindEndObject</a> 或 <a href="#KindEndArray">KindEndArray</a>。<h3 id="Value.MarshalJSON">func (Value) <a href="/src/encoding/json/jsontext/value.go?s=8204:8248#L224">MarshalJSON</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) MarshalJSON() ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>MarshalJSON 将 v 作为自身的 JSON 编码返回，不做任何验证。如果 v 为 nil，则返回 JSON null。<h3 id="Value.String">func (Value) <a href="/src/encoding/json/jsontext/value.go?s=2465:2495#L64">String</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v <a href="#Value">Value</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回 v 的字符串形式。<h3 id="Value.UnmarshalJSON">func (*Value) <a href="/src/encoding/json/jsontext/value.go?s=8513:8558#L234">UnmarshalJSON</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (v *<a href="#Value">Value</a>) UnmarshalJSON(b []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalJSON 将 v 设为 b 的 JSON 编码。它保存所提供原始 JSON 输入的副本，不做任何验证。</article>

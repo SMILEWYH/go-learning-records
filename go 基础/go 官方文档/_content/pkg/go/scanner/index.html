@@ -1,0 +1,391 @@
+<!--{
+  "Title": "go/scanner 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>go/scanner 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "go/scanner"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>scanner 包实现 Go 源文本的词法分析器。它接受 []byte 作为输入源，随后可通过反复调用 Scan 方法将其拆分为词法单元。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#PrintError">func PrintError(w io.Writer, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Error.Error">func (e Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#ErrorHandler">type ErrorHandler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ErrorList">type ErrorList</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Add">func (p *ErrorList) Add(pos token.Position, msg string)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Err">func (p ErrorList) Err() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Error">func (p ErrorList) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Len">func (p ErrorList) Len() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Less">func (p ErrorList) Less(i, j int) bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.RemoveMultiples">func (p *ErrorList) RemoveMultiples()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Reset">func (p *ErrorList) Reset()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Sort">func (p ErrorList) Sort()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ErrorList.Swap">func (p ErrorList) Swap(i, j int)</a></dd>
+				
+			
+				
+				<dd><a href="#Mode">type Mode</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Scanner">type Scanner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.End">func (s *Scanner) End() token.Pos</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Init">func (s *Scanner) Init(file *token.File, src []byte, err ErrorHandler, mode Mode)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Scanner.Scan">func (s *Scanner) Scan() (pos token.Pos, tok token.Token, lit string)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Scanner_Scan">Scanner.Scan</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/go/scanner/errors.go">errors.go</a>
+			
+				<a href="/src/go/scanner/scanner.go">scanner.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="PrintError">func <a href="/src/go/scanner/errors.go?s=2990:3029#L104">PrintError</a>
+				
+				
+			</h2>
+			<pre>func PrintError(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>PrintError 是一个辅助函数：如果 err 参数为 <a href="#ErrorList">ErrorList</a>，则向 w 逐行打印错误列表，每行一个错误；否则打印 err 的字符串。<h2 id="Error">type <a href="/src/go/scanner/errors.go?s=412:465#L8">Error</a>
+				
+				
+			</h2>
+			<p>在 <a href="#ErrorList">ErrorList</a> 中，错误用 *Error 表示。位置 Pos 有效时，指向出错词法单元的起始位置，Msg 描述错误情况。<pre>type Error struct {
+<span id="Error.Pos"></span>    Pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>
+<span id="Error.Msg"></span>    Msg <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Error.Error">func (Error) <a href="/src/go/scanner/errors.go?s=598:627#L16">Error</a>
+					
+					
+				</h3>
+				<pre>func (e <a href="#Error">Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Error 实现 error 接口。<h2 id="ErrorHandler">type <a href="/src/go/scanner/scanner.go?s=683:737#L14">ErrorHandler</a>
+				
+				
+			</h2>
+			<p>可以向 <a href="#Scanner.Init">Scanner.Init</a> 提供 ErrorHandler。如果遇到语法错误且已设置处理器，就会以位置和错误消息调用该处理器。位置指向出错词法单元的起始处。<pre>type ErrorHandler func(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>, msg <a href="/pkg/builtin/#string">string</a>)</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ErrorList">type <a href="/src/go/scanner/errors.go?s=939:962#L27">ErrorList</a>
+				
+				
+			</h2>
+			<p>ErrorList 是 *Error 列表。其零值是可直接使用的空错误列表。<pre>type ErrorList []*<a href="#Error">Error</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="ErrorList.Add">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=1044:1099#L30">Add</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) Add(pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Position">Position</a>, msg <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Add 将具有给定位置和错误消息的 <a href="#Error">Error</a> 添加到 <a href="#ErrorList">ErrorList</a>。<h3 id="ErrorList.Err">func (ErrorList) <a href="/src/go/scanner/errors.go?s=2737:2767#L94">Err</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Err() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Err 返回与此错误列表等价的 error。如果列表为空，则返回 nil。<h3 id="ErrorList.Error">func (ErrorList) <a href="/src/go/scanner/errors.go?s=2457:2490#L82">Error</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				<p><a href="#ErrorList">ErrorList</a> 实现 error 接口。<h3 id="ErrorList.Len">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1279:1307#L38">Len</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Len() <a href="/pkg/builtin/#int">int</a></pre>
+				<p><a href="#ErrorList">ErrorList</a> 实现 sort.Interface。<h3 id="ErrorList.Less">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1394:1432#L41">Less</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Less(i, j <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+				
+				
+			
+				<h3 id="ErrorList.RemoveMultiples">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=2118:2155#L67">RemoveMultiples</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) RemoveMultiples()</pre>
+				<p>RemoveMultiples 对 <a href="#ErrorList">ErrorList</a> 排序，并对每一行仅保留第一个错误。<h3 id="ErrorList.Reset">func (*ErrorList) <a href="/src/go/scanner/errors.go?s=1185:1212#L35">Reset</a>
+					
+					
+				</h3>
+				<pre>func (p *<a href="#ErrorList">ErrorList</a>) Reset()</pre>
+				<p>Reset 将 <a href="#ErrorList">ErrorList</a> 重置为空错误列表。<h3 id="ErrorList.Sort">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1987:2012#L62">Sort</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Sort()</pre>
+				<p>Sort 对 <a href="#ErrorList">ErrorList</a> 排序。*<a href="#Error">Error</a> 条目按位置排序；其他错误按错误消息排序，并排在所有 *<a href="#Error">Error</a> 条目之前。<h3 id="ErrorList.Swap">func (ErrorList) <a href="/src/go/scanner/errors.go?s=1331:1364#L39">Swap</a>
+					
+					
+				</h3>
+				<pre>func (p <a href="#ErrorList">ErrorList</a>) Swap(i, j <a href="/pkg/builtin/#int">int</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="Mode">type <a href="/src/go/scanner/scanner.go?s=3468:3482#L105">Mode</a>
+				
+				
+			</h2>
+			<p>Mode 值是一组标志（也可以为 0），用于控制词法分析器的行为。<pre>type Mode <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="ScanComments">ScanComments</span> <a href="#Mode">Mode</a> = 1 &lt;&lt; <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// 将注释作为 COMMENT 词法单元返回</span>
+
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Scanner">type <a href="/src/go/scanner/scanner.go?s=933:1713#L19">Scanner</a>
+				
+				
+			</h2>
+			<p>Scanner 保存处理给定文本时词法分析器的内部状态。它可以作为其他数据结构的一部分分配，但使用前必须通过 <a href="#Scanner.Init">Scanner.Init</a> 初始化。<pre>type Scanner struct {
+
+    <span class="comment">// 公开状态，可以修改</span>
+<span id="Scanner.ErrorCount"></span>    ErrorCount <a href="/pkg/builtin/#int">int</a> <span class="comment">// 遇到的错误数</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Scanner.End">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=19826:19859#L767">End</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) End() <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a></pre>
+				<p>End 返回最近一次扫描所得词法单元之后紧邻的位置。如果尚未调用 <a href="#Scanner.Scan">Scanner.Scan</a>，则返回 <a href="/pkg/go/token/#NoPos">token.NoPos</a>。<h3 id="Scanner.Init">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=4435:4516#L126">Init</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Init(file *<a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#File">File</a>, src []<a href="/pkg/builtin/#byte">byte</a>, err <a href="#ErrorHandler">ErrorHandler</a>, mode <a href="#Mode">Mode</a>)</pre>
+				<p>Init 将扫描器 s 定位到 src 的开头，为其对文本 src 进行词法分析做准备。扫描器使用文件集中的 file 记录位置信息，并为每行添加行信息。重新扫描同一个文件时可以复用 file，因为已有的行信息会被忽略。如果 file 的大小与 src 大小不匹配，Init 会触发 panic。<p>调用 <a href="#Scanner.Scan">Scanner.Scan</a> 时，如果遇到语法错误且 err 非 nil，就会调用错误处理器 err。每遇到一个错误，<a href="#Scanner">Scanner</a> 的 ErrorCount 字段还会加一。mode 参数决定如何处理注释。<p>如果文件的第一个字符就存在错误，Init 也可能调用 err。<h3 id="Scanner.Scan">func (*Scanner) <a href="/src/go/scanner/scanner.go?s=21821:21890#L812">Scan</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#Scanner">Scanner</a>) Scan() (pos <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Pos">Pos</a>, tok <a href="/pkg/go/token/">token</a>.<a href="/pkg/go/token/#Token">Token</a>, lit <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>Scan 扫描下一个词法单元，返回其位置、词法单元类型，以及适用时的字面量字符串。源文本结束以 <a href="/pkg/go/token/#EOF">token.EOF</a> 表示。<p>如果返回的是字面量词法单元（<a href="/pkg/go/token/#IDENT">token.IDENT</a>、<a href="/pkg/go/token/#INT">token.INT</a>、<a href="/pkg/go/token/#FLOAT">token.FLOAT</a>、<a href="/pkg/go/token/#IMAG">token.IMAG</a>、<a href="/pkg/go/token/#CHAR">token.CHAR</a>、<a href="/pkg/go/token/#STRING">token.STRING</a>）或 <a href="/pkg/go/token/#COMMENT">token.COMMENT</a>，字面量字符串就是其对应的值。<p>如果返回的是关键字，字面量字符串就是该关键字。<p>如果返回的词法单元为 <a href="/pkg/go/token/#SEMICOLON">token.SEMICOLON</a>，当源代码中实际存在分号时，字面量字符串为“;”；如果分号是因为换行或 EOF 而自动插入的，则为“\n”。如果换行位于 /*...*/ 注释内，SEMICOLON 会紧接 COMMENT 词法单元之后合成，其位置是注释内实际换行的位置。<p>如果返回的词法单元为 <a href="/pkg/go/token/#ILLEGAL">token.ILLEGAL</a>，字面量字符串就是出错字符。<p>其他情况下，Scan 返回空的字面量字符串。<p>为提高解析容错能力，即使遇到语法错误，Scan 也会尽可能返回有效词法单元。因此，即使得到的词法单元序列中没有非法单元，调用方也不能假定未发生错误，而必须检查扫描器的 ErrorCount，或者已设置的错误处理器被调用的次数。<p>Scan 将行信息添加到通过 Init 加入文件集的文件中。词法单元位置相对于该文件，因此也相对于文件集。<div id="example_Scanner_Scan" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;go/scanner&#34;
+	&#34;go/token&#34;
+)
+
+func main() {
+	// src 是需要进行词法分析的输入。
+	src := []byte(&#34;cos(x) &#43; 1i*sin(x) // Euler&#34;)
+
+	// 初始化扫描器。
+	var s scanner.Scanner
+	fset := token.NewFileSet()                      // 位置相对于 fset
+	file := fset.AddFile(&#34;&#34;, fset.Base(), len(src)) // 注册输入“文件”
+	s.Init(file, src, nil /* 不设置错误处理器 */, scanner.ScanComments)
+
+	// 反复调用 Scan，得到输入中的词法单元序列。
+	for {
+		pos, tok, lit := s.Scan()
+		if tok == token.EOF {
+			break
+		}
+		fmt.Printf(&#34;%s\t%s\t%q\n&#34;, fset.Position(pos), tok, lit)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>1:1	IDENT	&#34;cos&#34;
+1:4	(	&#34;&#34;
+1:5	IDENT	&#34;x&#34;
+1:6	)	&#34;&#34;
+1:8	+	&#34;&#34;
+1:10	IMAG	&#34;1i&#34;
+1:12	*	&#34;&#34;
+1:13	IDENT	&#34;sin&#34;
+1:16	(	&#34;&#34;
+1:17	IDENT	&#34;x&#34;
+1:18	)	&#34;&#34;
+1:20	COMMENT	&#34;// Euler&#34;
+1:28	;	&#34;\n&#34;
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

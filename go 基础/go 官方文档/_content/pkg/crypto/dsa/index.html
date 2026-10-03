@@ -1,0 +1,263 @@
+<!--{
+  "Title": "crypto/dsa 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package dsa</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto/dsa"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>dsa 包实现 FIPS 186-3 定义的数字签名算法（DSA）。
+<p>本包中的 DSA 操作并非使用常量时间算法实现。
+<p>已弃用：DSA 是传统算法，应改用现代替代算法，例如 crypto/ed25519 包实现的 Ed25519。模数为 1024 位的密钥（L1024N160 参数）在密码学上较弱，而更大的密钥又未得到广泛支持。注意，FIPS 186-5 已不再批准使用 DSA 生成签名。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#GenerateKey">func GenerateKey(priv *PrivateKey, rand io.Reader) error</a></dd>
+			
+				<dd><a href="#GenerateParameters">func GenerateParameters(params *Parameters, rand io.Reader, sizes ParameterSizes) error</a></dd>
+			
+				<dd><a href="#Sign">func Sign(random io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error)</a></dd>
+			
+				<dd><a href="#Verify">func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool</a></dd>
+			
+			
+				
+				<dd><a href="#ParameterSizes">type ParameterSizes</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Parameters">type Parameters</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/dsa/dsa.go">dsa.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>公钥无法被此实现使用时，会返回 ErrInvalidPublicKey。FIPS 对 DSA 密钥格式要求很严格，但其他实现可能较宽松。因此，使用可能由其他实现生成的密钥时，必须处理此错误。
+
+				<pre>var <span id="ErrInvalidPublicKey">ErrInvalidPublicKey</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;crypto/dsa: invalid public key&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="GenerateKey">func <a href="/src/crypto/dsa/dsa.go?s=3933:3989#L154">GenerateKey</a>
+				
+				
+			</h2>
+			<pre>func GenerateKey(priv *<a href="#PrivateKey">PrivateKey</a>, rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>GenerateKey 生成一对公钥和私钥。<a href="#PrivateKey">PrivateKey</a> 的 Parameters 必须已经有效（参见 <a href="#GenerateParameters">GenerateParameters</a>）。
+
+			
+		
+			
+			<h2 id="GenerateParameters">func <a href="/src/crypto/dsa/dsa.go?s=2078:2165#L56">GenerateParameters</a>
+				
+				
+			</h2>
+			<pre>func GenerateParameters(params *<a href="#Parameters">Parameters</a>, rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, sizes <a href="#ParameterSizes">ParameterSizes</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>GenerateParameters 将一组随机且有效的 DSA 参数写入 params。即使在速度较快的机器上，此函数也可能耗时数秒。
+
+			
+		
+			
+			<h2 id="Sign">func <a href="/src/crypto/dsa/dsa.go?s=5751:5836#L208">Sign</a>
+				
+				
+			</h2>
+			<pre>func Sign(random <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, priv *<a href="#PrivateKey">PrivateKey</a>, hash []<a href="/pkg/builtin/#byte">byte</a>) (r, s *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Sign 使用私钥 priv 对任意长度的哈希值签名（此值应由较长的消息经哈希计算得到）。它以一对整数的形式返回签名。私钥的安全性取决于 rand 的熵。
+<p>注意，FIPS 186-3 第 4.6 节规定，哈希值应截断到子群的字节长度。此函数本身不会执行该截断。
+<p>自 Go 1.26 起，始终使用安全的随机字节源；除非设置 GODEBUG=cryptocustomrand=1，否则会忽略 Reader。此设置将在未来的 Go 版本中移除。请改用 <a href="/pkg/testing/cryptotest/#SetGlobalRandom">testing/cryptotest.SetGlobalRandom</a>。
+<p>请注意，使用攻击者控制的 <a href="#PrivateKey">PrivateKey</a> 调用 Sign，可能消耗任意多的 CPU 资源。
+
+			
+		
+			
+			<h2 id="Verify">func <a href="/src/crypto/dsa/dsa.go?s=7406:7466#L280">Verify</a>
+				
+				
+			</h2>
+			<pre>func Verify(pub *<a href="#PublicKey">PublicKey</a>, hash []<a href="/pkg/builtin/#byte">byte</a>, r, s *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Verify 使用公钥 pub 验证 r、s 所表示的 hash 的签名，报告签名是否有效。
+<p>注意，FIPS 186-3 第 4.6 节规定，哈希值应截断到子群的字节长度。此函数本身不会执行该截断。
+
+			
+		
+		
+			
+			<h2 id="ParameterSizes">type <a href="/src/crypto/dsa/dsa.go?s=1663:1686#L41">ParameterSizes</a>
+				
+				
+			</h2>
+			<p>ParameterSizes 枚举一组 DSA 参数中素数可接受的位数。参见 FIPS 186-3 第 4.2 节。
+
+			<pre>type ParameterSizes <a href="/pkg/builtin/#int">int</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="L1024N160">L1024N160</span> <a href="#ParameterSizes">ParameterSizes</a> = <a href="/pkg/builtin/#iota">iota</a>
+    <span id="L2048N224">L2048N224</span>
+    <span id="L2048N256">L2048N256</span>
+    <span id="L3072N256">L3072N256</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Parameters">type <a href="/src/crypto/dsa/dsa.go?s=954:998#L17">Parameters</a>
+				
+				
+			</h2>
+			<p>Parameters 表示密钥的域参数。这些参数可以由多个密钥共享。Q 的位数必须是 8 的倍数。
+
+			<pre>type Parameters struct {
+<span id="Parameters.P"></span>    P, Q, G *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/dsa/dsa.go?s=1137:1186#L28">PrivateKey</a>
+				
+				
+			</h2>
+			<p>PrivateKey 表示 DSA 私钥。
+
+			<pre>type PrivateKey struct {
+    <a href="#PublicKey">PublicKey</a>
+<span id="PrivateKey.X"></span>    X *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/dsa/dsa.go?s=1042:1091#L22">PublicKey</a>
+				
+				
+			</h2>
+			<p>PublicKey 表示 DSA 公钥。
+
+			<pre>type PublicKey struct {
+    <a href="#Parameters">Parameters</a>
+<span id="PublicKey.Y"></span>    Y *<a href="/pkg/math/big/">big</a>.<a href="/pkg/math/big/#Int">Int</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+
+</article>

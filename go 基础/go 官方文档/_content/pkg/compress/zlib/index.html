@@ -1,0 +1,333 @@
+<!--{
+  "Title": "compress/zlib 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>compress/zlib 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "compress/zlib"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>zlib 包实现 RFC 1950 规定的 zlib 格式压缩数据的读写。<p>此实现提供在读取时解压缩、在写入时压缩的过滤器。例如，将压缩数据写入缓冲区：<pre>var b bytes.Buffer
+w := zlib.NewWriter(&amp;b)
+w.Write([]byte(&quot;hello, world\n&quot;))
+w.Close()
+</pre>
+<p>再将这些数据读回来：<pre>r, err := zlib.NewReader(&amp;b)
+io.Copy(os.Stdout, r)
+r.Close()
+</pre>
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#NewReader">func NewReader(r io.Reader) (io.ReadCloser, error)</a></dd>
+			
+				<dd><a href="#NewReaderDict">func NewReaderDict(r io.Reader, dict []byte) (io.ReadCloser, error)</a></dd>
+			
+			
+				
+				<dd><a href="#Resetter">type Resetter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriter">func NewWriter(w io.Writer) *Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriterLevel">func NewWriterLevel(w io.Writer, level int) (*Writer, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewWriterLevelDict">func NewWriterLevelDict(w io.Writer, level int, dict []byte) (*Writer, error)</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Close">func (z *Writer) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Flush">func (z *Writer) Flush() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Reset">func (z *Writer) Reset(w io.Writer)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Writer.Write">func (z *Writer) Write(p []byte) (n int, err error)</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_NewReader">NewReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_NewWriter">NewWriter</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/compress/zlib/reader.go">reader.go</a>
+			
+				<a href="/src/compress/zlib/writer.go">writer.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>这些常量复制自 <a href="/pkg/compress/flate/">flate</a> 包，以便导入 <a href="/pkg/compress/zlib/">compress/zlib</a> 的代码无须再导入 <a href="/pkg/compress/flate/">compress/flate</a>。<pre>const (
+    <span id="NoCompression">NoCompression</span>      = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#NoCompression">NoCompression</a>
+    <span id="BestSpeed">BestSpeed</span>          = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#BestSpeed">BestSpeed</a>
+    <span id="BestCompression">BestCompression</span>    = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#BestCompression">BestCompression</a>
+    <span id="DefaultCompression">DefaultCompression</span> = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#DefaultCompression">DefaultCompression</a>
+    <span id="HuffmanOnly">HuffmanOnly</span>        = <a href="/pkg/compress/flate/">flate</a>.<a href="/pkg/compress/flate/#HuffmanOnly">HuffmanOnly</a>
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				
+				<pre>var (
+    <span class="comment">// 读取的 ZLIB 数据具有无效校验和时返回 ErrChecksum。</span>
+    <span id="ErrChecksum">ErrChecksum</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zlib: invalid checksum&#34;)
+    <span class="comment">// 读取的 ZLIB 数据具有无效字典时返回 ErrDictionary。</span>
+    <span id="ErrDictionary">ErrDictionary</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zlib: invalid dictionary&#34;)
+    <span class="comment">// 读取的 ZLIB 数据具有无效头部时返回 ErrHeader。</span>
+    <span id="ErrHeader">ErrHeader</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;zlib: invalid header&#34;)
+)</pre>
+			
+		
+		
+			
+			<h2 id="NewReader">func <a href="/src/compress/zlib/reader.go?s=2064:2114#L64">NewReader</a>
+				
+				
+			</h2>
+			<pre>func NewReader(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewReader 创建一个新的 ReadCloser。从返回的 ReadCloser 读取，会从 r 读取并解压缩数据。如果 r 没有实现 <a href="/pkg/io/#ByteReader">io.ByteReader</a>，解压缩器从 r 读取的数据可能多于实际所需的数据。调用方有责任在使用结束后调用 ReadCloser 的 Close。<p>NewReader 返回的 <a href="/pkg/io/#ReadCloser">io.ReadCloser</a> 还实现了 <a href="#Resetter">Resetter</a>。<div id="example_NewReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;compress/zlib&#34;
+	&#34;io&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	buff := []byte{120, 156, 0, 13, 0, 242, 255, 104, 101, 108, 108, 111,
+		44, 32, 119, 111, 114, 108, 100, 10, 3, 0, 33, 231, 4, 147}
+	b := bytes.NewReader(buff)
+
+	r, err := zlib.NewReader(b)
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(os.Stdout, r)
+	r.Close()
+}
+</textarea></div>
+        <div class="output"><pre>hello, world
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="NewReaderDict">func <a href="/src/compress/zlib/reader.go?s=2476:2543#L73">NewReaderDict</a>
+				
+				
+			</h2>
+			<pre>func NewReaderDict(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, dict []<a href="/pkg/builtin/#byte">byte</a>) (<a href="/pkg/io/">io</a>.<a href="/pkg/io/#ReadCloser">ReadCloser</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>NewReaderDict 类似于 <a href="#NewReader">NewReader</a>，但使用预设字典。如果压缩数据未引用该字典，NewReaderDict 会忽略字典。如果压缩数据引用了不同的字典，NewReaderDict 返回 <a href="#ErrDictionary">ErrDictionary</a>。<p>NewReaderDict 返回的 ReadCloser 还实现了 <a href="#Resetter">Resetter</a>。<h2 id="Resetter">type <a href="/src/compress/zlib/reader.go?s=1505:1690#L51">Resetter</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>Resetter 重置 <a href="#NewReader">NewReader</a> 或 <a href="#NewReaderDict">NewReaderDict</a> 返回的 ReadCloser，使其切换到新的底层 Reader。这样可以复用 ReadCloser，无须分配新的实例。<pre>type Resetter interface {
+    <span class="comment">// Reset 丢弃所有已缓冲的数据，并重置 Resetter，</span>
+    <span class="comment">// 使其就像刚刚使用给定读取器初始化的一样。</span>
+    Reset(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, dict []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/compress/zlib/writer.go?s=757:949#L18">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 接收写入的数据，并将这些数据的压缩形式写入底层写入器（参见 <a href="#NewWriter">NewWriter</a>）。<pre>type Writer struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewWriter">func <a href="/src/compress/zlib/writer.go?s=1362:1397#L38">NewWriter</a>
+					
+					
+				</h3>
+				<pre>func NewWriter(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Writer">Writer</a></pre>
+				<p>NewWriter 创建一个新的 <a href="#Writer">Writer</a>。写入返回的 Writer 的数据会被压缩并写入 w。<p>调用方有责任在使用结束后调用 Writer 的 Close。写入的数据可能被缓冲，直到 Close 才刷新。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<div id="example_NewWriter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;compress/zlib&#34;
+	&#34;fmt&#34;
+)
+
+func main() {
+	var b bytes.Buffer
+
+	w := zlib.NewWriter(&amp;b)
+	w.Write([]byte(&#34;hello, world\n&#34;))
+	w.Close()
+	fmt.Println(b.Bytes())
+}
+</textarea></div>
+        <div class="output"><pre>[120 156 0 13 0 242 255 104 101 108 108 111 44 32 119 111 114 108 100 10 3 0 33 231 4 147]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="NewWriterLevel">func <a href="/src/compress/zlib/writer.go?s=1984:2044#L53">NewWriterLevel</a>
+					
+					
+				</h3>
+				<pre>func NewWriterLevel(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, level <a href="/pkg/builtin/#int">int</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewWriterLevel 类似于 <a href="#NewWriter">NewWriter</a>，但可以指定压缩级别，而不是采用 <a href="#DefaultCompression">DefaultCompression</a>。<p>压缩级别可以是 <a href="#DefaultCompression">DefaultCompression</a>、<a href="#NoCompression">NoCompression</a>、<a href="#HuffmanOnly">HuffmanOnly</a>，或者 <a href="#BestSpeed">BestSpeed</a> 与 <a href="#BestCompression">BestCompression</a> 之间的任意整数（含两端）。如果级别有效，返回的错误为 nil。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<h3 id="NewWriterLevelDict">func <a href="/src/compress/zlib/writer.go?s=2469:2546#L66">NewWriterLevelDict</a>
+					
+					
+				</h3>
+				<pre>func NewWriterLevelDict(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>, level <a href="/pkg/builtin/#int">int</a>, dict []<a href="/pkg/builtin/#byte">byte</a>) (*<a href="#Writer">Writer</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>NewWriterLevelDict 类似于 <a href="#NewWriterLevel">NewWriterLevel</a>，但指定了压缩使用的字典。<p>字典可以为 nil。如果不为 nil，则在 Writer 关闭之前不应修改其内容。<p>注意，写入 w 的确切字节内容不在 Go 1 兼容性承诺范围内。调用方（包括测试）不应依赖实际写入的精确字节内容。<h3 id="Writer.Close">func (*Writer) <a href="/src/compress/zlib/writer.go?s=5480:5510#L179">Close</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭 Writer，将所有尚未写出的数据刷新到底层 <a href="/pkg/io/#Writer">io.Writer</a>，但不关闭底层 io.Writer。<h3 id="Writer.Flush">func (*Writer) <a href="/src/compress/zlib/writer.go?s=5178:5208#L166">Flush</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Flush() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Flush 将 Writer 中的数据刷新到底层 <a href="/pkg/io/#Writer">io.Writer</a>。<h3 id="Writer.Reset">func (*Writer) <a href="/src/compress/zlib/writer.go?s=2918:2953#L80">Reset</a>
+					
+					<span title="自 Go 1.2 起提供">1.2</span>
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Reset(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>)</pre>
+				<p>Reset 清除 <a href="#Writer">Writer</a> z 的状态，使其等价于由 <a href="#NewWriterLevel">NewWriterLevel</a> 或 <a href="#NewWriterLevelDict">NewWriterLevelDict</a> 创建时的初始状态，但改为向 w 写入。<h3 id="Writer.Write">func (*Writer) <a href="/src/compress/zlib/writer.go?s=4833:4884#L146">Write</a>
+					
+					
+				</h3>
+				<pre>func (z *<a href="#Writer">Writer</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 将 p 的压缩形式写入底层 <a href="/pkg/io/#Writer">io.Writer</a>。压缩后的字节可能要等到 <a href="#Writer">Writer</a> 关闭或显式刷新时才会刷新。</article>

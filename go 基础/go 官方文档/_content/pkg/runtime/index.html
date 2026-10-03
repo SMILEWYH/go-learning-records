@@ -1,0 +1,1885 @@
+<!--{
+  "Title": "runtime 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>runtime 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "runtime"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>runtime 包包含与 Go 运行时系统交互的操作，例如控制 goroutine 的函数。它还包含 reflect 包使用的底层类型信息；有关运行时类型系统的可编程接口，请参阅 <a href="/pkg/reflect/">reflect</a> 文档。<h3 id="hdr-Environment_Variables">环境变量</h3>
+<p>以下环境变量（根据宿主操作系统采用 $name 或 %name% 形式）控制 Go 程序的运行时行为。其含义和用法可能随版本变化。<p>GOGC 变量设置垃圾回收的初始目标百分比。新分配数据与上一次回收后剩余存活数据的比值达到该百分比时，触发回收。默认值为 GOGC=100。设置 GOGC=off 会完全禁用垃圾回收器。<a href="/pkg/runtime/debug/#SetGCPercent">runtime/debug.SetGCPercent</a> 允许在运行时修改该百分比。<p>GOMEMLIMIT 变量为运行时设置软内存限制。此限制包括 Go 堆及运行时管理的全部其他内存，不包括外部内存来源，例如二进制文件自身的映射、其他语言管理的内存，以及操作系统为 Go 程序持有的内存。GOMEMLIMIT 是以字节为单位的数值，可以带可选的单位后缀。支持的后缀包括 B、KiB、MiB、GiB 和 TiB，表示 IEC 80000-13 标准定义的字节数量，即以 2 的幂为基数：KiB 表示 2^10 字节，MiB 表示 2^20 字节，依此类推。默认设置为 <a href="/pkg/internal/runtime/math/#MaxInt64">math.MaxInt64</a>，相当于禁用内存限制。<a href="/pkg/runtime/debug/#SetMemoryLimit">runtime/debug.SetMemoryLimit</a> 允许在运行时修改此限制。<p>GODEBUG 变量控制运行时内部的调试变量。它是用逗号分隔的 name=val 对列表，用于设置以下命名变量：<pre>clobberfree：设置 clobberfree=1 会使垃圾回收器在释放对象时，用无效内容覆盖对象的内存内容。
+
+cpu.*：cpu.all=off 禁用所有可选指令集扩展。
+cpu.extension=off 禁用指定指令集扩展中的指令。
+extension 是 internal/cpu 包中列出的指令集扩展的小写名称，例如 sse41 或 avx。
+例如，cpu.avx=off 会禁用运行时检测，从而禁用 AVX 指令。
+
+cgocheck：设置 cgocheck=0 会禁用所有针对包通过 cgo 向非 Go 代码错误传递 Go 指针的检查。
+设置 cgocheck=1（默认值）会启用开销较小的检查，但可能漏掉某些错误。
+可以使用 GOEXPERIMENT 启用更全面但较慢的 cgocheck 模式（需要重新构建），
+详见 https://pkg.go.dev/internal/goexperiment。
+
+checkfinalizers：设置 checkfinalizers=1 会使垃圾回收器执行多次局部、非并行的全局暂停（STW）回收，
+以发现终结器和清理函数的常见问题，例如
+https://go.dev/doc/gc-guide#Finalizers_cleanups_and_weak_pointers 中列出的问题。
+如果发现潜在问题，程序会终止，并给出所有潜在问题、相关值，以及这些值的终结器和清理函数列表，
+其中包含它们的创建位置。它还会增加对微小内存块的跟踪，以帮助诊断相关问题。
+局部回收中执行的分析是保守的。特别是，只要存在从清理函数、清理参数或终结器函数
+返回原始对象的任意引用路径，就会将其标记为潜在问题，即使该路径可能在之后执行时被切断
+（不过，不推荐这种模式）。此模式还会在每个 GC 周期向标准错误输出一行信息，
+给出终结器和清理函数队列的长度。此模式的输出行以 &quot;checkfinalizers:&quot; 开头。
+
+decoratemappings：控制 Go 运行时是否为操作系统的匿名内存映射添加用途说明。
+这些注释在 /proc/self/maps 和 /proc/self/smaps 中显示为 &quot;[anon: Go: ...]&quot;。
+此设置仅用于 Linux。在 Go 1.25 中，默认值为 `decoratemappings=1`，即启用注释。
+使用 `decoratemappings=0` 可恢复 Go 1.25 之前的行为。
+
+disablethp：在 Linux 上设置 disablethp=1 会禁用堆的透明大页。
+在其他平台上无效。disablethp 用于兼容 Go 1.21 之前的版本；Go 1.21 不再规避
+可能导致内存显著过量使用的某项 Linux 内核默认设置。参见 https://go.dev/issue/64332。
+此设置将在未来版本中移除，因此运维人员应在那之前根据需要调整 Linux 配置。
+参见 https://go.dev/doc/gc-guide#Linux_transparent_huge_pages。
+
+dontfreezetheworld：默认情况下，致命 panic 或 throw 开始时会“冻结整个程序”，
+抢占所有线程并停止所有正在运行的 goroutine，以便获取所有 goroutine 的调用栈，
+并使它们的状态保持在接近发生 panic 的时刻。
+设置 dontfreezetheworld=1 会禁用这种抢占，允许 goroutine 在处理 panic 期间继续执行。
+注意，自然进入调度器的 goroutine 仍然会停止。
+这有助于调试运行时调度器，因为 freezetheworld 会扰动调度器状态，从而可能掩盖问题。
+
+efence：设置 efence=1 会使分配器进入特殊模式：每个对象都分配在独立的内存页上，
+且地址永不复用。
+
+gccheckmark：设置 gccheckmark=1 会在全局暂停期间执行第二轮标记，
+以验证垃圾回收器的并发标记阶段。
+如果第二轮发现并发标记遗漏的可达对象，垃圾回收器就会触发 panic。
+
+gcpacertrace：设置 gcpacertrace=1 会使垃圾回收器打印并发节奏控制器的内部状态信息。
+
+gcshrinkstackoff：设置 gcshrinkstackoff=1 会禁止将 goroutine 移到更小的栈上。
+在此模式下，goroutine 的栈只能增长。
+
+gcstoptheworld：设置 gcstoptheworld=1 会禁用并发垃圾回收，使每次垃圾回收都全局暂停。
+设置 gcstoptheworld=2 还会禁用垃圾回收结束后的并发清扫。
+
+gctrace：设置 gctrace=1 会使垃圾回收器在每次回收时向标准错误输出一行信息，
+概述回收的内存量和暂停时长。此行的格式可能发生变化。
+下面还列出了各字段对应的 runtime/metrics 指标。目前的格式为：
+	gc # @#s #%: #+#+# ms clock, #+#/#/#+# ms cpu, #-&gt;#-&gt;# MB, # MB goal, # MB stacks, #MB globals, # P
+各字段含义如下：
+	gc #         GC 编号，每次 GC 递增
+	@#s          从程序启动起经过的秒数
+	#%           从程序启动起花费在 GC 上的时间百分比
+	#+...+#      各 GC 阶段的墙上时钟时间／CPU 时间
+	#-&gt;#-&gt;# MB   GC 开始时、结束时的堆大小，以及存活堆大小，后者对应 /gc/scan/heap:bytes
+	# MB goal    目标堆大小，对应 /gc/heap/goal:bytes
+	# MB stacks  估算的可扫描栈大小，对应 /gc/scan/stack:bytes
+	# MB globals 可扫描全局数据的大小，对应 /gc/scan/globals:bytes
+	# P          使用的处理器数，对应 /sched/gomaxprocs:threads
+这些阶段依次为：全局暂停（STW）的清扫终止、并发标记与扫描，以及 STW 的标记终止。
+标记／扫描阶段的 CPU 时间进一步分为辅助时间（随内存分配同步执行的 GC）、后台 GC 时间和空闲 GC 时间。
+如果该行以 &quot;(forced)&quot; 结尾，则这次 GC 是由 runtime.GC() 调用强制触发的。
+
+harddecommit：设置 harddecommit=1 会在将内存归还操作系统时，同时移除其访问权限。
+这是 Windows 上唯一的运行模式，但也有助于调试其他平台上的内存清退器相关问题。
+目前此设置仅支持 Linux。
+
+inittrace：设置 inittrace=1 会使运行时为每个执行初始化工作的包向标准错误输出一行信息，
+概述执行时间和内存分配情况。对于加载插件时执行的初始化，以及既没有用户定义的初始化工作、
+也没有编译器生成的初始化工作的包，不会打印信息。此行的格式可能发生变化。目前的格式为：
+	init # @#ms, # ms clock, # bytes, # allocs
+各字段含义如下：
+	init #      包名
+	@# ms       初始化开始时距程序启动的毫秒数
+	# clock     包初始化工作的墙上时钟时间
+	# bytes     在堆上分配的内存字节数
+	# allocs    堆分配次数
+
+madvdontneed：在 Linux 上设置 madvdontneed=0，会在向内核归还内存时使用 MADV_FREE，
+而不是 MADV_DONTNEED。这样效率更高，但 RSS 数值只有在操作系统面临内存压力时才会下降。
+在 BSD 系统及 Illumos/Solaris 上，设置 madvdontneed=1 会使用 MADV_DONTNEED，
+而不是 MADV_FREE。这样效率较低，但 RSS 数值会更快下降。
+
+memprofilerate：设置 memprofilerate=X 会更新 runtime.MemProfileRate 的值。
+设为 0 时会禁用内存性能分析。默认值请参见 MemProfileRate 的说明。
+
+profstackdepth：profstackdepth=128（默认值）将除 CPU 性能分析器之外的所有 pprof 性能分析器
+使用的最大栈深度设为 128 帧。超过该限制的栈回溯会从叶帧开始保留，并截断到此限制。
+将 profstackdepth 设为大于 1024 的任意值，都会静默使用默认上限 1024。
+Go 的未来版本可能移除此限制，并将 profstackdepth 扩展到 CPU 性能分析器和执行跟踪器。
+
+panicnil：设置 panicnil=1 会禁用使用 nil 接口值或无类型 nil 调用 panic 时产生的运行时错误。
+
+invalidptr：invalidptr=1（默认值）会使垃圾回收器和栈复制器在指针类型的位置发现无效指针值
+（例如 1）时让程序崩溃。设置 invalidptr=0 会禁用此检查。
+这只能作为诊断错误代码的临时变通办法。真正的修复方法是不要在指针类型的位置存储整数。
+
+sbrk：设置 sbrk=1 会将内存分配器和垃圾回收器替换为简单分配器；
+该分配器从操作系统获取内存，并且永不回收任何内存。
+
+scavtrace：设置 scavtrace=1 会使运行时大约在每个 GC 周期向标准错误输出一行信息，
+概述内存清退器完成的工作量、归还给操作系统的内存总量，以及物理内存利用率估计值。
+此行的格式可能发生变化，目前为：
+	scav # KiB work (bg), # KiB work (eager), # KiB total, #% util
+各字段含义如下：
+	# KiB work (bg)    自上一行以来在后台归还给操作系统的内存量
+	# KiB work (eager) 自上一行以来主动归还给操作系统的内存量
+	# KiB now          当前已归还给操作系统的地址空间总量
+	#% util            尚未清退的全部堆内存中正在使用的比例
+如果该行以 &quot;(forced)&quot; 结尾，则本次内存清退由 debug.FreeOSMemory() 调用强制触发。
+
+scheddetail：设置 schedtrace=X 和 scheddetail=1，会使调度器每隔 X 毫秒输出详细的多行信息，
+描述调度器、处理器、线程和 goroutine 的状态。
+
+schedtrace：设置 schedtrace=X 会使调度器每隔 X 毫秒向标准错误输出一行信息，概述调度器状态。
+
+tracebackancestors：设置 tracebackancestors=N 会为栈回溯增加创建 goroutine 时的调用栈，
+其中 N 限制要报告的祖先 goroutine 数量。这也会扩展 runtime.Stack 返回的信息。
+将 N 设为 0 时，不报告祖先信息。
+
+tracefpunwindoff：设置 tracefpunwindoff=1 会强制执行跟踪器以及阻塞和互斥锁性能分析器
+使用运行时默认的栈展开器，而不是通过帧指针展开栈。这会增加开销，
+但可以用作临时变通办法，或用于调试帧指针栈展开引起的意外性能退化。
+
+traceadvanceperiod：相邻跟踪代之间的近似时间间隔，单位为纳秒。
+仅适用于使用 GOEXPERIMENT=exectracer2 构建的程序。主要用于执行跟踪器的测试和调试。
+
+tracecheckstackownership：设置 tracecheckstackownership=1 会启用执行跟踪器中的调试检查，
+在获取栈回溯之前再次检查栈的归属。
+
+asyncpreemptoff：asyncpreemptoff=1 会禁用基于信号的 goroutine 异步抢占。
+这会使某些循环在较长时间内无法被抢占，可能延迟 GC 和 goroutine 调度。
+这有助于调试 GC 问题，因为它也会禁用针对被异步抢占的 goroutine 所使用的保守栈扫描。
+</pre>
+<p><a href="/pkg/net/">net</a> 和 <a href="/pkg/net/http/">net/http</a> 包也使用 GODEBUG 中的调试变量。详情请参阅这些包的文档。<p>GOMAXPROCS 变量限制能够同时执行用户级 Go 代码的操作系统线程数量。代表 Go 代码阻塞在系统调用中的线程数量没有上限，也不计入 GOMAXPROCS 限制。本包的 <a href="#GOMAXPROCS">GOMAXPROCS</a> 函数可查询和修改此限制。<p>GORACE 变量为使用 -race 构建的程序配置竞态检测器。详情请参阅<a href="/doc/articles/race_detector">竞态检测器文章</a>。<p>GOTRACEBACK 变量控制 Go 程序因未恢复的 panic 或意外运行时状况而失败时生成的输出量。默认情况下，失败时输出当前 goroutine 的栈轨迹，省略运行时系统内部函数，然后以退出码 2 退出。如果没有当前 goroutine，或失败发生在运行时内部，则输出所有 goroutine 的栈轨迹。GOTRACEBACK=none 完全省略 goroutine 栈轨迹。GOTRACEBACK=single（默认值）采用上述行为。GOTRACEBACK=all 增加所有用户创建的 goroutine 的栈轨迹。GOTRACEBACK=system 类似于 all，但还包含运行时函数的栈帧，并显示运行时内部创建的 goroutine。GOTRACEBACK=crash 类似于 system，但以操作系统特定方式崩溃，而非正常退出。例如，在 Unix 系统上，崩溃会引发 SIGABRT，触发核心转储。GOTRACEBACK=wer 类似于 crash，但不禁用 Windows 错误报告（WER）。出于历史原因，GOTRACEBACK 的取值 0、1、2 分别是 none、all、system 的同义写法。<a href="/pkg/runtime/debug/#SetTraceback">runtime/debug.SetTraceback</a> 函数允许在运行时增加输出量，但不能将其降低到环境变量指定的程度以下。<p>GOARCH、GOOS、GOPATH 和 GOROOT 构成其余 Go 环境变量。它们影响 Go 程序的构建（参见 <a href="/cmd/go/">cmd/go</a> 和 <a href="/pkg/go/build/">go/build</a>）。GOARCH、GOOS 和 GOROOT 在编译时记录，并通过本包的常量或函数提供，但不影响运行时系统的执行。<h3 id="hdr-Security">安全性</h3>
+<p>在 Unix 平台上，当二进制文件设置了 setuid/setgid，或以类似 setuid/setgid 的属性执行时，Go 运行时系统会采用略有不同的行为，以防止危险行为。在 Linux 上，通过检查辅助向量中的 AT_SECURE 标志判断；在 BSD 和 Solaris/Illumos 上，通过 issetugid 系统调用判断；在 AIX 上，通过检查 uid/gid 是否与有效 uid/gid 一致判断。<p>当运行时确定二进制文件具有类似 setuid/setgid 的属性时，主要做两件事：<ul>
+<li>将 GOTRACEBACK 环境变量的值设置为 &apos;none&apos;。<li>收到终止程序的信号，或遇到原本会覆盖 GOTRACEBACK 值的不可恢复 panic 时，省略 goroutine 栈、寄存器和其他内存相关信息。</ul>
+<p>此外，在 Unix 平台上，Go 运行时会自动检查标准输入输出文件描述符（0、1、2）是否打开。如果其中任何一个已关闭，则打开它并使其指向 /dev/null。</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#BlockProfile">func BlockProfile(p []BlockProfileRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#Breakpoint">func Breakpoint()</a></dd>
+			
+				<dd><a href="#CPUProfile">func CPUProfile() []byte</a></dd>
+			
+				<dd><a href="#Caller">func Caller(skip int) (pc uintptr, file string, line int, ok bool)</a></dd>
+			
+				<dd><a href="#Callers">func Callers(skip int, pc []uintptr) int</a></dd>
+			
+				<dd><a href="#GC">func GC()</a></dd>
+			
+				<dd><a href="#GOMAXPROCS">func GOMAXPROCS(n int) int</a></dd>
+			
+				<dd><a href="#GOROOT">func GOROOT() string</a></dd>
+			
+				<dd><a href="#Goexit">func Goexit()</a></dd>
+			
+				<dd><a href="#GoroutineProfile">func GoroutineProfile(p []StackRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#Gosched">func Gosched()</a></dd>
+			
+				<dd><a href="#KeepAlive">func KeepAlive(x any)</a></dd>
+			
+				<dd><a href="#LockOSThread">func LockOSThread()</a></dd>
+			
+				<dd><a href="#MemProfile">func MemProfile(p []MemProfileRecord, inuseZero bool) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#MutexProfile">func MutexProfile(p []BlockProfileRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#NumCPU">func NumCPU() int</a></dd>
+			
+				<dd><a href="#NumCgoCall">func NumCgoCall() int64</a></dd>
+			
+				<dd><a href="#NumGoroutine">func NumGoroutine() int</a></dd>
+			
+				<dd><a href="#ReadMemStats">func ReadMemStats(m *MemStats)</a></dd>
+			
+				<dd><a href="#ReadTrace">func ReadTrace() (buf []byte)</a></dd>
+			
+				<dd><a href="#SetBlockProfileRate">func SetBlockProfileRate(rate int)</a></dd>
+			
+				<dd><a href="#SetCPUProfileRate">func SetCPUProfileRate(hz int)</a></dd>
+			
+				<dd><a href="#SetCgoTraceback">func SetCgoTraceback(version int, traceback, context, symbolizer unsafe.Pointer)</a></dd>
+			
+				<dd><a href="#SetDefaultGOMAXPROCS">func SetDefaultGOMAXPROCS()</a></dd>
+			
+				<dd><a href="#SetFinalizer">func SetFinalizer(obj any, finalizer any)</a></dd>
+			
+				<dd><a href="#SetMutexProfileFraction">func SetMutexProfileFraction(rate int) int</a></dd>
+			
+				<dd><a href="#Stack">func Stack(buf []byte, all bool) int</a></dd>
+			
+				<dd><a href="#StartTrace">func StartTrace() error</a></dd>
+			
+				<dd><a href="#StopTrace">func StopTrace()</a></dd>
+			
+				<dd><a href="#ThreadCreateProfile">func ThreadCreateProfile(p []StackRecord) (n int, ok bool)</a></dd>
+			
+				<dd><a href="#UnlockOSThread">func UnlockOSThread()</a></dd>
+			
+				<dd><a href="#Version">func Version() string</a></dd>
+			
+			
+				
+				<dd><a href="#BlockProfileRecord">type BlockProfileRecord</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Cleanup">type Cleanup</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#AddCleanup">func AddCleanup[T, S any](ptr *T, cleanup func(S), arg S) Cleanup</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Cleanup.Stop">func (c Cleanup) Stop()</a></dd>
+				
+			
+				
+				<dd><a href="#Error">type Error</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Frame">type Frame</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Frames">type Frames</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CallersFrames">func CallersFrames(callers []uintptr) *Frames</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Frames.Next">func (ci *Frames) Next() (frame Frame, more bool)</a></dd>
+				
+			
+				
+				<dd><a href="#Func">type Func</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FuncForPC">func FuncForPC(pc uintptr) *Func</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Entry">func (f *Func) Entry() uintptr</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.FileLine">func (f *Func) FileLine(pc uintptr) (file string, line int)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Func.Name">func (f *Func) Name() string</a></dd>
+				
+			
+				
+				<dd><a href="#MemProfileRecord">type MemProfileRecord</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.InUseBytes">func (r *MemProfileRecord) InUseBytes() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.InUseObjects">func (r *MemProfileRecord) InUseObjects() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MemProfileRecord.Stack">func (r *MemProfileRecord) Stack() []uintptr</a></dd>
+				
+			
+				
+				<dd><a href="#MemStats">type MemStats</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PanicNilError">type PanicNilError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PanicNilError.Error">func (*PanicNilError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PanicNilError.RuntimeError">func (*PanicNilError) RuntimeError()</a></dd>
+				
+			
+				
+				<dd><a href="#Pinner">type Pinner</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Pinner.Pin">func (p *Pinner) Pin(pointer any)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Pinner.Unpin">func (p *Pinner) Unpin()</a></dd>
+				
+			
+				
+				<dd><a href="#StackRecord">type StackRecord</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#StackRecord.Stack">func (r *StackRecord) Stack() []uintptr</a></dd>
+				
+			
+				
+				<dd><a href="#TypeAssertionError">type TypeAssertionError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertionError.Error">func (e *TypeAssertionError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TypeAssertionError.RuntimeError">func (*TypeAssertionError) RuntimeError()</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>示例
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_AddCleanup">AddCleanup</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Frames">Frames</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/runtime/alg.go">alg.go</a>
+			
+				<a href="/src/runtime/arena.go">arena.go</a>
+			
+				<a href="/src/runtime/asan0.go">asan0.go</a>
+			
+				<a href="/src/runtime/atomic_pointer.go">atomic_pointer.go</a>
+			
+				<a href="/src/runtime/badlinkname.go">badlinkname.go</a>
+			
+				<a href="/src/runtime/badlinkname_linux.go">badlinkname_linux.go</a>
+			
+				<a href="/src/runtime/cgo.go">cgo.go</a>
+			
+				<a href="/src/runtime/cgo_mmap.go">cgo_mmap.go</a>
+			
+				<a href="/src/runtime/cgo_sigaction.go">cgo_sigaction.go</a>
+			
+				<a href="/src/runtime/cgocall.go">cgocall.go</a>
+			
+				<a href="/src/runtime/cgocallback.go">cgocallback.go</a>
+			
+				<a href="/src/runtime/cgocheck.go">cgocheck.go</a>
+			
+				<a href="/src/runtime/cgroup_linux.go">cgroup_linux.go</a>
+			
+				<a href="/src/runtime/chan.go">chan.go</a>
+			
+				<a href="/src/runtime/checkptr.go">checkptr.go</a>
+			
+				<a href="/src/runtime/compiler.go">compiler.go</a>
+			
+				<a href="/src/runtime/complex.go">complex.go</a>
+			
+				<a href="/src/runtime/coro.go">coro.go</a>
+			
+				<a href="/src/runtime/covercounter.go">covercounter.go</a>
+			
+				<a href="/src/runtime/covermeta.go">covermeta.go</a>
+			
+				<a href="/src/runtime/cpuflags.go">cpuflags.go</a>
+			
+				<a href="/src/runtime/cpuflags_amd64.go">cpuflags_amd64.go</a>
+			
+				<a href="/src/runtime/cpuprof.go">cpuprof.go</a>
+			
+				<a href="/src/runtime/cputicks.go">cputicks.go</a>
+			
+				<a href="/src/runtime/create_file_unix.go">create_file_unix.go</a>
+			
+				<a href="/src/runtime/debug.go">debug.go</a>
+			
+				<a href="/src/runtime/debugcall.go">debugcall.go</a>
+			
+				<a href="/src/runtime/debuglog.go">debuglog.go</a>
+			
+				<a href="/src/runtime/debuglog_off.go">debuglog_off.go</a>
+			
+				<a href="/src/runtime/defs_linux_amd64.go">defs_linux_amd64.go</a>
+			
+				<a href="/src/runtime/dit.go">dit.go</a>
+			
+				<a href="/src/runtime/env_posix.go">env_posix.go</a>
+			
+				<a href="/src/runtime/error.go">error.go</a>
+			
+				<a href="/src/runtime/extern.go">extern.go</a>
+			
+				<a href="/src/runtime/fastlog2.go">fastlog2.go</a>
+			
+				<a href="/src/runtime/fastlog2table.go">fastlog2table.go</a>
+			
+				<a href="/src/runtime/fds_unix.go">fds_unix.go</a>
+			
+				<a href="/src/runtime/fipsbypass.go">fipsbypass.go</a>
+			
+				<a href="/src/runtime/float.go">float.go</a>
+			
+				<a href="/src/runtime/heapdump.go">heapdump.go</a>
+			
+				<a href="/src/runtime/hexdump.go">hexdump.go</a>
+			
+				<a href="/src/runtime/histogram.go">histogram.go</a>
+			
+				<a href="/src/runtime/iface.go">iface.go</a>
+			
+				<a href="/src/runtime/lfstack.go">lfstack.go</a>
+			
+				<a href="/src/runtime/libinit.go">libinit.go</a>
+			
+				<a href="/src/runtime/linkname.go">linkname.go</a>
+			
+				<a href="/src/runtime/linkname_shim.go">linkname_shim.go</a>
+			
+				<a href="/src/runtime/linkname_unix.go">linkname_unix.go</a>
+			
+				<a href="/src/runtime/list.go">list.go</a>
+			
+				<a href="/src/runtime/list_manual.go">list_manual.go</a>
+			
+				<a href="/src/runtime/lock_futex.go">lock_futex.go</a>
+			
+				<a href="/src/runtime/lock_spinbit.go">lock_spinbit.go</a>
+			
+				<a href="/src/runtime/lockrank.go">lockrank.go</a>
+			
+				<a href="/src/runtime/lockrank_off.go">lockrank_off.go</a>
+			
+				<a href="/src/runtime/malloc.go">malloc.go</a>
+			
+				<a href="/src/runtime/malloc_generated.go">malloc_generated.go</a>
+			
+				<a href="/src/runtime/malloc_stubs.go">malloc_stubs.go</a>
+			
+				<a href="/src/runtime/malloc_tables_generated.go">malloc_tables_generated.go</a>
+			
+				<a href="/src/runtime/map.go">map.go</a>
+			
+				<a href="/src/runtime/map_fast32.go">map_fast32.go</a>
+			
+				<a href="/src/runtime/map_fast64.go">map_fast64.go</a>
+			
+				<a href="/src/runtime/map_faststr.go">map_faststr.go</a>
+			
+				<a href="/src/runtime/mbarrier.go">mbarrier.go</a>
+			
+				<a href="/src/runtime/mbitmap.go">mbitmap.go</a>
+			
+				<a href="/src/runtime/mcache.go">mcache.go</a>
+			
+				<a href="/src/runtime/mcentral.go">mcentral.go</a>
+			
+				<a href="/src/runtime/mcheckmark.go">mcheckmark.go</a>
+			
+				<a href="/src/runtime/mcleanup.go">mcleanup.go</a>
+			
+				<a href="/src/runtime/mem.go">mem.go</a>
+			
+				<a href="/src/runtime/mem_linux.go">mem_linux.go</a>
+			
+				<a href="/src/runtime/mem_nonsbrk.go">mem_nonsbrk.go</a>
+			
+				<a href="/src/runtime/metrics.go">metrics.go</a>
+			
+				<a href="/src/runtime/mfinal.go">mfinal.go</a>
+			
+				<a href="/src/runtime/mfixalloc.go">mfixalloc.go</a>
+			
+				<a href="/src/runtime/mgc.go">mgc.go</a>
+			
+				<a href="/src/runtime/mgclimit.go">mgclimit.go</a>
+			
+				<a href="/src/runtime/mgcmark.go">mgcmark.go</a>
+			
+				<a href="/src/runtime/mgcmark_greenteagc.go">mgcmark_greenteagc.go</a>
+			
+				<a href="/src/runtime/mgcpacer.go">mgcpacer.go</a>
+			
+				<a href="/src/runtime/mgcscavenge.go">mgcscavenge.go</a>
+			
+				<a href="/src/runtime/mgcstack.go">mgcstack.go</a>
+			
+				<a href="/src/runtime/mgcsweep.go">mgcsweep.go</a>
+			
+				<a href="/src/runtime/mgcwork.go">mgcwork.go</a>
+			
+				<a href="/src/runtime/mheap.go">mheap.go</a>
+			
+				<a href="/src/runtime/minmax.go">minmax.go</a>
+			
+				<a href="/src/runtime/mpagealloc.go">mpagealloc.go</a>
+			
+				<a href="/src/runtime/mpagealloc_64bit.go">mpagealloc_64bit.go</a>
+			
+				<a href="/src/runtime/mpagecache.go">mpagecache.go</a>
+			
+				<a href="/src/runtime/mpallocbits.go">mpallocbits.go</a>
+			
+				<a href="/src/runtime/mprof.go">mprof.go</a>
+			
+				<a href="/src/runtime/mranges.go">mranges.go</a>
+			
+				<a href="/src/runtime/msan0.go">msan0.go</a>
+			
+				<a href="/src/runtime/msize.go">msize.go</a>
+			
+				<a href="/src/runtime/mspanset.go">mspanset.go</a>
+			
+				<a href="/src/runtime/mstats.go">mstats.go</a>
+			
+				<a href="/src/runtime/mwbbuf.go">mwbbuf.go</a>
+			
+				<a href="/src/runtime/nbpipe_pipe2.go">nbpipe_pipe2.go</a>
+			
+				<a href="/src/runtime/netpoll.go">netpoll.go</a>
+			
+				<a href="/src/runtime/netpoll_epoll.go">netpoll_epoll.go</a>
+			
+				<a href="/src/runtime/nonwindows_stub.go">nonwindows_stub.go</a>
+			
+				<a href="/src/runtime/note_other.go">note_other.go</a>
+			
+				<a href="/src/runtime/os_linux.go">os_linux.go</a>
+			
+				<a href="/src/runtime/os_linux64.go">os_linux64.go</a>
+			
+				<a href="/src/runtime/os_linux_generic.go">os_linux_generic.go</a>
+			
+				<a href="/src/runtime/os_linux_noauxv.go">os_linux_noauxv.go</a>
+			
+				<a href="/src/runtime/os_nonopenbsd.go">os_nonopenbsd.go</a>
+			
+				<a href="/src/runtime/os_unix.go">os_unix.go</a>
+			
+				<a href="/src/runtime/panic.go">panic.go</a>
+			
+				<a href="/src/runtime/pinner.go">pinner.go</a>
+			
+				<a href="/src/runtime/plugin.go">plugin.go</a>
+			
+				<a href="/src/runtime/preempt.go">preempt.go</a>
+			
+				<a href="/src/runtime/preempt_amd64.go">preempt_amd64.go</a>
+			
+				<a href="/src/runtime/preempt_nonwindows.go">preempt_nonwindows.go</a>
+			
+				<a href="/src/runtime/preempt_xreg.go">preempt_xreg.go</a>
+			
+				<a href="/src/runtime/print.go">print.go</a>
+			
+				<a href="/src/runtime/proc.go">proc.go</a>
+			
+				<a href="/src/runtime/profbuf.go">profbuf.go</a>
+			
+				<a href="/src/runtime/proflabel.go">proflabel.go</a>
+			
+				<a href="/src/runtime/race0.go">race0.go</a>
+			
+				<a href="/src/runtime/rand.go">rand.go</a>
+			
+				<a href="/src/runtime/rdebug.go">rdebug.go</a>
+			
+				<a href="/src/runtime/retry.go">retry.go</a>
+			
+				<a href="/src/runtime/runtime.go">runtime.go</a>
+			
+				<a href="/src/runtime/runtime1.go">runtime1.go</a>
+			
+				<a href="/src/runtime/runtime2.go">runtime2.go</a>
+			
+				<a href="/src/runtime/runtime_boring.go">runtime_boring.go</a>
+			
+				<a href="/src/runtime/runtime_clearenv.go">runtime_clearenv.go</a>
+			
+				<a href="/src/runtime/rwmutex.go">rwmutex.go</a>
+			
+				<a href="/src/runtime/secret.go">secret.go</a>
+			
+				<a href="/src/runtime/secret_asm.go">secret_asm.go</a>
+			
+				<a href="/src/runtime/security_linux.go">security_linux.go</a>
+			
+				<a href="/src/runtime/security_unix.go">security_unix.go</a>
+			
+				<a href="/src/runtime/select.go">select.go</a>
+			
+				<a href="/src/runtime/sema.go">sema.go</a>
+			
+				<a href="/src/runtime/set_vma_name_linux.go">set_vma_name_linux.go</a>
+			
+				<a href="/src/runtime/signal_amd64.go">signal_amd64.go</a>
+			
+				<a href="/src/runtime/signal_linux_amd64.go">signal_linux_amd64.go</a>
+			
+				<a href="/src/runtime/signal_unix.go">signal_unix.go</a>
+			
+				<a href="/src/runtime/sigqueue.go">sigqueue.go</a>
+			
+				<a href="/src/runtime/sigqueue_note.go">sigqueue_note.go</a>
+			
+				<a href="/src/runtime/sigtab_linux_generic.go">sigtab_linux_generic.go</a>
+			
+				<a href="/src/runtime/slice.go">slice.go</a>
+			
+				<a href="/src/runtime/softfloat64.go">softfloat64.go</a>
+			
+				<a href="/src/runtime/stack.go">stack.go</a>
+			
+				<a href="/src/runtime/stkframe.go">stkframe.go</a>
+			
+				<a href="/src/runtime/string.go">string.go</a>
+			
+				<a href="/src/runtime/stubs.go">stubs.go</a>
+			
+				<a href="/src/runtime/stubs2.go">stubs2.go</a>
+			
+				<a href="/src/runtime/stubs3.go">stubs3.go</a>
+			
+				<a href="/src/runtime/stubs_amd64.go">stubs_amd64.go</a>
+			
+				<a href="/src/runtime/stubs_linux.go">stubs_linux.go</a>
+			
+				<a href="/src/runtime/stubs_nonwasm.go">stubs_nonwasm.go</a>
+			
+				<a href="/src/runtime/symtab.go">symtab.go</a>
+			
+				<a href="/src/runtime/symtabinl.go">symtabinl.go</a>
+			
+				<a href="/src/runtime/synctest.go">synctest.go</a>
+			
+				<a href="/src/runtime/sys_nonppc64x.go">sys_nonppc64x.go</a>
+			
+				<a href="/src/runtime/sys_x86.go">sys_x86.go</a>
+			
+				<a href="/src/runtime/tagptr.go">tagptr.go</a>
+			
+				<a href="/src/runtime/tagptr_64bit.go">tagptr_64bit.go</a>
+			
+				<a href="/src/runtime/test_amd64.go">test_amd64.go</a>
+			
+				<a href="/src/runtime/time.go">time.go</a>
+			
+				<a href="/src/runtime/time_nofake.go">time_nofake.go</a>
+			
+				<a href="/src/runtime/timeasm.go">timeasm.go</a>
+			
+				<a href="/src/runtime/tls_stub.go">tls_stub.go</a>
+			
+				<a href="/src/runtime/trace.go">trace.go</a>
+			
+				<a href="/src/runtime/traceallocfree.go">traceallocfree.go</a>
+			
+				<a href="/src/runtime/traceback.go">traceback.go</a>
+			
+				<a href="/src/runtime/tracebuf.go">tracebuf.go</a>
+			
+				<a href="/src/runtime/tracecpu.go">tracecpu.go</a>
+			
+				<a href="/src/runtime/traceevent.go">traceevent.go</a>
+			
+				<a href="/src/runtime/tracemap.go">tracemap.go</a>
+			
+				<a href="/src/runtime/traceregion.go">traceregion.go</a>
+			
+				<a href="/src/runtime/traceruntime.go">traceruntime.go</a>
+			
+				<a href="/src/runtime/tracestack.go">tracestack.go</a>
+			
+				<a href="/src/runtime/tracestatus.go">tracestatus.go</a>
+			
+				<a href="/src/runtime/tracestring.go">tracestring.go</a>
+			
+				<a href="/src/runtime/tracetime.go">tracetime.go</a>
+			
+				<a href="/src/runtime/tracetype.go">tracetype.go</a>
+			
+				<a href="/src/runtime/type.go">type.go</a>
+			
+				<a href="/src/runtime/unsafe.go">unsafe.go</a>
+			
+				<a href="/src/runtime/utf8.go">utf8.go</a>
+			
+				<a href="/src/runtime/valgrind0.go">valgrind0.go</a>
+			
+				<a href="/src/runtime/vdso_elf64.go">vdso_elf64.go</a>
+			
+				<a href="/src/runtime/vdso_linux.go">vdso_linux.go</a>
+			
+				<a href="/src/runtime/vdso_linux_amd64.go">vdso_linux_amd64.go</a>
+			
+				<a href="/src/runtime/vgetrandom_linux.go">vgetrandom_linux.go</a>
+			
+				<a href="/src/runtime/write_err.go">write_err.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Compiler 是构建当前运行的二进制文件所用的编译器工具链名称。已知的工具链有：<pre>gc      也称为 cmd/compile。
+gccgo   gccgo 前端，属于 GCC 编译器套件。
+</pre>
+
+				<pre>const <span id="Compiler">Compiler</span> = &#34;gc&#34;</pre>
+			
+				<p>GOARCH 是当前运行程序的目标架构，例如 386、amd64、arm、s390x 等。<pre>const <span id="GOARCH">GOARCH</span> <a href="/pkg/builtin/#string">string</a> = <a href="/pkg/internal/goarch/">goarch</a>.<a href="/pkg/internal/goarch/#GOARCH">GOARCH</a></pre>
+			
+				<p>GOOS 是当前运行程序的目标操作系统，例如 darwin、freebsd、linux 等。要查看 GOOS 和 GOARCH 的可能组合，请运行 &quot;go tool dist list&quot;。<pre>const <span id="GOOS">GOOS</span> <a href="/pkg/builtin/#string">string</a> = <a href="/pkg/internal/goos/">goos</a>.<a href="/pkg/internal/goos/#GOOS">GOOS</a></pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>MemProfileRate 控制记录到内存剖析数据并报告的内存分配比例。剖析器的目标是平均每分配 MemProfileRate 字节，采样一次分配。<p>要在剖析数据中包含每个分配块，将 MemProfileRate 设为 1。要完全关闭内存剖析，将其设为 0。<p>处理内存剖析数据的工具假定采样率在程序整个生命周期内保持不变，且等于当前值。若程序要修改内存剖析采样率，应只修改一次，并尽可能在程序执行早期完成（例如 main 的开头）。<pre>var <span id="MemProfileRate">MemProfileRate</span> <a href="/pkg/builtin/#int">int</a> = 512 * 1024</pre>
+			
+		
+		
+			
+			<h2 id="BlockProfile">func <a href="/src/runtime/mprof.go?s=34881:34939#L1043">BlockProfile</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func BlockProfile(p []<a href="#BlockProfileRecord">BlockProfileRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>BlockProfile 返回当前阻塞剖析中的记录数 n。如果 len(p) &gt;= n，就将剖析数据复制到 p 并返回 n, true。如果 len(p) &lt; n，则不修改 p，并返回 n, false。<p>大多数调用方应使用 <a href="/pkg/runtime/pprof/">runtime/pprof</a> 包，或 <a href="/pkg/testing/">testing</a> 包的 -test.blockprofile 标志，而不是直接调用 BlockProfile。<h2 id="Breakpoint">func <a href="/src/runtime/proc.go?s=172030:172047#L5630">Breakpoint</a>
+				
+				
+			</h2>
+			<pre>func Breakpoint()</pre>
+			<p>Breakpoint 执行断点陷阱。<h2 id="CPUProfile">func <a href="/src/runtime/cpuprof.go?s=6852:6876#L198">CPUProfile</a>
+				
+				
+			</h2>
+			<pre>func CPUProfile() []<a href="/pkg/builtin/#byte">byte</a></pre>
+			<p>CPUProfile 会引发 panic。它过去提供对运行时生成的 pprof 格式剖析数据块的原始访问。由于生成该格式的细节已经改变，此功能已移除。<p>已弃用：请改用 <a href="/pkg/runtime/pprof/">runtime/pprof</a> 包、<a href="/pkg/net/http/pprof/">net/http/pprof</a> 包中的处理器，或 <a href="/pkg/testing/">testing</a> 包的 -test.cpuprofile 标志。<h2 id="Caller">func <a href="/src/runtime/extern.go?s=17359:17425#L301">Caller</a>
+				
+				
+			</h2>
+			<pre>func Caller(skip <a href="/pkg/builtin/#int">int</a>) (pc <a href="/pkg/builtin/#uintptr">uintptr</a>, file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>Caller 报告调用 goroutine 的栈上函数调用的文件名和行号信息。参数 skip 是向上回溯的栈帧数，0 表示 Caller 的调用方。（出于历史原因，Caller 与 <a href="#Callers">Callers</a> 中 skip 的含义不同。）返回值包括相应调用的程序计数器、文件名（即使在 Windows 上，也使用正斜杠作为路径分隔符）和文件内行号。如果无法获取信息，布尔值 ok 为 false。<h2 id="Callers">func <a href="/src/runtime/extern.go?s=18398:18438#L324">Callers</a>
+				
+				
+			</h2>
+			<pre>func Callers(skip <a href="/pkg/builtin/#int">int</a>, pc []<a href="/pkg/builtin/#uintptr">uintptr</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Callers 将调用 goroutine 栈上函数调用的返回地址程序计数器填入切片 pc。参数 skip 是开始记录到 pc 之前跳过的栈帧数，0 表示 Callers 自身的栈帧，1 表示 Callers 的调用方。它返回写入 pc 的条目数。<p>要将这些 PC 转换为函数名和行号等符号信息，请使用 <a href="#CallersFrames">CallersFrames</a>。CallersFrames 会考虑内联函数，并将返回地址程序计数器调整为调用指令的程序计数器。不建议直接遍历返回的 PC 切片，也不建议对其中任何 PC 使用 <a href="#FuncForPC">FuncForPC</a>，因为这些方式无法处理内联和返回地址程序计数器调整。<h2 id="GC">func <a href="/src/runtime/mgc.go?s=20585:20594#L512">GC</a>
+				
+				
+			</h2>
+			<pre>func GC()</pre>
+			<p>GC 执行一次垃圾回收，并阻塞调用方直到回收完成。它也可能阻塞整个程序。<h2 id="GOMAXPROCS">func <a href="/src/runtime/debug.go?s=2855:2881#L60">GOMAXPROCS</a>
+				
+				
+			</h2>
+			<pre>func GOMAXPROCS(n <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>GOMAXPROCS 设置可同时执行的 CPU 数量上限，并返回先前设置。如果 n &lt; 1，则不修改当前设置。<h3 id="hdr-Default">默认值</h3>
+<p>如果 GOMAXPROCS 环境变量设为正整数，GOMAXPROCS 默认采用该值。<p>否则，Go 运行时综合以下信息选择合适的默认值：<ul>
+<li>机器的逻辑 CPU 数量；<li>进程的 CPU 亲和性掩码；<li>以及在 Linux 上，基于 cgroup CPU 配额得到的进程平均 CPU 吞吐量上限（如果有）。</ul>
+<p>如果设置了 GODEBUG=containermaxprocs=0，且未通过环境变量设置 GOMAXPROCS，则 GOMAXPROCS 改为默认取 <a href="#NumCPU">runtime.NumCPU</a> 的值。注意，对于语言版本 1.24 及以下，GODEBUG=containermaxprocs=0 是<a href="/doc/godebug#default">默认设置</a>。<h3 id="hdr-Updates">更新</h3>
+<p>Go 运行时根据逻辑 CPU 总数、CPU 亲和性掩码或 cgroup 配额的变化，定期更新默认值。通过 GOMAXPROCS 环境变量或调用 GOMAXPROCS 设置自定义值，会禁用自动更新。调用 <a href="#SetDefaultGOMAXPROCS">SetDefaultGOMAXPROCS</a> 可以恢复默认值和自动更新。<p>如果设置了 GODEBUG=updatemaxprocs=0，Go 运行时不自动更新 GOMAXPROCS。注意，对于语言版本 1.24 及以下，GODEBUG=updatemaxprocs=0 是<a href="/doc/godebug#default">默认设置</a>。<h3 id="hdr-Compatibility">兼容性</h3>
+<p>注意，随着调度器改进，GOMAXPROCS 的默认行为可能变化，尤其是下面的实现细节。<h3 id="hdr-Implementation_details">实现细节</h3>
+<p>通过 cgroup 计算默认 GOMAXPROCS 时，Go 运行时将“平均 CPU 吞吐量上限”计算为 cgroup CPU 配额除以周期。在 cgroup v2 中，这些值来自 cpu.max 文件；在 cgroup v1 中，分别来自 cpu.cfs_quota_us 和 cpu.cfs_period_us。对于允许配置 CPU 限制的容器运行时，该值通常对应“CPU limit”选项，而非“CPU request”。<p>Go 运行时通常将逻辑 CPU 数量、CPU 亲和性掩码中的 CPU 数量和 cgroup CPU 吞吐量上限三者的最小值作为默认 GOMAXPROCS。不过，除非逻辑 CPU 数量或 CPU 亲和性掩码中的 CPU 数量小于 2，否则它绝不会将 GOMAXPROCS 设为小于 2。<p>如果 cgroup CPU 吞吐量上限不是整数，Go 运行时会向上取整。<p>GOMAXPROCS 每秒最多更新一次；应用程序空闲时，更新频率可能更低。<h2 id="GOROOT">func <a href="/src/runtime/extern.go?s=19089:19109#L344">GOROOT</a>
+				
+				
+			</h2>
+			<pre>func GOROOT() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>GOROOT 返回 Go 目录树的根目录。如果进程启动时设置了 GOROOT 环境变量，则使用该值；否则使用构建 Go 时的根目录。<p>已弃用：如果二进制文件复制到另一台机器，构建 Go 时的根目录就可能没有意义。请使用系统路径查找 go 二进制文件，再用 go env GOROOT 查询其 GOROOT。<h2 id="Goexit">func <a href="/src/runtime/panic.go?s=21794:21807#L672">Goexit</a>
+				
+				
+			</h2>
+			<pre>func Goexit()</pre>
+			<p>Goexit 终止调用它的 goroutine，不影响其他 goroutine。它在终止 goroutine 之前执行所有延迟调用。由于 Goexit 不是 panic，这些延迟函数中的任何 recover 调用都会返回 nil。<p>从主 goroutine 调用 Goexit，会终止该 goroutine，但不会使 func main 返回。由于 func main 尚未返回，程序继续执行其他 goroutine。如果所有其他 goroutine 都退出，程序就会崩溃。<p>如果从非 Go 运行时创建的线程调用它，程序会崩溃。<h2 id="GoroutineProfile">func <a href="/src/runtime/mprof.go?s=54999:55054#L1637">GoroutineProfile</a>
+				
+				
+			</h2>
+			<pre>func GoroutineProfile(p []<a href="#StackRecord">StackRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>GoroutineProfile 返回当前活动 goroutine 栈剖析中的记录数 n。如果 len(p) &gt;= n，就将剖析数据复制到 p 并返回 n, true。如果 len(p) &lt; n，则不修改 p，并返回 n, false。<p>大多数调用方应使用 <a href="/pkg/runtime/pprof/">runtime/pprof</a> 包，而不是直接调用 GoroutineProfile。<h2 id="Gosched">func <a href="/src/runtime/proc.go?s=13459:13473#L391">Gosched</a>
+				
+				
+			</h2>
+			<pre>func Gosched()</pre>
+			<p>Gosched 让出处理器，使其他 goroutine 可以运行。它不会挂起当前 goroutine，因此执行会自动恢复。<h2 id="KeepAlive">func <a href="/src/runtime/mfinal.go?s=19942:19963#L565">KeepAlive</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func KeepAlive(x <a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>KeepAlive 将其参数标记为当前可达。这确保在程序执行到调用 KeepAlive 的位置之前，该对象不会被释放，其终结器也不会运行。<p>以下是一个说明何时需要 KeepAlive 的极简示例：<pre>type File struct { d int }
+d, err := syscall.Open(&quot;/file/path&quot;, syscall.O_RDONLY, 0)
+// ……若 err != nil，则做相应处理……
+p := &amp;File{d}
+runtime.SetFinalizer(p, func(p *File) { syscall.Close(p.d) })
+var buf [10]byte
+n, err := syscall.Read(p.d, buf[:])
+// 确保 p 在 Read 返回前不会被执行终结器。
+runtime.KeepAlive(p)
+// 此处之后不再使用 p。
+</pre>
+<p>如果没有 KeepAlive 调用，终结器可能在 <a href="/pkg/syscall/#Read">syscall.Read</a> 开始时就运行，在 syscall.Read 真正发起系统调用之前关闭文件描述符。<p>注意：KeepAlive 只应用于防止终结器过早运行。特别是，与 <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a> 一起使用时，unsafe.Pointer 的有效使用规则仍然适用。<h2 id="LockOSThread">func <a href="/src/runtime/proc.go?s=173142:173161#L5664">LockOSThread</a>
+				
+				
+			</h2>
+			<pre>func LockOSThread()</pre>
+			<p>LockOSThread 将调用 goroutine 绑定到其当前操作系统线程。在该 goroutine 对 <a href="#UnlockOSThread">UnlockOSThread</a> 的调用次数与对 LockOSThread 的调用次数相等之前，该 goroutine 将始终在此线程上执行，且其他 goroutine 不会在此线程上执行。如果调用 goroutine 未解锁线程就退出，该线程将被终止。<p>所有 init 函数都在启动线程上运行。在 init 函数中调用 LockOSThread，会使 main 函数在该线程上执行。<p>goroutine 在调用依赖线程局部状态的操作系统服务或非 Go 库函数之前，应调用 LockOSThread。<h2 id="MemProfile">func <a href="/src/runtime/mprof.go?s=30672:30742#L916">MemProfile</a>
+				
+				
+			</h2>
+			<pre>func MemProfile(p []<a href="#MemProfileRecord">MemProfileRecord</a>, inuseZero <a href="/pkg/builtin/#bool">bool</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>MemProfile 返回按分配位置记录的内存分配与释放剖析数据。<p>MemProfile 返回当前内存剖析中的记录数 n。如果 len(p) &gt;= n，就将剖析数据复制到 p 并返回 n, true。如果 len(p) &lt; n，则不修改 p，并返回 n, false。<p>如果 inuseZero 为 true，剖析数据会包含满足 r.AllocBytes &gt; 0 且 r.AllocBytes == r.FreeBytes 的分配记录。这些位置曾经分配过内存，但已全部归还给运行时。<p>返回的剖析数据最多可能滞后两个垃圾回收周期。这是为了避免剖析结果偏向分配：分配实时发生，而释放会延迟到垃圾回收器执行清扫，因此剖析数据只统计那些已有机会被垃圾回收器释放的分配。<p>大多数调用方应使用 runtime/pprof 包，或 testing 包的 -test.memprofile 标志，而不是直接调用 MemProfile。<h2 id="MutexProfile">func <a href="/src/runtime/mprof.go?s=37957:38015#L1142">MutexProfile</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func MutexProfile(p []<a href="#BlockProfileRecord">BlockProfileRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>MutexProfile 返回当前互斥锁剖析中的记录数 n。如果 len(p) &gt;= n，就将剖析数据复制到 p 并返回 n, true。否则不修改 p，并返回 n, false。<p>大多数调用方应使用 <a href="/pkg/runtime/pprof/">runtime/pprof</a> 包，而不是直接调用 MutexProfile。<h2 id="NumCPU">func <a href="/src/runtime/debug.go?s=5264:5281#L144">NumCPU</a>
+				
+				
+			</h2>
+			<pre>func NumCPU() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NumCPU 返回当前进程可使用的逻辑 CPU 数量。<p>可用 CPU 集合在进程启动时通过查询操作系统确定。进程启动后，操作系统 CPU 分配的变化不会反映在结果中。<h2 id="NumCgoCall">func <a href="/src/runtime/debug.go?s=5389:5412#L149">NumCgoCall</a>
+				
+				
+			</h2>
+			<pre>func NumCgoCall() <a href="/pkg/builtin/#int64">int64</a></pre>
+			<p>NumCgoCall 返回当前进程进行的 cgo 调用次数。<h2 id="NumGoroutine">func <a href="/src/runtime/debug.go?s=5929:5952#L169">NumGoroutine</a>
+				
+				
+			</h2>
+			<pre>func NumGoroutine() <a href="/pkg/builtin/#int">int</a></pre>
+			<p>NumGoroutine 返回当前存在的 goroutine 数量。<h2 id="ReadMemStats">func <a href="/src/runtime/mstats.go?s=12189:12219#L346">ReadMemStats</a>
+				
+				
+			</h2>
+			<pre>func ReadMemStats(m *<a href="#MemStats">MemStats</a>)</pre>
+			<p>ReadMemStats 将内存分配器统计信息填入 m。<p>返回的内存分配器统计信息是截至调用 ReadMemStats 时的最新数据。堆剖析则不同，它是截至最近一次已完成垃圾回收周期时的快照。<h2 id="ReadTrace">func <a href="/src/runtime/trace.go?s=37239:37268#L876">ReadTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func ReadTrace() (buf []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>ReadTrace 返回下一块二进制跟踪数据，在数据可用之前会阻塞。如果跟踪已关闭，且跟踪开启期间积累的数据已全部返回，则 ReadTrace 返回 nil。调用方必须在再次调用 ReadTrace 之前复制返回的数据。同一时间只能由一个 goroutine 调用 ReadTrace。<h2 id="SetBlockProfileRate">func <a href="/src/runtime/mprof.go?s=15162:15196#L473">SetBlockProfileRate</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<pre>func SetBlockProfileRate(rate <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>SetBlockProfileRate 控制在阻塞剖析中报告的 goroutine 阻塞事件比例。剖析器的目标是平均每阻塞 rate 纳秒，采样一个阻塞事件。<p>要在剖析数据中包含每个阻塞事件，传入 rate = 1。要完全关闭阻塞剖析，传入 rate &lt;= 0。<h2 id="SetCPUProfileRate">func <a href="/src/runtime/cpuprof.go?s=2572:2602#L58">SetCPUProfileRate</a>
+				
+				
+			</h2>
+			<pre>func SetCPUProfileRate(hz <a href="/pkg/builtin/#int">int</a>)</pre>
+			<p>SetCPUProfileRate 将 CPU 剖析采样率设为每秒 hz 个样本。如果 hz &lt;= 0，则关闭剖析。如果剖析器已开启，必须先关闭它才能修改采样率。<p>大多数调用方应使用 <a href="/pkg/runtime/pprof/">runtime/pprof</a> 包，或 <a href="/pkg/testing/">testing</a> 包的 -test.cpuprofile 标志，而不是直接调用 SetCPUProfileRate。<h2 id="SetCgoTraceback">func <a href="/src/runtime/traceback.go?s=57843:57923#L1673">SetCgoTraceback</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<pre>func SetCgoTraceback(version <a href="/pkg/builtin/#int">int</a>, traceback, context, symbolizer <a href="/pkg/unsafe/">unsafe</a>.<a href="/pkg/unsafe/#Pointer">Pointer</a>)</pre>
+			<p>SetCgoTraceback 记录三个 C 函数，用于从 C 代码收集栈回溯信息，并将其转换为符号信息。在为使用 cgo 的程序输出栈轨迹时，会使用这些函数。<p>traceback 和 context 函数可能从信号处理器调用，因此只能使用异步信号安全的函数。symbolizer 函数可能在程序崩溃过程中调用，因此必须谨慎使用内存。这些函数都不能回调 Go。<p>context 函数调用时只接收一个参数，即指向以下结构体的指针：<pre>struct {
+	Context uintptr
+}
+</pre>
+<p>用 C 语法表示，该结构体为：<pre>struct {
+	uintptr_t Context;
+};
+</pre>
+<p>如果 Context 字段为 0，表示正在调用 context 函数记录当前的栈回溯上下文。它应将稍后生成栈轨迹所需的当前执行位置信息记录到 Context 字段中，可能包括栈指针和 PC。在这种情况下，context 函数会从 C 代码调用。<p>如果 Context 字段非 0，它就是之前调用 context 函数返回的值。当该上下文不再需要时，即 Go 代码正要返回其 C 代码调用方时，会发生这种调用。这样 context 函数便可释放所有关联资源。<p>虽然 context 函数每次调用时都记录完整栈轨迹、再由 traceback 函数简单复制出来也是正确的，但典型程序中 context 函数可能被调用许多次，却从未为相应上下文记录栈回溯。每次调用 context 函数都记录完整栈轨迹，通常效率不高。<p>traceback 函数调用时只接收一个参数，即指向以下结构体的指针：<pre>struct {
+	Context    uintptr
+	SigContext uintptr
+	Buf        *uintptr
+	Max        uintptr
+}
+</pre>
+<p>用 C 语法表示，该结构体为：<pre>struct {
+	uintptr_t  Context;
+	uintptr_t  SigContext;
+	uintptr_t* Buf;
+	uintptr_t  Max;
+};
+</pre>
+<p>若要从程序当前执行点收集栈回溯，Context 字段为零。在这种情况下，traceback 函数会从 C 代码调用。<p>否则，Context 是之前调用 context 函数返回的值。traceback 函数应从保存的程序执行点收集栈轨迹。调用 traceback 的执行线程可能不同于记录上下文的线程，但只会在确定上下文仍然有效且不会改变时这样调用。它也可能在记录上下文的同一线程中、更深的调用栈位置被调用。traceback 函数可能多次收到相同的 Context 值；如果可能，通常应在首次处理特定上下文值时缓存结果。<p>在 Unix 系统上，如果 traceback 函数从信号处理器调用，SigContext 就是传给信号处理器的信号上下文参数（将 C 的 ucontext_t* 转换为 uintptr_t）。它可用于从信号发生的位置开始回溯。如果 traceback 函数并非从信号处理器调用，SigContext 为零。<p>Buf 是存储栈回溯信息的位置。应在其中存储 PC 值，使 Buf[0] 为调用方的 PC，Buf[1] 为该函数调用方的 PC，依此类推。Max 是最多可存储的条目数。函数应存入零，表示到达栈顶，或者调用方位于另一个栈上，通常是 Go 栈。<p>与 runtime.Callers 不同，返回的 PC 值在传给 symbolizer 函数时，应返回调用指令所在的文件和行号。不需要也不应再额外减去偏移量。<p>在所有平台上，当 Go 到 C 再到 Go 的调用请求栈轨迹时，都会调用 traceback 函数。在 linux/amd64、linux/ppc64le、linux/arm64 和 freebsd/amd64 上，正在执行 cgo 调用的线程收到信号时，也会调用 traceback 函数。traceback 函数不应假定自己何时被调用，因为未来的 Go 版本可能增加其他调用时机。<p>symbolizer 函数调用时只接收一个参数，即指向以下结构体的指针：<pre>struct {
+	PC      uintptr // 要查询信息的程序计数器
+	File    *byte   // 文件名（以 NUL 结尾）
+	Lineno  uintptr // 行号
+	Func    *byte   // 函数名（以 NUL 结尾）
+	Entry   uintptr // 函数入口点
+	More    uintptr // 若此 PC 还有更多信息，则设为非零
+	Data    uintptr // 运行时不使用此字段，可供函数自行使用
+}
+</pre>
+<p>用 C 语法表示，该结构体为：<pre>struct {
+	uintptr_t PC;
+	char*     File;
+	uintptr_t Lineno;
+	char*     Func;
+	uintptr_t Entry;
+	uintptr_t More;
+	uintptr_t Data;
+};
+</pre>
+<p>PC 字段是调用 traceback 函数返回的某个值。<p>对于特定栈回溯的第一次调用，除 PC 外的所有字段都为 0。函数应尽可能填充其他字段；信息不可用时，将其设为 0 或 nil。Data 字段可用于跨调用保存有用信息。如果该 PC 还有更多信息，应将 More 字段设为非零，否则设为零。如果 More 非零，会使用相同 PC 再次调用此函数，函数可以返回不同信息（这是为内联函数准备的）。如果 More 为零，会使用栈回溯中的下一个 PC 值调用此函数。栈回溯处理完成后，还会将 PC 设为零再调用一次；此时可以释放任何保存的信息。每次调用后，结构体各字段都会保留返回时的值，唯一例外是在 More 为零时 PC 字段会改变。函数不得在调用之间保留此结构体指针的副本。<p>调用 SetCgoTraceback 时，version 参数表示这些函数预期接收的结构体版本号。目前必须为零。<p>symbolizer 函数可以为 nil，此时 traceback 函数的结果以数字显示。如果 traceback 函数为 nil，就永远不会调用 symbolizer。context 函数可以为 nil，此时只会在 Context 字段为零的情况下调用 traceback。如果 context 为 nil，则 Go 到 C 再到 Go 的调用不会显示调用栈中 C 部分的栈回溯。<p>SetCgoTraceback 只应调用一次，最好在 init 函数中调用。<h2 id="SetDefaultGOMAXPROCS">func <a href="/src/runtime/debug.go?s=4232:4259#L107">SetDefaultGOMAXPROCS</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func SetDefaultGOMAXPROCS()</pre>
+			<p>SetDefaultGOMAXPROCS 将 GOMAXPROCS 设置更新为 <a href="#GOMAXPROCS">GOMAXPROCS</a> 所述的运行时默认值，并忽略 GOMAXPROCS 环境变量。<p>如果通过 GOMAXPROCS 环境变量或先前调用 <a href="#GOMAXPROCS">GOMAXPROCS</a> 禁用了默认的 GOMAXPROCS 自动更新行为，可以用 SetDefaultGOMAXPROCS 重新启用；当调用方已知逻辑 CPU 总数、CPU 亲和性掩码或 cgroup 配额发生变化时，也可用它强制立即更新。<h2 id="SetFinalizer">func <a href="/src/runtime/mfinal.go?s=15286:15327#L422">SetFinalizer</a>
+				
+				
+			</h2>
+			<pre>func SetFinalizer(obj <a href="/pkg/builtin/#any">any</a>, finalizer <a href="/pkg/builtin/#any">any</a>)</pre>
+			<p>SetFinalizer 将 obj 关联的终结器设置为给定的 finalizer 函数。垃圾回收器发现一个不可达且关联了终结器的内存块时，会清除该关联，并在单独的 goroutine 中运行 finalizer(obj)。这会使 obj 再次变为可达，但此时不再关联终结器。假设没有再次调用 SetFinalizer，下次垃圾回收器发现 obj 不可达时，就会释放 obj。<p>SetFinalizer(obj, nil) 清除 obj 关联的任何终结器。<p>新的 Go 代码应考虑改用 <a href="#AddCleanup">AddCleanup</a>，它比 SetFinalizer 更不容易出错。<p>参数 obj 必须是指向对象的指针，该对象通过调用 new、获取复合字面量地址，或获取局部变量地址来分配。参数 finalizer 必须是只接收一个参数的函数，且 obj 的类型能够赋值给该参数；函数可以有任意返回值，这些返回值会被忽略。如果不满足任一条件，SetFinalizer 可能中止程序。<p>终结器按依赖顺序运行：如果 A 指向 B，两者都有终结器，且除此之外都不可达，则只运行 A 的终结器；A 释放后，B 的终结器才能运行。如果循环结构包含带终结器的内存块，则不保证该循环被垃圾回收，也不保证终结器运行，因为不存在能够满足依赖关系的执行顺序。<p>当程序不再能到达 obj 指向的对象后，终结器会被安排在未来某个任意时刻运行。不保证终结器在程序退出前运行，因此它们通常只适合在长期运行的程序中释放与对象关联的非内存资源。例如，当程序丢弃 <a href="/pkg/os/#File">os.File</a> 而未调用 Close 时，os.File 对象可以通过终结器关闭关联的操作系统文件描述符。但依赖终结器刷新 <a href="/pkg/bufio/#Writer">bufio.Writer</a> 等内存 I/O 缓冲区是错误的，因为程序退出时不保证刷新缓冲区。<p>如果 *obj 的大小为零字节，不保证终结器运行，因为它可能与内存中的其他零大小对象共享同一地址。参见 <a href="/ref/spec#Size_and_alignment_guarantees">https://go.dev/ref/spec#Size_and_alignment_guarantees</a>。<p>对于在包级变量初始化器中分配的对象，不保证终结器运行。这些对象可能由链接器分配，而不是在堆上分配。<p>注意，对象不再被引用后，终结器可能在遥远的未来才执行，因此运行时允许采用节省空间的优化，将多个对象批量放入同一个分配槽。如果某个不再被引用的对象始终与被引用对象位于同一批次中，它的终结器可能永远不运行。通常，这种批量分配仅发生在微小（约 16 字节或更小）且不含指针的对象上。<p>对象一旦不可达，终结器就可能运行。为了正确使用终结器，程序必须确保对象在不再需要之前始终可达。存储在全局变量中的对象，或可以从全局变量沿指针找到的对象，都是可达的。函数参数或接收者可能在函数最后一次使用它的位置之后就变为不可达。要让不可达对象保持可达，应将其传给 <a href="#KeepAlive">KeepAlive</a>，标记函数中该对象必须保持可达的最后位置。<p>例如，假设 p 指向包含文件描述符 d 的结构体（如 os.File），p 的终结器会关闭该文件描述符，且函数中最后一次使用 p 是调用 syscall.Write(p.d, buf, size)。那么程序一进入 <a href="/pkg/syscall/#Write">syscall.Write</a>，p 就可能变为不可达。终结器可能立即运行，关闭 p.d，导致 syscall.Write 因写入已关闭的文件描述符而失败（更糟的是，可能写入已被其他 goroutine 打开的完全不同的文件描述符）。为避免此问题，应在 syscall.Write 调用后调用 KeepAlive(p)。<p>程序的所有终结器由单个 goroutine 顺序执行。如果某个终结器需要长时间运行，应为此启动新的 goroutine。<p>按照 Go 内存模型的术语，SetFinalizer(x, f) 调用“同步先于”终结器调用 f(x)。但不保证 KeepAlive(x) 或对 x 的其他使用“同步先于” f(x)，因此终结器若需要访问 x 中的可变状态，通常应使用互斥锁或其他同步机制。例如，终结器检查 x 的某个可变字段，而主程序会在 x 不可达、终结器被调用之前不时修改该字段。主程序的修改与终结器的检查必须使用适当同步，例如互斥锁或原子更新，以避免读写竞争。<h2 id="SetMutexProfileFraction">func <a href="/src/runtime/mprof.go?s=26864:26906#L809">SetMutexProfileFraction</a>
+				
+				<span title="自 Go 1.8 起提供">1.8</span>
+			</h2>
+			<pre>func SetMutexProfileFraction(rate <a href="/pkg/builtin/#int">int</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>SetMutexProfileFraction 控制在互斥锁剖析中报告的互斥锁争用事件比例。平均报告 1/rate 的事件。它返回先前的 rate。<p>要完全关闭剖析，传入 rate = 0。要仅查询当前 rate，传入 rate &lt; 0。（对于 n&gt;1，采样细节可能改变。）<h2 id="Stack">func <a href="/src/runtime/mprof.go?s=56672:56708#L1680">Stack</a>
+				
+				
+			</h2>
+			<pre>func Stack(buf []<a href="/pkg/builtin/#byte">byte</a>, all <a href="/pkg/builtin/#bool">bool</a>) <a href="/pkg/builtin/#int">int</a></pre>
+			<p>Stack 将调用 goroutine 的栈轨迹格式化到 buf 中，并返回写入 buf 的字节数。如果 all 为 true，则在当前 goroutine 的轨迹之后，将所有其他 goroutine 的栈轨迹也格式化到 buf 中。<h2 id="StartTrace">func <a href="/src/runtime/trace.go?s=16450:16473#L308">StartTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func StartTrace() <a href="/pkg/builtin/#error">error</a></pre>
+			<p>StartTrace 为当前进程启用跟踪。跟踪期间，数据会先缓冲，并可通过 <a href="#ReadTrace">ReadTrace</a> 获取。如果已启用跟踪，StartTrace 返回错误。大多数调用方应使用 <a href="/pkg/runtime/trace/">runtime/trace</a> 包或 <a href="/pkg/testing/">testing</a> 包的 -test.trace 标志，而不是直接调用 StartTrace。<h2 id="StopTrace">func <a href="/src/runtime/trace.go?s=21896:21912#L447">StopTrace</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func StopTrace()</pre>
+			<p>如果之前启用了跟踪，StopTrace 会停止跟踪。只有在跟踪数据的所有读取都完成后，StopTrace 才会返回。<h2 id="ThreadCreateProfile">func <a href="/src/runtime/mprof.go?s=39444:39502#L1193">ThreadCreateProfile</a>
+				
+				
+			</h2>
+			<pre>func ThreadCreateProfile(p []<a href="#StackRecord">StackRecord</a>) (n <a href="/pkg/builtin/#int">int</a>, ok <a href="/pkg/builtin/#bool">bool</a>)</pre>
+			<p>ThreadCreateProfile 返回线程创建剖析中的记录数 n。如果 len(p) &gt;= n，就将剖析数据复制到 p 并返回 n, true。如果 len(p) &lt; n，则不修改 p，并返回 n, false。<p>大多数调用方应使用 runtime/pprof 包，而不是直接调用 ThreadCreateProfile。<h2 id="UnlockOSThread">func <a href="/src/runtime/proc.go?s=174756:174777#L5717">UnlockOSThread</a>
+				
+				
+			</h2>
+			<pre>func UnlockOSThread()</pre>
+			<p>UnlockOSThread 撤销先前的一次 LockOSThread 调用。如果这使调用 goroutine 尚未撤销的 LockOSThread 调用次数降为零，就解除该 goroutine 与固定操作系统线程的绑定。如果没有尚未撤销的 LockOSThread 调用，则不执行任何操作。<p>调用 UnlockOSThread 前，调用方必须确保该操作系统线程适合运行其他 goroutine。如果调用方对线程状态进行了会影响其他 goroutine 的永久更改，就不应调用此函数，而应让该 goroutine 一直绑定到此操作系统线程，直到 goroutine 退出，进而使线程退出。<h2 id="Version">func <a href="/src/runtime/extern.go?s=19622:19643#L365">Version</a>
+				
+				
+			</h2>
+			<pre>func Version() <a href="/pkg/builtin/#string">string</a></pre>
+			<p>Version 返回 Go 目录树的版本字符串。它可能是构建时的提交哈希和日期，或在可用时为 &quot;go1.3&quot; 这样的发布标签。<h2 id="BlockProfileRecord">type <a href="/src/runtime/mprof.go?s=34415:34490#L1030">BlockProfileRecord</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>BlockProfileRecord 描述源于某个特定调用序列（栈轨迹）的阻塞事件。<pre>type BlockProfileRecord struct {
+<span id="BlockProfileRecord.Count"></span>    Count  <a href="/pkg/builtin/#int64">int64</a>
+<span id="BlockProfileRecord.Cycles"></span>    Cycles <a href="/pkg/builtin/#int64">int64</a>
+    <a href="#StackRecord">StackRecord</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Cleanup">type <a href="/src/runtime/mcleanup.go?s=8053:8210#L198">Cleanup</a>
+				
+				<span title="自 Go 1.24 起提供">1.24</span>
+			</h2>
+			<p>Cleanup 是针对特定对象的一次清理调用的句柄。<pre>type Cleanup struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="AddCleanup">func <a href="/src/runtime/mcleanup.go?s=3520:3585#L66">AddCleanup</a>
+					
+					
+				</h3>
+				<pre>func AddCleanup[T, S <a href="/pkg/builtin/#any">any</a>](ptr *<a href="#T">T</a>, cleanup func(<a href="#S">S</a>), arg <a href="#S">S</a>) <a href="#Cleanup">Cleanup</a></pre>
+				<p>AddCleanup 将清理函数附加到 ptr。当 ptr 不再可达后的某个时刻，运行时会在单独的 goroutine 中调用 cleanup(arg)。<p>典型用法是：ptr 是包装底层资源的对象（例如包装操作系统文件描述符的 File 对象），arg 是底层资源（例如操作系统文件描述符），清理函数释放该资源（例如调用 close 系统调用）。<p>对 ptr 的限制很少。特别是，可以将多个清理函数附加到同一个指针，或同一次分配内的不同指针。<p>如果从 cleanup 或 arg 可以到达 ptr，则 ptr 永远不会被回收，清理函数也永远不会运行。为防止这种情况的简单形式，如果 arg 等于 ptr，AddCleanup 会引发 panic。<p>清理函数的运行顺序未指定。特别是，如果多个对象相互引用，并同时变为不可达，那么它们的清理函数都会具备运行条件，且可以按任意顺序运行。即使这些对象形成循环，这一点也成立。<p>清理函数与用户创建的 goroutine 并发运行。清理函数之间也可能并发运行，这一点与终结器不同。如果清理函数需要长时间运行，应创建新的 goroutine，以免阻塞其他清理函数的执行。<p>如果 ptr 同时有清理函数和终结器，那么只有在其终结器已执行、且对象在不再关联终结器的情况下再次变为不可达后，清理函数才会运行。<p>不总是保证 cleanup(arg) 被调用；特别是，不保证它在程序退出前运行。<p>如果 T 的大小为零字节，不保证清理函数运行，因为它可能与内存中的其他零大小对象共享同一地址。参见 <a href="/ref/spec#Size_and_alignment_guarantees">https://go.dev/ref/spec#Size_and_alignment_guarantees</a>。<p>对于在包级变量初始化器中分配的对象，不保证清理函数运行。这些对象可能由链接器分配，而不是在堆上分配。<p>注意，对象不再被引用后，清理函数可能在遥远的未来才执行，因此运行时允许采用节省空间的优化，将多个对象批量放入同一个分配槽。如果某个不再被引用的对象始终与被引用对象位于同一批次中，它的清理函数可能永远不运行。通常，这种批量分配仅发生在微小（约 16 字节或更小）且不含指针的对象上。<p>对象一旦不可达，清理函数就可能运行。为了正确使用清理函数，程序必须确保在能够安全运行其清理函数之前，对象始终可达。存储在全局变量中的对象，或可以从全局变量沿指针找到的对象，都是可达的。函数参数或接收者可能在函数最后一次使用它的位置之后就变为不可达。要确保清理函数不会过早调用，应在对象必须保持可达的最后位置之后，将它传给 <a href="#KeepAlive">KeepAlive</a> 函数。<div id="example_AddCleanup" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+	&#34;runtime&#34;
+)
+
+func main() {
+	tempFile, err := os.CreateTemp(os.TempDir(), &#34;file.*&#34;)
+	if err != nil {
+		fmt.Println(&#34;failed to create temp file:&#34;, err)
+		return
+	}
+
+	ch := make(chan struct{})
+
+	// 将清理函数附加到文件对象。
+	runtime.AddCleanup(&amp;tempFile, func(fileName string) {
+		if err := os.Remove(fileName); err == nil {
+			fmt.Println(&#34;temp file has been removed&#34;)
+		}
+		ch &lt;- struct{}{}
+	}, tempFile.Name())
+
+	if err := tempFile.Close(); err != nil {
+		fmt.Println(&#34;failed to close temp file:&#34;, err)
+		return
+	}
+
+	// 运行垃圾回收器，以回收不可达对象，
+	// 并将其清理函数加入队列。
+	runtime.GC()
+
+	// 等待清理函数完成。
+	&lt;-ch
+
+}
+</textarea></div>
+        <div class="output"><pre>temp file has been removed
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+				<h3 id="Cleanup.Stop">func (Cleanup) <a href="/src/runtime/mcleanup.go?s=8533:8556#L209">Stop</a>
+					
+					<span title="自 Go 1.24 起提供">1.24</span>
+				</h3>
+				<pre>func (c <a href="#Cleanup">Cleanup</a>) Stop()</pre>
+				<p>Stop 取消清理调用。如果清理调用已经排队等待执行（因为 ptr 已变为不可达），Stop 不起作用。要保证 Stop 移除清理函数，调用方必须确保传给 AddCleanup 的指针在整个 Stop 调用期间保持可达。<h2 id="Error">type <a href="/src/runtime/error.go?s=801:1035#L14">Error</a>
+				
+				
+			</h2>
+			<p>Error 标识 panic 中使用的运行时错误。<p>如 Go 语言规范所述，Go 运行时会在多种情况下触发 panic，例如切片或数组访问越界、关闭 nil 通道、类型断言失败等。<p>发生这些情况时，Go 运行时会以实现了 Error 的错误值触发 panic。在恢复 panic 时，这有助于区分自定义应用程序 panic 与底层运行时 panic。<p>Go 标准库之外的包不应实现 Error。<pre>type Error interface {
+    <a href="/pkg/builtin/#error">error</a>
+
+    <span class="comment">// RuntimeError 是一个不执行任何操作的函数，</span>
+    <span class="comment">// 用于区分运行时错误类型</span>
+    <span class="comment">// 和普通错误类型：如果某个类型具有</span>
+    <span class="comment">// RuntimeError 方法，它就是运行时错误。</span>
+    RuntimeError()
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Frame">type <a href="/src/runtime/symtab.go?s=766:2494#L20">Frame</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Frame 是 <a href="#Frames">Frames</a> 为每个调用栈帧返回的信息。<pre>type Frame struct {
+<span id="Frame.PC"></span>    <span class="comment">// PC 是此栈帧中对应位置的程序计数器。</span>
+    <span class="comment">// 对于调用其他栈帧的帧，它是</span>
+    <span class="comment">// 调用指令的程序计数器。由于内联，</span>
+    <span class="comment">// 多个帧可能具有相同的 PC 值，但具有不同的</span>
+    <span class="comment">// 符号信息。</span>
+    PC <a href="/pkg/builtin/#uintptr">uintptr</a>
+
+<span id="Frame.Func"></span>    <span class="comment">// Func 是此调用栈帧的 Func 值。对于非 Go 代码</span>
+    <span class="comment">// 或完全内联的函数，它可能为 nil。</span>
+    Func *<a href="#Func">Func</a>
+
+<span id="Frame.Function"></span>    <span class="comment">// Function 是此调用栈帧的函数名，以包路径限定。</span>
+    <span class="comment">// 如果非空，该字符串会唯一</span>
+    <span class="comment">// 标识程序中的一个函数。</span>
+    <span class="comment">// 如果未知，它可以是空字符串。</span>
+    <span class="comment">// 如果 Func 非 nil，则 Function == Func.Name()。</span>
+    Function <a href="/pkg/builtin/#string">string</a>
+
+<span id="Frame.File"></span>    <span class="comment">// File 和 Line 是此栈帧中对应位置的</span>
+    <span class="comment">// 文件名和行号。对于非叶子帧，这会是</span>
+    <span class="comment">// 调用的位置。如果未知，两者可能分别为空字符串</span>
+    <span class="comment">// 和零。文件名使用</span>
+    <span class="comment">// 正斜杠，即使在 Windows 上也如此。</span>
+    File <a href="/pkg/builtin/#string">string</a>
+<span id="Frame.Line"></span>    Line <a href="/pkg/builtin/#int">int</a>
+
+<span id="Frame.Entry"></span>    <span class="comment">// 函数入口点的程序计数器；如果未知，可能</span>
+    <span class="comment">// 为零。如果 Func 非 nil，则 Entry ==</span>
+    <span class="comment">// Func.Entry()。</span>
+    Entry <a href="/pkg/builtin/#uintptr">uintptr</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Frames">type <a href="/src/runtime/symtab.go?s=396:694#L7">Frames</a>
+				
+				<span title="自 Go 1.7 起提供">1.7</span>
+			</h2>
+			<p>Frames 可用于获取 <a href="#Callers">Callers</a> 返回的 PC 值切片所对应的函数、文件和行号信息。<pre>type Frames struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Frames" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;runtime&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	c := func() {
+		// 向 runtime.Callers 请求最多 10 个 PC，包括 runtime.Callers 自身。
+		pc := make([]uintptr, 10)
+		n := runtime.Callers(0, pc)
+		if n == 0 {
+			// 没有可用的 PC。如果传给 runtime.Callers 的
+			// 第一个参数较大，可能发生这种情况。
+			//
+			// 立即返回，以避免处理下面 frames.Next
+			// 原本会返回的零值 Frame。
+			return
+		}
+
+		pc = pc[:n] // 仅向 runtime.CallersFrames 传入有效的 PC
+		frames := runtime.CallersFrames(pc)
+
+		// 循环获取栈帧。
+		// 固定数量的 PC 可以展开为数量不定的 Frame。
+		for {
+			frame, more := frames.Next()
+
+			// 规范化函数名，并跳过此函数的调用方，
+			// 以便得到可预测的示例输出。
+			// 你自己的代码通常不需要这样做。
+			function := strings.ReplaceAll(frame.Function, &#34;main.main&#34;, &#34;runtime_test.ExampleFrames&#34;)
+			fmt.Printf(&#34;- more:%v | %s\n&#34;, more, function)
+			if function == &#34;runtime_test.ExampleFrames&#34; {
+				break
+			}
+
+			// 检查当前帧之后是否还有更多帧需要处理。
+			if !more {
+				break
+			}
+		}
+	}
+
+	b := func() { c() }
+	a := func() { b() }
+
+	a()
+}
+</textarea></div>
+        <div class="output"><pre>- more:true | runtime.Callers
+- more:true | runtime_test.ExampleFrames.func1
+- more:true | runtime_test.ExampleFrames.func2
+- more:true | runtime_test.ExampleFrames.func3
+- more:true | runtime_test.ExampleFrames
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="CallersFrames">func <a href="/src/runtime/symtab.go?s=2685:2730#L70">CallersFrames</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func CallersFrames(callers []<a href="/pkg/builtin/#uintptr">uintptr</a>) *<a href="#Frames">Frames</a></pre>
+				<p>CallersFrames 接收 <a href="#Callers">Callers</a> 返回的 PC 值切片，并准备返回函数、文件和行号信息。在使用完 <a href="#Frames">Frames</a> 之前，不要修改该切片。<h3 id="Frames.Next">func (*Frames) <a href="/src/runtime/symtab.go?s=3186:3235#L85">Next</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (ci *<a href="#Frames">Frames</a>) Next() (frame <a href="#Frame">Frame</a>, more <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>Next 返回一个 <a href="#Frame">Frame</a>，表示 PC 值切片中的下一个调用栈帧。如果已返回所有调用栈帧，则 Next 返回零值 <a href="#Frame">Frame</a>。<p>返回值 more 表示下一次调用 Next 是否会返回有效的 <a href="#Frame">Frame</a>，并不一定表示本次调用是否返回了有效帧。<p>惯用用法参见 <a href="#Frames">Frames</a> 示例。<h2 id="Func">type <a href="/src/runtime/symtab.go?s=11456:11537#L334">Func</a>
+				
+				
+			</h2>
+			<p>Func 表示当前运行的二进制文件中的一个 Go 函数。<pre>type Func struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="FuncForPC">func <a href="/src/runtime/symtab.go?s=26892:26924#L772">FuncForPC</a>
+					
+					
+				</h3>
+				<pre>func FuncForPC(pc <a href="/pkg/builtin/#uintptr">uintptr</a>) *<a href="#Func">Func</a></pre>
+				<p>FuncForPC 返回描述包含给定程序计数器地址的函数的 *<a href="#Func">Func</a>；如果不存在，则返回 nil。<p>如果由于内联，pc 代表多个函数，则返回描述最内层函数的 *Func，但入口地址采用最外层函数的入口地址。<h3 id="Func.Entry">func (*Func) <a href="/src/runtime/symtab.go?s=28012:28042#L812">Entry</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) Entry() <a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Entry 返回函数的入口地址。<h3 id="Func.FileLine">func (*Func) <a href="/src/runtime/symtab.go?s=28385:28444#L825">FileLine</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) FileLine(pc <a href="/pkg/builtin/#uintptr">uintptr</a>) (file <a href="/pkg/builtin/#string">string</a>, line <a href="/pkg/builtin/#int">int</a>)</pre>
+				<p>FileLine 返回程序计数器 pc 对应源代码的文件名和行号。如果 pc 不是 f 内的程序计数器，结果将不准确。<h3 id="Func.Name">func (*Func) <a href="/src/runtime/symtab.go?s=27715:27743#L799">Name</a>
+					
+					
+				</h3>
+				<pre>func (f *<a href="#Func">Func</a>) Name() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>Name 返回函数名称。<h2 id="MemProfileRecord">type <a href="/src/runtime/mprof.go?s=28781:29058#L870">MemProfileRecord</a>
+				
+				
+			</h2>
+			<p>MemProfileRecord 描述由某个特定调用序列（栈轨迹）分配的存活对象。<pre>type MemProfileRecord struct {
+<span id="MemProfileRecord.AllocBytes"></span>    AllocBytes, FreeBytes     <a href="/pkg/builtin/#int64">int64</a>       <span class="comment">// 已分配和已释放的字节数</span>
+<span id="MemProfileRecord.AllocObjects"></span>    AllocObjects, FreeObjects <a href="/pkg/builtin/#int64">int64</a>       <span class="comment">// 已分配和已释放的对象数</span>
+<span id="MemProfileRecord.Stack0"></span>    Stack0                    [32]<a href="/pkg/builtin/#uintptr">uintptr</a> <span class="comment">// 此记录的栈轨迹；在第一个 0 条目处结束</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MemProfileRecord.InUseBytes">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29135:29180#L877">InUseBytes</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) InUseBytes() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InUseBytes 返回正在使用的字节数（AllocBytes - FreeBytes）。<h3 id="MemProfileRecord.InUseObjects">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29303:29350#L880">InUseObjects</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) InUseObjects() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InUseObjects 返回正在使用的对象数（AllocObjects - FreeObjects）。<h3 id="MemProfileRecord.Stack">func (*MemProfileRecord) <a href="/src/runtime/mprof.go?s=29481:29525#L886">Stack</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#MemProfileRecord">MemProfileRecord</a>) Stack() []<a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Stack 返回与此记录关联的栈轨迹，它是 r.Stack0 的一个前缀。<h2 id="MemStats">type <a href="/src/runtime/mstats.go?s=1603:11487#L45">MemStats</a>
+				
+				
+			</h2>
+			<p>MemStats 记录内存分配器的统计信息。<pre>type MemStats struct {
+
+<span id="MemStats.Alloc"></span>    <span class="comment">// Alloc 是已分配堆对象的字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 这与下面的 HeapAlloc 相同。</span>
+    Alloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.TotalAlloc"></span>    <span class="comment">// TotalAlloc 是为堆对象分配的累计字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// TotalAlloc 随堆对象分配而增加，但</span>
+    <span class="comment">// 与 Alloc 和 HeapAlloc 不同，它不会在</span>
+    <span class="comment">// 对象释放时减少。</span>
+    TotalAlloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Sys"></span>    <span class="comment">// Sys 是从操作系统获取的内存总字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Sys 是下面各个 XSys 字段的总和。它衡量</span>
+    <span class="comment">// Go 运行时为堆、栈及其他内部数据结构</span>
+    <span class="comment">// 预留的虚拟地址空间。</span>
+    <span class="comment">// 在任意给定时刻，可能并非全部虚拟地址空间</span>
+    <span class="comment">// 都有物理内存支撑，不过一般而言，</span>
+    <span class="comment">// 这些空间在某个时刻都曾有物理内存支撑。</span>
+    Sys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Lookups"></span>    <span class="comment">// Lookups 是运行时执行的指针</span>
+    <span class="comment">// 查找次数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它主要用于调试运行时内部实现。</span>
+    Lookups <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Mallocs"></span>    <span class="comment">// Mallocs 是已分配堆对象的累计数量。</span>
+    <span class="comment">// 存活对象数量为 Mallocs - Frees。</span>
+    Mallocs <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.Frees"></span>    <span class="comment">// Frees 是已释放堆对象的累计数量。</span>
+    Frees <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapAlloc"></span>    <span class="comment">// HeapAlloc 是已分配堆对象的字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// “已分配”的堆对象包括全部可达对象，</span>
+    <span class="comment">// 也包括垃圾回收器尚未释放的</span>
+    <span class="comment">// 不可达对象。具体而言，HeapAlloc 随堆对象</span>
+    <span class="comment">// 分配而增加，并在清扫堆、释放</span>
+    <span class="comment">// 不可达对象时减少。清扫在 GC 周期之间</span>
+    <span class="comment">// 以增量方式进行，因此这两个过程</span>
+    <span class="comment">// 同时发生，所以 HeapAlloc 通常</span>
+    <span class="comment">// 平滑变化（不同于全局暂停式垃圾回收器</span>
+    <span class="comment">// 常见的锯齿形变化）。</span>
+    HeapAlloc <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapSys"></span>    <span class="comment">// HeapSys 是从操作系统获取的堆内存字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapSys 衡量为堆预留的</span>
+    <span class="comment">// 虚拟地址空间总量。它包括已预留但尚未使用的</span>
+    <span class="comment">// 虚拟地址空间，这部分不占物理内存，</span>
+    <span class="comment">// 通常也较小；还包括曾经使用、后来闲置，</span>
+    <span class="comment">// 其物理内存已归还给操作系统的</span>
+    <span class="comment">// 虚拟地址空间（后一部分的大小</span>
+    <span class="comment">// 参见 HeapReleased）。</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapSys 估算堆曾经达到的最大大小。</span>
+    HeapSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapIdle"></span>    <span class="comment">// HeapIdle 是空闲（未使用）span 中的字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 空闲 span 中没有对象。这些 span 可以</span>
+    <span class="comment">// （也可能已经）归还给操作系统，也可以</span>
+    <span class="comment">// 复用于堆分配，或复用为</span>
+    <span class="comment">// 栈内存。</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapIdle 减去 HeapReleased，估算可归还给操作系统</span>
+    <span class="comment">// 但运行时仍保留的内存量，</span>
+    <span class="comment">// 使堆增长时不必再向操作系统请求</span>
+    <span class="comment">// 更多内存。如果该差值显著</span>
+    <span class="comment">// 大于堆大小，说明最近存活堆的大小</span>
+    <span class="comment">// 曾出现短暂峰值。</span>
+    HeapIdle <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapInuse"></span>    <span class="comment">// HeapInuse 是正在使用的 span 中的字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 正在使用的 span 至少包含一个对象。这些 span</span>
+    <span class="comment">// 只能用于其他大小大致相同的</span>
+    <span class="comment">// 对象。</span>
+    <span class="comment">//</span>
+    <span class="comment">// HeapInuse 减去 HeapAlloc，估算已划归</span>
+    <span class="comment">// 特定大小类别但当前未使用的</span>
+    <span class="comment">// 内存量。这是碎片量的上界，</span>
+    <span class="comment">// 不过一般而言，这些内存可以高效</span>
+    <span class="comment">// 复用。</span>
+    HeapInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapReleased"></span>    <span class="comment">// HeapReleased 是归还给操作系统的物理内存字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它统计来自空闲 span、已归还给操作系统</span>
+    <span class="comment">// 且尚未被堆重新获取的堆内存。</span>
+    HeapReleased <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.HeapObjects"></span>    <span class="comment">// HeapObjects 是已分配的堆对象数量。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 与 HeapAlloc 类似，它随对象分配而增加，</span>
+    <span class="comment">// 并在清扫堆、释放不可达对象时</span>
+    <span class="comment">// 减少。</span>
+    HeapObjects <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.StackInuse"></span>    <span class="comment">// StackInuse 是栈 span 中的字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 正在使用的栈 span 至少包含一个栈。这些</span>
+    <span class="comment">// span 只能用于其他同样大小的栈。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 没有 StackIdle，因为未使用的栈 span</span>
+    <span class="comment">// 会归还给堆（因此计入 HeapIdle）。</span>
+    StackInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.StackSys"></span>    <span class="comment">// StackSys 是从操作系统获取的栈内存字节数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// StackSys 等于 StackInuse 加上直接从操作系统</span>
+    <span class="comment">// 获取的操作系统线程栈内存。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在非 cgo 程序中，此指标目前等于 StackInuse，</span>
+    <span class="comment">// 但不应依赖这一点，其值在将来</span>
+    <span class="comment">// 可能改变。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在 cgo 程序中，此指标包括直接从操作系统</span>
+    <span class="comment">// 分配的操作系统线程栈。目前，它只统计 c-shared</span>
+    <span class="comment">// 和 c-archive 构建模式中的一个栈；其他来自</span>
+    <span class="comment">// 操作系统的栈（尤其是 C 代码分配的栈）目前不计入。</span>
+    <span class="comment">// 注意，这也可能在将来改变。</span>
+    StackSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MSpanInuse"></span>    <span class="comment">// MSpanInuse 是已分配 mspan 结构的字节数。</span>
+    MSpanInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MSpanSys"></span>    <span class="comment">// MSpanSys 是从操作系统获取的、用于 mspan</span>
+    <span class="comment">// 结构的内存字节数。</span>
+    MSpanSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MCacheInuse"></span>    <span class="comment">// MCacheInuse 是已分配 mcache 结构的字节数。</span>
+    MCacheInuse <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.MCacheSys"></span>    <span class="comment">// MCacheSys 是从操作系统获取的、用于</span>
+    <span class="comment">// mcache 结构的内存字节数。</span>
+    MCacheSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.BuckHashSys"></span>    <span class="comment">// BuckHashSys 是性能剖析桶哈希表的内存字节数。</span>
+    BuckHashSys <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.GCSys"></span>    <span class="comment">// GCSys 是垃圾回收元数据的内存字节数。</span>
+    GCSys <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.2</span>
+
+<span id="MemStats.OtherSys"></span>    <span class="comment">// OtherSys 是运行时各种堆外分配的</span>
+    <span class="comment">// 内存字节数。</span>
+    OtherSys <a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.2</span>
+
+<span id="MemStats.NextGC"></span>    <span class="comment">// NextGC 是下一个 GC 周期的目标堆大小。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 垃圾回收器的目标是保持 HeapAlloc ≤ NextGC。</span>
+    <span class="comment">// 每个 GC 周期结束时，会根据可达数据量和</span>
+    <span class="comment">// GOGC 的值，计算下一个周期的</span>
+    <span class="comment">// 目标值。</span>
+    NextGC <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.LastGC"></span>    <span class="comment">// LastGC 是最近一次垃圾回收完成的时间，表示为</span>
+    <span class="comment">// 自 1970 年（Unix 纪元）以来的纳秒数。</span>
+    LastGC <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseTotalNs"></span>    <span class="comment">// PauseTotalNs 是程序启动以来，GC 全局暂停</span>
+    <span class="comment">// 累计持续的纳秒数。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 在全局暂停期间，所有 goroutine 都暂停，</span>
+    <span class="comment">// 只有垃圾回收器可以运行。</span>
+    PauseTotalNs <a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseNs"></span>    <span class="comment">// PauseNs 是保存最近 GC 全局暂停时长的</span>
+    <span class="comment">// 环形缓冲区，单位为纳秒。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 最近一次暂停位于 PauseNs[(NumGC+255)%256]。</span>
+    <span class="comment">// 一般而言，PauseNs[N%256] 记录最近一次</span>
+    <span class="comment">// 编号模 256 为 N%256 的 GC 周期的暂停时长。每个 GC</span>
+    <span class="comment">// 周期可能有多次暂停；这里是该周期内所有暂停之和。</span>
+    PauseNs [256]<a href="/pkg/builtin/#uint64">uint64</a>
+
+<span id="MemStats.PauseEnd"></span>    <span class="comment">// PauseEnd 是保存最近 GC 暂停结束时间的环形缓冲区，</span>
+    <span class="comment">// 以自 1970 年（Unix 纪元）以来的纳秒数表示。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 此缓冲区的填充方式与 PauseNs 相同。每个 GC 周期可能</span>
+    <span class="comment">// 有多次暂停；这里记录该周期中</span>
+    <span class="comment">// 最后一次暂停的结束时间。</span>
+    PauseEnd [256]<a href="/pkg/builtin/#uint64">uint64</a> <span class="comment">// Go 1.4</span>
+
+<span id="MemStats.NumGC"></span>    <span class="comment">// NumGC 是已完成的 GC 周期数。</span>
+    NumGC <a href="/pkg/builtin/#uint32">uint32</a>
+
+<span id="MemStats.NumForcedGC"></span>    <span class="comment">// NumForcedGC 是应用程序通过调用 GC 函数</span>
+    <span class="comment">// 强制触发的 GC 周期数。</span>
+    NumForcedGC <a href="/pkg/builtin/#uint32">uint32</a> <span class="comment">// Go 1.8</span>
+
+<span id="MemStats.GCCPUFraction"></span>    <span class="comment">// GCCPUFraction 是程序启动以来，GC 使用的 CPU 时间</span>
+    <span class="comment">// 占程序可用 CPU 时间的比例。</span>
+    <span class="comment">//</span>
+    <span class="comment">// GCCPUFraction 表示为 0 到 1 之间的数字，</span>
+    <span class="comment">// 其中 0 表示 GC 未消耗此程序的任何 CPU 时间。</span>
+    <span class="comment">// 程序的可用 CPU 时间定义为程序启动以来</span>
+    <span class="comment">// GOMAXPROCS 对时间的积分。也就是说，如果</span>
+    <span class="comment">// GOMAXPROCS 为 2，且程序已运行 10</span>
+    <span class="comment">// 秒，则“可用 CPU 时间”为 20 秒。GCCPUFraction</span>
+    <span class="comment">// 不包括写屏障操作使用的 CPU 时间。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 这与 GODEBUG=gctrace=1 报告的</span>
+    <span class="comment">// CPU 时间比例相同。</span>
+    GCCPUFraction <a href="/pkg/builtin/#float64">float64</a> <span class="comment">// Go 1.5</span>
+
+<span id="MemStats.EnableGC"></span>    <span class="comment">// EnableGC 表示 GC 已启用。它始终为 true，</span>
+    <span class="comment">// 即使设置了 GOGC=off 也是如此。</span>
+    EnableGC <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="MemStats.DebugGC"></span>    <span class="comment">// DebugGC 当前未使用。</span>
+    DebugGC <a href="/pkg/builtin/#bool">bool</a>
+
+<span id="MemStats.BySize"></span>    <span class="comment">// BySize 报告各个大小类别的分配统计信息。</span>
+    <span class="comment">//</span>
+    <span class="comment">// BySize[N] 给出大小 S 满足以下条件的分配统计信息：</span>
+    <span class="comment">// BySize[N-1].Size &lt; S ≤ BySize[N].Size。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 它不报告大于 BySize[60].Size 的分配。</span>
+    BySize [61]struct {
+        <span class="comment">// Size 是此大小类别中对象的</span>
+        <span class="comment">// 最大字节数。</span>
+        Size <a href="/pkg/builtin/#uint32">uint32</a>
+
+        <span class="comment">// Mallocs 是此大小类别中已分配堆对象的</span>
+        <span class="comment">// 累计数量。累计分配字节数</span>
+        <span class="comment">// 为 Size*Mallocs。此大小类别中存活</span>
+        <span class="comment">// 对象的数量为 Mallocs - Frees。</span>
+        Mallocs <a href="/pkg/builtin/#uint64">uint64</a>
+
+        <span class="comment">// Frees 是此大小类别中已释放堆对象的</span>
+        <span class="comment">// 累计数量。</span>
+        Frees <a href="/pkg/builtin/#uint64">uint64</a>
+    }
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PanicNilError">type <a href="/src/runtime/panic.go?s=24248:24641#L774">PanicNilError</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>代码调用 panic(nil) 时会发生 PanicNilError。<p>在 Go 1.21 之前，调用 panic(nil) 的程序会观察到 recover 返回 nil。从 Go 1.21 起，调用 panic(nil) 的程序会观察到 recover 返回 *PanicNilError。程序可以设置 GODEBUG=panicnil=1 恢复旧行为。<pre>type PanicNilError struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PanicNilError.Error">func (*PanicNilError) <a href="/src/runtime/panic.go?s=24643:24679#L784">Error</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (*<a href="#PanicNilError">PanicNilError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="PanicNilError.RuntimeError">func (*PanicNilError) <a href="/src/runtime/panic.go?s=24739:24775#L785">RuntimeError</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (*<a href="#PanicNilError">PanicNilError</a>) RuntimeError()</pre>
+				
+				
+			
+		
+			
+			<h2 id="Pinner">type <a href="/src/runtime/pinner.go?s=1296:1327#L24">Pinner</a>
+				
+				<span title="自 Go 1.21 起提供">1.21</span>
+			</h2>
+			<p>Pinner 是一组 Go 对象，每个对象都固定在内存中的某个位置。<a href="#Pinner.Pin">Pinner.Pin</a> 方法固定一个对象，而 <a href="#Pinner.Unpin">Pinner.Unpin</a> 解除所有已固定对象的固定状态。<p>Pinner 有两个用途。第一，它允许 C 代码安全地使用未通过 cgo 调用显式传入的 Go 指针。例如，将结构体指针传给 C 函数后，可以安全地访问结构体内部保存的指针。第二，只要对象仍保持固定，即使 cgo 调用已返回，C 内存也可以安全地保留该 Go 指针。<p>Pinner 会安排在自身变为不可达后的某个时刻，自动解除其对象的固定状态，因此被引用的对象不会泄漏。不过，这意味着在整个 cgo 调用期间，或只要 C 仍然保留对固定 Go 指针的引用，就必须让 Pinner 本身保持存活。<p>复用 Pinner 是安全的，而且值得提倡，这样可以避免新 Pinner 首次使用时的初始化开销。<p>Pinner 的零值可直接使用。<pre>type Pinner struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Pinner.Pin">func (*Pinner) <a href="/src/runtime/pinner.go?s=1909:1942#L39">Pin</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (p *<a href="#Pinner">Pinner</a>) Pin(pointer <a href="/pkg/builtin/#any">any</a>)</pre>
+				<p>Pin 固定 Go 对象，防止垃圾回收器移动或释放它，直到调用 <a href="#Pinner.Unpin">Pinner.Unpin</a> 方法。<p>指向已固定对象的指针可以直接存储在 C 内存中，也可以包含在传给 C 函数的 Go 内存中。如果已固定对象自身还包含指向 Go 对象的指针，那么若要从 C 代码访问这些对象，也必须分别固定它们。<p>参数必须是任意类型的指针或 <a href="/pkg/unsafe/#Pointer">unsafe.Pointer</a>。<p>对非 Go 指针调用 Pin 是安全的，此时 Pin 不执行任何操作。<h3 id="Pinner.Unpin">func (*Pinner) <a href="/src/runtime/pinner.go?s=3010:3034#L76">Unpin</a>
+					
+					<span title="自 Go 1.21 起提供">1.21</span>
+				</h3>
+				<pre>func (p *<a href="#Pinner">Pinner</a>) Unpin()</pre>
+				<p>Unpin 解除 <a href="#Pinner">Pinner</a> 中所有已固定对象的固定状态。调用 Unpin 后复用 Pinner 是安全的，而且值得提倡。<h2 id="StackRecord">type <a href="/src/runtime/mprof.go?s=27364:27465#L831">StackRecord</a>
+				
+				
+			</h2>
+			<p>StackRecord 描述单个执行栈。<pre>type StackRecord struct {
+<span id="StackRecord.Stack0"></span>    Stack0 [32]<a href="/pkg/builtin/#uintptr">uintptr</a> <span class="comment">// 此记录的栈轨迹；在第一个 0 条目处结束</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="StackRecord.Stack">func (*StackRecord) <a href="/src/runtime/mprof.go?s=27553:27592#L837">Stack</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#StackRecord">StackRecord</a>) Stack() []<a href="/pkg/builtin/#uintptr">uintptr</a></pre>
+				<p>Stack 返回与此记录关联的栈轨迹，它是 r.Stack0 的一个前缀。<h2 id="TypeAssertionError">type <a href="/src/runtime/error.go?s=1095:1274#L25">TypeAssertionError</a>
+				
+				
+			</h2>
+			<p>TypeAssertionError 说明一次失败的类型断言。<pre>type TypeAssertionError struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="TypeAssertionError.Error">func (*TypeAssertionError) <a href="/src/runtime/error.go?s=1322:1365#L34">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#TypeAssertionError">TypeAssertionError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="TypeAssertionError.RuntimeError">func (*TypeAssertionError) <a href="/src/runtime/error.go?s=1276:1317#L32">RuntimeError</a>
+					
+					
+				</h3>
+				<pre>func (*<a href="#TypeAssertionError">TypeAssertionError</a>) RuntimeError()</pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="asan/">asan</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="cgo/">cgo</a>
+					</td>
+				
+					<td class="pkg-synopsis">cgo 包为 cgo 工具生成的代码提供运行时支持。（启用 cgo 的构建视图保留英文。）</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="coverage/">coverage</a>
+					</td>
+				
+					<td class="pkg-synopsis">coverage 包包含用于在运行时写出覆盖率分析数据的 API，适用于长期运行的程序，以及／或者不通过 os.Exit 终止的服务器程序。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="debug/">debug</a>
+					</td>
+				
+					<td class="pkg-synopsis">debug 包提供程序在运行过程中进行自我调试的功能。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="metrics/">metrics</a>
+					</td>
+				
+					<td class="pkg-synopsis">metrics 包提供稳定接口，用于访问 Go 运行时导出的、由实现定义的指标。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="msan/">msan</a>
+					</td>
+				
+					<td class="pkg-synopsis">
+						
+					</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="pprof/">pprof</a>
+					</td>
+				
+					<td class="pkg-synopsis">pprof 包按 pprof 可视化工具所需的格式写出运行时性能剖析数据。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="race/">race</a>
+					</td>
+				
+					<td class="pkg-synopsis">race 包实现数据竞争检测逻辑，不提供公开接口。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="secret/">secret</a>
+					</td>
+				
+					<td class="pkg-synopsis">secret 包提供清零辅助函数，用于清除用户程序通常不可见的内存，以实现前向保密。（实验构建文档保留英文。）</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="trace/">trace</a>
+					</td>
+				
+					<td class="pkg-synopsis">trace 包提供用于为 Go 执行跟踪器生成跟踪数据的功能。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

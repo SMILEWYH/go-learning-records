@@ -1,0 +1,2224 @@
+<!--{
+  "Title": "encoding/json 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>encoding/json 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "encoding/json"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>json 包实现 RFC 7159 定义的 JSON 编码与解码。JSON 与 Go 值之间的映射关系，参见 Marshal 和 Unmarshal 函数的文档。
+<p>本包的入门介绍参见 <a href="/blog/json">JSON 与 Go</a>。
+<h3 id="hdr-Security_Considerations">安全注意事项</h3>
+<p>参见 <a href="/pkg/encoding/json/v2/">encoding/json/v2</a> 中的“安全注意事项”一节。
+<p>由于历史原因，v1 <a href="/pkg/encoding/json/">encoding/json</a> 的默认设置在安全性方面存在不足。建议新的 Go JSON 代码改用 <a href="/pkg/encoding/json/v2/">encoding/json/v2</a>。
+<h3 id="hdr-Migrating_to_v2">迁移到 v2</h3>
+<p>本包（即 <a href="/pkg/encoding/json/">encoding/json</a>）现正式称为 v1 包，因为现在已有位于 <a href="/pkg/encoding/json/v2/">encoding/json/v2</a> 的 v2 包。v1 包的所有行为都基于 v2 包实现，通过指定适当的选项集合保留 v1 的历史行为。
+<p><a href="/pkg/encoding/json/v2/#Marshal">jsonv2.Marshal</a> 函数是 v1 <a href="#Marshal">Marshal</a> 的新版对应函数。<a href="/pkg/encoding/json/v2/#Unmarshal">jsonv2.Unmarshal</a> 函数是 v1 <a href="#Unmarshal">Unmarshal</a> 的新版对应函数。v2 函数与对应 v1 函数的调用签名相同，但额外接受可变数量的 <a href="#Options">Options</a> 实参，用于调整序列化或反序列化行为。v1 和 v2 整体行为相似，但存在一些显著差异。
+<p>以下列出 v1 与 v2 之间的差异：
+<ul>
+<li><p>在 v1 中，将 JSON 对象成员反序列化到 Go 结构体时，会与字段的 JSON 名称进行不区分大小写的匹配；v2 则使用区分大小写的精确匹配。<a href="/pkg/encoding/json/v2/#MatchCaseInsensitiveNames">jsonv2.MatchCaseInsensitiveNames</a> 和 <a href="#MatchCaseSensitiveDelimiter">MatchCaseSensitiveDelimiter</a> 选项控制这一行为差异。要显式指定某个 Go 结构体字段采用特定的名称匹配方式，可以设置 `case:ignore` 或 `case:strict` 字段选项。字段上指定的选项优先于调用方指定的选项。
+<li><p>在 v1 中，序列化 Go 结构体时，标记为 `omitempty` 的字段若具有“空”的 Go 值，就会被省略。空值定义为 false、0、nil 指针、nil 接口值，以及空数组、切片、映射或字符串。v2 重新定义了 `omitempty`：如果字段编码为“空”的 JSON 值，就省略该字段；JSON 空值定义为 JSON null，或空的 JSON 字符串、对象或数组。<a href="#OmitEmptyWithLegacySemantics">OmitEmptyWithLegacySemantics</a> 选项控制这一行为差异。注意，对于 Go 数组、切片、映射或字符串，`omitempty` 在 v1 和 v2 中的行为相同（假定没有用户定义的 MarshalJSON 方法覆盖默认表示形式）。现有代码中对 Go 布尔值、数值、指针或接口值使用的 `omitempty`，应迁移为 `omitzero`，后者在 v1 和 v2 中均以相同方式支持。
+<li><p>在 v1 中，Go 结构体字段上的 `string` 选项可以将 Go 字符串、布尔值、数值或指向这些类型的指针，进一步编码为 JSON 字符串。v2 将 `string` 选项限制为仅将通常表示为 JSON 数字的值编码为字符串，同时扩大其支持范围，使其适用于通常表示为 JSON 数字的任意 Go 类型。<a href="#StringifyWithLegacySemantics">StringifyWithLegacySemantics</a> 选项控制这一行为差异。
+<li><p>在 v1 中，nil Go 切片或映射序列化为 JSON null；在 v2 中，它们分别序列化为空 JSON 数组或空 JSON 对象。<a href="/pkg/encoding/json/v2/#FormatNilSliceAsNull">jsonv2.FormatNilSliceAsNull</a> 和 <a href="/pkg/encoding/json/v2/#FormatNilMapAsNull">jsonv2.FormatNilMapAsNull</a> 选项控制这一行为差异。
+<li><p>在 v1 中，任意长度的 JSON 数组都可以反序列化为 Go 数组；在 v2 中，JSON 数组必须与 Go 数组长度相同，否则返回错误。<a href="#UnmarshalArrayFromAnyLength">UnmarshalArrayFromAnyLength</a> 选项控制这一行为差异。
+<li><p>在 v1 中，Go 字节数组表示为由 JSON 数字组成的 JSON 数组；在 v2 中，它表示为经过 Base64 编码的 JSON 字符串。<a href="#FormatByteArrayAsArray">FormatByteArrayAsArray</a> 选项控制这一行为差异。
+<li><p>在 v1 中，只有 Go 值可寻址时，才会调用定义在指针接收者上的 MarshalJSON 方法；在 v2 中，无论值是否可寻址，MarshalJSON 方法都可以被调用。<a href="#CallMethodsWithLegacySemantics">CallMethodsWithLegacySemantics</a> 选项控制这一行为差异。
+<li><p>在 v1 中，从不对 Go 映射的键调用 MarshalJSON 和 UnmarshalJSON 方法；在 v2 中，可以对映射的键调用这两个方法。<a href="#CallMethodsWithLegacySemantics">CallMethodsWithLegacySemantics</a> 选项控制这一行为差异。
+<li><p>在 v1 中，Go 映射按确定的顺序序列化；在 v2 中，Go 映射按不确定的顺序序列化。<a href="/pkg/encoding/json/v2/#Deterministic">jsonv2.Deterministic</a> 选项控制这一行为差异。
+<li><p>在 v1 中，编码 JSON 字符串时会转义 HTML 或 JavaScript 特有的字符；在 v2 中，JSON 字符串采用最少转义的编码方式，仅在 JSON 文法要求时才转义。<a href="/pkg/encoding/json/jsontext/#EscapeForHTML">jsontext.EscapeForHTML</a> 和 <a href="/pkg/encoding/json/jsontext/#EscapeForJS">jsontext.EscapeForJS</a> 选项控制这一行为差异。
+<li><p>在 v1 中，字符串内无效的 UTF-8 字节会被静默替换为 Unicode 替换字符；在 v2 中，出现无效 UTF-8 会返回错误。<a href="/pkg/encoding/json/jsontext/#AllowInvalidUTF8">jsontext.AllowInvalidUTF8</a> 选项控制这一行为差异。
+<li><p>在 v1 中，允许 JSON 对象包含重复名称；在 v2 中，重复名称会导致错误。<a href="/pkg/encoding/json/jsontext/#AllowDuplicateNames">jsontext.AllowDuplicateNames</a> 选项控制这一行为差异。
+<li><p>在 v1 中，将 JSON null 反序列化到非空 Go 值时，行为不一致：可能将该值置零，也可能不作任何操作。在 v2 中，将 JSON null 反序列化时始终一致地将底层 Go 值置零。<a href="#MergeWithLegacySemantics">MergeWithLegacySemantics</a> 选项控制这一行为差异。
+<li><p>在 v1 中，将 JSON 值反序列化到非零 Go 值时，对于数组元素、切片元素、结构体字段（但不包括映射值）、指针值，以及接口值（仅当其中包含非 nil 指针时），会合并到原有 Go 值中。在 v2 中，反序列化会对结构体字段、映射值、指针值和接口值进行合并。总体而言，v2 在反序列化 JSON 对象时采用合并语义，其他情况下则替换原值。<a href="#MergeWithLegacySemantics">MergeWithLegacySemantics</a> 选项控制这一行为差异。
+<li><p>在 v1 中，<a href="/pkg/time/#Duration">time.Duration</a> 表示为包含十进制纳秒数的 JSON 数字；在 v2 中，<a href="/pkg/time/#Duration">time.Duration</a> 没有默认表示形式，会导致运行时错误。<a href="#FormatDurationAsNano">FormatDurationAsNano</a> 选项控制这一行为差异。
+<li><p>在 v1 中，对于存在某种结构性错误的 Go 结构体类型（例如格式错误的标签选项），运行时从不报告错误；v2 则会对不适合 JSON 序列化的无效 Go 类型报告运行时错误。例如，仅包含未导出字段的 Go 结构体无法序列化。<a href="#ReportErrorsWithLegacySemantics">ReportErrorsWithLegacySemantics</a> 选项控制这一行为差异。
+</ul>
+<p>如前所述，v1 完全基于 v2 实现，并隐式指定选项以启用旧版行为。例如，<a href="#Marshal">Marshal</a> 直接调用 <a href="/pkg/encoding/json/v2/#Marshal">jsonv2.Marshal</a>，并传入 <a href="#DefaultOptionsV1">DefaultOptionsV1</a>。类似地，<a href="#Unmarshal">Unmarshal</a> 直接调用 <a href="/pkg/encoding/json/v2/#Unmarshal">jsonv2.Unmarshal</a>，并传入 <a href="#DefaultOptionsV1">DefaultOptionsV1</a>。<a href="#DefaultOptionsV1">DefaultOptionsV1</a> 表示指定 v1 默认行为的全部选项集合。
+<p>对于许多行为差异，Go 类型的作者可以通过结构体字段选项控制行为，使该类型在 v1 或 v2 语义下具有相同的 JSON 表示形式。
+<p><a href="#DefaultOptionsV1">DefaultOptionsV1</a> 和 <a href="/pkg/encoding/json/v2/#DefaultOptionsV2">jsonv2.DefaultOptionsV2</a>，配合后面的选项优先于前面的选项这一规则，支持从 v1 渐进迁移到 v2。例如：
+<ul>
+<li><p>jsonv1.Marshal(v) 使用 v1 默认语义。
+<li><p>jsonv2.Marshal(v, jsonv1.DefaultOptionsV1()) 在语义上等价于 jsonv1.Marshal，因此使用 v1 默认语义。
+<li><p>jsonv2.Marshal(v, jsonv1.DefaultOptionsV1(), jsontext.AllowDuplicateNames(false)) 大体使用 v1 语义，但启用一项特定的 v2 行为。
+<li><p>jsonv2.Marshal(v, jsonv1.CallMethodsWithLegacySemantics(true)) 大体使用 v2 语义，但启用一项特定的 v1 行为。
+<li><p>jsonv2.Marshal(v, ..., jsonv2.DefaultOptionsV2()) 在语义上等价于 jsonv2.Marshal，因为 jsonv2.DefaultOptionsV2 覆盖此前指定的所有选项，因此使用 v2 默认语义。
+<li><p>jsonv2.Marshal(v) 使用 v2 默认语义。
+</ul>
+<p>Go 中所有新的 JSON 代码都应使用 v2 包，但 v1 包会始终保持支持。
+<p>关于迁移方式的更多细节，参见 <a href="/doc/jsonv2-migration">encoding/json/v2 迁移指南</a>。
+
+				
+
+
+<div id="example__customMarshalJSON" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (CustomMarshalJSON)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (CustomMarshalJSON)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">//go:build goexperiment.jsonv2
+
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json&#34;
+)
+
+type Animal int
+
+const (
+	Unknown Animal = iota
+	Gopher
+	Zebra
+)
+
+func (a *Animal) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &amp;s); err != nil {
+		return err
+	}
+	switch strings.ToLower(s) {
+	default:
+		*a = Unknown
+	case &#34;gopher&#34;:
+		*a = Gopher
+	case &#34;zebra&#34;:
+		*a = Zebra
+	}
+
+	return nil
+}
+
+func (a Animal) MarshalJSON() ([]byte, error) {
+	var s string
+	switch a {
+	default:
+		s = &#34;unknown&#34;
+	case Gopher:
+		s = &#34;gopher&#34;
+	case Zebra:
+		s = &#34;zebra&#34;
+	}
+
+	return json.Marshal(s)
+}
+
+func main() {
+	blob := `[&#34;gopher&#34;,&#34;armadillo&#34;,&#34;zebra&#34;,&#34;unknown&#34;,&#34;gopher&#34;,&#34;bee&#34;,&#34;gopher&#34;,&#34;zebra&#34;]`
+	var zoo []Animal
+	if err := json.Unmarshal([]byte(blob), &amp;zoo); err != nil {
+		log.Fatal(err)
+	}
+
+	census := make(map[Animal]int)
+	for _, animal := range zoo {
+		census[animal] &#43;= 1
+	}
+
+	fmt.Printf(&#34;Zoo Census:\n* Gophers: %d\n* Zebras:  %d\n* Unknown: %d\n&#34;,
+		census[Gopher], census[Zebra], census[Unknown])
+
+}
+</textarea></div>
+        <div class="output"><pre>Zoo Census:
+* Gophers: 3
+* Zebras:  2
+* Unknown: 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example__textMarshalJSON" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (TextMarshalJSON)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (TextMarshalJSON)</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">//go:build goexperiment.jsonv2
+
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json&#34;
+)
+
+type Size int
+
+const (
+	Unrecognized Size = iota
+	Small
+	Large
+)
+
+func (s *Size) UnmarshalText(text []byte) error {
+	switch strings.ToLower(string(text)) {
+	default:
+		*s = Unrecognized
+	case &#34;small&#34;:
+		*s = Small
+	case &#34;large&#34;:
+		*s = Large
+	}
+	return nil
+}
+
+func (s Size) MarshalText() ([]byte, error) {
+	var name string
+	switch s {
+	default:
+		name = &#34;unrecognized&#34;
+	case Small:
+		name = &#34;small&#34;
+	case Large:
+		name = &#34;large&#34;
+	}
+	return []byte(name), nil
+}
+
+func main() {
+	blob := `[&#34;small&#34;,&#34;regular&#34;,&#34;large&#34;,&#34;unrecognized&#34;,&#34;small&#34;,&#34;normal&#34;,&#34;small&#34;,&#34;large&#34;]`
+	var inventory []Size
+	if err := json.Unmarshal([]byte(blob), &amp;inventory); err != nil {
+		log.Fatal(err)
+	}
+
+	counts := make(map[Size]int)
+	for _, size := range inventory {
+		counts[size] &#43;= 1
+	}
+
+	fmt.Printf(&#34;Inventory Counts:\n* Small:        %d\n* Large:        %d\n* Unrecognized: %d\n&#34;,
+		counts[Small], counts[Large], counts[Unrecognized])
+
+}
+</textarea></div>
+        <div class="output"><pre>Inventory Counts:
+* Small:        3
+* Large:        2
+* Unrecognized: 3
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#Compact">func Compact(dst *bytes.Buffer, src []byte) error</a></dd>
+			
+				<dd><a href="#HTMLEscape">func HTMLEscape(dst *bytes.Buffer, src []byte)</a></dd>
+			
+				<dd><a href="#Indent">func Indent(dst *bytes.Buffer, src []byte, prefix, indent string) error</a></dd>
+			
+				<dd><a href="#Marshal">func Marshal(v any) ([]byte, error)</a></dd>
+			
+				<dd><a href="#MarshalIndent">func MarshalIndent(v any, prefix, indent string) ([]byte, error)</a></dd>
+			
+				<dd><a href="#Unmarshal">func Unmarshal(data []byte, v any) error</a></dd>
+			
+				<dd><a href="#Valid">func Valid(data []byte) bool</a></dd>
+			
+			
+				
+				<dd><a href="#Decoder">type Decoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewDecoder">func NewDecoder(r io.Reader) *Decoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Buffered">func (dec *Decoder) Buffered() io.Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Decode">func (dec *Decoder) Decode(v any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.DisallowUnknownFields">func (dec *Decoder) DisallowUnknownFields()</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.InputOffset">func (dec *Decoder) InputOffset() int64</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.More">func (dec *Decoder) More() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.Token">func (dec *Decoder) Token() (Token, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Decoder.UseNumber">func (dec *Decoder) UseNumber()</a></dd>
+				
+			
+				
+				<dd><a href="#Delim">type Delim</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Delim.String">func (d Delim) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#Encoder">type Encoder</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewEncoder">func NewEncoder(w io.Writer) *Encoder</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.Encode">func (enc *Encoder) Encode(v any) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.SetEscapeHTML">func (enc *Encoder) SetEscapeHTML(on bool)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Encoder.SetIndent">func (enc *Encoder) SetIndent(prefix, indent string)</a></dd>
+				
+			
+				
+				<dd><a href="#InvalidUTF8Error">type InvalidUTF8Error</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InvalidUTF8Error.Error">func (e *InvalidUTF8Error) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#InvalidUnmarshalError">type InvalidUnmarshalError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#InvalidUnmarshalError.Error">func (e *InvalidUnmarshalError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Marshaler">type Marshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#MarshalerError">type MarshalerError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#MarshalerError.Error">func (e *MarshalerError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MarshalerError.Unwrap">func (e *MarshalerError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#Number">type Number</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Number.Float64">func (n Number) Float64() (float64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Number.Int64">func (n Number) Int64() (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Number.MarshalJSONTo">func (n Number) MarshalJSONTo(enc *jsontext.Encoder) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Number.String">func (n Number) String() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Number.UnmarshalJSONFrom">func (n *Number) UnmarshalJSONFrom(dec *jsontext.Decoder) error</a></dd>
+				
+			
+				
+				<dd><a href="#Options">type Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#CallMethodsWithLegacySemantics">func CallMethodsWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#DefaultOptionsV1">func DefaultOptionsV1() Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatByteArrayAsArray">func FormatByteArrayAsArray(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatBytesWithLegacySemantics">func FormatBytesWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#FormatDurationAsNano">func FormatDurationAsNano(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MatchCaseSensitiveDelimiter">func MatchCaseSensitiveDelimiter(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MergeWithLegacySemantics">func MergeWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OmitEmptyWithLegacySemantics">func OmitEmptyWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseBytesWithLooseRFC4648">func ParseBytesWithLooseRFC4648(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ParseTimeWithLooseRFC3339">func ParseTimeWithLooseRFC3339(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#ReportErrorsWithLegacySemantics">func ReportErrorsWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#StringifyWithLegacySemantics">func StringifyWithLegacySemantics(v bool) Options</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalArrayFromAnyLength">func UnmarshalArrayFromAnyLength(v bool) Options</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RawMessage">type RawMessage</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SyntaxError">type SyntaxError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SyntaxError.Error">func (e *SyntaxError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#Token">type Token</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnmarshalFieldError">type UnmarshalFieldError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalFieldError.Error">func (e *UnmarshalFieldError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnmarshalTypeError">type UnmarshalTypeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalTypeError.Error">func (e *UnmarshalTypeError) Error() string</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#UnmarshalTypeError.Unwrap">func (e *UnmarshalTypeError) Unwrap() error</a></dd>
+				
+			
+				
+				<dd><a href="#Unmarshaler">type Unmarshaler</a></dd>
+				
+				
+			
+				
+				<dd><a href="#UnsupportedTypeError">type UnsupportedTypeError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnsupportedTypeError.Error">func (e *UnsupportedTypeError) Error() string</a></dd>
+				
+			
+				
+				<dd><a href="#UnsupportedValueError">type UnsupportedValueError</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#UnsupportedValueError.Error">func (e *UnsupportedValueError) Error() string</a></dd>
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Decoder">Decoder</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Decoder_Decode_stream">Decoder.Decode (Stream)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Decoder_Token">Decoder.Token</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_HTMLEscape">HTMLEscape</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Indent">Indent</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Marshal">Marshal</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MarshalIndent">MarshalIndent</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RawMessage_marshal">RawMessage (Marshal)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_RawMessage_unmarshal">RawMessage (Unmarshal)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Unmarshal">Unmarshal</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Valid">Valid</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__customMarshalJSON">包 (CustomMarshalJSON)</a></dd>
+			
+			<dd><a class="exampleLink" href="#example__textMarshalJSON">包 (TextMarshalJSON)</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/encoding/json/v2_decode.go">v2_decode.go</a>
+			
+				<a href="/src/encoding/json/v2_encode.go">v2_encode.go</a>
+			
+				<a href="/src/encoding/json/v2_indent.go">v2_indent.go</a>
+			
+				<a href="/src/encoding/json/v2_inject.go">v2_inject.go</a>
+			
+				<a href="/src/encoding/json/v2_options.go">v2_options.go</a>
+			
+				<a href="/src/encoding/json/v2_scanner.go">v2_scanner.go</a>
+			
+				<a href="/src/encoding/json/v2_stream.go">v2_stream.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="Compact">func <a href="/src/encoding/json/v2_indent.go?s=1569:1618#L39">Compact</a>
+				
+				
+			</h2>
+			<pre>func Compact(dst *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, src []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Compact 移除 JSON 编码的 src 中无关紧要的空白字符，并将结果追加到 dst。
+
+			
+		
+			
+			<h2 id="HTMLEscape">func <a href="/src/encoding/json/v2_indent.go?s=649:695#L11">HTMLEscape</a>
+				
+				
+			</h2>
+			<pre>func HTMLEscape(dst *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, src []<a href="/pkg/builtin/#byte">byte</a>)</pre>
+			<p>HTMLEscape 将 JSON 编码的 src 追加到 dst，并将字符串字面量内的 &lt;、&gt;、&amp;、U+2028 和 U+2029 分别替换为 \u003c、\u003e、\u0026、\u2028 和 \u2029，使 JSON 可以安全地嵌入 HTML &lt;script&gt; 标签中。由于历史原因，Web 浏览器在 &lt;script&gt; 标签内不遵循标准 HTML 转义规则，因此必须使用这种替代的 JSON 编码方式。
+
+			
+
+
+<div id="example_HTMLEscape" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;os&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	var out bytes.Buffer
+	json.HTMLEscape(&amp;out, []byte(`{&#34;Name&#34;:&#34;&lt;b&gt;HTML content&lt;/b&gt;&#34;}`))
+	out.WriteTo(os.Stdout)
+}
+</textarea></div>
+        <div class="output"><pre>{&#34;Name&#34;:&#34;\u003cb\u003eHTML content\u003c/b\u003e&#34;}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Indent">func <a href="/src/encoding/json/v2_indent.go?s=3095:3166#L73">Indent</a>
+				
+				
+			</h2>
+			<pre>func Indent(dst *<a href="/pkg/bytes/">bytes</a>.<a href="/pkg/bytes/#Buffer">Buffer</a>, src []<a href="/pkg/builtin/#byte">byte</a>, prefix, indent <a href="/pkg/builtin/#string">string</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Indent 将 JSON 编码的 src 以缩进格式追加到 dst。JSON 对象或数组的每个元素都从一个新的缩进行开始，行首为 prefix，后跟一个或多个 indent，具体数量取决于嵌套层级。追加到 dst 的数据开头不带 prefix 或任何缩进，以便嵌入其他已格式化的 JSON 数据。src 开头的空白字符（空格、制表符、回车和换行）会被丢弃，但末尾的空白字符会保留并复制到 dst。例如，src 没有尾随空白时，dst 也不会有；src 以换行结尾时，dst 也如此。
+
+			
+
+
+<div id="example_Indent" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;bytes&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	type Road struct {
+		Name   string
+		Number int
+	}
+	roads := []Road{
+		{&#34;Diamond Fork&#34;, 29},
+		{&#34;Sheep Creek&#34;, 51},
+	}
+
+	b, err := json.Marshal(roads)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var out bytes.Buffer
+	json.Indent(&amp;out, b, &#34;=&#34;, &#34;\t&#34;)
+	out.WriteTo(os.Stdout)
+}
+</textarea></div>
+        <div class="output"><pre>[
+=	{
+=		&#34;Name&#34;: &#34;Diamond Fork&#34;,
+=		&#34;Number&#34;: 29
+=	},
+=	{
+=		&#34;Name&#34;: &#34;Sheep Creek&#34;,
+=		&#34;Number&#34;: 51
+=	}
+=]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Marshal">func <a href="/src/encoding/json/v2_encode.go?s=7811:7846#L175">Marshal</a>
+				
+				
+			</h2>
+			<pre>func Marshal(v <a href="/pkg/builtin/#any">any</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Marshal 返回 v 的 JSON 编码。
+<p>Marshal 递归遍历值 v。
+<p>输入值按以下规则编码为 JSON：
+<ul>
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/json/v2/#MarshalerTo">jsonv2.MarshalerTo</a>，则调用 MarshalJSONTo 方法编码该值。如果该方法返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则编码输入。
+<li><p>如果值的类型实现了 <a href="#Marshaler">Marshaler</a>，则调用 MarshalJSON 方法编码该值。
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/#TextAppender">encoding.TextAppender</a>，则调用 AppendText 方法编码该值，再将结果编码为 JSON 字符串。
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>，则调用 MarshalText 方法编码该值，再将结果编码为 JSON 字符串。
+</ul>
+<p>否则，Marshal 根据类型使用以下默认编码方式：
+<p>布尔值编码为 JSON 布尔值。
+<p>浮点数、整数和 <a href="#Number">Number</a> 值编码为 JSON 数字。NaN 和 +/-Inf 值会返回 <a href="#UnsupportedValueError">UnsupportedValueError</a>。
+<p>字符串值编码为 JSON 字符串，并转换为有效 UTF-8，其中无效字节替换为 Unicode 替换字符。为使 JSON 可以安全地嵌入 HTML &lt;script&gt; 标签中，字符串使用 <a href="#HTMLEscape">HTMLEscape</a> 编码，将“&lt;”、“&gt;”、“&amp;”、U+2028 和 U+2029 分别转义为“\u003c”、“\u003e”、“\u0026”、“\u2028”和“\u2029”。使用 <a href="#Encoder">Encoder</a> 时，可以通过调用 <a href="#Encoder.SetEscapeHTML">Encoder.SetEscapeHTML</a>(false) 禁用这种替换。
+<p>数组和切片值编码为 JSON 数组，但 []byte 编码为经过 base64 编码的字符串，nil 切片编码为 JSON null。
+<p>结构体值编码为 JSON 对象。每个导出字段成为对象的一个成员，以字段名作为对象键，除非该字段因下述某种原因被省略。
+<p>每个结构体字段的编码方式都可以通过其标签中“json”键对应的格式字符串自定义。格式字符串给出字段名称，后面可以跟以逗号分隔的选项列表。名称可以为空，以便在不覆盖默认字段名的情况下指定选项。
+<p>“omitempty”选项指定：如果字段具有空值，则在编码中省略该字段。空值包括 false、0、nil 指针、nil 接口值，以及长度为零的数组、切片、映射或字符串。
+<p>有一种特殊情况：如果字段标签为“-”，则始终省略该字段。包含逗号或引号的 JSON 名称，以及恰好为“”或“-”的名称，可以通过单引号字符串字面量指定。其语法与 Go 的双引号字符串字面量语法相同，但使用单引号作为分隔符。
+<p>结构体字段标签及其含义示例：
+<pre>// Field 在 JSON 中以键 "myName" 出现。
+Field int `json:"myName"`
+
+// Field 在 JSON 中以键 "myName" 出现；
+// 如果其值按上文定义属于空值，
+// 则从对象中省略此字段。
+Field int `json:"myName,omitempty"`
+
+// Field 在 JSON 中以键 "Field"（默认值）出现，
+// 但值为空时跳过此字段。
+// 注意开头的逗号。
+Field int `json:",omitempty"`
+
+// 本包忽略 Field。
+Field int `json:"-"`
+
+// Field 在 JSON 中以键 "-" 出现。
+Field int `json:"'-'"`
+</pre>
+<p>“omitzero”选项指定：如果字段根据以下规则具有零值，则在编码中省略该字段：
+<p>1）如果字段类型具有“IsZero() bool”方法，则用它判断值是否为零。
+<p>2）否则，如果该值等于其类型的零值，则判定为零值。
+<p>如果同时指定“omitempty”和“omitzero”，则值为空或为零（或同时满足两者）时都会省略该字段。
+<p>“string”选项表示，字段先编码为 JSON，再存储在一个 JSON 编码的字符串中。它仅适用于字符串、浮点数、整数或布尔类型的字段。与 JavaScript 程序通信时，有时会使用这一额外的编码层：
+<pre>Int64String int64 `json:&quot;,string&quot;`
+</pre>
+<p>如果键名是非空字符串，且仅由 Unicode 字母、数字以及除引号、反斜杠、逗号之外的 ASCII 标点符号组成，就会使用该键名。
+<p>嵌入的结构体字段通常会按其内部导出字段属于外层结构体字段的方式序列化，遵循普通 Go 可见性规则，但有下一段所述的调整。如果匿名结构体字段的 JSON 标签指定了名称，则将它视为具有该名称，而不再是匿名字段。接口类型的匿名结构体字段，则视为以该类型名为名称，而不再是匿名字段。
+<p>在决定序列化或反序列化哪个字段时，JSON 对 Go 的结构体字段可见性规则作了调整。如果最浅嵌套层级中存在多个字段（按普通 Go 规则，也会选择这一层级），则额外应用以下规则：
+<p>1）这些字段中，只要有字段带 JSON 标签，就只考虑带标签的字段，即使其他多个不带标签的字段原本会发生冲突。
+<p>2）如果恰好只有一个字段（是否带标签由第一条规则决定），就选择它。
+<p>3）否则，若存在多个字段，则全部忽略，不产生错误。
+<p>Go 1.1 新增了对匿名结构体字段的处理。在 Go 1.1 之前，匿名结构体字段会被忽略。要在当前及更早版本中都强制忽略某个匿名结构体字段，请为其设置“-”JSON 标签。
+<p>映射值编码为 JSON 对象。映射的键类型必须是字符串、整数类型，或实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a>。映射键经过排序后用作 JSON 对象键，遵循以下规则，并应用前文字符串值部分所述的 UTF-8 转换：
+<ul>
+<li>任意字符串类型的键直接使用。
+<li>实现 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 的键通过其方法序列化。
+<li>整数键转换为字符串。
+</ul>
+<p>指针值编码为其指向的值。nil 指针编码为 JSON null。
+<p>接口值编码为接口中包含的值。nil 接口值编码为 JSON null。
+<p>通道、复数和函数值无法编码为 JSON。尝试编码此类值时，Marshal 返回 <a href="#UnsupportedTypeError">UnsupportedTypeError</a>。
+<p>JSON 无法表示循环数据结构，Marshal 也不处理此类结构。将循环结构传给 Marshal 会返回错误。
+
+			
+
+
+<div id="example_Marshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	type ColorGroup struct {
+		ID     int
+		Name   string
+		Colors []string
+	}
+	group := ColorGroup{
+		ID:     1,
+		Name:   &#34;Reds&#34;,
+		Colors: []string{&#34;Crimson&#34;, &#34;Red&#34;, &#34;Ruby&#34;, &#34;Maroon&#34;},
+	}
+	b, err := json.Marshal(group)
+	if err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+	os.Stdout.Write(b)
+}
+</textarea></div>
+        <div class="output"><pre>{&#34;ID&#34;:1,&#34;Name&#34;:&#34;Reds&#34;,&#34;Colors&#34;:[&#34;Crimson&#34;,&#34;Red&#34;,&#34;Ruby&#34;,&#34;Maroon&#34;]}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="MarshalIndent">func <a href="/src/encoding/json/v2_encode.go?s=8140:8204#L182">MarshalIndent</a>
+				
+				
+			</h2>
+			<pre>func MarshalIndent(v <a href="/pkg/builtin/#any">any</a>, prefix, indent <a href="/pkg/builtin/#string">string</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>MarshalIndent 类似于 <a href="#Marshal">Marshal</a>，但会应用 <a href="#Indent">Indent</a> 格式化输出。输出中的每个 JSON 元素都从新的一行开始，行首为 prefix，后跟一个或多个 indent，具体数量取决于缩进嵌套层级。
+
+			
+
+
+<div id="example_MarshalIndent" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;log&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	data := map[string]int{
+		&#34;a&#34;: 1,
+		&#34;b&#34;: 2,
+	}
+
+	b, err := json.MarshalIndent(data, &#34;&lt;prefix&gt;&#34;, &#34;&lt;indent&gt;&#34;)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(b))
+}
+</textarea></div>
+        <div class="output"><pre>{
+&lt;prefix&gt;&lt;indent&gt;&#34;a&#34;: 1,
+&lt;prefix&gt;&lt;indent&gt;&#34;b&#34;: 2
+&lt;prefix&gt;}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Unmarshal">func <a href="/src/encoding/json/v2_decode.go?s=4744:4784#L100">Unmarshal</a>
+				
+				
+			</h2>
+			<pre>func Unmarshal(data []<a href="/pkg/builtin/#byte">byte</a>, v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+			<p>Unmarshal 解析 JSON 编码的 data，并将结果存入 v 指向的值。如果 v 为 nil 或不是指针，Unmarshal 返回 <a href="#InvalidUnmarshalError">InvalidUnmarshalError</a>。
+<p>Unmarshal 采用与 <a href="#Marshal">Marshal</a> 的编码规则相反的过程，根据需要分配映射、切片和指针，并遵循以下附加规则：
+<p>将 JSON 反序列化到指针时，Unmarshal 首先处理 JSON 为字面量 null 的情况：此时将指针设为 nil。否则，将 JSON 反序列化到指针指向的值。如果指针为 nil，Unmarshal 会分配一个新值，使指针指向它。
+<p>JSON 输入按以下规则解码：
+<ul>
+<li><p>如果值的类型实现了 <a href="/pkg/encoding/json/v2/#UnmarshalerFrom">jsonv2.UnmarshalerFrom</a>，则调用 UnmarshalJSONFrom 方法解码 JSON 值。如果该方法返回 <a href="/pkg/errors/#ErrUnsupported">errors.ErrUnsupported</a>，则按后续规则解码输入。
+<li><p>如果值的类型实现了 <a href="#Unmarshaler">Unmarshaler</a>，则调用 UnmarshalJSON 方法解码 JSON 值，包括输入为 JSON null 的情况。
+<li><p>如果值实现了 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>，且输入为 JSON 字符串，则以去掉引号后的字符串内容调用 UnmarshalText 方法。
+</ul>
+<p>否则，Unmarshal 根据类型使用以下默认解码方式：
+<p>将 JSON 反序列化到结构体时，Unmarshal 将输入对象的键与 <a href="#Marshal">Marshal</a> 使用的键（结构体字段名或标签）进行匹配，优先精确匹配，但也接受不区分大小写的匹配。默认情况下，没有对应结构体字段的对象键会被忽略；如需其他行为，参见 <a href="#Decoder.DisallowUnknownFields">Decoder.DisallowUnknownFields</a>。
+<p>将 JSON 反序列化到接口值时，Unmarshal 会在接口值中存入以下某种值：
+<ul>
+<li>JSON 布尔值对应 bool。
+<li>JSON 数字对应 float64。
+<li>JSON 字符串对应 string。
+<li>JSON 数组对应 []any。
+<li>JSON 对象对应 map[string]any。
+<li>JSON null 对应 nil。
+</ul>
+<p>将 JSON 数组反序列化到切片时，Unmarshal 将每个 JSON 数组元素解码到对应的切片元素，原地复用已有元素。切片会扩展以容纳更多元素；如果 JSON 数组较短，则截短切片。有一种特殊情况：将空 JSON 数组反序列化到切片时，Unmarshal 用一个新的空切片替换原切片。
+<p>将 JSON 数组反序列化到 Go 数组时，Unmarshal 将 JSON 数组元素解码到对应的 Go 数组元素。如果 Go 数组较短，多余的 JSON 数组元素会被丢弃；如果 JSON 数组较短，多余的 Go 数组元素会被设为零值。
+<p>将 JSON 对象反序列化到映射时，Unmarshal 首先确定要使用的映射。如果映射为 nil，则分配新映射；否则复用现有映射，并保留已有条目。然后，Unmarshal 将 JSON 对象中的键值对存入映射。映射的键类型必须是任意字符串类型、整数类型，或实现 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>。
+<p>如果 JSON 编码的数据包含语法错误，Unmarshal 返回 <a href="#SyntaxError">SyntaxError</a>。
+<p>如果 JSON 值不适合给定的目标类型，或 JSON 数字超出目标类型范围，Unmarshal 会跳过该字段，并尽可能完成其余反序列化。如果没有遇到更严重的错误，Unmarshal 返回 <a href="#UnmarshalTypeError">UnmarshalTypeError</a>，描述最先遇到的此类错误。无论如何，都不保证出错字段之后的所有剩余字段能被反序列化到目标对象。
+<p>将 JSON null 反序列化到接口、映射、指针或切片时，会将对应 Go 值设为 nil。由于 JSON 中经常用 null 表示“不存在”，将 JSON null 反序列化到其他任何 Go 类型时，都不会改变该值，也不会产生错误。
+<p>反序列化带引号的字符串时，无效 UTF-8 或无效 UTF-16 代理项对不视为错误，而是替换为 Unicode 替换字符 U+FFFD。
+
+			
+
+
+<div id="example_Unmarshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	var jsonBlob = []byte(`[
+	{&#34;Name&#34;: &#34;Platypus&#34;, &#34;Order&#34;: &#34;Monotremata&#34;},
+	{&#34;Name&#34;: &#34;Quoll&#34;,    &#34;Order&#34;: &#34;Dasyuromorphia&#34;}
+]`)
+	type Animal struct {
+		Name  string
+		Order string
+	}
+	var animals []Animal
+	err := json.Unmarshal(jsonBlob, &amp;animals)
+	if err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+	fmt.Printf(&#34;%&#43;v&#34;, animals)
+}
+</textarea></div>
+        <div class="output"><pre>[{Name:Platypus Order:Monotremata} {Name:Quoll Order:Dasyuromorphia}]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Valid">func <a href="/src/encoding/json/v2_scanner.go?s=525:553#L13">Valid</a>
+				
+				<span title="自 Go 1.9 起提供">1.9</span>
+			</h2>
+			<pre>func Valid(data []<a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#bool">bool</a></pre>
+			<p>Valid 报告 data 是否为有效的 JSON 编码。
+
+			
+
+
+<div id="example_Valid" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	goodJSON := `{&#34;example&#34;: 1}`
+	badJSON := `{&#34;example&#34;:2:]}}`
+
+	fmt.Println(json.Valid([]byte(goodJSON)), json.Valid([]byte(badJSON)))
+}
+</textarea></div>
+        <div class="output"><pre>true false
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="Decoder">type <a href="/src/encoding/json/v2_stream.go?s=373:716#L10">Decoder</a>
+				
+				
+			</h2>
+			<p>Decoder 从输入流中读取并解码 JSON 值。
+
+			<pre>type Decoder struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_Decoder" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例使用 Decoder 解码由多个独立 JSON 值组成的流。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	const jsonStream = `
+	{&#34;Name&#34;: &#34;Ed&#34;, &#34;Text&#34;: &#34;Knock knock.&#34;}
+	{&#34;Name&#34;: &#34;Sam&#34;, &#34;Text&#34;: &#34;Who&#39;s there?&#34;}
+	{&#34;Name&#34;: &#34;Ed&#34;, &#34;Text&#34;: &#34;Go fmt.&#34;}
+	{&#34;Name&#34;: &#34;Sam&#34;, &#34;Text&#34;: &#34;Go fmt who?&#34;}
+	{&#34;Name&#34;: &#34;Ed&#34;, &#34;Text&#34;: &#34;Go fmt yourself!&#34;}
+`
+	type Message struct {
+		Name, Text string
+	}
+	dec := json.NewDecoder(strings.NewReader(jsonStream))
+	for {
+		var m Message
+		if err := dec.Decode(&amp;m); err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(&#34;%s: %s\n&#34;, m.Name, m.Text)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>Ed: Knock knock.
+Sam: Who&#39;s there?
+Ed: Go fmt.
+Sam: Go fmt who?
+Ed: Go fmt yourself!
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewDecoder">func <a href="/src/encoding/json/v2_stream.go?s=882:919#L28">NewDecoder</a>
+					
+					
+				</h3>
+				<pre>func NewDecoder(r <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>) *<a href="#Decoder">Decoder</a></pre>
+				<p>NewDecoder 返回一个从 r 读取数据的新解码器。
+<p>解码器具有自己的缓冲区，从 r 读取的数据可能超出所请求的 JSON 值的范围。
+
+				
+			
+
+			
+				<h3 id="Decoder.Buffered">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=3512:3552#L97">Buffered</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) Buffered() <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a></pre>
+				<p>Buffered 返回一个读取器，用于读取未读缓冲区中剩余的数据，其中可能包含零个或多个字节。这些数据已从输入的 <a href="/pkg/io/#Reader">io.Reader</a> 中读取，但尚未被 <a href="#Decoder.Decode">Decoder.Decode</a> 或 <a href="#Decoder.Token">Decoder.Token</a> 调用读取。由于尚未按 JSON 文法验证，它们可能包含不构成有效 JSON 的字节。缓冲数据的确切数量是 Decoder 的实现细节，可能随时间变化。
+<p>调用方负责将此缓冲区与输入 Reader 中剩余的数据拼接起来，以得到最后一个已解码 JSON 值之后的完整字节序列。
+<p>该读取器在下一次调用 <a href="#Decoder.Decode">Decoder.Decode</a> 或 <a href="#Decoder.Token">Decoder.Token</a> 之前有效。
+
+				
+			
+				<h3 id="Decoder.Decode">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=2274:2313#L64">Decode</a>
+					
+					
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) Decode(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Decode 从输入中读取下一个 JSON 编码的值，并将其存入 v 指向的值。
+<p>JSON 转换为 Go 值的详细规则，参见 <a href="#Unmarshal">Unmarshal</a> 的文档。
+
+				
+
+
+<div id="example_Decoder_Decode_stream" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Stream)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Stream)</span></p>
+    <p>本示例使用 Decoder 以流式方式解码一个由 JSON 对象组成的数组。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+	"strings"
+
+	"encoding/json"
+)
+
+func main() {
+	const jsonStream = `
+	[
+		{"Name": "Ed", "Text": "Knock knock."},
+		{"Name": "Sam", "Text": "Who's there?"},
+		{"Name": "Ed", "Text": "Go fmt."},
+		{"Name": "Sam", "Text": "Go fmt who?"},
+		{"Name": "Ed", "Text": "Go fmt yourself!"}
+	]
+`
+	type Message struct {
+		Name, Text string
+	}
+	dec := json.NewDecoder(strings.NewReader(jsonStream))
+
+	// 读取左方括号
+	t, err := dec.Token()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%T: %v\n", t, t)
+
+	// 当数组中还有值时继续
+	for dec.More() {
+		var m Message
+		// 解码一个数组值（Message）
+		err := dec.Decode(&amp;m)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%v: %v\n", m.Name, m.Text)
+	}
+
+	// 读取右方括号
+	t, err = dec.Token()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%T: %v\n", t, t)
+
+}
+</textarea></div>
+        <div class="output"><pre>json.Delim: [
+Ed: Knock knock.
+Sam: Who&#39;s there?
+Ed: Go fmt.
+Sam: Go fmt who?
+Ed: Go fmt yourself!
+json.Delim: ]
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Decoder.DisallowUnknownFields">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=1850:1893#L53">DisallowUnknownFields</a>
+					
+					<span title="自 Go 1.10 起提供">1.10</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) DisallowUnknownFields()</pre>
+				<p>DisallowUnknownFields 使 Decoder 在目标为结构体、且输入对象中存在无法匹配目标内任何未被忽略的导出字段的键时返回错误。
+
+				
+			
+				<h3 id="Decoder.InputOffset">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=9259:9298#L282">InputOffset</a>
+					
+					<span title="自 Go 1.14 起提供">1.14</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) InputOffset() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>InputOffset 返回解码器当前位置在输入流中的字节偏移量。该偏移量位于最近返回的 token 的末尾，也就是下一个 token 的开头。
+
+				
+			
+				<h3 id="Decoder.More">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=8532:8563#L260">More</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) More() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>More 报告当前正在解析的数组或对象中是否还有下一个元素。
+
+				
+			
+				<h3 id="Decoder.Token">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=7046:7088#L210">Token</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) Token() (<a href="#Token">Token</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Token 返回输入流中的下一个 JSON token。到达输入流末尾时，Token 返回 nil、<a href="/pkg/io/#EOF">io.EOF</a>。
+<p>Token 保证它返回的分隔符 [ ] { } 正确嵌套、相互匹配。如果 Token 在输入中遇到非预期的分隔符，就会返回错误。
+<p>输入流由基本 JSON 值（布尔值、字符串、数字和 null），以及用于标记数组和对象起止位置的 <a href="#Delim">Delim</a> 类型分隔符 [ ] { } 组成。逗号和冒号会被略去。
+
+				
+
+
+<div id="example_Decoder_Token" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    <p>本示例使用 Decoder 解码由多个独立 JSON 值组成的流。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	const jsonStream = `
+	{&#34;Message&#34;: &#34;Hello&#34;, &#34;Array&#34;: [1, 2, 3], &#34;Null&#34;: null, &#34;Number&#34;: 1.234}
+`
+	dec := json.NewDecoder(strings.NewReader(jsonStream))
+	for {
+		t, err := dec.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(&#34;%T: %v&#34;, t, t)
+		if dec.More() {
+			fmt.Printf(&#34; (more)&#34;)
+		}
+		fmt.Printf(&#34;\n&#34;)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>json.Delim: { (more)
+string: Message (more)
+string: Hello (more)
+string: Array (more)
+json.Delim: [ (more)
+float64: 1 (more)
+float64: 2 (more)
+float64: 3
+json.Delim: ] (more)
+string: Null (more)
+&lt;nil&gt;: &lt;nil&gt; (more)
+string: Number (more)
+float64: 1.234
+json.Delim: }
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="Decoder.UseNumber">func (*Decoder) <a href="/src/encoding/json/v2_stream.go?s=1438:1469#L44">UseNumber</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (dec *<a href="#Decoder">Decoder</a>) UseNumber()</pre>
+				<p>UseNumber 使 Decoder 在将数字反序列化到接口值时，使用 <a href="#Number">Number</a>，而不是 float64。
+
+				
+			
+		
+			
+			<h2 id="Delim">type <a href="/src/encoding/json/v2_stream.go?s=6447:6462#L193">Delim</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Delim 是 JSON 数组或对象的分隔符，即 [、]、{ 或 } 中的一个。
+
+			<pre>type Delim <a href="/pkg/builtin/#rune">rune</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Delim.String">func (Delim) <a href="/src/encoding/json/v2_stream.go?s=6464:6494#L195">String</a>
+					
+					<span title="自 Go 1.5 起提供">1.5</span>
+				</h3>
+				<pre>func (d <a href="#Delim">Delim</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Encoder">type <a href="/src/encoding/json/v2_stream.go?s=3660:3800#L102">Encoder</a>
+				
+				
+			</h2>
+			<p>Encoder 将 JSON 值写入输出流。
+
+			<pre>type Encoder struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewEncoder">func <a href="/src/encoding/json/v2_stream.go?s=3856:3893#L114">NewEncoder</a>
+					
+					
+				</h3>
+				<pre>func NewEncoder(w <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Writer">Writer</a>) *<a href="#Encoder">Encoder</a></pre>
+				<p>NewEncoder 返回一个向 w 写入数据的新编码器。
+
+				
+			
+
+			
+				<h3 id="Encoder.Encode">func (*Encoder) <a href="/src/encoding/json/v2_stream.go?s=4165:4204#L126">Encode</a>
+					
+					
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) Encode(v <a href="/pkg/builtin/#any">any</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Encode 将 v 的 JSON 编码写入流，并在末尾添加换行符。
+<p>Go 值转换为 JSON 的详细规则，参见 <a href="#Marshal">Marshal</a> 的文档。
+
+				
+			
+				<h3 id="Encoder.SetEscapeHTML">func (*Encoder) <a href="/src/encoding/json/v2_stream.go?s=5694:5736#L171">SetEscapeHTML</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) SetEscapeHTML(on <a href="/pkg/builtin/#bool">bool</a>)</pre>
+				<p>SetEscapeHTML 指定是否应在 JSON 字符串内转义可能引发 HTML 问题的字符。默认会将 &amp;、&lt; 和 &gt; 分别转义为 \u0026、\u003c 和 \u003e，以避免将 JSON 嵌入 HTML 时可能出现的某些安全问题。
+<p>在非 HTML 场景中，如果转义影响输出的可读性，可以用 SetEscapeHTML(false) 禁用此行为。
+
+				
+			
+				<h3 id="Encoder.SetIndent">func (*Encoder) <a href="/src/encoding/json/v2_stream.go?s=4989:5041#L156">SetIndent</a>
+					
+					<span title="自 Go 1.7 起提供">1.7</span>
+				</h3>
+				<pre>func (enc *<a href="#Encoder">Encoder</a>) SetIndent(prefix, indent <a href="/pkg/builtin/#string">string</a>)</pre>
+				<p>SetIndent 指示编码器格式化此后编码的每个值，效果如同调用包级函数 Indent(dst, src, prefix, indent) 进行缩进。调用 SetIndent("", "") 可禁用缩进。
+
+				
+			
+		
+			
+			<h2 id="InvalidUTF8Error">type <a href="/src/encoding/json/v2_encode.go?s=9384:9474#L225">InvalidUTF8Error</a>
+				
+				
+			</h2>
+			<p>在 Go 1.2 之前，尝试编码包含无效 UTF-8 序列的字符串时，<a href="#Marshal">Marshal</a> 会返回 InvalidUTF8Error。从 Go 1.2 开始，<a href="#Marshal">Marshal</a> 会改为将无效字节替换为 Unicode 替换字符 U+FFFD，从而将字符串转换为有效 UTF-8。
+<p>已弃用：不再使用，仅为兼容性保留。
+
+			<pre>type InvalidUTF8Error struct {
+<span id="InvalidUTF8Error.S"></span>    S <a href="/pkg/builtin/#string">string</a> <span class="comment">// 导致错误的完整字符串值</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InvalidUTF8Error.Error">func (*InvalidUTF8Error) <a href="/src/encoding/json/v2_encode.go?s=9476:9517#L229">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#InvalidUTF8Error">InvalidUTF8Error</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="InvalidUnmarshalError">type <a href="/src/encoding/json/v2_decode.go?s=7425:7481#L168">InvalidUnmarshalError</a>
+				
+				
+			</h2>
+			<p>InvalidUnmarshalError 描述传给 <a href="#Unmarshal">Unmarshal</a> 的无效实参。（<a href="#Unmarshal">Unmarshal</a> 的实参必须是非 nil 指针。）
+
+			<pre>type InvalidUnmarshalError struct {
+<span id="InvalidUnmarshalError.Type"></span>    Type <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="InvalidUnmarshalError.Error">func (*InvalidUnmarshalError) <a href="/src/encoding/json/v2_decode.go?s=7483:7529#L172">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#InvalidUnmarshalError">InvalidUnmarshalError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Marshaler">type <a href="/src/encoding/json/v2_encode.go?s=8469:8502#L196">Marshaler</a>
+				
+				
+			</h2>
+			<p>Marshaler 是能够将自身序列化为有效 JSON 的类型所实现的接口。
+
+			<pre>type Marshaler = <a href="/pkg/encoding/json/v2/">jsonv2</a>.<a href="/pkg/encoding/json/v2/#Marshaler">Marshaler</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="MarshalerError">type <a href="/src/encoding/json/v2_encode.go?s=9716:9808#L235">MarshalerError</a>
+				
+				
+			</h2>
+			<p>MarshalerError 表示调用 [Marshaler.MarshalJSON] 或 <a href="/pkg/encoding/#TextMarshaler.MarshalText">encoding.TextMarshaler.MarshalText</a> 方法时返回的错误。
+
+			<pre>type MarshalerError struct {
+<span id="MarshalerError.Type"></span>    Type <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+<span id="MarshalerError.Err"></span>    Err  <a href="/pkg/builtin/#error">error</a>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="MarshalerError.Error">func (*MarshalerError) <a href="/src/encoding/json/v2_encode.go?s=9810:9849#L241">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#MarshalerError">MarshalerError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="MarshalerError.Unwrap">func (*MarshalerError) <a href="/src/encoding/json/v2_encode.go?s=10070:10109#L252">Unwrap</a>
+					
+					<span title="自 Go 1.13 起提供">1.13</span>
+				</h3>
+				<pre>func (e *<a href="#MarshalerError">MarshalerError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Unwrap 返回底层错误。
+
+				
+			
+		
+			
+			<h2 id="Number">type <a href="/src/encoding/json/v2_decode.go?s=7798:7816#L184">Number</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>Number 表示 JSON 数字字面量。
+
+			<pre>type Number <a href="/pkg/builtin/#string">string</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Number.Float64">func (Number) <a href="/src/encoding/json/v2_decode.go?s=7966:8008#L190">Float64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n <a href="#Number">Number</a>) Float64() (<a href="/pkg/builtin/#float64">float64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Float64 将该数字以 float64 形式返回。
+
+				
+			
+				<h3 id="Number.Int64">func (Number) <a href="/src/encoding/json/v2_decode.go?s=8097:8135#L195">Int64</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n <a href="#Number">Number</a>) Int64() (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Int64 将该数字以 int64 形式返回。
+
+				
+			
+				<h3 id="Number.MarshalJSONTo">func (Number) <a href="/src/encoding/json/v2_decode.go?s=8279:8337#L202">MarshalJSONTo</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (n <a href="#Number">Number</a>) MarshalJSONTo(enc *<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Encoder">Encoder</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>MarshalJSONTo 实现 <a href="/pkg/encoding/json/v2/#MarshalerTo">jsonv2.MarshalerTo</a>。
+
+				
+			
+				<h3 id="Number.String">func (Number) <a href="/src/encoding/json/v2_decode.go?s=7868:7899#L187">String</a>
+					
+					<span title="自 Go 1.1 起提供">1.1</span>
+				</h3>
+				<pre>func (n <a href="#Number">Number</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				<p>String 返回该数字的字面量文本。
+
+				
+			
+				<h3 id="Number.UnmarshalJSONFrom">func (*Number) <a href="/src/encoding/json/v2_decode.go?s=9049:9112#L227">UnmarshalJSONFrom</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (n *<a href="#Number">Number</a>) UnmarshalJSONFrom(dec *<a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Decoder">Decoder</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>UnmarshalJSONFrom 实现 <a href="/pkg/encoding/json/v2/#UnmarshalerFrom">jsonv2.UnmarshalerFrom</a>。
+
+				
+			
+		
+			
+			<h2 id="Options">type <a href="/src/encoding/json/v2_options.go?s=10196:10227#L189">Options</a>
+				
+				<span title="自 Go 1.27 起提供">1.27</span>
+			</h2>
+			<p>Options 是一组选项，用于配置 v2 json 包，使其在特定功能上采用 v1 语义。此类型的值可以传给 <a href="/pkg/encoding/json/v2/#Marshal">jsonv2.Marshal</a> 或 <a href="/pkg/encoding/json/v2/#Unmarshal">jsonv2.Unmarshal</a> 等 v2 函数。代码应使用 <a href="/pkg/encoding/json/v2/#Options">jsonv2.Options</a>，而不是直接引用此类型。
+<p>有关如何将 json 的用法从 v1 迁移到 v2，参见“迁移到 v2”一节。
+
+			<pre>type Options = <a href="/pkg/encoding/json/internal/jsonopts/">jsonopts</a>.<a href="/pkg/encoding/json/internal/jsonopts/#Options">Options</a></pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="CallMethodsWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=13454:13505#L262">CallMethodsWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func CallMethodsWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>CallMethodsWithLegacySemantics 指定：调用类型提供的序列化和反序列化方法时，遵循旧版语义：
+<ul>
+<li><p>序列化时，只有 Go 值可寻址，才会调用定义在指针接收者上的序列化方法。从接口或映射元素取得的值不可寻址；通过指针或从切片元素取得的值可寻址；从数组元素或结构体字段取得的值，继承其所属值的可寻址性。v2 则始终调用序列化方法，不受可寻址性影响。
+<li><p>序列化或反序列化映射键时，会忽略 <a href="#Marshaler">Marshaler</a> 或 <a href="#Unmarshaler">Unmarshaler</a> 方法，但仍可调用 <a href="/pkg/encoding/#TextMarshaler">encoding.TextMarshaler</a> 或 <a href="/pkg/encoding/#TextUnmarshaler">encoding.TextUnmarshaler</a>。v2 在方法调用方面将映射键与其他值同等处理，因此可能调用 <a href="#Marshaler">Marshaler</a> 或 <a href="#Unmarshaler">Unmarshaler</a> 方法；方法实现负责将 Go 值表示为 JSON 字符串，以满足 JSON 对象名称的要求。
+<li><p>序列化时，如果映射键实现了序列化方法且为 nil 指针，则将其序列化为空 JSON 字符串。v2 则会报告错误。
+<li><p>序列化时，如果接口类型实现了序列化方法，且接口值包含指向具体类型的 nil 指针，则始终调用该序列化方法。v2 则从不直接调用接口值上的方法，而是根据底层具体值决定如何处理。与非接口值相同，不会对 nil 指针调用序列化方法，而是将其序列化为 JSON null。
+</ul>
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="DefaultOptionsV1">func <a href="/src/encoding/json/v2_options.go?s=11420:11451#L223">DefaultOptionsV1</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func DefaultOptionsV1() <a href="#Options">Options</a></pre>
+				<p>DefaultOptionsV1 是定义 v1 语义的全部选项集合，等价于将以下布尔选项设为 true：
+<ul>
+<li><a href="#CallMethodsWithLegacySemantics">CallMethodsWithLegacySemantics</a>
+<li><a href="#FormatByteArrayAsArray">FormatByteArrayAsArray</a>
+<li><a href="#FormatBytesWithLegacySemantics">FormatBytesWithLegacySemantics</a>
+<li><a href="#FormatDurationAsNano">FormatDurationAsNano</a>
+<li><a href="#MatchCaseSensitiveDelimiter">MatchCaseSensitiveDelimiter</a>
+<li><a href="#MergeWithLegacySemantics">MergeWithLegacySemantics</a>
+<li><a href="#OmitEmptyWithLegacySemantics">OmitEmptyWithLegacySemantics</a>
+<li><a href="#ParseBytesWithLooseRFC4648">ParseBytesWithLooseRFC4648</a>
+<li><a href="#ParseTimeWithLooseRFC3339">ParseTimeWithLooseRFC3339</a>
+<li><a href="#ReportErrorsWithLegacySemantics">ReportErrorsWithLegacySemantics</a>
+<li><a href="#StringifyWithLegacySemantics">StringifyWithLegacySemantics</a>
+<li><a href="#UnmarshalArrayFromAnyLength">UnmarshalArrayFromAnyLength</a>
+<li><a href="/pkg/encoding/json/v2/#Deterministic">jsonv2.Deterministic</a>
+<li><a href="/pkg/encoding/json/v2/#FormatNilMapAsNull">jsonv2.FormatNilMapAsNull</a>
+<li><a href="/pkg/encoding/json/v2/#FormatNilSliceAsNull">jsonv2.FormatNilSliceAsNull</a>
+<li><a href="/pkg/encoding/json/v2/#MatchCaseInsensitiveNames">jsonv2.MatchCaseInsensitiveNames</a>
+<li><a href="/pkg/encoding/json/jsontext/#AllowDuplicateNames">jsontext.AllowDuplicateNames</a>
+<li><a href="/pkg/encoding/json/jsontext/#AllowInvalidUTF8">jsontext.AllowInvalidUTF8</a>
+<li><a href="/pkg/encoding/json/jsontext/#EscapeForHTML">jsontext.EscapeForHTML</a>
+<li><a href="/pkg/encoding/json/jsontext/#EscapeForJS">jsontext.EscapeForJS</a>
+<li><a href="/pkg/encoding/json/jsontext/#PreserveRawStrings">jsontext.PreserveRawStrings</a>
+</ul>
+<p>不包含其他任何选项。
+<p>本包中的 <a href="#Marshal">Marshal</a> 和 <a href="#Unmarshal">Unmarshal</a> 函数，在语义上等价于使用此选项调用 v2 中的对应函数：
+<pre>jsonv2.Marshal(v, jsonv1.DefaultOptionsV1())
+jsonv2.Unmarshal(b, v, jsonv1.DefaultOptionsV1())
+</pre>
+
+				
+			
+				<h3 id="FormatByteArrayAsArray">func <a href="/src/encoding/json/v2_options.go?s=13909:13952#L276">FormatByteArrayAsArray</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func FormatByteArrayAsArray(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>FormatByteArrayAsArray 指定将 Go 的 [N]byte 按普通 Go 数组格式处理。v2 默认则将 [N]byte 按二进制数据编码（RFC 4648）格式处理。
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="FormatBytesWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=14989:15040#L303">FormatBytesWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func FormatBytesWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>FormatBytesWithLegacySemantics 指定：处理 []~byte 和 [N]~byte 类型时，遵循旧版语义：
+<ul>
+<li><p>Go 的 []~byte 被视为采用某种二进制数据编码（RFC 4648）；v2 默认仅将 []byte 这样处理。具体来说，v2 不将具名字节类型的切片视为二进制数据。
+<li><p>序列化时，如果具名字节类型实现了序列化方法，则将切片序列化为 JSON 数组，并对其中每个元素调用该序列化方法。
+<li><p>反序列化时，如果输入为 JSON 数组，就将 []~byte 视为普通 Go 切片进行反序列化。v2 默认则会在预期某种二进制数据编码却遇到 JSON 数组时报告错误。
+</ul>
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="FormatDurationAsNano">func <a href="/src/encoding/json/v2_options.go?s=15441:15482#L317">FormatDurationAsNano</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func FormatDurationAsNano(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>FormatDurationAsNano 指定将 <a href="/pkg/time/#Duration">time.Duration</a> 格式化为表示纳秒数的 JSON 数字。v2 默认则会报告错误。
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="MatchCaseSensitiveDelimiter">func <a href="/src/encoding/json/v2_options.go?s=16214:16262#L335">MatchCaseSensitiveDelimiter</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MatchCaseSensitiveDelimiter(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>MatchCaseSensitiveDelimiter 指定：通过 <a href="/pkg/encoding/json/v2/#MatchCaseInsensitiveNames">jsonv2.MatchCaseInsensitiveNames</a> 或 `case:ignore` 标签选项进行不区分大小写的名称匹配时，不忽略下划线和连字符。因此，这种名称匹配与 <a href="/pkg/strings/#EqualFold">strings.EqualFold</a> 相同。使用此选项会减弱匹配常见命名变体的能力，例如无法将“foo_bar”与“fooBar”匹配。
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="MergeWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=17681:17726#L366">MergeWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func MergeWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>MergeWithLegacySemantics 指定：反序列化到非零 Go 值时，遵循旧版语义：
+<ul>
+<li><p>反序列化 JSON null 时，如果 Go 值的种类为 bool、int、uint、float、string、array 或 struct，则保留原值；否则将其置零。v2 默认行为则是在反序列化 JSON null 时始终一致地将 Go 值置零。
+<li><p>反序列化非 null 的 JSON 值时，对于数组元素、切片元素、结构体字段（但不包括映射值）、指针值，以及接口值（仅当其中包含非 nil 指针时），会合并到原有 Go 值中。对于切片，会合并到元素已有的值中，甚至包括原切片长度之外的元素。如果原切片长度大于 JSON 数组长度，则将其截短到相同长度。v2 默认则对结构体字段、映射值、指针值和接口值进行合并。总体而言，v2 在反序列化 JSON 对象时采用合并语义，其他情况下替换原值。
+</ul>
+<p>这只影响反序列化，序列化时忽略。v1 默认值为 true。
+
+				
+			
+				<h3 id="OmitEmptyWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=18634:18683#L388">OmitEmptyWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func OmitEmptyWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>OmitEmptyWithLegacySemantics 指定 `omitempty` 标签选项采用以下空值定义：Go 值为 false、0、nil 指针、nil 接口值，或空数组、切片、映射、字符串时，省略字段。这会覆盖 v2 的空值语义；在 v2 中，值序列化为 JSON null，或空 JSON 字符串、对象、数组时，字段才视为空。
+<p>对于 Go 字符串、切片、数组和映射，v1 与 v2 对 `omitempty` 的定义在实际效果上相同。对 Go 布尔值、有符号整数、无符号整数、浮点数、指针和接口使用的 `omitempty`，应迁移为 `omitzero` 标签选项，后者在字段为 Go 零值时省略字段。
+<p>这只影响序列化，反序列化时忽略。v1 默认值为 true。
+
+				
+			
+				<h3 id="ParseBytesWithLooseRFC4648">func <a href="/src/encoding/json/v2_options.go?s=19255:19302#L405">ParseBytesWithLooseRFC4648</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func ParseBytesWithLooseRFC4648(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>ParseBytesWithLooseRFC4648 指定：解析以“base32”或“base64”编码的二进制数据时，忽略其中的 '\r' 和 '\n' 字符。v2 默认会报告错误，以严格遵循 RFC 4648 第 3.3 节关于拒绝非字母表字符的要求。
+<p>这只影响反序列化，序列化时忽略。v1 默认值为 true。
+
+				
+			
+				<h3 id="ParseTimeWithLooseRFC3339">func <a href="/src/encoding/json/v2_options.go?s=19903:19949#L422">ParseTimeWithLooseRFC3339</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func ParseTimeWithLooseRFC3339(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>ParseTimeWithLooseRFC3339 指定 <a href="/pkg/time/#Time">time.Time</a> 按宽松的 RFC 3339 规则解析。具体来说，它允许历史上不正确的表示形式，包括小时格式、小数秒分隔符和时区表示的偏差。v2 默认则严格遵循 RFC 3339 规定的文法。
+<p>这只影响反序列化，序列化时忽略。v1 默认值为 true。
+
+				
+			
+				<h3 id="ReportErrorsWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=22804:22856#L479">ReportErrorsWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func ReportErrorsWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>ReportErrorsWithLegacySemantics 指定 Marshal 和 Unmarshal 按旧版语义报告错误：
+<ul>
+<li><p>序列化或反序列化时，返回的错误值通常是 <a href="#SyntaxError">SyntaxError</a>、<a href="#MarshalerError">MarshalerError</a>、<a href="#UnsupportedTypeError">UnsupportedTypeError</a>、<a href="#UnsupportedValueError">UnsupportedValueError</a>、<a href="#InvalidUnmarshalError">InvalidUnmarshalError</a> 或 <a href="#UnmarshalTypeError">UnmarshalTypeError</a> 等类型。v2 则始终返回 <a href="/pkg/encoding/json/v2/#SemanticError">jsonv2.SemanticError</a> 或 <a href="/pkg/encoding/json/jsontext/#SyntacticError">jsontext.SyntacticError</a> 类型的错误。
+<li><p>序列化时，如果用户定义的序列化方法报告错误，始终将其包装在 <a href="#MarshalerError">MarshalerError</a> 中，即使该错误本身已是 <a href="#MarshalerError">MarshalerError</a>，这可能产生多层冗余包装。v2 则始终将错误包装在 <a href="/pkg/encoding/json/v2/#SemanticError">jsonv2.SemanticError</a> 中，除非它已经是语义错误。
+<li><p>反序列化时，如果用户定义的反序列化方法报告错误，不会包装，而是原样返回。v2 则始终将错误包装在 <a href="/pkg/encoding/json/v2/#SemanticError">jsonv2.SemanticError</a> 中，除非它已经是语义错误。
+<li><p>序列化或反序列化时，如果 Go 结构体包含类型错误（例如名称冲突或字段标签格式错误），会忽略这些错误，并尽可能为结构体生成表示。v2 则会报告运行时错误。
+<li><p>使用 <a href="/pkg/encoding/json/v2/#MatchCaseInsensitiveNames">jsonv2.MatchCaseInsensitiveNames</a> 反序列化时，如果某个 JSON 对象名称与多个 Go 结构体字段形成非精确匹配，不会报告错误，而是使用最先声明的字段。v2 则会报告运行时错误。
+<li><p>反序列化时，在将 JSON 数据按语义反序列化到 Go 值之前，会先完整验证 JSON 输入的语法结构。因此，存在语法错误的 JSON 输入不会修改目标 Go 值。v2 则采用流式解码，逐步将 JSON 输入反序列化到目标 Go 值；这意味着遇到语法错误时，Go 值可能已被部分修改。
+<li><p>反序列化时，语义错误不会立即终止处理，解析会继续进行。反序列化返回时，仅报告第一个语义错误。v2 则在遇到错误时立即终止反序列化。
+</ul>
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="StringifyWithLegacySemantics">func <a href="/src/encoding/json/v2_options.go?s=24370:24419#L510">StringifyWithLegacySemantics</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func StringifyWithLegacySemantics(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>StringifyWithLegacySemantics 指定 `string` 标签选项可以将布尔值和字符串值进一步编码为字符串。它只对顶层类型为布尔、字符串、数值种类，或指向这些类型的指针的字段生效。v2 默认仅允许对原本会序列化为 JSON 数字的 Go 类型使用 `string` 标签选项，并将该 JSON 数字放入 JSON 字符串中；特别地，v2 默认不会将 Go 布尔值和字符串这样处理。如果 <a href="#ReportErrorsWithLegacySemantics">ReportErrorsWithLegacySemantics</a> 为 false，错误使用 `string` 会导致运行时错误。
+<p>序列化时，这类 Go 值先转换为通常的 JSON 表示，再放入带引号的 JSON 字符串中。反序列化时，必须从 JSON 字符串还原这类 Go 值，字符串内容应为该值通常的 JSON 表示，或对应数值种类的 Go 数字表示。注意，Go 数字文法是 JSON 数字文法的超集。对 `string` 生效的 Go 值进行反序列化时，放在 JSON 字符串中的 JSON null 可以替代 JSON null 本身。v2 默认则拒绝文法超出 JSON 数字范围的字符串化数字，也拒绝放在 JSON 字符串中的 JSON null。
+<p>这会影响序列化或反序列化。v1 默认值为 true。
+
+				
+			
+				<h3 id="UnmarshalArrayFromAnyLength">func <a href="/src/encoding/json/v2_options.go?s=25055:25103#L527">UnmarshalArrayFromAnyLength</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func UnmarshalArrayFromAnyLength(v <a href="/pkg/builtin/#bool">bool</a>) <a href="#Options">Options</a></pre>
+				<p>UnmarshalArrayFromAnyLength 指定允许将任意长度的输入 JSON 数组反序列化到 Go 数组。如果 JSON 数组过短，则将 Go 数组的剩余元素置零；如果 JSON 数组过长，则跳过多余的 JSON 数组元素。v2 默认要求输入 JSON 数组与 Go 数组长度完全相同。
+<p>这只影响反序列化，序列化时忽略。v1 默认值为 true。
+
+				
+			
+
+			
+		
+			
+			<h2 id="RawMessage">type <a href="/src/encoding/json/v2_stream.go?s=6062:6094#L180">RawMessage</a>
+				
+				
+			</h2>
+			<p>RawMessage 是原始编码形式的 JSON 值。它实现 <a href="#Marshaler">Marshaler</a> 和 <a href="#Unmarshaler">Unmarshaler</a>，可用于延迟 JSON 解码或预先计算 JSON 编码。
+
+			<pre>type RawMessage = <a href="/pkg/encoding/json/jsontext/">jsontext</a>.<a href="/pkg/encoding/json/jsontext/#Value">Value</a></pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_RawMessage_marshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Marshal)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Marshal)</span></p>
+    <p>本示例使用 RawMessage，在序列化时使用预先计算的 JSON。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;os&#34;
+
+	&#34;encoding/json&#34;
+)
+
+func main() {
+	h := json.RawMessage(`{&#34;precomputed&#34;: true}`)
+
+	c := struct {
+		Header *json.RawMessage `json:&#34;header&#34;`
+		Body   string           `json:&#34;body&#34;`
+	}{Header: &amp;h, Body: &#34;Hello Gophers!&#34;}
+
+	b, err := json.MarshalIndent(&amp;c, &#34;&#34;, &#34;\t&#34;)
+	if err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+	os.Stdout.Write(b)
+
+}
+</textarea></div>
+        <div class="output"><pre>{
+	&#34;header&#34;: {
+		&#34;precomputed&#34;: true
+	},
+	&#34;body&#34;: &#34;Hello Gophers!&#34;
+}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+
+<div id="example_RawMessage_unmarshal" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例 (Unmarshal)</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例 (Unmarshal)</span></p>
+    <p>本示例使用 RawMessage，延迟解析 JSON 消息的一部分。
+</p>
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	"fmt"
+	"log"
+
+	"encoding/json"
+)
+
+func main() {
+	type Color struct {
+		Space string
+		Point json.RawMessage // 延迟解析，直到确定颜色空间
+	}
+	type RGB struct {
+		R uint8
+		G uint8
+		B uint8
+	}
+	type YCbCr struct {
+		Y  uint8
+		Cb int8
+		Cr int8
+	}
+
+	var j = []byte(`[
+	{"Space": "YCbCr", "Point": {"Y": 255, "Cb": 0, "Cr": -10}},
+	{"Space": "RGB",   "Point": {"R": 98, "G": 218, "B": 255}}
+]`)
+	var colors []Color
+	err := json.Unmarshal(j, &amp;colors)
+	if err != nil {
+		log.Fatalln("error:", err)
+	}
+
+	for _, c := range colors {
+		var dst any
+		switch c.Space {
+		case "RGB":
+			dst = new(RGB)
+		case "YCbCr":
+			dst = new(YCbCr)
+		}
+		err := json.Unmarshal(c.Point, dst)
+		if err != nil {
+			log.Fatalln("error:", err)
+		}
+		fmt.Println(c.Space, dst)
+	}
+}
+</textarea></div>
+        <div class="output"><pre>YCbCr &amp;{255 0 -10}
+RGB &amp;{98 218 255}
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+
+			
+		
+			
+			<h2 id="SyntaxError">type <a href="/src/encoding/json/v2_scanner.go?s=1327:1453#L37">SyntaxError</a>
+				
+				
+			</h2>
+			<p>SyntaxError 描述 JSON 语法错误。如果无法解析 JSON，<a href="#Unmarshal">Unmarshal</a> 会返回 SyntaxError。
+
+			<pre>type SyntaxError struct {
+<span id="SyntaxError.Offset"></span>    Offset <a href="/pkg/builtin/#int64">int64</a> <span class="comment">// 错误发生在读取 Offset 个字节之后</span>
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="SyntaxError.Error">func (*SyntaxError) <a href="/src/encoding/json/v2_scanner.go?s=1455:1491#L42">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#SyntaxError">SyntaxError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Token">type <a href="/src/encoding/json/v2_stream.go?s=6364:6378#L190">Token</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Token 保存以下某种类型的值：
+<ul>
+<li><a href="#Delim">Delim</a>，对应四种 JSON 分隔符 [ ] { }。
+<li>bool，对应 JSON 布尔值。
+<li>float64，对应 JSON 数字。
+<li><a href="#Number">Number</a>，对应 JSON 数字。
+<li>string，对应 JSON 字符串字面量。
+<li>nil，对应 JSON null。
+</ul>
+
+			<pre>type Token <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnmarshalFieldError">type <a href="/src/encoding/json/v2_decode.go?s=6993:7089#L156">UnmarshalFieldError</a>
+				
+				
+			</h2>
+			<p>UnmarshalFieldError 描述匹配到未导出（因而不可写入）结构体字段的 JSON 对象键。
+<p>已弃用：不再使用，仅为兼容性保留。
+
+			<pre>type UnmarshalFieldError struct {
+<span id="UnmarshalFieldError.Key"></span>    Key   <a href="/pkg/builtin/#string">string</a>
+<span id="UnmarshalFieldError.Type"></span>    Type  <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+<span id="UnmarshalFieldError.Field"></span>    Field <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#StructField">StructField</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnmarshalFieldError.Error">func (*UnmarshalFieldError) <a href="/src/encoding/json/v2_decode.go?s=7091:7135#L162">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnmarshalFieldError">UnmarshalFieldError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnmarshalTypeError">type <a href="/src/encoding/json/v2_decode.go?s=5264:5682#L113">UnmarshalTypeError</a>
+				
+				
+			</h2>
+			<p>UnmarshalTypeError 描述无法用于某个特定 Go 类型值的 JSON 值。
+
+			<pre>type UnmarshalTypeError struct {
+<span id="UnmarshalTypeError.Value"></span>    Value  <a href="/pkg/builtin/#string">string</a>       <span class="comment">// JSON 值的描述，例如 "bool"、"array"、"number -5"</span>
+<span id="UnmarshalTypeError.Type"></span>    Type   <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a> <span class="comment">// 无法接收该赋值的 Go 值的类型</span>
+<span id="UnmarshalTypeError.Offset"></span>    Offset <a href="/pkg/builtin/#int64">int64</a>        <span class="comment">// 错误发生在读取 Offset 个字节之后；自 Go 1.5 起提供</span>
+<span id="UnmarshalTypeError.Struct"></span>    Struct <a href="/pkg/builtin/#string">string</a>       <span class="comment">// 包含该字段的根类型名称；自 Go 1.8 起提供</span>
+<span id="UnmarshalTypeError.Field"></span>    Field  <a href="/pkg/builtin/#string">string</a>       <span class="comment">// 从根节点到该值的完整路径；自 Go 1.8 起提供</span>
+<span id="UnmarshalTypeError.Err"></span>    Err    <a href="/pkg/builtin/#error">error</a>        <span class="comment">// 可以为 nil；自 Go 1.27 起提供</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnmarshalTypeError.Error">func (*UnmarshalTypeError) <a href="/src/encoding/json/v2_decode.go?s=5684:5727#L122">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnmarshalTypeError">UnmarshalTypeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+				<h3 id="UnmarshalTypeError.Unwrap">func (*UnmarshalTypeError) <a href="/src/encoding/json/v2_decode.go?s=6748:6791#L148">Unwrap</a>
+					
+					<span title="自 Go 1.27 起提供">1.27</span>
+				</h3>
+				<pre>func (e *<a href="#UnmarshalTypeError">UnmarshalTypeError</a>) Unwrap() <a href="/pkg/builtin/#error">error</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="Unmarshaler">type <a href="/src/encoding/json/v2_decode.go?s=5114:5151#L109">Unmarshaler</a>
+				
+				
+			</h2>
+			<p>Unmarshaler 是能够从自身的 JSON 表示进行反序列化的类型所实现的接口。可以假定输入是某个 JSON 值的有效编码。如果 UnmarshalJSON 希望在返回后保留 JSON 数据，就必须复制这些数据。
+
+			<pre>type Unmarshaler = <a href="/pkg/encoding/json/v2/">jsonv2</a>.<a href="/pkg/encoding/json/v2/#Unmarshaler">Unmarshaler</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="UnsupportedTypeError">type <a href="/src/encoding/json/v2_encode.go?s=8612:8667#L200">UnsupportedTypeError</a>
+				
+				
+			</h2>
+			<p>尝试编码不支持的值类型时，<a href="#Marshal">Marshal</a> 返回 UnsupportedTypeError。
+
+			<pre>type UnsupportedTypeError struct {
+<span id="UnsupportedTypeError.Type"></span>    Type <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Type">Type</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnsupportedTypeError.Error">func (*UnsupportedTypeError) <a href="/src/encoding/json/v2_encode.go?s=8669:8714#L204">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnsupportedTypeError">UnsupportedTypeError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="UnsupportedValueError">type <a href="/src/encoding/json/v2_encode.go?s=8877:8949#L210">UnsupportedValueError</a>
+				
+				
+			</h2>
+			<p>尝试编码不支持的值时，<a href="#Marshal">Marshal</a> 返回 UnsupportedValueError。
+
+			<pre>type UnsupportedValueError struct {
+<span id="UnsupportedValueError.Value"></span>    Value <a href="/pkg/reflect/">reflect</a>.<a href="/pkg/reflect/#Value">Value</a>
+<span id="UnsupportedValueError.Str"></span>    Str   <a href="/pkg/builtin/#string">string</a>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="UnsupportedValueError.Error">func (*UnsupportedValueError) <a href="/src/encoding/json/v2_encode.go?s=8951:8997#L215">Error</a>
+					
+					
+				</h3>
+				<pre>func (e *<a href="#UnsupportedValueError">UnsupportedValueError</a>) Error() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="jsontext/">jsontext</a>
+					</td>
+				
+					<td class="pkg-synopsis">jsontext 包按 RFC 4627、RFC 7159、RFC 7493、RFC 8259 和 RFC 8785 的规定实现 JSON 的语法处理。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="v2/">v2</a>
+					</td>
+				
+					<td class="pkg-synopsis">json 包实现了 RFC 8259 规定的 JSON 语义处理。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

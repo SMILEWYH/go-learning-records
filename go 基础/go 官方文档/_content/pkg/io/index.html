@@ -1,0 +1,2015 @@
+<!--{
+  "Title": "io 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>io 包</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "io"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+				<dd><a href="#pkg-examples" class="examplesLink">示例</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>io 包为 I/O 原语提供基本接口。它主要将现有的 I/O 原语实现（例如 os 包中的实现）封装为通用的公共接口，以抽象其功能，同时提供一些相关原语。
+<p>这些接口和原语封装了具有不同实现的底层操作，因此除非另有说明，调用方不应假定它们能够安全地并行执行。
+</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+				<dd><a href="#pkg-constants">常量</a></dd>
+			
+			
+				<dd><a href="#pkg-variables">变量</a></dd>
+			
+			
+				<dd><a href="#Copy">func Copy(dst Writer, src Reader) (written int64, err error)</a></dd>
+			
+				<dd><a href="#CopyBuffer">func CopyBuffer(dst Writer, src Reader, buf []byte) (written int64, err error)</a></dd>
+			
+				<dd><a href="#CopyN">func CopyN(dst Writer, src Reader, n int64) (written int64, err error)</a></dd>
+			
+				<dd><a href="#Pipe">func Pipe() (*PipeReader, *PipeWriter)</a></dd>
+			
+				<dd><a href="#ReadAll">func ReadAll(r Reader) ([]byte, error)</a></dd>
+			
+				<dd><a href="#ReadAtLeast">func ReadAtLeast(r Reader, buf []byte, min int) (n int, err error)</a></dd>
+			
+				<dd><a href="#ReadFull">func ReadFull(r Reader, buf []byte) (n int, err error)</a></dd>
+			
+				<dd><a href="#WriteString">func WriteString(w Writer, s string) (n int, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#ByteReader">type ByteReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ByteScanner">type ByteScanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ByteWriter">type ByteWriter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Closer">type Closer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#LimitedReader">type LimitedReader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#LimitedReader.Read">func (l *LimitedReader) Read(p []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#OffsetWriter">type OffsetWriter</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewOffsetWriter">func NewOffsetWriter(w WriterAt, off int64) *OffsetWriter</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#OffsetWriter.Seek">func (o *OffsetWriter) Seek(offset int64, whence int) (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OffsetWriter.Write">func (o *OffsetWriter) Write(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#OffsetWriter.WriteAt">func (o *OffsetWriter) WriteAt(p []byte, off int64) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#PipeReader">type PipeReader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeReader.Close">func (r *PipeReader) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeReader.CloseWithError">func (r *PipeReader) CloseWithError(err error) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeReader.Read">func (r *PipeReader) Read(data []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#PipeWriter">type PipeWriter</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeWriter.Close">func (w *PipeWriter) Close() error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeWriter.CloseWithError">func (w *PipeWriter) CloseWithError(err error) error</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#PipeWriter.Write">func (w *PipeWriter) Write(data []byte) (n int, err error)</a></dd>
+				
+			
+				
+				<dd><a href="#ReadCloser">type ReadCloser</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NopCloser">func NopCloser(r Reader) ReadCloser</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadSeekCloser">type ReadSeekCloser</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadSeeker">type ReadSeeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadWriteCloser">type ReadWriteCloser</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadWriteSeeker">type ReadWriteSeeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReadWriter">type ReadWriter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Reader">type Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#LimitReader">func LimitReader(r Reader, n int64) Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiReader">func MultiReader(readers ...Reader) Reader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#TeeReader">func TeeReader(r Reader, w Writer) Reader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReaderAt">type ReaderAt</a></dd>
+				
+				
+			
+				
+				<dd><a href="#ReaderFrom">type ReaderFrom</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RuneReader">type RuneReader</a></dd>
+				
+				
+			
+				
+				<dd><a href="#RuneScanner">type RuneScanner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SectionReader">type SectionReader</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#NewSectionReader">func NewSectionReader(r ReaderAt, off int64, n int64) *SectionReader</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#SectionReader.Outer">func (s *SectionReader) Outer() (r ReaderAt, off int64, n int64)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SectionReader.Read">func (s *SectionReader) Read(p []byte) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SectionReader.ReadAt">func (s *SectionReader) ReadAt(p []byte, off int64) (n int, err error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SectionReader.Seek">func (s *SectionReader) Seek(offset int64, whence int) (int64, error)</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#SectionReader.Size">func (s *SectionReader) Size() int64</a></dd>
+				
+			
+				
+				<dd><a href="#Seeker">type Seeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#StringWriter">type StringWriter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WriteCloser">type WriteCloser</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WriteSeeker">type WriteSeeker</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Writer">type Writer</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#MultiWriter">func MultiWriter(writers ...Writer) Writer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WriterAt">type WriterAt</a></dd>
+				
+				
+			
+				
+				<dd><a href="#WriterTo">type WriterTo</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+		<div id="pkg-examples">
+			<h3>Examples
+			<span class="js-expandAll expandAll collapsed">（全部展开）</span>
+			</h3>
+			<dl>
+			
+			<dd><a class="exampleLink" href="#example_Copy">Copy</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CopyBuffer">CopyBuffer</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_CopyN">CopyN</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_LimitReader">LimitReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MultiReader">MultiReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_MultiWriter">MultiWriter</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_Pipe">Pipe</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadAll">ReadAll</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadAtLeast">ReadAtLeast</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_ReadFull">ReadFull</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SectionReader">SectionReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SectionReader_Read">SectionReader.Read</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SectionReader_ReadAt">SectionReader.ReadAt</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SectionReader_Seek">SectionReader.Seek</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_SectionReader_Size">SectionReader.Size</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_TeeReader">TeeReader</a></dd>
+			
+			<dd><a class="exampleLink" href="#example_WriteString">WriteString</a></dd>
+			
+			</dl>
+		</div>
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/io/io.go">io.go</a>
+			
+				<a href="/src/io/multi.go">multi.go</a>
+			
+				<a href="/src/io/pipe.go">pipe.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+			<h2 id="pkg-constants">常量</h2>
+			
+				<p>Seek 的 whence 参数可用值。
+<pre>const (
+    <span id="SeekStart">SeekStart</span>   = 0 <span class="comment">// 相对于文件起始位置定位</span>
+    <span id="SeekCurrent">SeekCurrent</span> = 1 <span class="comment">// 相对于当前偏移量定位</span>
+    <span id="SeekEnd">SeekEnd</span>     = 2 <span class="comment">// 相对于文件末尾定位</span>
+)</pre>
+			
+		
+		
+			<h2 id="pkg-variables">变量</h2>
+			
+				<p>EOF 是 Read 在没有更多输入可读时返回的错误。（Read 必须返回 EOF 本身，而不是包装 EOF 的错误，因为调用方会用 == 判断 EOF。）函数只应使用 EOF 表示输入正常结束。如果在读取结构化数据流的过程中意外遇到 EOF，应返回 <a href="#ErrUnexpectedEOF">ErrUnexpectedEOF</a> 或其他能提供更详细信息的错误。
+<pre>var <span id="EOF">EOF</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;EOF&#34;)</pre>
+			
+				<p>ErrClosedPipe 用于表示对已关闭管道进行读写操作时发生的错误。
+<pre>var <span id="ErrClosedPipe">ErrClosedPipe</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;io: read/write on closed pipe&#34;)</pre>
+			
+				<p>当多次调用 Read 都没有返回任何数据或错误时，<a href="#Reader">Reader</a> 的某些调用方会返回 ErrNoProgress。这通常意味着 <a href="#Reader">Reader</a> 的实现有问题。
+<pre>var <span id="ErrNoProgress">ErrNoProgress</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;multiple Read calls return no data or error&#34;)</pre>
+			
+				<p>ErrShortBuffer 表示读取所需的缓冲区比提供的缓冲区更大。
+<pre>var <span id="ErrShortBuffer">ErrShortBuffer</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;short buffer&#34;)</pre>
+			
+				<p>ErrShortWrite 表示写操作接受的字节数少于请求写入的字节数，却没有返回明确的错误。
+<pre>var <span id="ErrShortWrite">ErrShortWrite</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;short write&#34;)</pre>
+			
+				<p>ErrUnexpectedEOF 表示在读取固定大小的数据块或数据结构的过程中遇到了 EOF。
+<pre>var <span id="ErrUnexpectedEOF">ErrUnexpectedEOF</span> = <a href="/pkg/errors/">errors</a>.<a href="/pkg/errors/#New">New</a>(&#34;unexpected EOF&#34;)</pre>
+			
+		
+		
+			
+			<h2 id="Copy">func <a href="/src/io/io.go?s=13934:13994#L377">Copy</a>
+				
+				
+			</h2>
+			<pre>func Copy(dst <a href="#Writer">Writer</a>, src <a href="#Reader">Reader</a>) (written <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>Copy 将数据从 src 复制到 dst，直到 src 到达 EOF 或发生错误。它返回复制的字节数，以及复制过程中遇到的第一个错误（如果有）。
+<p>Copy 成功时返回 err == nil，而不是 err == EOF。因为 Copy 本来就会持续读取 src 直到 EOF，所以不会将 Read 返回的 EOF 作为错误上报。
+<p>如果 src 实现了 <a href="#WriterTo">WriterTo</a>，则调用 src.WriteTo(dst) 完成复制。否则，如果 dst 实现了 <a href="#ReaderFrom">ReaderFrom</a>，则调用 dst.ReadFrom(src) 完成复制。
+<div id="example_Copy" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+
+	if _, err := io.Copy(os.Stdout, r); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some io.Reader stream to be read
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="CopyBuffer">func <a href="/src/io/io.go?s=14393:14471#L388">CopyBuffer</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<pre>func CopyBuffer(dst <a href="#Writer">Writer</a>, src <a href="#Reader">Reader</a>, buf []<a href="/pkg/builtin/#byte">byte</a>) (written <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>CopyBuffer 与 Copy 相同，但在需要缓冲区时，会使用提供的缓冲区中转数据，而不是分配临时缓冲区。如果 buf 为 nil，就会分配缓冲区；如果 buf 非 nil 但长度为零，CopyBuffer 会触发 panic。
+<p>如果 src 实现了 <a href="#WriterTo">WriterTo</a>，或者 dst 实现了 <a href="#ReaderFrom">ReaderFrom</a>，复制时就不会使用 buf。
+<div id="example_CopyBuffer" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r1 := strings.NewReader(&#34;first reader\n&#34;)
+	r2 := strings.NewReader(&#34;second reader\n&#34;)
+	buf := make([]byte, 8)
+
+	// 这里使用 buf……
+	if _, err := io.CopyBuffer(os.Stdout, r1, buf); err != nil {
+		log.Fatal(err)
+	}
+
+	// ……这里也复用它，无需再分配一个缓冲区。
+	if _, err := io.CopyBuffer(os.Stdout, r2, buf); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>first reader
+second reader
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="CopyN">func <a href="/src/io/io.go?s=13113:13183#L353">CopyN</a>
+				
+				
+			</h2>
+			<pre>func CopyN(dst <a href="#Writer">Writer</a>, src <a href="#Reader">Reader</a>, n <a href="/pkg/builtin/#int64">int64</a>) (written <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>CopyN 从 src 向 dst 复制 n 个字节，或在发生错误时提前停止。它返回复制的字节数，以及复制过程中最先遇到的错误。返回时，当且仅当 err == nil，才有 written == n。
+<p>如果 dst 实现了 <a href="#ReaderFrom">ReaderFrom</a>，则使用该接口完成复制。
+<div id="example_CopyN" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read&#34;)
+
+	if _, err := io.CopyN(os.Stdout, r, 4); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="Pipe">func <a href="/src/io/pipe.go?s=5048:5086#L185">Pipe</a>
+				
+				
+			</h2>
+			<pre>func Pipe() (*<a href="#PipeReader">PipeReader</a>, *<a href="#PipeWriter">PipeWriter</a>)</pre>
+			<p>Pipe 创建一个同步的内存管道。它可以连接接收 <a href="#Reader">io.Reader</a> 的代码和接收 <a href="#Writer">io.Writer</a> 的代码。
+<p>管道上的 Read 和 Write 一一匹配，但一次 Write 可能需要多次 Read 才能读完。也就是说，对 <a href="#PipeWriter">PipeWriter</a> 的每次 Write 调用都会阻塞，直到 <a href="#PipeReader">PipeReader</a> 上的一次或多次 Read 将写入的数据全部读完。数据直接从 Write 复制到相应的 Read，不经过内部缓冲区。
+<p>Read 和 Write 可以相互并行调用，也可以与 Close 并行调用，都是安全的。多个 Read 或多个 Write 并行调用也安全：各次同类调用会依次串行执行。
+<div id="example_Pipe" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	r, w := io.Pipe()
+
+	go func() {
+		fmt.Fprint(w, &#34;some io.Reader stream to be read\n&#34;)
+		w.Close()
+	}()
+
+	if _, err := io.Copy(os.Stdout, r); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some io.Reader stream to be read
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadAll">func <a href="/src/io/io.go?s=21815:21853#L699">ReadAll</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<pre>func ReadAll(r <a href="#Reader">Reader</a>) ([]<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadAll 从 r 读取数据，直到发生错误或遇到 EOF，并返回已读取的数据。调用成功时返回 err == nil，而不是 err == EOF。因为 ReadAll 本来就会持续读取输入直到 EOF，所以不会将 Read 返回的 EOF 作为错误上报。
+<div id="example_ReadAll" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;Go is a general-purpose language designed with systems programming in mind.&#34;)
+
+	b, err := io.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s&#34;, b)
+
+}
+</textarea></div>
+        <div class="output"><pre>Go is a general-purpose language designed with systems programming in mind.
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadAtLeast">func <a href="/src/io/io.go?s=12004:12070#L319">ReadAtLeast</a>
+				
+				
+			</h2>
+			<pre>func ReadAtLeast(r <a href="#Reader">Reader</a>, buf []<a href="/pkg/builtin/#byte">byte</a>, min <a href="/pkg/builtin/#int">int</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadAtLeast 从 r 向 buf 读取数据，直到至少读到 min 个字节。它返回复制的字节数；如果读取不足 min 个字节，还会返回错误。只有未读到任何字节时，错误才会是 EOF。如果读取了一些字节，但不足 min 个字节就遇到 EOF，ReadAtLeast 返回 <a href="#ErrUnexpectedEOF">ErrUnexpectedEOF</a>。如果 min 大于 buf 的长度，ReadAtLeast 返回 <a href="#ErrShortBuffer">ErrShortBuffer</a>。返回时，当且仅当 err == nil，才有 n &gt;= min。如果 r 在已读到至少 min 个字节时返回错误，该错误会被忽略。
+<div id="example_ReadAtLeast" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+
+	buf := make([]byte, 14)
+	if _, err := io.ReadAtLeast(r, buf, 4); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, buf)
+
+	// 缓冲区小于最小读取大小。
+	shortBuf := make([]byte, 3)
+	if _, err := io.ReadAtLeast(r, shortBuf, 4); err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+
+	// 最小读取大小超过 io.Reader 流中的数据量
+	longBuf := make([]byte, 64)
+	if _, err := io.ReadAtLeast(r, longBuf, 64); err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some io.Reader
+error: short buffer
+error: unexpected EOF
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="ReadFull">func <a href="/src/io/io.go?s=12734:12788#L343">ReadFull</a>
+				
+				
+			</h2>
+			<pre>func ReadFull(r <a href="#Reader">Reader</a>, buf []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>ReadFull 从 r 向 buf 恰好读取 len(buf) 个字节。它返回复制的字节数；如果读取不足，还会返回错误。只有未读到任何字节时，错误才会是 EOF。如果已读到部分字节，但未读满就遇到 EOF，ReadFull 返回 <a href="#ErrUnexpectedEOF">ErrUnexpectedEOF</a>。返回时，当且仅当 err == nil，才有 n == len(buf)。如果 r 在已读到至少 len(buf) 个字节时返回错误，该错误会被忽略。
+<div id="example_ReadFull" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+
+	buf := make([]byte, 4)
+	if _, err := io.ReadFull(r, buf); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf(&#34;%s\n&#34;, buf)
+
+	// 最小读取大小超过 io.Reader 流中的数据量
+	longBuf := make([]byte, 64)
+	if _, err := io.ReadFull(r, longBuf); err != nil {
+		fmt.Println(&#34;error:&#34;, err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some
+error: unexpected EOF
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+			
+			<h2 id="WriteString">func <a href="/src/io/io.go?s=11334:11389#L304">WriteString</a>
+				
+				
+			</h2>
+			<pre>func WriteString(w <a href="#Writer">Writer</a>, s <a href="/pkg/builtin/#string">string</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>WriteString 将字符串 s 的内容写入接收字节切片的 w。如果 w 实现了 <a href="#StringWriter">StringWriter</a>，就直接调用 <a href="#StringWriter.WriteString">StringWriter.WriteString</a>；否则，恰好调用一次 <a href="#Writer.Write">Writer.Write</a>。
+<div id="example_WriteString" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+)
+
+func main() {
+	if _, err := io.WriteString(os.Stdout, &#34;Hello World&#34;); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>Hello World
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+		
+		
+			
+			<h2 id="ByteReader">type <a href="/src/io/io.go?s=9445:9500#L252">ByteReader</a>
+				
+				
+			</h2>
+			<p>ByteReader 是封装 ReadByte 方法的接口。
+<p>ReadByte 读取并返回输入中的下一个字节，或返回遇到的错误。如果 ReadByte 返回错误，就没有消耗任何输入字节，此时返回的字节值未定义。
+<p>ReadByte 为逐字节处理提供了高效接口。对于没有实现 ByteReader 的 <a href="#Reader">Reader</a>，可以用 bufio.NewReader 包装它，以添加这个方法。
+<pre>type ByteReader interface {
+    ReadByte() (<a href="/pkg/builtin/#byte">byte</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ByteScanner">type <a href="/src/io/io.go?s=9959:10021#L264">ByteScanner</a>
+				
+				
+			</h2>
+			<p>ByteScanner 接口在基本的 ReadByte 方法之外增加了 UnreadByte 方法。
+<p>UnreadByte 使下一次 ReadByte 返回上一次读取的字节。如果上一次操作不是成功的 ReadByte 调用，UnreadByte 可能返回错误、回退上一次读取的字节（或上一次回退字节之前的那个字节），也可能在支持 <a href="#Seeker">Seeker</a> 接口的实现中定位到当前偏移量之前的一个字节处。
+<pre>type ByteScanner interface {
+    <a href="#ByteReader">ByteReader</a>
+    UnreadByte() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ByteWriter">type <a href="/src/io/io.go?s=10087:10141#L270">ByteWriter</a>
+				
+				<span title="自 Go 1.1 起提供">1.1</span>
+			</h2>
+			<p>ByteWriter 是封装 WriteByte 方法的接口。
+<pre>type ByteWriter interface {
+    WriteByte(c <a href="/pkg/builtin/#byte">byte</a>) <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Closer">type <a href="/src/io/io.go?s=4420:4460#L97">Closer</a>
+				
+				
+			</h2>
+			<p>Closer 是封装基本 Close 方法的接口。
+<p>第一次调用之后再调用 Close，其行为未定义。具体实现可以在文档中说明自己的行为。
+<pre>type Closer interface {
+    Close() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="LimitedReader">type <a href="/src/io/io.go?s=16116:16209#L457">LimitedReader</a>
+				
+				
+			</h2>
+			<p>LimitedReader 从 R 读取数据，但最多返回 N 个字节。每次 Read 都会更新 N，以反映新的剩余可读字节数。当 N &lt;= 0，或底层 R 返回 EOF 时，Read 返回 EOF。
+<pre>type LimitedReader struct {
+<span id="LimitedReader.R"></span>    R <a href="#Reader">Reader</a> <span class="comment">// 底层读取器</span>
+<span id="LimitedReader.N"></span>    N <a href="/pkg/builtin/#int64">int64</a>  <span class="comment">// 剩余可读取的最大字节数</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LimitedReader.Read">func (*LimitedReader) <a href="/src/io/io.go?s=16211:16268#L462">Read</a>
+					
+					
+				</h3>
+				<pre>func (l *<a href="#LimitedReader">LimitedReader</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="OffsetWriter">type <a href="/src/io/io.go?s=18653:18765#L560">OffsetWriter</a>
+				
+				<span title="自 Go 1.20 起提供">1.20</span>
+			</h2>
+			<p>OffsetWriter 将偏移量 base 处的写操作映射到底层写入器的 base+off 处。
+<pre>type OffsetWriter struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NewOffsetWriter">func <a href="/src/io/io.go?s=18856:18913#L568">NewOffsetWriter</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func NewOffsetWriter(w <a href="#WriterAt">WriterAt</a>, off <a href="/pkg/builtin/#int64">int64</a>) *<a href="#OffsetWriter">OffsetWriter</a></pre>
+				<p>NewOffsetWriter 返回一个 <a href="#OffsetWriter">OffsetWriter</a>，从偏移量 off 开始向 w 写入数据。
+<h3 id="OffsetWriter.Seek">func (*OffsetWriter) <a href="/src/io/io.go?s=19235:19303#L587">Seek</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (o *<a href="#OffsetWriter">OffsetWriter</a>) Seek(offset <a href="/pkg/builtin/#int64">int64</a>, whence <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="OffsetWriter.Write">func (*OffsetWriter) <a href="/src/io/io.go?s=18954:19011#L572">Write</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (o *<a href="#OffsetWriter">OffsetWriter</a>) Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+				<h3 id="OffsetWriter.WriteAt">func (*OffsetWriter) <a href="/src/io/io.go?s=19076:19146#L578">WriteAt</a>
+					
+					<span title="自 Go 1.20 起提供">1.20</span>
+				</h3>
+				<pre>func (o *<a href="#OffsetWriter">OffsetWriter</a>) WriteAt(p []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+			
+		
+			
+			<h2 id="PipeReader">type <a href="/src/io/pipe.go?s=2465:2495#L116">PipeReader</a>
+				
+				
+			</h2>
+			<p>PipeReader 是管道的读取端。
+<pre>type PipeReader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PipeReader.Close">func (*PipeReader) <a href="/src/io/pipe.go?s=2948:2982#L129">Close</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#PipeReader">PipeReader</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭读取端；此后对管道写入端的写操作会返回 <a href="#ErrClosedPipe">ErrClosedPipe</a> 错误。
+<h3 id="PipeReader.CloseWithError">func (*PipeReader) <a href="/src/io/pipe.go?s=3230:3282#L138">CloseWithError</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#PipeReader">PipeReader</a>) CloseWithError(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>CloseWithError 关闭读取端；此后对管道写入端的写操作会返回错误 err。
+<p>如果已有错误，CloseWithError 绝不会覆盖它，并且始终返回 nil。
+<h3 id="PipeReader.Read">func (*PipeReader) <a href="/src/io/pipe.go?s=2741:2798#L123">Read</a>
+					
+					
+				</h3>
+				<pre>func (r *<a href="#PipeReader">PipeReader</a>) Read(data []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Read 实现标准的 Read 接口：从管道读取数据，并阻塞直到有写入方写入，或写入端被关闭。如果写入端以某个错误关闭，就将该错误作为 err 返回；否则 err 为 EOF。
+<h2 id="PipeWriter">type <a href="/src/io/pipe.go?s=3363:3401#L143">PipeWriter</a>
+				
+				
+			</h2>
+			<p>PipeWriter 是管道的写入端。
+<pre>type PipeWriter struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="PipeWriter.Close">func (*PipeWriter) <a href="/src/io/pipe.go?s=3888:3922#L156">Close</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#PipeWriter">PipeWriter</a>) Close() <a href="/pkg/builtin/#error">error</a></pre>
+				<p>Close 关闭写入端；此后从管道读取端读取时，不会返回任何字节，并返回 EOF。
+<h3 id="PipeWriter.CloseWithError">func (*PipeWriter) <a href="/src/io/pipe.go?s=4208:4260#L166">CloseWithError</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#PipeWriter">PipeWriter</a>) CloseWithError(err <a href="/pkg/builtin/#error">error</a>) <a href="/pkg/builtin/#error">error</a></pre>
+				<p>CloseWithError 关闭写入端；此后从管道读取端读取时，不会返回任何字节，并返回错误 err；如果 err 为 nil，则返回 EOF。
+<p>如果已有错误，CloseWithError 绝不会覆盖它，并且始终返回 nil。
+<h3 id="PipeWriter.Write">func (*PipeWriter) <a href="/src/io/pipe.go?s=3686:3744#L150">Write</a>
+					
+					
+				</h3>
+				<pre>func (w *<a href="#PipeWriter">PipeWriter</a>) Write(data []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				<p>Write 实现标准的 Write 接口：向管道写入数据，并阻塞直到一个或多个读取方读完全部数据，或读取端被关闭。如果读取端以某个错误关闭，就将该错误作为 err 返回；否则 err 为 <a href="#ErrClosedPipe">ErrClosedPipe</a>。
+<h2 id="ReadCloser">type <a href="/src/io/io.go?s=5476:5521#L127">ReadCloser</a>
+				
+				
+			</h2>
+			<p>ReadCloser 是组合基本 Read 和 Close 方法的接口。
+<pre>type ReadCloser interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Closer">Closer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="NopCloser">func <a href="/src/io/io.go?s=21141:21176#L672">NopCloser</a>
+					
+					<span title="自 Go 1.16 起提供">1.16</span>
+				</h3>
+				<pre>func NopCloser(r <a href="#Reader">Reader</a>) <a href="#ReadCloser">ReadCloser</a></pre>
+				<p>NopCloser 返回一个包装了给定 <a href="#Reader">Reader</a> r 的 <a href="#ReadCloser">ReadCloser</a>，其 Close 方法不执行任何操作。如果 r 实现了 <a href="#WriterTo">WriterTo</a>，返回的 <a href="#ReadCloser">ReadCloser</a> 也会实现 <a href="#WriterTo">WriterTo</a>，并将调用转发给 r。
+<h2 id="ReadSeekCloser">type <a href="/src/io/io.go?s=6012:6069#L153">ReadSeekCloser</a>
+				
+				<span title="自 Go 1.16 起提供">1.16</span>
+			</h2>
+			<p>ReadSeekCloser 是组合基本 Read、Seek 和 Close 方法的接口。
+<pre>type ReadSeekCloser interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Seeker">Seeker</a>
+    <a href="#Closer">Closer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadSeeker">type <a href="/src/io/io.go?s=5875:5920#L146">ReadSeeker</a>
+				
+				
+			</h2>
+			<p>ReadSeeker 是组合基本 Read 和 Seek 方法的接口。
+<pre>type ReadSeeker interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Seeker">Seeker</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadWriteCloser">type <a href="/src/io/io.go?s=5739:5797#L139">ReadWriteCloser</a>
+				
+				
+			</h2>
+			<p>ReadWriteCloser 是组合基本 Read、Write 和 Close 方法的接口。
+<pre>type ReadWriteCloser interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Writer">Writer</a>
+    <a href="#Closer">Closer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadWriteSeeker">type <a href="/src/io/io.go?s=6285:6343#L166">ReadWriteSeeker</a>
+				
+				
+			</h2>
+			<p>ReadWriteSeeker 是组合基本 Read、Write 和 Seek 方法的接口。
+<pre>type ReadWriteSeeker interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Writer">Writer</a>
+    <a href="#Seeker">Seeker</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReadWriter">type <a href="/src/io/io.go?s=5352:5397#L121">ReadWriter</a>
+				
+				
+			</h2>
+			<p>ReadWriter 是组合基本 Read 和 Write 方法的接口。
+<pre>type ReadWriter interface {
+    <a href="#Reader">Reader</a>
+    <a href="#Writer">Writer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Reader">type <a href="/src/io/io.go?s=3680:3740#L76">Reader</a>
+				
+				
+			</h2>
+			<p>Reader 是封装基本 Read 方法的接口。
+<p>Read 向 p 中读取最多 len(p) 个字节，返回实际读取的字节数（0 &lt;= n &lt;= len(p)）以及遇到的错误。即使返回的 n &lt; len(p)，Read 在调用过程中也可能将整个 p 用作临时存储空间。如果有部分数据可读，但不足 len(p) 个字节，Read 通常会返回已有数据，而不是等待更多数据。
+<p>如果 Read 在成功读取 n &gt; 0 个字节后遇到错误或文件结束，它会返回已读取的字节数。错误可以与这些字节在同一次调用中返回，也可以在后续调用中返回，此时 n == 0。例如，当 Reader 在输入流末尾返回非零字节数时，err 可以是 EOF，也可以是 nil。下一次 Read 应返回 0, EOF。
+<p>调用方应始终先处理返回的 n &gt; 0 个字节，再判断错误 err。这样既能正确处理读取部分字节后发生的 I/O 错误，也能正确处理上述两种允许的 EOF 返回方式。
+<p>如果 len(p) == 0，Read 应始终返回 n == 0。如果已知存在错误条件，例如 EOF，也可以返回非 nil 错误。
+<p>除 len(p) == 0 外，不建议 Read 的实现返回字节数零和 nil 错误。调用方应将 0, nil 理解为没有发生任何事情；特别是，它不表示 EOF。
+<p>实现不得保留 p。
+<pre>type Reader interface {
+    Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+				<h3 id="LimitReader">func <a href="/src/io/io.go?s=15811:15853#L451">LimitReader</a>
+					
+					
+				</h3>
+				<pre>func LimitReader(r <a href="#Reader">Reader</a>, n <a href="/pkg/builtin/#int64">int64</a>) <a href="#Reader">Reader</a></pre>
+				<p>LimitReader 返回一个从 r 读取数据的 Reader，但读取 n 个字节后就返回 EOF 并停止。其底层实现是 *LimitedReader。
+<div id="example_LimitReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	lr := io.LimitReader(r, 4)
+
+	if _, err := io.Copy(os.Stdout, lr); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="MultiReader">func <a href="/src/io/multi.go?s=1942:1984#L63">MultiReader</a>
+					
+					
+				</h3>
+				<pre>func MultiReader(readers ...<a href="#Reader">Reader</a>) <a href="#Reader">Reader</a></pre>
+				<p>MultiReader 返回一个 Reader，将给定的各个输入读取器按顺序逻辑拼接起来。读取时依次读取各个输入。所有输入都返回 EOF 后，Read 才返回 EOF。如果任一读取器返回既非 nil 也非 EOF 的错误，Read 就返回该错误。
+<div id="example_MultiReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r1 := strings.NewReader(&#34;first reader &#34;)
+	r2 := strings.NewReader(&#34;second reader &#34;)
+	r3 := strings.NewReader(&#34;third reader\n&#34;)
+	r := io.MultiReader(r1, r2, r3)
+
+	if _, err := io.Copy(os.Stdout, r); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>first reader second reader third reader
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="TeeReader">func <a href="/src/io/io.go?s=19840:19881#L608">TeeReader</a>
+					
+					
+				</h3>
+				<pre>func TeeReader(r <a href="#Reader">Reader</a>, w <a href="#Writer">Writer</a>) <a href="#Reader">Reader</a></pre>
+				<p>TeeReader 返回一个 <a href="#Reader">Reader</a>，将从 r 读取的数据同时写入 w。通过它对 r 进行的每次读取，都对应一次向 w 的写入。内部没有缓冲：写入必须先完成，读取才能完成。写入过程中遇到的任何错误，都会作为读取错误返回。
+<div id="example_TeeReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	var r io.Reader = strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+
+	r = io.TeeReader(r, os.Stdout)
+
+	// 从 r 读取的所有数据都会复制到标准输出。
+	if _, err := io.ReadAll(r); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>some io.Reader stream to be read
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="ReaderAt">type <a href="/src/io/io.go?s=8194:8269#L220">ReaderAt</a>
+				
+				
+			</h2>
+			<p>ReaderAt 是封装基本 ReadAt 方法的接口。
+<p>ReadAt 从底层输入源的偏移量 off 处开始，向 p 读取 len(p) 个字节。它返回实际读取的字节数（0 &lt;= n &lt;= len(p)）以及遇到的错误。
+<p>当 ReadAt 返回 n &lt; len(p) 时，会同时返回非 nil 错误，说明未能读取更多字节的原因。在这一点上，ReadAt 比 Read 更严格。
+<p>即使 ReadAt 返回 n &lt; len(p)，也可能在调用过程中将整个 p 用作临时存储空间。如果有部分数据可读，但不足 len(p) 个字节，ReadAt 会阻塞，直到全部所需数据可读或发生错误。在这一点上，ReadAt 与 Read 不同。
+<p>如果 ReadAt 返回的 n = len(p) 个字节恰好位于输入源末尾，那么 err 可以是 EOF，也可以是 nil。
+<p>如果 ReadAt 从具有定位偏移量的输入源读取数据，它既不应影响底层定位偏移量，也不应受其影响。
+<p>调用方可以对同一输入源并行调用 ReadAt。
+<p>实现不得保留 p。
+<pre>type ReaderAt interface {
+    ReadAt(p []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="ReaderFrom">type <a href="/src/io/io.go?s=6640:6710#L179">ReaderFrom</a>
+				
+				
+			</h2>
+			<p>ReaderFrom 是封装 ReadFrom 方法的接口。
+<p>ReadFrom 从 r 读取数据，直到遇到 EOF 或错误。返回值 n 是已读取的字节数。读取过程中遇到的任何非 EOF 错误也会被返回。
+<p>如果可用，<a href="#Copy">Copy</a> 函数会使用 <a href="#ReaderFrom">ReaderFrom</a>。
+<pre>type ReaderFrom interface {
+    ReadFrom(r <a href="#Reader">Reader</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RuneReader">type <a href="/src/io/io.go?s=10359:10430#L279">RuneReader</a>
+				
+				
+			</h2>
+			<p>RuneReader 是封装 ReadRune 方法的接口。
+<p>ReadRune 读取一个经过编码的 Unicode 字符，返回对应的 rune 及其占用的字节数。如果没有字符可读，就会设置 err。
+<pre>type RuneReader interface {
+    ReadRune() (r <a href="/pkg/builtin/#rune">rune</a>, size <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="RuneScanner">type <a href="/src/io/io.go?s=10902:10964#L291">RuneScanner</a>
+				
+				
+			</h2>
+			<p>RuneScanner 接口在基本的 ReadRune 方法之外增加了 UnreadRune 方法。
+<p>UnreadRune 使下一次 ReadRune 返回上一次读取的 rune。如果上一次操作不是成功的 ReadRune 调用，UnreadRune 可能返回错误、回退上一次读取的 rune（或上一次回退 rune 之前的那个 rune），也可能在支持 <a href="#Seeker">Seeker</a> 接口的实现中定位到当前偏移量之前那个 rune 的起始位置。
+<pre>type RuneScanner interface {
+    <a href="#RuneReader">RuneReader</a>
+    UnreadRune() <a href="/pkg/builtin/#error">error</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SectionReader">type <a href="/src/io/io.go?s=16972:17180#L491">SectionReader</a>
+				
+				
+			</h2>
+			<p>SectionReader 针对底层 <a href="#ReaderAt">ReaderAt</a> 的某个区段实现 Read、Seek 和 ReadAt。
+<pre>type SectionReader struct {
+    <span class="comment">// 包含已过滤或未导出的字段</span>
+}
+</pre>
+
+			
+
+			
+
+			
+
+
+<div id="example_SectionReader" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	s := io.NewSectionReader(r, 5, 17)
+
+	if _, err := io.Copy(os.Stdout, s); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>io.Reader stream
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+
+			
+				<h3 id="NewSectionReader">func <a href="/src/io/io.go?s=16523:16591#L476">NewSectionReader</a>
+					
+					
+				</h3>
+				<pre>func NewSectionReader(r <a href="#ReaderAt">ReaderAt</a>, off <a href="/pkg/builtin/#int64">int64</a>, n <a href="/pkg/builtin/#int64">int64</a>) *<a href="#SectionReader">SectionReader</a></pre>
+				<p>NewSectionReader 返回一个 <a href="#SectionReader">SectionReader</a>，从 r 的偏移量 off 处开始读取，读取 n 个字节后返回 EOF 并停止。
+<h3 id="SectionReader.Outer">func (*SectionReader) <a href="/src/io/io.go?s=18467:18531#L555">Outer</a>
+					
+					<span title="自 Go 1.22 起提供">1.22</span>
+				</h3>
+				<pre>func (s *<a href="#SectionReader">SectionReader</a>) Outer() (r <a href="#ReaderAt">ReaderAt</a>, off <a href="/pkg/builtin/#int64">int64</a>, n <a href="/pkg/builtin/#int64">int64</a>)</pre>
+				<p>Outer 返回底层 <a href="#ReaderAt">ReaderAt</a>，以及该区段的偏移量和长度。
+<p>这些返回值与创建 <a href="#SectionReader">SectionReader</a> 时传给 <a href="#NewSectionReader">NewSectionReader</a> 的值相同。
+<h3 id="SectionReader.Read">func (*SectionReader) <a href="/src/io/io.go?s=17182:17239#L499">Read</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SectionReader">SectionReader</a>) Read(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+
+
+<div id="example_SectionReader_Read" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	s := io.NewSectionReader(r, 5, 17)
+
+	buf := make([]byte, 9)
+	if _, err := s.Read(buf); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, buf)
+
+}
+</textarea></div>
+        <div class="output"><pre>io.Reader
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="SectionReader.ReadAt">func (*SectionReader) <a href="/src/io/io.go?s=17843:17913#L532">ReadAt</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SectionReader">SectionReader</a>) ReadAt(p []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+
+
+<div id="example_SectionReader_ReadAt" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	s := io.NewSectionReader(r, 5, 17)
+
+	buf := make([]byte, 6)
+	if _, err := s.ReadAt(buf, 10); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf(&#34;%s\n&#34;, buf)
+
+}
+</textarea></div>
+        <div class="output"><pre>stream
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="SectionReader.Seek">func (*SectionReader) <a href="/src/io/io.go?s=17516:17585#L514">Seek</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SectionReader">SectionReader</a>) Seek(offset <a href="/pkg/builtin/#int64">int64</a>, whence <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)</pre>
+				
+				
+
+
+<div id="example_SectionReader_Seek" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;os&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	s := io.NewSectionReader(r, 5, 17)
+
+	if _, err := s.Seek(10, io.SeekStart); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := io.Copy(os.Stdout, s); err != nil {
+		log.Fatal(err)
+	}
+
+}
+</textarea></div>
+        <div class="output"><pre>stream
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+				<h3 id="SectionReader.Size">func (*SectionReader) <a href="/src/io/io.go?s=18210:18246#L549">Size</a>
+					
+					
+				</h3>
+				<pre>func (s *<a href="#SectionReader">SectionReader</a>) Size() <a href="/pkg/builtin/#int64">int64</a></pre>
+				<p>Size 返回区段的大小，单位为字节。
+<div id="example_SectionReader_Size" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+	s := io.NewSectionReader(r, 5, 17)
+
+	fmt.Println(s.Size())
+
+}
+</textarea></div>
+        <div class="output"><pre>17
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+		
+			
+			<h2 id="Seeker">type <a href="/src/io/io.go?s=5201:5273#L116">Seeker</a>
+				
+				
+			</h2>
+			<p>Seeker 是封装基本 Seek 方法的接口。
+<p>Seek 将下一次 Read 或 Write 的偏移量设置为 offset，其含义由 whence 决定：<a href="#SeekStart">SeekStart</a> 表示相对于文件开头，<a href="#SeekCurrent">SeekCurrent</a> 表示相对于当前偏移量，<a href="#SeekEnd">SeekEnd</a> 表示相对于文件末尾（例如 offset = -2 表示文件的倒数第二个字节）。Seek 返回相对于文件开头的新偏移量，以及可能发生的错误。
+<p>定位到文件开头之前会报错。实现可以允许定位到任意正偏移量，但如果新偏移量超过底层对象的大小，后续 I/O 操作的行为取决于具体实现。
+<pre>type Seeker interface {
+    Seek(offset <a href="/pkg/builtin/#int64">int64</a>, whence <a href="/pkg/builtin/#int">int</a>) (<a href="/pkg/builtin/#int64">int64</a>, <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="StringWriter">type <a href="/src/io/io.go?s=11034:11107#L297">StringWriter</a>
+				
+				<span title="自 Go 1.12 起提供">1.12</span>
+			</h2>
+			<p>StringWriter 是封装 WriteString 方法的接口。
+<pre>type StringWriter interface {
+    WriteString(s <a href="/pkg/builtin/#string">string</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="WriteCloser">type <a href="/src/io/io.go?s=5602:5648#L133">WriteCloser</a>
+				
+				
+			</h2>
+			<p>WriteCloser 是组合基本 Write 和 Close 方法的接口。
+<pre>type WriteCloser interface {
+    <a href="#Writer">Writer</a>
+    <a href="#Closer">Closer</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="WriteSeeker">type <a href="/src/io/io.go?s=6149:6195#L160">WriteSeeker</a>
+				
+				
+			</h2>
+			<p>WriteSeeker 是组合基本 Write 和 Seek 方法的接口。
+<pre>type WriteSeeker interface {
+    <a href="#Writer">Writer</a>
+    <a href="#Seeker">Seeker</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Writer">type <a href="/src/io/io.go?s=4171:4232#L89">Writer</a>
+				
+				
+			</h2>
+			<p>Writer 是封装基本 Write 方法的接口。
+<p>Write 将 p 中的 len(p) 个字节写入底层数据流。它返回从 p 写入的字节数（0 &lt;= n &lt;= len(p)），以及导致写入提前停止的错误。如果返回 n &lt; len(p)，Write 必须同时返回非 nil 错误。Write 不得修改切片中的数据，即使只是临时修改也不允许。
+<p>实现不得保留 p。
+<pre>type Writer interface {
+    Write(p []<a href="/pkg/builtin/#byte">byte</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+				<p>Discard 是一个 <a href="#Writer">Writer</a>，对它的所有 Write 调用都会成功，但不会执行任何操作。
+<pre>var <span id="Discard">Discard</span> <a href="#Writer">Writer</a> = discard{}</pre>
+			
+
+			
+
+			
+				<h3 id="MultiWriter">func <a href="/src/io/multi.go?s=3119:3161#L117">MultiWriter</a>
+					
+					
+				</h3>
+				<pre>func MultiWriter(writers ...<a href="#Writer">Writer</a>) <a href="#Writer">Writer</a></pre>
+				<p>MultiWriter 创建一个写入器，将每次写入的数据复制给所有给定的写入器，类似于 Unix 的 tee(1) 命令。
+<p>每次写入都会依次写给列表中的每个写入器。如果某个写入器返回错误，整个写入操作就会停止并返回该错误，不会继续写给后面的写入器。
+<div id="example_MultiWriter" class="toggle">
+  <div class="collapsed">
+    <p class="exampleHeading toggleButton">▸ <span class="text">示例</span></p>
+  </div>
+  <div class="expanded">
+    <p class="exampleHeading toggleButton">▾ <span class="text">示例</span></p>
+    
+    
+    
+      <div class="play">
+        <div class="input"><textarea class="code" spellcheck="false">package main
+
+import (
+	&#34;fmt&#34;
+	&#34;io&#34;
+	&#34;log&#34;
+	&#34;strings&#34;
+)
+
+func main() {
+	r := strings.NewReader(&#34;some io.Reader stream to be read\n&#34;)
+
+	var buf1, buf2 strings.Builder
+	w := io.MultiWriter(&amp;buf1, &amp;buf2)
+
+	if _, err := io.Copy(w, r); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(buf1.String())
+	fmt.Print(buf2.String())
+
+}
+</textarea></div>
+        <div class="output"><pre>some io.Reader stream to be read
+some io.Reader stream to be read
+</pre></div>
+        <div class="buttons">
+          <button class="Button Button--primary run" title="运行此代码 [shift-enter]">运行</button>
+          <button class="Button fmt" title="格式化此代码">格式化</button>
+          
+            <button class="Button share" title="分享此代码">分享</button>
+          
+        </div>
+      </div>
+    
+  </div>
+</div>
+
+
+			
+
+			
+		
+			
+			<h2 id="WriterAt">type <a href="/src/io/io.go?s=8924:9000#L239">WriterAt</a>
+				
+				
+			</h2>
+			<p>WriterAt 是封装基本 WriteAt 方法的接口。
+<p>WriteAt 将 p 中的 len(p) 个字节写入底层数据流的偏移量 off 处。它返回从 p 写入的字节数（0 &lt;= n &lt;= len(p)），以及导致写入提前停止的错误。如果返回 n &lt; len(p)，WriteAt 必须同时返回非 nil 错误。
+<p>如果 WriteAt 向具有定位偏移量的目标写入数据，它既不应影响底层定位偏移量，也不应受其影响。
+<p>如果写入范围互不重叠，调用方可以对同一目标并行调用 WriteAt。
+<p>实现不得保留 p。
+<pre>type WriterAt interface {
+    WriteAt(p []<a href="/pkg/builtin/#byte">byte</a>, off <a href="/pkg/builtin/#int64">int64</a>) (n <a href="/pkg/builtin/#int">int</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="WriterTo">type <a href="/src/io/io.go?s=7030:7097#L190">WriterTo</a>
+				
+				
+			</h2>
+			<p>WriterTo 是封装 WriteTo 方法的接口。
+<p>WriteTo 向 w 写入数据，直到没有更多数据可写或发生错误。返回值 n 是写入的字节数。写入过程中遇到的任何错误也会被返回。
+<p>如果可用，Copy 函数会使用 WriterTo。
+<pre>type WriterTo interface {
+    WriteTo(w <a href="#Writer">Writer</a>) (n <a href="/pkg/builtin/#int64">int64</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="fs/">fs</a>
+					</td>
+				
+					<td class="pkg-synopsis">fs 包定义文件系统的基本接口。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="ioutil/">ioutil</a>
+					</td>
+				
+					<td class="pkg-synopsis">ioutil 包实现一些 I/O 工具函数。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>

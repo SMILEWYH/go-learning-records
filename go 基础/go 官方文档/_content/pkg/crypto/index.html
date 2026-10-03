@@ -1,0 +1,785 @@
+<!--{
+  "Title": "crypto 包",
+  "Layout": "pkgtranslation",
+  "Snapshot": "go1.27.1",
+  "Platform": "linux/amd64"
+}-->
+
+<article class="Pkg Article">
+
+<h1>Package crypto</h1>
+
+
+
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "crypto"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="#pkg-overview" class="overviewLink">概览</a></dd>
+			<dd><a href="#pkg-index" class="indexLink">索引</a></dd>
+			
+			
+				<dd><a href="#pkg-subdirectories">子目录</a></dd>
+			
+			</dl>
+		</div>
+		
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="展开概览章节">概览 ▸</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="收起概览章节">概览 ▾</h2>
+				<p>crypto 包汇集了常用的密码学常量。
+
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="展开索引章节">索引 ▸</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="收起索引章节">索引 ▾</h2>
+
+		
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+				<dd><a href="#RegisterHash">func RegisterHash(h Hash, f func() hash.Hash)</a></dd>
+			
+				<dd><a href="#SignMessage">func SignMessage(signer Signer, rand io.Reader, msg []byte, opts SignerOpts) (signature []byte, err error)</a></dd>
+			
+			
+				
+				<dd><a href="#Decapsulator">type Decapsulator</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Decrypter">type Decrypter</a></dd>
+				
+				
+			
+				
+				<dd><a href="#DecrypterOpts">type DecrypterOpts</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Encapsulator">type Encapsulator</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Hash">type Hash</a></dd>
+				
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Available">func (h Hash) Available() bool</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.HashFunc">func (h Hash) HashFunc() Hash</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.New">func (h Hash) New() hash.Hash</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.Size">func (h Hash) Size() int</a></dd>
+				
+					<dd>&nbsp; &nbsp; <a href="#Hash.String">func (h Hash) String() string</a></dd>
+				
+			
+				
+				<dd><a href="#MessageSigner">type MessageSigner</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PrivateKey">type PrivateKey</a></dd>
+				
+				
+			
+				
+				<dd><a href="#PublicKey">type PublicKey</a></dd>
+				
+				
+			
+				
+				<dd><a href="#Signer">type Signer</a></dd>
+				
+				
+			
+				
+				<dd><a href="#SignerOpts">type SignerOpts</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div>
+
+		
+
+		
+			<h3>包源文件</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="/src/crypto/crypto.go">crypto.go</a>
+			
+			</span>
+			</p>
+		
+		</div>
+		</div>
+
+		
+		
+		
+			
+			<h2 id="RegisterHash">func <a href="/src/crypto/crypto.go?s=4218:4263#L146">RegisterHash</a>
+				
+				
+			</h2>
+			<pre>func RegisterHash(h <a href="#Hash">Hash</a>, f func() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a>)</pre>
+			<p>RegisterHash 注册一个函数，该函数返回给定哈希函数的新实例。它应由实现哈希函数的包在 init 函数中调用。
+
+			
+		
+			
+			<h2 id="SignMessage">func <a href="/src/crypto/crypto.go?s=8350:8456#L249">SignMessage</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<pre>func SignMessage(signer <a href="#Signer">Signer</a>, rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, msg []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)</pre>
+			<p>SignMessage 使用 signer 对 msg 签名。如果 signer 实现了 <a href="#MessageSigner">MessageSigner</a>，就直接调用 <a href="#MessageSigner.SignMessage">MessageSigner.SignMessage</a>。否则，先用 opts.HashFunc() 对 msg 进行哈希，再通过 <a href="#Signer.Sign">Signer.Sign</a> 签名。
+
+			
+		
+		
+			
+			<h2 id="Decapsulator">type <a href="/src/crypto/crypto.go?s=9153:9275#L274">Decapsulator</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Decapsulator 是不透明 KEM 私钥的接口，可用于解封装操作，例如保存在硬件模块中的 ML-KEM 密钥。
+<p>例如，<a href="/pkg/crypto/mlkem/#DecapsulationKey768">crypto/mlkem.DecapsulationKey768</a> 实现了此接口。
+
+			<pre>type Decapsulator interface {
+    Encapsulator() <a href="#Encapsulator">Encapsulator</a>
+    Decapsulate(ciphertext []<a href="/pkg/builtin/#byte">byte</a>) (sharedKey []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Decrypter">type <a href="/src/crypto/crypto.go?s=7745:8117#L233">Decrypter</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			<p>Decrypter 是不透明私钥的接口，可用于非对称解密操作，例如保存在硬件模块中的 RSA 密钥。
+
+			<pre>type Decrypter interface {
+    <span class="comment">// Public 返回与此不透明私钥</span>
+    <span class="comment">// 对应的公钥。</span>
+    Public() <a href="#PublicKey">PublicKey</a>
+
+    <span class="comment">// Decrypt 解密 msg。opts 参数应适合</span>
+    <span class="comment">// 所使用的密码原语。详情请参阅各个实现</span>
+    <span class="comment">// 的文档。</span>
+    Decrypt(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, msg []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="#DecrypterOpts">DecrypterOpts</a>) (plaintext []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="DecrypterOpts">type <a href="/src/crypto/crypto.go?s=8119:8141#L244">DecrypterOpts</a>
+				
+				<span title="自 Go 1.5 起提供">1.5</span>
+			</h2>
+			
+			<pre>type DecrypterOpts <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Encapsulator">type <a href="/src/crypto/crypto.go?s=9457:9550#L283">Encapsulator</a>
+				
+				<span title="自 Go 1.26 起提供">1.26</span>
+			</h2>
+			<p>Encapsulator 是 KEM 公钥的接口，可用于封装操作。
+<p>例如，<a href="/pkg/crypto/mlkem/#EncapsulationKey768">crypto/mlkem.EncapsulationKey768</a> 实现了此接口。
+
+			<pre>type Encapsulator interface {
+    Bytes() []<a href="/pkg/builtin/#byte">byte</a>
+    Encapsulate() (sharedKey, ciphertext []<a href="/pkg/builtin/#byte">byte</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Hash">type <a href="/src/crypto/crypto.go?s=364:378#L6">Hash</a>
+				
+				
+			</h2>
+			<p>Hash 标识由其他包实现的密码学哈希函数。
+
+			<pre>type Hash <a href="/pkg/builtin/#uint">uint</a></pre>
+
+			
+				
+				<pre>const (
+    <span id="MD4">MD4</span>         <a href="#Hash">Hash</a> = 1 + <a href="/pkg/builtin/#iota">iota</a> <span class="comment">// import golang.org/x/crypto/md4</span>
+    <span id="MD5">MD5</span>                         <span class="comment">// import crypto/md5</span>
+    <span id="SHA1">SHA1</span>                        <span class="comment">// import crypto/sha1</span>
+    <span id="SHA224">SHA224</span>                      <span class="comment">// import crypto/sha256</span>
+    <span id="SHA256">SHA256</span>                      <span class="comment">// import crypto/sha256</span>
+    <span id="SHA384">SHA384</span>                      <span class="comment">// import crypto/sha512</span>
+    <span id="SHA512">SHA512</span>                      <span class="comment">// import crypto/sha512</span>
+    <span id="MD5SHA1">MD5SHA1</span>                     <span class="comment">// 无实现；MD5+SHA1 用于 TLS RSA</span>
+    <span id="RIPEMD160">RIPEMD160</span>                   <span class="comment">// import golang.org/x/crypto/ripemd160</span>
+    <span id="SHA3_224">SHA3_224</span>                    <span class="comment">// import crypto/sha3</span>
+    <span id="SHA3_256">SHA3_256</span>                    <span class="comment">// import crypto/sha3</span>
+    <span id="SHA3_384">SHA3_384</span>                    <span class="comment">// import crypto/sha3</span>
+    <span id="SHA3_512">SHA3_512</span>                    <span class="comment">// import crypto/sha3</span>
+    <span id="SHA512_224">SHA512_224</span>                  <span class="comment">// import crypto/sha512</span>
+    <span id="SHA512_256">SHA512_256</span>                  <span class="comment">// import crypto/sha512</span>
+    <span id="BLAKE2s_256">BLAKE2s_256</span>                 <span class="comment">// import golang.org/x/crypto/blake2s</span>
+    <span id="BLAKE2b_256">BLAKE2b_256</span>                 <span class="comment">// import golang.org/x/crypto/blake2b</span>
+    <span id="BLAKE2b_384">BLAKE2b_384</span>                 <span class="comment">// import golang.org/x/crypto/blake2b</span>
+    <span id="BLAKE2b_512">BLAKE2b_512</span>                 <span class="comment">// import golang.org/x/crypto/blake2b</span>
+
+    <span class="comment">// MLDSAMu 是表示[预先哈希的 μ 消息代表值]的哨兵值。</span>
+    <span class="comment">// 它没有实现，但可用作 [crypto/mldsa.PrivateKey.Sign] 的</span>
+    <span class="comment">// [SignerOpts.HashFunc] 返回值。</span>
+    <span class="comment">//</span>
+    <span class="comment">// [预先哈希的 μ 消息代表值]: https://www.rfc-editor.org/rfc/rfc9881.html#externalmu</span>
+    <span id="MLDSAMu">MLDSAMu</span>
+)</pre>
+			
+
+			
+
+			
+
+			
+
+			
+				<h3 id="Hash.Available">func (Hash) <a href="/src/crypto/crypto.go?s=3947:3977#L139">Available</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Hash">Hash</a>) Available() <a href="/pkg/builtin/#bool">bool</a></pre>
+				<p>Available 报告给定哈希函数是否已链接到二进制文件中。
+
+				
+			
+				<h3 id="Hash.HashFunc">func (Hash) <a href="/src/crypto/crypto.go?s=462:491#L9">HashFunc</a>
+					
+					<span title="自 Go 1.4 起提供">1.4</span>
+				</h3>
+				<pre>func (h <a href="#Hash">Hash</a>) HashFunc() <a href="#Hash">Hash</a></pre>
+				<p>HashFunc 直接返回 h 的值，使 <a href="#Hash">Hash</a> 实现 <a href="#SignerOpts">SignerOpts</a>。
+
+				
+			
+				<h3 id="Hash.New">func (Hash) <a href="/src/crypto/crypto.go?s=3682:3711#L128">New</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Hash">Hash</a>) New() <a href="/pkg/hash/">hash</a>.<a href="/pkg/hash/#Hash">Hash</a></pre>
+				<p>New 返回计算给定哈希函数的新 hash.Hash。如果该哈希函数未链接到二进制文件中，New 会触发 panic。
+
+				
+			
+				<h3 id="Hash.Size">func (Hash) <a href="/src/crypto/crypto.go?s=3363:3387#L117">Size</a>
+					
+					
+				</h3>
+				<pre>func (h <a href="#Hash">Hash</a>) Size() <a href="/pkg/builtin/#int">int</a></pre>
+				<p>Size 返回给定哈希函数所生成摘要的字节长度，不要求该哈希函数已链接到程序中。
+
+				
+			
+				<h3 id="Hash.String">func (Hash) <a href="/src/crypto/crypto.go?s=507:536#L13">String</a>
+					
+					<span title="自 Go 1.15 起提供">1.15</span>
+				</h3>
+				<pre>func (h <a href="#Hash">Hash</a>) String() <a href="/pkg/builtin/#string">string</a></pre>
+				
+				
+			
+		
+			
+			<h2 id="MessageSigner">type <a href="/src/crypto/crypto.go?s=7166:7294#L217">MessageSigner</a>
+				
+				<span title="自 Go 1.25 起提供">1.25</span>
+			</h2>
+			<p>MessageSigner 是不透明私钥的接口，可用于调用方不预先对消息进行哈希的签名操作。它是 Signer 接口的超集，因此可以传给接受 Signer 的 API，供这些 API 尝试通过类型断言使用此扩展接口。
+<p>在 opts 相同的情况下，MessageSigner.SignMessage 与 MessageSigner.Sign 应生成相同的结果。尤其是，只有当 Signer 也接受未经预先哈希的消息时，MessageSigner.SignMessage 才应接受值为零的 opts.HashFunc。
+<p>不提供预先哈希的 Sign API 的实现，应让 Signer.Sign 始终返回错误。
+
+			<pre>type MessageSigner interface {
+    <a href="#Signer">Signer</a>
+    SignMessage(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, msg []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PrivateKey">type <a href="/src/crypto/crypto.go?s=5311:5330#L180">PrivateKey</a>
+				
+				
+			</h2>
+			<p>PrivateKey 表示算法未指定的私钥。
+<p>虽然出于向后兼容的原因，该类型是空接口，但标准库中的所有私钥类型都实现以下接口
+<pre>interface{
+    Public() crypto.PublicKey
+    Equal(x crypto.PrivateKey) bool
+}
+</pre>
+<p>以及 <a href="#Signer">Signer</a>、<a href="#Decrypter">Decrypter</a> 等特定用途的接口，以便应用程序提高类型安全性。
+
+			<pre>type PrivateKey <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="PublicKey">type <a href="/src/crypto/crypto.go?s=4812:4830#L166">PublicKey</a>
+				
+				<span title="自 Go 1.2 起提供">1.2</span>
+			</h2>
+			<p>PublicKey 表示算法未指定的公钥。
+<p>虽然出于向后兼容的原因，该类型是空接口，但标准库中的所有公钥类型都实现以下接口
+<pre>interface{
+    Equal(x crypto.PublicKey) bool
+}
+</pre>
+<p>可用于提高应用程序中的类型安全性。
+
+			<pre>type PublicKey <a href="/pkg/builtin/#any">any</a></pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="Signer">type <a href="/src/crypto/crypto.go?s=5479:6475#L184">Signer</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>Signer 是不透明私钥的接口，可用于签名操作，例如保存在硬件模块中的 RSA 密钥。
+
+			<pre>type Signer interface {
+    <span class="comment">// Public 返回与此不透明私钥</span>
+    <span class="comment">// 对应的公钥。</span>
+    Public() <a href="#PublicKey">PublicKey</a>
+
+    <span class="comment">// Sign 使用私钥对 digest 签名，可能会使用 rand</span>
+    <span class="comment">// 提供的熵。对于 RSA 密钥，结果应为</span>
+    <span class="comment">// PKCS #1 v1.5 或 PSS 签名（由 opts 指定）。对于 (EC)DSA</span>
+    <span class="comment">// 密钥，结果应为经过 DER 序列化的 ASN.1 签名结构。</span>
+    <span class="comment">//</span>
+    <span class="comment">// Hash 实现了 SignerOpts 接口，因此多数情况下，</span>
+    <span class="comment">// 只需将所用的哈希函数作为 opts 传入。Sign 还可能</span>
+    <span class="comment">// 尝试将 opts 类型断言为其他类型，以获取特定算法</span>
+    <span class="comment">// 所需的值。详情请参阅各包的文档。</span>
+    <span class="comment">//</span>
+    <span class="comment">// 注意，需要对较长消息的哈希值签名时，</span>
+    <span class="comment">// 调用方负责先对该消息进行哈希，再将哈希值（作为 digest）</span>
+    <span class="comment">// 和哈希函数（作为 opts）传给 Sign。</span>
+    Sign(rand <a href="/pkg/io/">io</a>.<a href="/pkg/io/#Reader">Reader</a>, digest []<a href="/pkg/builtin/#byte">byte</a>, opts <a href="#SignerOpts">SignerOpts</a>) (signature []<a href="/pkg/builtin/#byte">byte</a>, err <a href="/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+			
+			<h2 id="SignerOpts">type <a href="/src/crypto/crypto.go?s=7356:7569#L223">SignerOpts</a>
+				
+				<span title="自 Go 1.4 起提供">1.4</span>
+			</h2>
+			<p>SignerOpts 包含使用 <a href="#Signer">Signer</a> 签名时的选项。
+
+			<pre>type SignerOpts interface {
+    <span class="comment">// HashFunc 返回用于生成传给 Signer.Sign 的消息</span>
+    <span class="comment">// 的哈希函数标识符；返回零则表示</span>
+    <span class="comment">// 未进行哈希。</span>
+    HashFunc() <a href="#Hash">Hash</a>
+}</pre>
+
+			
+
+			
+
+			
+
+			
+
+			
+		
+	
+
+	
+
+
+
+	
+	
+		<h2 id="pkg-subdirectories">子目录</h2>
+	
+	<div class="pkg-dir">
+		<table>
+			<tr>
+				<th class="pkg-name">名称</th>
+				<th class="pkg-synopsis">简介</th>
+			</tr>
+
+			
+			<tr>
+				<td class="pkg-name"><a href="..">..</a></td>
+				<td class="pkg-synopsis"></td>
+			</tr>
+			
+
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="aes/">aes</a>
+					</td>
+				
+					<td class="pkg-synopsis">aes 包实现美国《联邦信息处理标准》197 号（FIPS 197）定义的 AES 加密算法（原名 Rijndael）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="boring/">boring</a>
+					</td>
+				
+					<td class="pkg-synopsis">boring 包提供仅在使用 Go+BoringCrypto 构建时可用的函数。（特殊构建文档保留英文。）</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="cipher/">cipher</a>
+					</td>
+				
+					<td class="pkg-synopsis">cipher 包实现标准分组密码工作模式，可用于封装底层分组密码实现。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="des/">des</a>
+					</td>
+				
+					<td class="pkg-synopsis">des 包实现美国《联邦信息处理标准》46-3 号（FIPS 46-3）定义的数据加密标准（DES）和三重数据加密算法（TDEA）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="dsa/">dsa</a>
+					</td>
+				
+					<td class="pkg-synopsis">dsa 包实现 FIPS 186-3 定义的数字签名算法（DSA）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="ecdh/">ecdh</a>
+					</td>
+				
+					<td class="pkg-synopsis">ecdh 包实现基于 NIST 曲线和 Curve25519 的椭圆曲线 Diffie-Hellman 密钥交换。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="ecdsa/">ecdsa</a>
+					</td>
+				
+					<td class="pkg-synopsis">ecdsa 包实现 FIPS 186-5 定义的椭圆曲线数字签名算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="ed25519/">ed25519</a>
+					</td>
+				
+					<td class="pkg-synopsis">ed25519 包实现 Ed25519 签名算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="elliptic/">elliptic</a>
+					</td>
+				
+					<td class="pkg-synopsis">elliptic 包实现定义在素数域上的标准 NIST P-224、P-256、P-384 和 P-521 椭圆曲线。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="fips140/">fips140</a>
+					</td>
+				
+					<td class="pkg-synopsis">fips140 包提供有关 FIPS 140-3 Go 密码模块及 FIPS 140-3 模式的信息。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="hkdf/">hkdf</a>
+					</td>
+				
+					<td class="pkg-synopsis">hkdf 包实现 RFC 5869 定义的基于 HMAC 的提取与扩展密钥派生函数（HKDF）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="hmac/">hmac</a>
+					</td>
+				
+					<td class="pkg-synopsis">hmac 包实现美国《联邦信息处理标准》198 号（FIPS 198）定义的基于密钥哈希的消息认证码（HMAC）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="hpke/">hpke</a>
+					</td>
+				
+					<td class="pkg-synopsis">hpke 包实现 RFC 9180 定义的混合公钥加密（HPKE）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="md5/">md5</a>
+					</td>
+				
+					<td class="pkg-synopsis">md5 包实现 RFC 1321 定义的 MD5 哈希算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="mldsa/">mldsa</a>
+					</td>
+				
+					<td class="pkg-synopsis">mldsa 包实现 FIPS 204 规定的后量子 ML-DSA 签名方案。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="mlkem/">mlkem</a>
+					</td>
+				
+					<td class="pkg-synopsis">mlkem 包实现 NIST FIPS 203 规定的抗量子密钥封装方法 ML-KEM（原名 Kyber）。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 20px;">
+						<a href="mlkem/mlkemtest/">mlkemtest</a>
+					</td>
+				
+					<td class="pkg-synopsis">mlkemtest 包提供 ML-KEM 算法的测试函数。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="pbkdf2/">pbkdf2</a>
+					</td>
+				
+					<td class="pkg-synopsis">pbkdf2 包实现 RFC 8018（PKCS #5 v2.1）定义的密钥派生函数 PBKDF2。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="rand/">rand</a>
+					</td>
+				
+					<td class="pkg-synopsis">rand 包实现密码学安全的随机数生成器。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="rc4/">rc4</a>
+					</td>
+				
+					<td class="pkg-synopsis">rc4 包实现 Bruce Schneier 的《应用密码学》中定义的 RC4 加密算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="rsa/">rsa</a>
+					</td>
+				
+					<td class="pkg-synopsis">rsa 包实现 PKCS #1 和 RFC 8017 规定的 RSA 加密。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="sha1/">sha1</a>
+					</td>
+				
+					<td class="pkg-synopsis">sha1 包实现 RFC 3174 定义的 SHA-1 哈希算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="sha256/">sha256</a>
+					</td>
+				
+					<td class="pkg-synopsis">sha256 包实现 FIPS 180-4 定义的 SHA224 和 SHA256 哈希算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="sha3/">sha3</a>
+					</td>
+				
+					<td class="pkg-synopsis">sha3 包实现 FIPS 202 定义的 SHA-3 哈希算法和 SHAKE 可扩展输出函数。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="sha512/">sha512</a>
+					</td>
+				
+					<td class="pkg-synopsis">sha512 包实现 FIPS 180-4 定义的 SHA-384、SHA-512、SHA-512/224 和 SHA-512/256 哈希算法。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="subtle/">subtle</a>
+					</td>
+				
+					<td class="pkg-synopsis">subtle 包实现了一些常用于密码学代码的函数，但要正确使用它们，需要仔细考量。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="tls/">tls</a>
+					</td>
+				
+					<td class="pkg-synopsis">tls 包部分实现了 RFC 5246 规定的 TLS 1.2 和 RFC 8446 规定的 TLS 1.3。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 20px;">
+						<a href="tls/fipsonly/">fipsonly</a>
+					</td>
+				
+					<td class="pkg-synopsis">fipsonly 包将所有 TLS 配置限制为经 FIPS 批准的设置。（特殊构建文档保留英文。）</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 0px;">
+						<a href="x509/">x509</a>
+					</td>
+				
+					<td class="pkg-synopsis">x509 包实现 X.509 标准的一个子集。</td>
+				</tr>
+			
+				<tr>
+				
+					<td class="pkg-name" style="padding-left: 20px;">
+						<a href="x509/pkix/">pkix</a>
+					</td>
+				
+					<td class="pkg-synopsis">pkix 包包含对 X.509 证书、CRL 和 OCSP 进行 ASN.1 解析及序列化时使用的共享底层结构。</td>
+				</tr>
+			
+		</table>
+	</div>
+
+
+</article>
