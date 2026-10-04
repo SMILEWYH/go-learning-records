@@ -1,0 +1,82 @@
+/*
+内连接查询语法：
+
+    一、隐式内连接
+
+        SELECT 字段列表 FROM 表1, 表2 WHERE 条件 ...;
+
+    二、显式内连接
+
+        SELECT 字段列表 FROM 表1 [INNER] JOIN 表2 ON 连接条件 ...;
+
+        说明：[INNER] 表示 INNER 关键字可以省略，实际编写 SQL 时不需要输入方括号。
+*/
+
+/*
+例子：查询员工姓名及其所属部门名称。
+
+    假设已有以下数据（仅用于说明，不包含建表和插入语句）：
+
+    员工表 emp：                    部门表 dept：
+        id    name      dept_id         id    name
+        1     张无忌    1               1     研发部
+        2     赵敏      2               2     市场部
+        3     小昭      NULL            3     财务部
+*/
+
+-- 1. 隐式内连接：在 WHERE 中指定连接条件。
+SELECT e.name AS 员工姓名, d.name AS 部门名称
+FROM emp e, dept d
+WHERE e.dept_id = d.id;
+
+-- 2. 显式内连接：在 ON 中指定连接条件，与上面的查询结果相同。
+SELECT e.name AS 员工姓名, d.name AS 部门名称
+FROM emp e
+INNER JOIN dept d ON e.dept_id = d.id;
+
+/*
+按上述示例数据，结果包含以下记录（未指定 ORDER BY，不保证顺序）：
+
+    员工姓名    部门名称
+    张无忌      研发部
+    赵敏        市场部
+
+    内连接只保留满足连接条件的记录：小昭没有所属部门，财务部没有员工，均不会出现在结果中。
+    e、d 分别是 emp、dept 的表别名，用于区分两张表中的同名字段。
+*/
+
+/*
+多对多例子：查询学生姓名及其所选课程名称。
+
+    一个学生可以选多门课，一门课也可以被多个学生选择，通过选课中间表建立关联。
+    假设已有以下数据（仅用于说明，不包含建表和插入语句）：
+
+    学生表 student：       课程表 course：       选课中间表 student_course：
+        id    name             id    name           student_id    course_id
+        1     张三             10    MySQL          1             10
+        2     李四             20    Go             1             20
+        3     王五             30    Java           2             10
+*/
+
+-- 1. 隐式内连接：通过中间表连接学生表和课程表。
+SELECT s.name AS 学生姓名, c.name AS 课程名称
+FROM student s, student_course sc, course c
+WHERE s.id = sc.student_id AND sc.course_id = c.id;
+
+-- 2. 显式内连接：连续连接三张表，与上面的查询结果相同。
+SELECT s.name AS 学生姓名, c.name AS 课程名称
+FROM student s
+INNER JOIN student_course sc ON s.id = sc.student_id
+INNER JOIN course c ON sc.course_id = c.id;
+
+/*
+按上述示例数据，结果包含以下记录（未指定 ORDER BY，不保证顺序）：
+
+    学生姓名    课程名称
+    张三        MySQL
+    张三        Go
+    李四        MySQL
+
+    内连接只保留匹配的选课关系：王五没有选课，Java 没人选择，均不会出现在结果中。
+    张三选了两门课，所以出现两行；多对多不代表每个学生都与每门课程组合。
+*/
