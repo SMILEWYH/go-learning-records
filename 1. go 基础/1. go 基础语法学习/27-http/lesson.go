@@ -1,22 +1,10 @@
 /*
 章节：27-HTTP网络编程
-	本章掌握清单：
-	1. HTTP 请求与响应、方法与状态码
-	2. 响应模型与 JSON 输出顺序
-	3. 路由与输入：路径、查询、JSON 和表单
-	4. 响应读取、状态检查与关闭 Body
-	5. 客户端：复用 client 并设置超时
-	6. 本机自动演示与服务启动
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./27-http
-// 运行练习：go run ./27-http exam
-// 阅读顺序：按协议、响应、路由、客户端的顺序阅读；main -> runHTTP -> demoHTTP 是默认运行路径。
 // TS 对照：HandleFunc 类似路由回调，Request 类似 req；Go 客户端类似 fetch，但要关闭 Body。
-// 双终端：go run ./27-http server；go run ./27-http client
+// 双终端：go run ./27-http/lesson.go server；go run ./27-http/lesson.go client
 // 可在 server/client 后传地址，默认 127.0.0.1:8080。
-// 后续再学：中间件、认证授权、CORS、TLS、流式响应、连接池与优雅退出（30 章）。
 
 package main
 
@@ -104,6 +92,7 @@ func bodyError(writer http.ResponseWriter, err error) {
 // 读 POST /users 时按媒体类型、大小、语法、尾部内容、业务字段的顺序检查。
 
 func newHTTPMux() *http.ServeMux {
+	// 类似前端路由表：先登记“方法 + 路径 -> 处理函数”，再启动服务接收请求。
 	mux := http.NewServeMux() // 独立路由表，避免多个示例共用全局 DefaultServeMux。
 	// Go 1.22+ 支持“方法 路径”模式和 {name} 路径参数。
 	mux.HandleFunc("GET /hello/{name}", func(writer http.ResponseWriter, request *http.Request) {
@@ -197,6 +186,7 @@ func runHTTPClient(baseURL string) error {
 	defer client.CloseIdleConnections()
 	// http.Get/http.Post 使用默认客户端；这里用 client.Get/Post 设置整体请求超时。
 	// 客户端和 Transport 应复用，本函数中的几个请求共用一个 client。
+	// 类似 await fetch(url)：先得到响应，再读 Body；这里会阻塞当前 goroutine。
 	response, err := client.Get(baseURL + "/hello/Go?lang=zh")
 	if err != nil {
 		return err
@@ -246,47 +236,40 @@ func demoHTTP() error {
 	return runHTTPClient(server.URL)
 }
 
-func runHTTP(args []string) error {
-	if len(args) == 0 {
-		return demoHTTP()
-	}
-	address := "127.0.0.1:8080"
-	if len(args) > 1 {
-		address = args[1]
-	}
-	switch args[0] {
-	case "server":
-		// 原笔记需改为：先注册路由，再 ListenAndServe；后者会阻塞。
-		// 简写 http.ListenAndServe(address, mux)；传 nil 才使用全局路由表。
-		server := &http.Server{
-			Addr: address, Handler: newHTTPMux(),
-			ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 5 * time.Second,
-			WriteTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
-		}
-		fmt.Println("HTTP 服务：http://" + address + "；Ctrl+C 结束")
-		err := server.ListenAndServe()
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
-		return err
-	case "client":
-		return runHTTPClient("http://" + address)
-	default:
-		return errors.New("用法：不带参数，或 server/client [地址]，或 exam")
-	}
-}
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
+	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	runHTTP := func(args []string) error {
+		if len(args) == 0 {
+			return demoHTTP()
+		}
+		address := "127.0.0.1:8080"
+		if len(args) > 1 {
+			address = args[1]
+		}
+		switch args[0] {
+		case "server":
+			// 先注册路由，再 ListenAndServe；后者会阻塞当前 goroutine。
+			// 简写 http.ListenAndServe(address, mux)；传 nil 才使用全局路由表。
+			server := &http.Server{
+				Addr: address, Handler: newHTTPMux(),
+				ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 5 * time.Second,
+				WriteTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
+			}
+			fmt.Println("HTTP 服务：http://" + address + "；Ctrl+C 结束")
+			err := server.ListenAndServe()
+			if errors.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+			return err
+		case "client":
+			return runHTTPClient("http://" + address)
+		default:
+			return errors.New("用法：不带参数，或 server/client [地址]")
+		}
 	}
+
 	if err := runHTTP(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "HTTP 演示失败：", err)
 		os.Exit(1)
 	}
 }
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 把 GET 查询中的 lang=zh 改成 lang=en，核对响应正文和状态码。
-// 在 server 模式提交缺少 name、包含未知字段或多个 JSON 值的请求，沿 handler 找到拒绝位置。

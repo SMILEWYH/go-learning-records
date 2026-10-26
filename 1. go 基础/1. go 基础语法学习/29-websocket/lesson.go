@@ -1,23 +1,11 @@
 /*
 章节：29-WebSocket双向通信
-	本章掌握清单：
-	1. HTTP 升级与 WebSocket 消息
-	2. 服务端：握手、主动推送与读取循环
-	3. 路由与浏览器入口
-	4. 客户端：欢迎消息、回显与关闭握手
-	5. 自动演示：等待升级后的处理结束
-	6. 双终端运行与单读单写规则
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./29-websocket
-// 运行练习：go run ./29-websocket exam
-// 阅读顺序：先读协议与 handleWebSocket，再读客户端；默认 main -> runWebSocket -> demoWebSocket 会自动收尾。
 // TS 对照：浏览器有 new WebSocket(url)，Go 标准库不提供完整的 WebSocket 消息 API。
 // 本章使用 github.com/gorilla/websocket v1.5.3，首次运行需下载这个固定版本。
-// 双终端：go run ./29-websocket server；go run ./29-websocket client
+// 双终端：go run ./29-websocket/lesson.go server；go run ./29-websocket/lesson.go client
 // 可在 server/client 后传地址，默认 127.0.0.1:8083。
-// 后续再学：聊天室广播、心跳与重连、慢客户端背压、鉴权和管理升级后的连接。
 
 package main
 
@@ -41,7 +29,6 @@ import (
 // 服务端可以主动发 welcome，客户端不必先发送一条业务消息才能收到它。
 
 /*
-名字是 WebSocket，不是 WebSocker。
 本例过程：HTTP/1.1 GET /ws + Upgrade 请求 -> 101 Switching Protocols -> WebSocket 帧。
 握手后两端都可以主动发送消息，不需要每次推送都等客户端发新的 HTTP 请求。
 ws:// 是明文，wss:// 是经 TLS 保护的连接；部署到 HTTPS 页面通常配套使用 wss://。
@@ -80,6 +67,7 @@ func handleWebSocket(writer http.ResponseWriter, request *http.Request) {
 		if err := conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
 			return
 		}
+		// 浏览器通过 onmessage 回调接收；Go 在这里等待下一条消息。
 		kind, message, err := conn.ReadMessage()
 		if err != nil {
 			if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
@@ -210,35 +198,32 @@ func demoWebSocket() error {
 // server 提供 /ws，client 建立连接；末尾也提供浏览器控制台的连接代码。
 // 同一 Gorilla 连接应由一个读取流程和一个写入流程负责，多个发送者可先汇入发送队列。
 
-func runWebSocket(args []string) error {
-	if len(args) == 0 {
-		return demoWebSocket()
-	}
-	address := "127.0.0.1:8083"
-	if len(args) > 1 {
-		address = args[1]
-	}
-	switch args[0] {
-	case "server":
-		server := &http.Server{Addr: address, Handler: newWebSocketMux(), ReadHeaderTimeout: 3 * time.Second}
-		fmt.Println("WebSocket 服务：ws://" + address + "/ws；Ctrl+C 结束；空闲 5 秒会关闭连接")
-		err := server.ListenAndServe()
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
-		return err
-	case "client":
-		return runWebSocketClient("ws://" + address + "/ws")
-	default:
-		return errors.New("用法：不带参数，或 server/client [地址]，或 exam")
-	}
-}
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
+	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	runWebSocket := func(args []string) error {
+		if len(args) == 0 {
+			return demoWebSocket()
+		}
+		address := "127.0.0.1:8083"
+		if len(args) > 1 {
+			address = args[1]
+		}
+		switch args[0] {
+		case "server":
+			server := &http.Server{Addr: address, Handler: newWebSocketMux(), ReadHeaderTimeout: 3 * time.Second}
+			fmt.Println("WebSocket 服务：ws://" + address + "/ws；Ctrl+C 结束；空闲 5 秒会关闭连接")
+			err := server.ListenAndServe()
+			if errors.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+			return err
+		case "client":
+			return runWebSocketClient("ws://" + address + "/ws")
+		default:
+			return errors.New("用法：不带参数，或 server/client [地址]")
+		}
 	}
+
 	if err := runWebSocket(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "WebSocket 演示失败：", err)
 		os.Exit(1)
@@ -258,7 +243,3 @@ func main() {
 // ws.onclose = event => console.log("closed", event.code);
 // ws.onerror = event => console.error(event);
 // 浏览器不能随意为 WebSocket 构造器添加 Authorization 请求头，鉴权方案需要单独设计。
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 先核对默认演示的 welcome、两次回显、关闭码 1000，再尝试末尾浏览器代码。
-// 找出“发送关闭帧”和“关闭底层连接”两处调用，解释为什么它们不是同一个动作。

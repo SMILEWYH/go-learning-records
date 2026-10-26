@@ -1,21 +1,6 @@
-// 章节：15-通道与通信
+//go:build ignore
+
 package main
-
-import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
-	"strings"
-	"time"
-)
-
-// exam 自动检查三道练习；请填写下方受测函数，具体对应关系见 exercises_test.go 的 TestExam。
-// exercise1/2/3 保留题目说明，空演示入口不影响已经完成的业务函数。
 
 /*
 练习 1：通过单个结果通道交付购物车小计。
@@ -36,9 +21,6 @@ import (
   - [0]：收到 0；nil 或空输入也必须发送一次 0，不能提前丢失结果。
   - 不在主 goroutine 中直接调用阻塞发送函数后再接收。
 */
-func exercise1() {
-	// TODO：明确“启动一个任务、发送一次、接收一次”的协议，再手写实现。
-}
 
 /*
 练习 2：单生产者的导出行流。
@@ -62,9 +44,6 @@ func collectRows(input <-chan string) []string
   - 输入超过两项也能完成，说明接收与发送正确协作。
   - nil 或全空字符串：长度为 0，range 正常退出。
 */
-func exercise2() {
-	// TODO：让唯一生产者负责 close，消费方持续接收直到关闭。
-}
 
 /*
 练习 3：聚合多项后台校验结果。
@@ -84,91 +63,8 @@ func exercise2() {
 手动核对：
   - ["lin","","zoe","ab"]：返回 [true,false,true,false]。
   - nil：结果长度为 0，程序退出，不残留等待接收的 goroutine。
-  - 使用 go run -race ./15-channels exam 检查已实现的代码。
+  - 使用 go run -race exercises.go 检查已实现的代码。
 */
-func exercise3() {
-	// TODO：先写清发送者、接收者、关闭者各自职责，再实现任务聚合。
-}
 
-// 自动测试入口：填写下面的 TODO 函数体，保留签名。
-// 类型与字段已提供骨架；exercise1/2/3 仍可用于手动演示。
-
-func sendSubtotal(prices []int, output chan<- int) {
-	// TODO：按上方题目要求实现；保持函数签名不变。
-	panic("待完成：sendSubtotal；请实现 exercises.go 中的函数，参考答案在 exercises_test.go 末尾")
-}
-
-func exportNames(names []string, output chan<- string) {
-	// TODO：按上方题目要求实现；保持函数签名不变。
-	panic("待完成：exportNames；请实现 exercises.go 中的函数，参考答案在 exercises_test.go 末尾")
-}
-
-func collectRows(input <-chan string) []string {
-	// TODO：按上方题目要求实现；保持函数签名不变。
-	panic("待完成：collectRows；请实现 exercises.go 中的函数，参考答案在 exercises_test.go 末尾")
-}
-
-type ValidationResult struct {
-	Index int
-	Valid bool
-}
-
-func collectValidation(names []string) []bool {
-	// TODO：按上方题目要求实现；保持函数签名不变。
-	panic("待完成：collectValidation；请实现 exercises.go 中的函数，参考答案在 exercises_test.go 末尾")
-}
-
-// ── 自动检查启动入口：填写习题时无需修改 ──
-// runExercises 只启动本章的检查入口；检查规则、测试和参考答案都在 exercises_test.go。
-// Go 的普通运行不会编译 _test.go，因此通过 go test 进入 TestExam。
-func runExercises() {
-	_, source, _, ok := runtime.Caller(0)
-	if !ok {
-		fmt.Println("无法定位本章源码，检查未执行")
-		return
-	}
-	dir := filepath.Dir(source)
-	if !filepath.IsAbs(dir) { // 兼容以 -trimpath 构建后在课程根目录或章节目录运行。
-		cwd, err := os.Getwd()
-		if err != nil {
-			fmt.Println("无法定位章节：", err)
-			return
-		}
-		dir = cwd
-		if _, err := os.Stat(filepath.Join(dir, "exercises.go")); err != nil {
-			dir = filepath.Join(cwd, filepath.Base(filepath.Dir(source)))
-		}
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Minute)
-	defer cancel()
-	command := exec.CommandContext(ctx, "go", "test", "-json", "-count=1", "-run", "^TestExam$", "-timeout", "5m", ".")
-	command.Dir = dir
-	command.Env = append(os.Environ(), "GO_LESSON_EXAM=1")
-	command.WaitDelay = 2 * time.Second
-	output, runErr := command.Output()
-	decoder := json.NewDecoder(bytes.NewReader(output))
-	var diagnostics strings.Builder
-	passed := false
-	for {
-		var event struct{ Action, Test, Output string }
-		if err := decoder.Decode(&event); err != nil {
-			break
-		}
-		diagnostics.WriteString(event.Output)
-		if event.Test == "TestExam" {
-			if event.Action == "pass" {
-				passed = true
-			}
-			if event.Action == "output" && !strings.HasPrefix(event.Output, "=== RUN") && !strings.HasPrefix(event.Output, "--- PASS") {
-				fmt.Print(event.Output)
-			}
-		}
-	}
-	if runErr != nil || !passed {
-		fmt.Println("练习检查未正常结束：", runErr)
-		fmt.Print(diagnostics.String())
-		if failure, ok := runErr.(*exec.ExitError); ok {
-			fmt.Print(string(failure.Stderr))
-		}
-	}
+func main() {
 }

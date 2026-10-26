@@ -1,22 +1,10 @@
 /*
 章节：28-RPC远程调用
-	本章掌握清单：
-	1. RPC：把本地调用拆成远程通信
-	2. 服务方法：请求、reply 指针与业务校验
-	3. 服务注册与连接处理
-	4. 客户端同步调用、异步调用与远程错误
-	5. 自动演示与资源归属
-	6. 运行模式与远程调用的失败边界
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./28-rpc
-// 运行练习：go run ./28-rpc exam
-// 阅读顺序：按概念、类型、服务、客户端的顺序阅读；默认 main -> runRPC -> demoRPC 完成全部通信后退出。
 // TS 对照：调用形式像 await api.quote(input)，但这里把方法名和参数编码后交给远端执行。
-// 双终端：go run ./28-rpc server；go run ./28-rpc client
+// 双终端：go run ./28-rpc/lesson.go server；go run ./28-rpc/lesson.go client
 // 可在 server/client 后传地址，默认 127.0.0.1:8082。
-// 后续再学：gRPC/Protobuf、请求级取消、服务发现、认证、重试和幂等。
 
 package main
 
@@ -143,6 +131,8 @@ func runRPCClient(address string) error {
 	}
 	client := rpc.NewClient(conn)
 	defer client.Close() // Close 同时关闭底层连接，无需再由其他代码长期持有它。
+	// TS 常写 const reply = await api.quote(args)。
+	// net/rpc 把业务结果写进 &reply；Call 自身返回的是 error。
 	var reply QuoteResponse
 	if err := client.Call("PriceService.Quote", QuoteRequest{Quantity: 3, UnitPriceCents: 1990}, &reply); err != nil {
 		return err
@@ -206,39 +196,36 @@ func demoRPC() error {
 // server 和 client 分开运行时仍共享相同的请求、响应类型和方法名约定。
 // 超时只说明调用方没有按时得到结果，服务端是否已经执行还要按业务协议确认。
 
-func runRPC(args []string) error {
-	if len(args) == 0 {
-		return demoRPC()
-	}
-	address := "127.0.0.1:8082"
-	if len(args) > 1 {
-		address = args[1]
-	}
-	switch args[0] {
-	case "server":
-		server, err := newRPCServer()
-		if err != nil {
-			return err
-		}
-		listener, err := net.Listen("tcp", address)
-		if err != nil {
-			return err
-		}
-		defer listener.Close()
-		fmt.Println("RPC 服务监听：", listener.Addr(), "；Ctrl+C 结束")
-		return serveRPC(server, listener, false)
-	case "client":
-		return runRPCClient(address)
-	default:
-		return errors.New("用法：不带参数，或 server/client [地址]，或 exam")
-	}
-}
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
+	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	runRPC := func(args []string) error {
+		if len(args) == 0 {
+			return demoRPC()
+		}
+		address := "127.0.0.1:8082"
+		if len(args) > 1 {
+			address = args[1]
+		}
+		switch args[0] {
+		case "server":
+			server, err := newRPCServer()
+			if err != nil {
+				return err
+			}
+			listener, err := net.Listen("tcp", address)
+			if err != nil {
+				return err
+			}
+			defer listener.Close()
+			fmt.Println("RPC 服务监听：", listener.Addr(), "；Ctrl+C 结束")
+			return serveRPC(server, listener, false)
+		case "client":
+			return runRPCClient(address)
+		default:
+			return errors.New("用法：不带参数，或 server/client [地址]")
+		}
 	}
+
 	if err := runRPC(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "RPC 演示失败：", err)
 		os.Exit(1)
@@ -249,7 +236,3 @@ func main() {
 // 给 client.Go 的 Done 加 select 超时只让调用方停止等，并不会取消远端执行。
 // net/rpc 没有内建的每次调用 context；关闭 client 会影响该连接上其他未完成调用。
 // 创建订单等非幂等操作不能在失败后盲目重试，后续应学习业务幂等键与结果查询。
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 核算同步例子的 3×1990=5970 和异步例子的 2×500=1000。
-// 把数量改成 0，跟踪错误如何从 Quote 返回客户端，解释为什么不能再使用 reply 当成功结果。

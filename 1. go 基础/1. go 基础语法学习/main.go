@@ -1,6 +1,6 @@
-// 这里是学习目录，各章保留讲解、习题、检查与答案三个 Go 文件。
-// 每个章节都是独立的 main 包：在项目根目录用 go run ./章节目录 运行。
-// go.work 将各章的独立模块加入工作区，支持统一运行与编辑器导航。
+// 这里是学习目录；各章节的运行方式见对应文件。
+// 第 11–30 章分别运行 lesson.go 和 exercises.go，例如 go run ./11-structs/lesson.go。
+// go.work 保留各章节的模块配置与依赖信息。
 package main
 
 func main() {

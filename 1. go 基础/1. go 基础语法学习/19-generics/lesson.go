@@ -1,31 +1,20 @@
 /*
 章节：19-泛型
-	本章掌握清单：
-	1. 类型参数、约束与类型推断
-	2. 多个类型参数与泛型变换
-	3. 泛型结构体、别名与定义类型
-	4. 泛型容器与 comparable
-	5. 方法约束与运行时接口
-	6. 标准库泛型工具与浅拷贝
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./19-generics
-// 运行练习：go run ./19-generics exam
-// 阅读顺序：顶部集中放泛型函数、约束和类型声明；从 main 的具体调用开始，再回看 [T ...] 的含义。
 // TS 对照：Go 的 [T any] 类似 TS 的 <T>；comparable 用于可比较类型，
 // ~int64 表示允许底层类型为 int64 的自定义类型。约束是编译期规则。
-// 后续再学：更复杂的约束设计与性能分析；优先复用 slices/maps，避免为泛型而泛型。
 
 package main
 
 import (
 	"fmt"
 	"maps"
-	"os"
 	"slices"
 )
 
+// 泛型函数不能写成带类型参数的匿名函数，必须在包级声明。
+// 所以下方保留 Sum/MapSlice 等定义，main 里的每节直接展示具体调用。
 // ~ 接受 type Cents int64 这样的定义类型；没有 ~ 时只接受列出的精确类型。
 // 这种带类型集合的接口用于类型参数约束，不能当作普通变量的类型。
 type Number interface {
@@ -92,19 +81,16 @@ func Labels[T fmt.Stringer](items []T) []string {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
-	}
-
 	// ═══════════════════════════════════════════════════════
 	// 第 1 节：类型参数、约束与类型推断
 	// ═══════════════════════════════════════════════════════
 	// 读 Sum[T Number](values []T) T：T 是待确定类型，Number 限制可用类型，输入输出共用 T。
 	// Sum([]int{...}) 由参数推断 T；Sum[int](nil) 则明确指定 int。
 
-	fmt.Println("整数和：", Sum([]int{1, 2, 3})) // 从实参推断 T 为 int。
-	fmt.Println("空切片和：", Sum[int](nil))      // nil 无法推断元素类型，需要显式写 T。
+	// TS 调用通常写 fn<number>(...)；Go 的类型实参放在 [] 中。
+	fmt.Println("显式指定 int：", Sum[int]([]int{1, 2, 3})) // 6
+	fmt.Println("整数和：", Sum([]int{1, 2, 3}))           // 从实参推断 T 为 int。
+	fmt.Println("空切片和：", Sum[int](nil))                // nil 无法推断元素类型，需要显式写 T。
 	fmt.Println("订单总分：", Sum([]Cents{1990, 2500}))
 	// 金额用最小货币单位的整数表示；这里不涉及浮点金额舍入。
 
@@ -115,6 +101,7 @@ func main() {
 	// 这里回调把 User 变为 string，所以编译器推断结果是 []string。
 
 	users := []User{{ID: "u-1", Name: "小林"}, {ID: "u-2", Name: "小陈"}}
+	// 类似 TS：users.map(user => user.Name)，这里显式声明回调参数和返回值类型。
 	names := MapSlice(users, func(user User) string { return user.Name })
 	fmt.Println("用户名：", names)
 
@@ -154,9 +141,6 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 6 节：标准库泛型工具与浅拷贝
 	// ═══════════════════════════════════════════════════════
-	// slices.Sort 修改原切片，因此先 Clone 再排序；maps.Clone 复制一层映射。
-	// 泛型不会改变复制规则，嵌套引用数据仍需明确是否共享。
-
 	// 标准库泛型工具优先：Clone 为浅拷贝，Sort 会修改传入切片。
 	priorities := []int{3, 1, 2}
 	sorted := slices.Clone(priorities)
@@ -175,7 +159,3 @@ func main() {
 	// comparable 只允许 ==/!=，不代表能排序。接口类型可满足 comparable，
 	// 但 map[any] 的动态 key 仍必须可比较：放入 []int 会在运行时 panic。
 }
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 给 Sum 传 []string，阅读 Number 约束导致的编译错误后恢复。
-// 把 Number 中的 ~int64 改成 int64，解释 Cents 为什么不再满足约束。

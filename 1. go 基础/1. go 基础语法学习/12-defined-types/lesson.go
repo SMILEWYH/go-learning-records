@@ -1,18 +1,7 @@
 /*
 章节：12-自定义类型与别名
-	本章掌握清单：
-	1. 定义类型：相同表示，不同身份
-	2. 显式转换与未类型化常量
-	3. 类型别名：同一类型的另一个名字
-	4. 新类型的方法与转换
-	5. iota 枚举与合法值校验
-	6. 转换不会代替范围检查
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./12-defined-types
-// 运行练习：go run ./12-defined-types exam
-// 阅读顺序：上方集中声明领域类型和方法；从 main 的赋值与调用开始，再回看对应类型。
 // TS 对照：type UserID = string 在 TS 中只是别名；Go 的 type UserID string 是新类型。
 // Go 的定义类型可减少误传参数，但转换本身并不会完成业务校验。
 
@@ -20,19 +9,15 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
+// 带方法的类型及其方法放在包级，main 里直接对照赋值、转换和调用。
 // 创建两个不同的定义类型，底层类型都为 string。
 type UserID string
 type OrderID string
 
 func (id UserID) IsEmpty() bool {
 	return id == ""
-}
-
-func loadProfile(id UserID) string {
-	return "profile:" + string(id)
 }
 
 // 新名字 RawID 和 string 指代同一类型，没有建立新的类型身份。
@@ -87,16 +72,15 @@ func (state JobState) IsKnown() bool {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
-	}
-
 	// ═══════════════════════════════════════════════════════
 	// 第 1 节：定义类型：相同表示，不同身份
 	// ═══════════════════════════════════════════════════════
 	// type UserID string 创建新类型，能让编译器发现把订单编号当用户编号传入的错误。
 	// 底层都是 string 并不表示可以直接互相赋值。
+
+	loadProfile := func(id UserID) string {
+		return "profile:" + string(id)
+	}
 
 	userID := UserID("user-7")
 	orderID := OrderID("order-7")
@@ -108,9 +92,6 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 2 节：显式转换与未类型化常量
 	// ═══════════════════════════════════════════════════════
-	// 变量 plain 已是 string，需要 UserID(plain)；字符串常量能适配 UserID。
-	// 这里的转换只改变类型，不校验编号格式。
-
 	// 有类型的 string 变量需要显式转换；无类型字符串常量可直接赋给 UserID。
 	plain := "user-8"
 	converted := UserID(plain)
@@ -125,6 +106,7 @@ func main() {
 	// type RawID = string 中的等号决定它是别名；去掉等号就变成定义类型。
 	// LegacyUserID 与 UserID 身份相同，方法也属于同一类型。
 
+	// 对照 TS：type RawID = string 也是给原类型起别名；Go 去掉 = 则会创建新类型。
 	var alias RawID = plain
 	var sameString string = alias                      // 同一类型，不需要转换。
 	fmt.Printf("string 别名：%T %s\n", alias, sameString) // string user-8
@@ -153,9 +135,6 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 5 节：iota 枚举与合法值校验
 	// ═══════════════════════════════════════════════════════
-	// 枚举常量提供易读名字，但变量仍可保存未命名的数值。
-	// 本例把 0 留给未知状态，并用 IsKnown 判断业务允许的状态。
-
 	// iota 给一组状态起名，并不会限制变量只能取这些命名常量。
 	fmt.Println("任务状态枚举：", JobUnknown, JobQueued, JobRunning, JobFinished) // 0 1 2 3
 	fmt.Println("命名状态是否合法：", JobRunning.IsKnown())                         // true
@@ -166,9 +145,6 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 6 节：转换不会代替范围检查
 	// ═══════════════════════════════════════════════════════
-	// 常量 uint8(300) 会被编译器拒绝，变量窄化转换却会按规则截断。
-	// 处理外部输入时先检查原始数值，再转成较窄的领域类型。
-
 	// 数值转换也不是校验：变量的窄化转换会截断高位，而不是自动报错。
 	wide := 300
 	fmt.Println("变量转为 uint8：", uint8(wide)) // 44
@@ -180,9 +156,4 @@ func main() {
 	// 数字的十进制文本用 strconv.Itoa/FormatInt；文本转数字用 Atoi/ParseInt 并检查错误。
 }
 
-// 后续再学：类型断言与转换的区别（13 章）、泛型约束与泛型别名（19 章）；
 // 不必为每个原始类型都包一层，新类型应表达明确的业务差别。
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 比较 type RawID = string 与 type UserID string，分别尝试赋给 string 变量。
-// 把 JobState(99) 换成 JobUnknown，解释零值为什么也未通过 IsKnown。

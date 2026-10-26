@@ -1,22 +1,10 @@
 /*
 章节：30-编译与部署
-	本章掌握清单：
-	1. 构建产物、版本与目标平台
-	2. 运行配置：环境变量、默认值与校验
-	3. 健康检查与版本路由
-	4. 启动服务与优雅退出
-	5. 命令行分发与信号取消
-	6. 程序入口、错误退出与部署自查
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./30-deployment
-// 运行练习：go run ./30-deployment exam
-// 阅读顺序：按第 1–6 节阅读构建、配置、路由、退出与入口；默认运行只打印说明，server 模式才监听端口。
 // TS 对照：Go build 常直接生成可执行程序；纯 Go 服务运行时通常不需要安装 Node.js 或 Go。
-// 运行服务：go run ./30-deployment server；查看版本：go run ./30-deployment version
+// 运行服务：go run ./30-deployment/lesson.go server；查看版本：go run ./30-deployment/lesson.go version
 // 详细命令见本章 lesson.go 末尾的部署附录。默认讲解只打印说明，不启动常驻服务或执行部署。
-// 后续再学：systemd/容器、TLS 反向代理、日志与指标、CI/CD、滚动更新与回滚。
 
 package main
 
@@ -35,185 +23,177 @@ import (
 	"time"
 )
 
-// ═══════════════════════════════════════════════════════
-// 第 1 节：构建产物、版本与目标平台
-// ═══════════════════════════════════════════════════════
-// go run 临时构建并执行；go build 生成可执行产物，-o 只指定输出位置和名字。
-// 从 go 基础语法学习 根目录可运行：
-//   go build -o /tmp/go-lesson-service ./30-deployment
-//   /tmp/go-lesson-service version
-// -X main.version=v0.1.0 给下面的 string 变量注入版本，默认值 dev 用于本地学习。
-// 例如：go build -ldflags "-X main.version=v0.1.0" -o /tmp/go-lesson-service ./30-deployment
-// 交叉编译还需设置 GOOS、GOARCH；Linux 产物一般不能直接在 macOS 上执行。
-
-// 构建时可用 -ldflags '-X main.version=v0.1.0' 注入 string 变量。
+// -ldflags -X 需要包级 string 变量，不能把 version 移到 main 内。
 var version = "dev"
 
-// ═══════════════════════════════════════════════════════
-// 第 2 节：运行配置：环境变量、默认值与校验
-// ═══════════════════════════════════════════════════════
-// defaultAddress 读取 PORT，未提供时用 8080，随后检查是否为 1..65535 的整数。
-// 端口与主机通过 net.JoinHostPort 组成地址；本例只监听本机回环地址。
-// 下方 server 分支先读 -addr，非空时直接使用；否则才进入这里解析 PORT。
+func main() {
+	// ═══════════════════════════════════════════════════════
+	// 第 1 节：构建产物、版本与目标平台
+	// ═══════════════════════════════════════════════════════
+	// go run 临时编译并运行；go build 留下可执行文件，-o 指定文件名。
+	// 类似前端构建要区分开发服务和发布产物，但 Go 构建结果通常是原生可执行程序。
+	// 在课程根目录执行下面两行，第二行会输出注入的版本：
+	// go build -ldflags '-X main.version=v0.1.0' -o /tmp/go-lesson-service ./30-deployment/lesson.go
+	// /tmp/go-lesson-service version
+	// GOOS 选择系统，GOARCH 选择 CPU；把文件名改成 .exe 不会改变目标平台。
+	// Linux 产物一般不能直接在 macOS 上运行，完整交叉编译命令见末尾附录。
 
-func defaultAddress() (string, error) {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	number, err := strconv.Atoi(port)
-	if err != nil || number < 1 || number > 65535 {
-		return "", fmt.Errorf("PORT 必须为 1..65535，实际为 %q", port)
-	}
-	return net.JoinHostPort("127.0.0.1", strconv.Itoa(number)), nil
-}
+	// ═══════════════════════════════════════════════════════
+	// 第 2 节：运行配置：环境变量、默认值与校验
+	// ═══════════════════════════════════════════════════════
+	// defaultAddress 读取 PORT，未提供时用 8080，随后检查是否为 1..65535 的整数。
+	// 端口与主机通过 net.JoinHostPort 组成地址；本例只监听本机回环地址。
+	// 下方 server 分支先读 -addr，非空时直接使用；否则才进入这里解析 PORT。
 
-// ═══════════════════════════════════════════════════════
-// 第 3 节：健康检查与版本路由
-// ═══════════════════════════════════════════════════════
-// /healthz 返回 ok，说明进程能处理请求；/version 返回当前构建版本。
-// 部署后可用 curl http://127.0.0.1:8080/healthz 核对响应，再核对 /version。
-
-func deploymentMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(writer, "ok")
-	})
-	mux.HandleFunc("GET /version", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(writer, version)
-	})
-	return mux
-	// /healthz 表示进程能响应；真实 readiness 检查还需按业务判断数据库等依赖是否就绪。
-}
-
-// ═══════════════════════════════════════════════════════
-// 第 4 节：启动服务与优雅退出
-// ═══════════════════════════════════════════════════════
-// 先 Listen 确认端口可用，再启动 Serve；主流程等待服务错误或取消通知。
-// 取消时创建独立的 5 秒 Shutdown context，让正在处理的请求有时间结束。
-// 若到期仍未完成，就 Close 强制关闭；最后读取 finished，确认 Serve 已返回。
-
-func serveUntilCanceled(ctx context.Context, address string) error {
-	listener, err := net.Listen("tcp", address)
-	if err != nil {
-		return err
-	}
-	defer listener.Close()
-	server := &http.Server{
-		Handler: deploymentMux(), ReadHeaderTimeout: 3 * time.Second,
-		ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
-	}
-	finished := make(chan error, 1)
-	go func() { finished <- server.Serve(listener) }()
-	fmt.Printf("服务已启动：http://%s，版本=%s；Ctrl+C 触发优雅退出\n", listener.Addr(), version)
-	select {
-	case err := <-finished:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
+	defaultAddress := func() (string, error) {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
 		}
-		return err
-	case <-ctx.Done():
-		fmt.Println("收到退出信号：停止接受新连接，等待正在处理的 HTTP 请求")
+		number, err := strconv.Atoi(port)
+		if err != nil || number < 1 || number > 65535 {
+			return "", fmt.Errorf("PORT 必须为 1..65535，实际为 %q", port)
+		}
+		return net.JoinHostPort("127.0.0.1", strconv.Itoa(number)), nil
 	}
-	// 原 ctx 已取消，不能拿它直接做 Shutdown 的等待期限；新建独立的有期限 context。
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	shutdownErr := server.Shutdown(shutdownCtx)
-	if shutdownErr != nil {
-		// 到期还没完成时强制关闭，确保进程能够结束。
-		shutdownErr = errors.Join(shutdownErr, server.Close())
-	}
-	serveErr := <-finished
-	if errors.Is(serveErr, http.ErrServerClosed) {
-		serveErr = nil // 主动关停的正常结果，不能作为异常启动失败处理。
-	}
-	return errors.Join(shutdownErr, serveErr)
-	// Shutdown 等待普通 HTTP 请求，不会自动关闭 WebSocket 或任意后台 goroutine。
-	// 那些资源需要各自的取消与等待机制；直接 os.Exit 会跳过 defer。
-}
 
-// ═══════════════════════════════════════════════════════
-// 第 5 节：命令行分发与信号取消
-// ═══════════════════════════════════════════════════════
-// 无参数打印构建说明，version 查看版本，server 启动服务并解析 -addr。
-// signal.NotifyContext 把 Ctrl+C 或 SIGTERM 转成 ctx.Done 通知，第 4 节据此收尾。
-// 完整平台与部署命令见同目录 lesson.go 末尾的部署附录。
+	// ═══════════════════════════════════════════════════════
+	// 第 3 节：健康检查与版本路由
+	// ═══════════════════════════════════════════════════════
+	// /healthz 返回 ok，说明进程能处理请求；/version 返回当前构建版本。
+	// 部署后可用 curl http://127.0.0.1:8080/healthz 核对响应，再核对 /version。
 
-func runDeployment(args []string) error {
-	if len(args) == 0 {
-		fmt.Println("当前构建目标：", runtime.GOOS, runtime.GOARCH, "；Go：", runtime.Version())
-		fmt.Println("版本：", version)
-		fmt.Println("1. go build 构建当前包；本项目根包是导航，要构建服务请指定章节目录。")
-		fmt.Println("2. go build file.go 只编译列出的文件，本项目章节应构建整个包。")
-		fmt.Println("3. -o 只指定文件名；把文件叫 main.exe 不会自动生成 Windows 程序。")
-		fmt.Println("4. macOS -> Linux：设置 GOOS=linux 和匹配服务器 CPU 的 GOARCH。")
-		fmt.Println("5. 纯 Go 示例可用 CGO_ENABLED=0；依赖 C 的项目需要另外处理交叉编译工具链。")
-		fmt.Println("6. 阅读 30-deployment/lesson.go 末尾的部署附录，按命令构建、运行并检查 /healthz。")
-		return nil
+	deploymentMux := func() *http.ServeMux {
+		mux := http.NewServeMux()
+		mux.HandleFunc("GET /healthz", func(writer http.ResponseWriter, request *http.Request) {
+			writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			fmt.Fprintln(writer, "ok")
+		})
+		mux.HandleFunc("GET /version", func(writer http.ResponseWriter, request *http.Request) {
+			writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			fmt.Fprintln(writer, version)
+		})
+		return mux
+		// /healthz 表示进程能响应；真实 readiness 检查还需按业务判断数据库等依赖是否就绪。
 	}
-	switch args[0] {
-	case "version":
-		fmt.Printf("version=%s go=%s target=%s/%s\n", version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
-		return nil
-	case "server":
-		flags := flag.NewFlagSet("server", flag.ContinueOnError)
-		address := flags.String("addr", "", "监听地址，优先于 PORT，例如 127.0.0.1:9090")
-		if err := flags.Parse(args[1:]); err != nil {
-			if errors.Is(err, flag.ErrHelp) {
+
+	// ═══════════════════════════════════════════════════════
+	// 第 4 节：启动服务与优雅退出
+	// ═══════════════════════════════════════════════════════
+	// 先 Listen 确认端口可用，再启动 Serve；主流程等待服务错误或取消通知。
+	// 取消时创建独立的 5 秒 Shutdown context，让正在处理的请求有时间结束。
+	// 若到期仍未完成，就 Close 强制关闭；最后读取 finished，确认 Serve 已返回。
+
+	serveUntilCanceled := func(ctx context.Context, address string) error {
+		listener, err := net.Listen("tcp", address)
+		if err != nil {
+			return err
+		}
+		defer listener.Close()
+		server := &http.Server{
+			Handler: deploymentMux(), ReadHeaderTimeout: 3 * time.Second,
+			ReadTimeout: 5 * time.Second, WriteTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
+		}
+		finished := make(chan error, 1)
+		go func() { finished <- server.Serve(listener) }()
+		fmt.Printf("服务已启动：http://%s，版本=%s；Ctrl+C 触发优雅退出\n", listener.Addr(), version)
+		select {
+		case err := <-finished:
+			if errors.Is(err, http.ErrServerClosed) {
 				return nil
 			}
 			return err
+		case <-ctx.Done():
+			fmt.Println("收到退出信号：停止接受新连接，等待正在处理的 HTTP 请求")
 		}
-		if flags.NArg() != 0 {
-			return errors.New("server 只接受 -addr 参数")
+		// 原 ctx 已取消，不能拿它直接做 Shutdown 的等待期限；新建独立的有期限 context。
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		shutdownErr := server.Shutdown(shutdownCtx)
+		if shutdownErr != nil {
+			// 到期还没完成时强制关闭，确保进程能够结束。
+			shutdownErr = errors.Join(shutdownErr, server.Close())
 		}
-		if *address == "" {
-			var err error
-			*address, err = defaultAddress()
-			if err != nil {
+		serveErr := <-finished
+		if errors.Is(serveErr, http.ErrServerClosed) {
+			serveErr = nil // 主动关停的正常结果，不能作为异常启动失败处理。
+		}
+		return errors.Join(shutdownErr, serveErr)
+		// Shutdown 等待普通 HTTP 请求，不会自动关闭 WebSocket 或任意后台 goroutine。
+		// 那些资源需要各自的取消与等待机制；直接 os.Exit 会跳过 defer。
+	}
+
+	// ═══════════════════════════════════════════════════════
+	// 第 5 节：命令行分发与信号取消
+	// ═══════════════════════════════════════════════════════
+	// 无参数打印构建说明，version 查看版本，server 启动服务并解析 -addr。
+	// signal.NotifyContext 把 Ctrl+C 或 SIGTERM 转成 ctx.Done 通知，第 4 节据此收尾。
+	// 完整平台与部署命令见同目录 lesson.go 末尾的部署附录。
+
+	runDeployment := func(args []string) error {
+		if len(args) == 0 {
+			fmt.Println("当前构建目标：", runtime.GOOS, runtime.GOARCH, "；Go：", runtime.Version())
+			fmt.Println("版本：", version)
+			fmt.Println("1. go build 构建当前包；本项目根包是导航，要构建服务请指定 30-deployment/lesson.go。")
+			fmt.Println("2. go build file.go 只编译列出的文件；本章应分别指定 lesson.go 或 exercises.go。")
+			fmt.Println("3. -o 只指定文件名；把文件叫 main.exe 不会自动生成 Windows 程序。")
+			fmt.Println("4. macOS -> Linux：设置 GOOS=linux 和匹配服务器 CPU 的 GOARCH。")
+			fmt.Println("5. 纯 Go 示例可用 CGO_ENABLED=0；依赖 C 的项目需要另外处理交叉编译工具链。")
+			fmt.Println("6. 阅读 30-deployment/lesson.go 末尾的部署附录，按命令构建、运行并检查 /healthz。")
+			return nil
+		}
+		switch args[0] {
+		case "version":
+			fmt.Printf("version=%s go=%s target=%s/%s\n", version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+			return nil
+		case "server":
+			flags := flag.NewFlagSet("server", flag.ContinueOnError)
+			address := flags.String("addr", "", "监听地址，优先于 PORT，例如 127.0.0.1:9090")
+			if err := flags.Parse(args[1:]); err != nil {
+				if errors.Is(err, flag.ErrHelp) {
+					return nil
+				}
 				return err
 			}
+			if flags.NArg() != 0 {
+				return errors.New("server 只接受 -addr 参数")
+			}
+			if *address == "" {
+				var err error
+				*address, err = defaultAddress()
+				if err != nil {
+					return err
+				}
+			}
+			// 配置优先级：非空 -addr > PORT > 默认 127.0.0.1:8080。
+			// Unix 部署管理器通常发 SIGTERM；本地 Ctrl+C 对应 Interrupt。
+			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+			defer stop()
+			return serveUntilCanceled(ctx, *address)
+		default:
+			return errors.New("用法：不带参数，或 server [-addr 地址]，或 version")
 		}
-		// 配置优先级：非空 -addr > PORT > 默认 127.0.0.1:8080。
-		// Unix 部署管理器通常发 SIGTERM；本地 Ctrl+C 对应 Interrupt。
-		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-		defer stop()
-		return serveUntilCanceled(ctx, *address)
-	default:
-		return errors.New("用法：不带参数，或 server [-addr 地址]，或 version，或 exam")
 	}
-}
 
-// ═══════════════════════════════════════════════════════
-// 第 6 节：程序入口、错误退出与部署自查
-// ═══════════════════════════════════════════════════════
-// main 将错误写入标准错误流，并以非零退出码告诉外部运行器本次失败。
-// 实际关闭资源的 defer 位于被调用函数内，会在错误返回 main 之前执行。
-// 检查顺序：构建成功 -> 目标平台匹配 -> 配置正确 -> 健康路由可访问 -> 退出能完成清理。
+	// ═══════════════════════════════════════════════════════
+	// 第 6 节：程序入口、错误退出与部署自查
+	// ═══════════════════════════════════════════════════════
+	// main 将错误写入标准错误流，并以非零退出码告诉外部运行器本次失败。
+	// 实际关闭资源的 defer 位于被调用函数内，会在错误返回 main 之前执行。
+	// 检查顺序：构建成功 -> 目标平台匹配 -> 配置正确 -> 健康路由可访问 -> 退出能完成清理。
 
-func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
-	}
 	if err := runDeployment(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "部署示例失败：", err)
 		os.Exit(1)
 	}
 }
 
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 先构建并运行 version，再用 -ldflags 注入不同版本，核对输出确实来自新产物。
-// 启动 server，访问 /healthz 后按 Ctrl+C，沿取消信号追踪 Shutdown 与 Serve 的返回。
-
 /*
 附录：完整构建与部署命令
 
 # 编译与部署：从 macOS 生成 Linux 程序
 
-本章所有命令默认在项目根目录的 zsh / Bash 中执行。默认 `go run ./30-deployment` 只打印讲解；加 `server` 才会常驻。
+本章所有命令默认在项目根目录的 zsh / Bash 中执行。默认 `go run ./30-deployment/lesson.go` 只打印讲解；加 `server` 才会常驻。
 
 ## 1. 区分三种构建命令
 
@@ -222,20 +202,19 @@ func main() {
 | `go build` | 构建当前包。当前包是 `main` 时生成可执行文件；其他包只做编译检查。 |
 | `go build xxx.go` | 仅构建明确列出的 Go 文件，不会自动补同目录其他文件。 |
 | `go build -o main.exe xxx.go` | 指定输出名称；`.exe` 后缀不会改变目标操作系统。 |
-| `go build -o ./bin/go-server ./30-deployment` | 构建整个章节，包含 `lesson.go` 和 `exercises.go`，排除 `_test.go`。 |
+| `go build -o ./bin/go-server ./30-deployment/lesson.go` | 只构建讲解程序；练习程序另用 `exercises.go` 构建。 |
 
-这个项目的根 `main.go` 是章节导航，在根目录单独 `go build` 得到的是导航程序。每章又是独立模块，根目录的 `go build ./...` 不会递归构建其他章节模块。单独构建 `lesson.go` 会缺少 `runExercises` 等同包函数。
+第 11–30 章的 `lesson.go` 和 `exercises.go` 各自有一个 `main`，分别指定文件运行或构建。`exercises.go` 的 `//go:build ignore` 让普通包构建跳过它；显式执行 `go run exercises.go` 时仍可运行。不要在一条命令中同时指定这两个文件。根目录的 `main.go` 只是目录入口，构建服务需明确指定 `30-deployment/lesson.go`。
 
 `go run` 临时编译并运行，适合学习；发布时用 `go build` 留下确定的产物。`go build` 不会运行测试。
 
 ```sh
-# 构建前检查；章节模块由 go.work 连接
-go test ./... ./[0-9]* ./example
-go vet ./... ./[0-9]* ./example
+# 构建前检查当前讲解文件
+go vet ./30-deployment/lesson.go
 mkdir -p ./bin
 
 # 本机产物：-trimpath 移除记录在程序中的本机源码路径
-go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server ./30-deployment
+go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server ./30-deployment/lesson.go
 ./bin/go-server version
 ./bin/go-server server -addr 127.0.0.1:8080
 ```
@@ -264,13 +243,13 @@ go env GOOS GOARCH CGO_ENABLED
 go tool dist list
 
 # Linux x86-64
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server-linux-amd64 ./30-deployment
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server-linux-amd64 ./30-deployment/lesson.go
 
 # Linux ARM64
-CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server-linux-arm64 ./30-deployment
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-X main.version=v0.1.0' -o ./bin/go-server-linux-arm64 ./30-deployment/lesson.go
 
 # 真正生成 Windows 程序需要设置 GOOS；只改扩展名没有作用
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/go-server-windows-amd64.exe ./30-deployment
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o ./bin/go-server-windows-amd64.exe ./30-deployment/lesson.go
 
 # macOS 可以查看文件格式，但不能直接原生运行 Linux ELF 程序
 file ./bin/go-server-linux-amd64 ./bin/go-server-linux-arm64
@@ -324,7 +303,7 @@ curl -i http://127.0.0.1:8080/healthz
 | `exec format error` | GOOS/GOARCH 是否与目标机匹配。 |
 | `permission denied` | 文件是否有执行权限，所在挂载点是否允许执行。 |
 | `address already in use` | 端口已被其他进程占用；修改 PORT 或 -addr。 |
-| 只打印章节目录后退出 | 构建了根导航包，应指定第 30 章目录。 |
+| 没有启动服务就退出 | 构建了根目录入口，应指定第 30 章的 lesson.go。 |
 | 本机可访问，其他机器访问失败 | 是否只监听回环地址、端口映射与网络规则是否正确。 |
 | 二进制存在却提示加载器缺失 | 检查是否启用了 CGO、目标系统是否提供所需动态加载器与库。 |
 

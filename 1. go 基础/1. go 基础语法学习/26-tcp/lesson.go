@@ -1,23 +1,10 @@
 /*
 章节：26-TCP网络编程
-	本章掌握清单：
-	1. TCP 连接与字节流
-	2. 消息协议：读完整一条，写完剩余字节
-	3. 处理一个连接：循环读取并回复
-	4. 接受多个连接：Accept 循环与任务等待
-	5. 客户端：连接、发送、读取、校验
-	6. 自动演示：先监听，再连接，最后收尾
-	7. 命令行模式与连接 API 复习
 */
 
-// 请从 go 基础语法学习 项目根目录运行以下命令，同目录文件共同组成 main 包。
-// 运行讲解：go run ./26-tcp
-// 运行练习：go run ./26-tcp exam
-// 阅读顺序：按第 1–7 节从协议读到客户端；main 只分发 exam 和讲解入口，默认演示会自动结束。
 // TS 对照：net.Listen/Accept 类似 Node.js net.createServer；Dial 类似 net.createConnection。
-// 双终端：go run ./26-tcp server；go run ./26-tcp client
+// 双终端：go run ./26-tcp/lesson.go server；go run ./26-tcp/lesson.go client
 // 可在 server/client 后传地址，默认 127.0.0.1:8081。
-// 后续再学：长度前缀协议、TLS、连接数限制、心跳、重连与优雅停止全部连接。
 
 package main
 
@@ -48,7 +35,7 @@ import (
    客户端 -> 服务端：SYN，seq=x
    服务端 -> 客户端：SYN+ACK，seq=y，ack=x+1
    客户端 -> 服务端：ACK，ack=y+1
-   双方同步各自的序号，并确认双向通信。Listen 等待连接，Dial 发起连接。
+   双方同步各自的序号，并确认双向通信。Listen 建立监听，Accept 等待并取出连接，Dial 发起连接。
 
 3. 常见四次挥手：A 发 FIN -> B 回 ACK -> B 发 FIN -> A 回 ACK。
    每个方向分别关闭，所以收到 FIN 后，另一方向仍可能发送剩余数据。
@@ -171,6 +158,7 @@ func serveTCP(listener net.Listener, once bool) error {
 // 发送中文时长度仍按 UTF-8 字节计算；只有收到预期大写结果才算本次演示成功。
 
 func runTCPClient(address string) error {
+	// Node.js 通常通过 connect 事件通知；这里 DialTimeout 返回时就知道连接是否成功。
 	conn, err := net.DialTimeout("tcp", address, ioTimeout)
 	if err != nil {
 		return err
@@ -223,42 +211,39 @@ func demoTCP() error {
 // 无参数调用 demoTCP，server 持续接待连接，client 只执行客户端通信。
 // 双终端练习时，两边必须使用相同的 host:port。
 
-func runTCP(args []string) error {
-	if len(args) == 0 {
-		return demoTCP()
-	}
-	address := "127.0.0.1:8081"
-	if len(args) > 1 {
-		address = args[1]
-	}
-	switch args[0] {
-	case "server":
-		listener, err := net.Listen("tcp", address)
-		if err != nil {
-			return err
-		}
-		defer listener.Close()
-		fmt.Println("TCP 服务监听：", listener.Addr(), "；Ctrl+C 结束")
-		return serveTCP(listener, false)
-	case "client":
-		return runTCPClient(address)
-	default:
-		return errors.New("用法：不带参数，或 server/client [地址]，或 exam")
-	}
-}
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "exam" {
-		runExercises()
-		return
+	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	runTCP := func(args []string) error {
+		if len(args) == 0 {
+			return demoTCP()
+		}
+		address := "127.0.0.1:8081"
+		if len(args) > 1 {
+			address = args[1]
+		}
+		switch args[0] {
+		case "server":
+			listener, err := net.Listen("tcp", address)
+			if err != nil {
+				return err
+			}
+			defer listener.Close()
+			fmt.Println("TCP 服务监听：", listener.Addr(), "；Ctrl+C 结束")
+			return serveTCP(listener, false)
+		case "client":
+			return runTCPClient(address)
+		default:
+			return errors.New("用法：不带参数，或 server/client [地址]")
+		}
 	}
+
 	if err := runTCP(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "TCP 演示失败：", err)
 		os.Exit(1)
 	}
 }
 
-// 原笔记还可写为 ResolveTCPAddr -> ListenTCP，得到 *net.TCPListener；每一步都要检查 err。
+// ResolveTCPAddr -> ListenTCP 可得到 *net.TCPListener；每一步都要检查 err。
 // net.Listen("tcp", address) 是更简洁的入口；AcceptTCP/DialTCP 可取得 *net.TCPConn。
 // Read([]byte) (n, err)：先处理 n>0 的字节，再判断 err，二者可能同时存在。
 // io.EOF 是错误值，不是 io.EOF() 函数；用 errors.Is(err, io.EOF) 判断。
@@ -267,7 +252,3 @@ func main() {
 // DialTimeout 只约束建立连接；SetReadDeadline/SetWriteDeadline 约束已建立连接的 I/O。
 // SetDeadline 是绝对截止时间，持续会话需要刷新；time.Time{} 可清除 deadline。
 // 服务端在同一个 goroutine 里无限 Accept 后再写客户端代码，客户端部分就永远执行不到。
-
-// ── 学习方式：先预测，再运行，最后动手修改 ──
-// 运行默认示例，核对英文与中文两条回显；再用双终端观察一条连接承载多条消息。
-// 阅读 readMessage 的 EOF 分支，说明“完整消息后结束”与“缺少换行的半条消息”有什么区别。
