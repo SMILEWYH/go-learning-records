@@ -1,9 +1,9 @@
 /*
-章节：15-通道与通信
+章节:15-通道与通信
 */
 
-// TS 对照：channel 可以传递一串有类型的值，并同步发送方和接收方；不是 Promise。
-// 关闭表示“不会再发送”，不表示失败，也不是销毁资源或强制终止 goroutine。
+// TS 对照:channel 可以传递一串有类型的值, 并同步发送方和接收方;不是 Promise
+// 关闭表示“不会再发送”, 不表示失败, 也不是销毁资源或强制终止 goroutine
 
 package main
 
@@ -20,53 +20,53 @@ type TaskResult struct {
 
 func main() {
 	// ═══════════════════════════════════════════════════════
-	// 第 1 节：无缓冲 channel: 发送与接收配对
+	// 第 1 节:无缓冲 channel: 发送与接收配对
 	// ═══════════════════════════════════════════════════════
-	// 无缓冲通道没有队列，发送与接收要配对才能交付
+	// 无缓冲通道没有队列, 发送与接收要配对才能交付
 	result := make(chan string) // 创建只能传 string 的通道
-	// var result chan string // 只是声明, 值为 nil, 没有创建可用通道。
+	// var result chan string // 只是声明, 值为 nil, 没有创建可用通道
 	var resultWait sync.WaitGroup
 	resultWait.Go(func() {
 		result <- "profile-ready" // ch <- value 发送; <-ch 接收
 		fmt.Println("发送后的业务：保存操作记录")
 	})
 	fmt.Println("无缓冲交付：", <-result)
-	// 先接收再等待，否则后台会阻塞在发送处，无法完成任务。
+	// 先接收再等待, 否则后台会阻塞在发送处, 无法完成任务
 	resultWait.Wait()
-	// 注意: 无缓冲通道保证“发送和接收完成配对”，但不保证接收方先打印
+	// 注意: 无缓冲通道保证“发送和接收完成配对”, 但不保证接收方先打印
 
 	// ═══════════════════════════════════════════════════════
-	// 第 2 节：缓冲、关闭与接收的 ok
+	// 第 2 节:缓冲、关闭与接收的 ok
 	// ═══════════════════════════════════════════════════════
-	// 缓冲区可先容纳有限个值；满时发送仍会阻塞，空时接收仍会阻塞
+	// 缓冲区可先容纳有限个值;满时发送仍会阻塞, 空时接收仍会阻塞
 	queue := make(chan string, 2)
 	queue <- "compile"
 	queue <- "deploy"
 	fmt.Println("队列长度/容量：", len(queue), cap(queue)) // 2 2
-	// 不能仅凭 len(queue) 判断下一步一定不会阻塞：有其他 goroutine 时状态会变化
-	close(queue) // 关闭后，已缓冲的数据仍然可以被读完
+	// 不能仅凭 len(queue) 判断下一步一定不会阻塞:有其他 goroutine 时状态会变化
+	close(queue) // 关闭后, 已缓冲的数据仍然可以被读完
 	for job := range queue {
-		fmt.Println("缓冲任务：", job) // compile，然后 deploy。
+		fmt.Println("缓冲任务：", job) // compile, 然后 deploy
 	}
 	value, ok := <-queue
 	fmt.Printf("关闭并读空后：%q, ok=%v\n", value, ok) // "", false
-	// ok=false 只表示关闭且已读空，不表示“暂时没有值”。
-	// 空但未关闭的通道会等待；nil 通道的发送与接收会永远等待。
-	// closed 通道重复 close、向其发送，以及 close(nil) 都会 panic。
+	// ok=false 只表示关闭且已读空, 不表示“暂时没有值”
+	// 空但未关闭的通道会等待;nil 通道的发送与接收会永远等待
+	// closed 通道重复 close、向其发送, 以及 close(nil) 都会 panic
 
 	// ═══════════════════════════════════════════════════════
-	// 第 3 节：多个发送者与统一关闭
+	// 第 3 节:多个发送者与统一关闭
 	// ═══════════════════════════════════════════════════════
-	// 多个任务共享输出通道，各任务负责发送，协调者统一关闭。
-	// chan<- T：函数只允许向通道发送，不能读取。
-	// 它仍然能被 close，因此“谁有权关闭”除了类型，还需通过明确协议来约束。
+	// 多个任务共享输出通道, 各任务负责发送, 协调者统一关闭
+	// chan<- T:函数只允许向通道发送, 不能读取
+	// 它仍然能被 close, 因此“谁有权关闭”除了类型, 还需通过明确协议来约束
 	produceResult := func(taskID string, count int, output chan<- TaskResult) {
 		output <- TaskResult{TaskID: taskID, Count: count}
-		// 不关闭：这个通道还有其他发送者，关闭权属于外部协调者。
+		// 不关闭:这个通道还有其他发送者, 关闭权属于外部协调者
 	}
 
-	// <-chan T：函数只能接收，不能发送，也不能 close。
-	// 双向 chan T 可以传给单向参数，而只收/只发通道不能随意变回双向通道。
+	// <-chan T:函数只能接收, 不能发送, 也不能 close
+	// 双向 chan T 可以传给单向参数, 而只收/只发通道不能随意变回双向通道
 	collectResults := func(input <-chan TaskResult) map[string]int {
 		counts := make(map[string]int)
 		for result := range input {
@@ -77,7 +77,7 @@ func main() {
 
 	stream := make(chan TaskResult)
 	var wait sync.WaitGroup
-	wait.Add(2) // 先登记所有任务，再启动工作及等待者。
+	wait.Add(2) // 先登记所有任务, 再启动工作及等待者
 	go func() {
 		defer wait.Done()
 		produceResult("users", 2, stream)
@@ -87,42 +87,42 @@ func main() {
 		produceResult("orders", 3, stream)
 	}()
 	go func() {
-		wait.Wait()   // 等全部发送者完成，保证关闭之后不会再发送。
-		close(stream) // 只有此协调者负责关闭一次。
+		wait.Wait()   // 等全部发送者完成, 保证关闭之后不会再发送
+		close(stream) // 只有此协调者负责关闭一次
 	}()
 
-	// 主 goroutine 必须同时接收，不能在这里先 Wait 再读无缓冲 stream。
-	// 否则发送者卡在发送处无法 Done，主 goroutine 又卡在 Wait，形成互相等待。
+	// 主 goroutine 必须同时接收, 不能在这里先 Wait 再读无缓冲 stream
+	// 否则发送者卡在发送处无法 Done, 主 goroutine 又卡在 Wait, 形成互相等待
 	counts := collectResults(stream)
 	fmt.Println("用户数 / 订单数：", counts["users"], counts["orders"]) // 2 3
-	// goroutine 启动顺序不保证结果到达顺序。这里按固定键打印，方便核对。
-	// collectResults 读到 close 才结束，说明发送者已经全部完成。
-	// 多个生产者汇入一个结果流常称为 fan-in；同一通道的多个接收者会分摊数据，
-	// 每个值只交给其中一个接收者，并不会广播给所有接收者。
+	// goroutine 启动顺序不保证结果到达顺序这里按固定键打印, 方便核对
+	// collectResults 读到 close 才结束, 说明发送者已经全部完成
+	// 多个生产者汇入一个结果流常称为 fan-in;同一通道的多个接收者会分摊数据,
+	// 每个值只交给其中一个接收者, 并不会广播给所有接收者
 
 	// ═══════════════════════════════════════════════════════
-	// 第 4 节：发送值与数据所有权
+	// 第 4 节:发送值与数据所有权
 	// ═══════════════════════════════════════════════════════
-	// 通道发送的是值，指针、slice、map 和结构体内部引用不会被自动深拷贝。
-	// 将 *TaskResult 发出去后，继续无同步地修改它仍可能和接收方产生数据竞争。
-	// 常用约定是发送后移交使用权，或发送完整的独立副本。
-	// 用缓冲通道在同一个 goroutine 内演示复制，不引入并发读写。
+	// 通道发送的是值, 指针、slice、map 和结构体内部引用不会被自动深拷贝
+	// 将 *TaskResult 发出去后, 继续无同步地修改它仍可能和接收方产生数据竞争
+	// 常用约定是发送后移交使用权, 或发送完整的独立副本
+	// 用缓冲通道在同一个 goroutine 内演示复制, 不引入并发读写
 	shared := []int{1, 2}
 	values := make(chan []int, 1)
 	values <- shared
 	shared[0] = 9
 	fmt.Println("发送切片仍共享底层数组：", <-values) // [9 2]
 
-	independent := append([]int(nil), shared...) // 复制本例的 int 元素。
+	independent := append([]int(nil), shared...) // 复制本例的 int 元素
 	values <- independent
 	shared[0] = 100
 	fmt.Println("发送独立副本：", <-values) // [9 2]
-	// 缓冲容量不是修复所有死锁的办法：双方仍需约定发送数量、结束方式和取消方式。
+	// 缓冲容量不是修复所有死锁的办法:双方仍需约定发送数量、结束方式和取消方式
 
 	// ═══════════════════════════════════════════════════════
-	// 第 5 节：worker pool：有限任务队列
+	// 第 5 节:worker pool:有限任务队列
 	// ═══════════════════════════════════════════════════════
-	// 用固定数量 worker 从队列持续领任务，避免每条数据都新建一个 goroutine。
+	// 用固定数量 worker 从队列持续领任务, 避免每条数据都新建一个 goroutine
 	type previewJob struct {
 		index int
 		text  string
@@ -150,25 +150,25 @@ func main() {
 					text := strings.ToUpper(strings.TrimSpace(job.text))
 					results <- previewResult{index: job.index, text: text}
 				}
-				// worker 不是唯一发送者，不能自行 close(results)。
+				// worker 不是唯一发送者, 不能自行 close(results)
 			})
 		}
 		go func() {
-			defer close(jobs) // 唯一生产者拥有 jobs 的关闭权。
+			defer close(jobs) // 唯一生产者拥有 jobs 的关闭权
 			for index, text := range inputs {
 				jobs <- previewJob{index: index, text: text}
 			}
 		}()
 		go func() {
 			wait.Wait()
-			close(results) // worker 全结束之后统一关闭结果流。
+			close(results) // worker 全结束之后统一关闭结果流
 		}()
 		for result := range results {
-			previews[result.index] = result.text // 只由当前接收者写入，不并发 append。
+			previews[result.index] = result.text // 只由当前接收者写入, 不并发 append
 		}
 		return previews, true
-		// 关闭顺序：生产者完成 -> 关闭 jobs -> worker 排空 jobs 并退出 -> 关闭 results。
-		// 顺序完整后，消费者才结束 range；每个任务的结果用索引恢复输入顺序。
+		// 关闭顺序:生产者完成 -> 关闭 jobs -> worker 排空 jobs 并退出 -> 关闭 results
+		// 顺序完整后, 消费者才结束 range;每个任务的结果用索引恢复输入顺序
 	}
 
 	previews, valid := buildPreviews([]string{" first ", "second", " third"}, 2)
@@ -178,11 +178,11 @@ func main() {
 	_, valid = buildPreviews([]string{"first"}, 0)
 	fmt.Println("拒绝无效 worker 数：", valid) // false
 
-	// 队列容量有限时，消费变慢会让 results 填满，worker 等待，接着 jobs 填满、生产者等待。
-	// 这种向上游传递的等待称为“背压”，它能限制排队工作，而不是让内存无限增长。
-	// 本例协议要求消费方读到 results 关闭，不能中途直接返回，否则发送者可能永远挂起。
-	// 如业务允许提前结束，需要第 16 章的取消信号，让投递 jobs、领取任务和发送 results
-	// 等每个可能阻塞的位置都可退出；不要通过接收方擅自 close 来替代取消协议。
+	// 队列容量有限时, 消费变慢会让 results 填满, worker 等待, 接着 jobs 填满、生产者等待
+	// 这种向上游传递的等待称为“背压”, 它能限制排队工作, 而不是让内存无限增长
+	// 本例协议要求消费方读到 results 关闭, 不能中途直接返回, 否则发送者可能永远挂起
+	// 如业务允许提前结束, 需要第 16 章的取消信号, 让投递 jobs、领取任务和发送 results
+	// 等每个可能阻塞的位置都可退出;不要通过接收方擅自 close 来替代取消协议
 
-	// worker pool 是限制资源的一种模式，小任务不必为了并发而额外制造队列。
+	// worker pool 是限制资源的一种模式, 小任务不必为了并发而额外制造队列
 }

@@ -1,9 +1,9 @@
 /*
-章节：13-接口与类型断言
+章节:13-接口与类型断言
 */
 
-// struct 用来定义“数据有哪些字段”，interface 用来定义“一个类型需要有哪些方法”
-// 调用方只关心“你能做什么”，不需要知道“你具体是什么类型”
+// struct 用来定义“数据有哪些字段”, interface 用来定义“一个类型需要有哪些方法”
+// 调用方只关心“你能做什么”, 不需要知道“你具体是什么类型”
 // Go 的 any 可容纳任意值, 但使用前需判断类型, 更接近 TS unknown, 而非 TS any
 
 package main
@@ -15,9 +15,9 @@ import (
 	"strings"
 )
 
-// Go 接口在这里约束方法，不像 TS interface 那样直接列出对象的数据字段。
-// 方法必须在包级声明，所以先定义接口和实现，再在 main 中逐节调用。
-// 消费者只依赖读取能力，不必知道数据存在缓存、数据库还是测试替身中。
+// Go 接口在这里约束方法, 不像 TS interface 那样直接列出对象的数据字段
+// 方法必须在包级声明, 所以先定义接口和实现, 再在 main 中逐节调用
+// 消费者只依赖读取能力, 不必知道数据存在缓存、数据库还是测试替身中
 type Getter interface {
 	Get(key string) (string, bool)
 }
@@ -26,7 +26,7 @@ type Setter interface {
 	Set(key, value string)
 }
 
-// 嵌入两个接口，将它们要求的方法集合起来。
+// 嵌入两个接口, 将它们要求的方法集合起来
 type Store interface {
 	Getter
 	Setter
@@ -37,7 +37,7 @@ type MemoryStore struct {
 }
 
 func (store *MemoryStore) Get(key string) (string, bool) {
-	// nil 接收者的方法可以被调用，是否安全取决于方法自己的处理。
+	// nil 接收者的方法可以被调用, 是否安全取决于方法自己的处理
 	if store == nil {
 		return "", false
 	}
@@ -63,13 +63,13 @@ func (getter FixedGetter) Get(key string) (string, bool) {
 	return getter.Value, true
 }
 
-// 编译期确认类型实现接口；只有方法签名完全匹配才满足要求。
+// 编译期确认类型实现接口;只有方法签名完全匹配才满足要求
 var _ Store = (*MemoryStore)(nil)
 var _ Getter = FixedGetter{}
 var _ Getter = (*FixedGetter)(nil)
 
-// 在使用处定义“小接口”，把依赖传进来，就是最基础的依赖注入，无需专门框架。
-// 这个服务只需要读取，没理由要求依赖同时提供写入、删除、连接数据库等能力。
+// 在使用处定义“小接口”, 把依赖传进来, 就是最基础的依赖注入, 无需专门框架
+// 这个服务只需要读取, 没理由要求依赖同时提供写入、删除、连接数据库等能力
 type PreferenceService struct {
 	reader Getter
 }
@@ -84,9 +84,9 @@ func (service PreferenceService) Theme() string {
 
 func main() {
 	// ═══════════════════════════════════════════════════════
-	// 第 1 节：小接口、隐式实现与方法集
+	// 第 1 节:小接口、隐式实现与方法集
 	// ═══════════════════════════════════════════════════════
-	// *MemoryStore 隐式满足 Store，根本不需要 implements 声明。
+	// *MemoryStore 隐式满足 Store, 根本不需要 implements 声明
 	showValue := func(getter Getter, key string) {
 		value, ok := getter.Get(key)
 		fmt.Println("读取：", key, value, ok)
@@ -96,14 +96,14 @@ func main() {
 	store.Set("theme", "dark")
 	showValue(store, "theme")
 	showValue(FixedGetter{Value: "test-value"}, "theme")
-	// T 的方法集包含值接收者方法；*T 包含值接收者和指针接收者方法。
-	// MemoryStore{} 不满足 Getter；虽然可取地址变量调用方法时允许自动取地址，
-	// 赋给接口时不会自动把 MemoryStore 值变成 *MemoryStore。
+	// T 的方法集包含值接收者方法;*T 包含值接收者和指针接收者方法
+	// MemoryStore{} 不满足 Getter;虽然可取地址变量调用方法时允许自动取地址,
+	// 赋给接口时不会自动把 MemoryStore 值变成 *MemoryStore
 
 	// ═══════════════════════════════════════════════════════
-	// 第 2 节：类型断言与 comma-ok
+	// 第 2 节:类型断言与 comma-ok
 	// ═══════════════════════════════════════════════════════
-	// 接口可理解为“动态类型 + 动态值”。断言检查里面装的实际类型。
+	// 接口可理解为“动态类型 + 动态值”断言检查里面装的实际类型
 	var getter Getter = store
 	concrete, ok := getter.(*MemoryStore)
 	if ok {
@@ -111,16 +111,16 @@ func main() {
 	}
 	fmt.Println("断言为 *MemoryStore：", ok) // true
 	_, ok = getter.(FixedGetter)
-	fmt.Println("断言为 FixedGetter：", ok) // false，不会 panic。
-	// 单返回值 getter.(FixedGetter) 在失败时会 panic；对未知输入优先用 comma-ok。
-	// 断言不是转换：any(int(3)).(float64) 不会自动把 3 转为浮点数。
+	fmt.Println("断言为 FixedGetter：", ok) // false, 不会 panic
+	// 单返回值 getter.(FixedGetter) 在失败时会 panic;对未知输入优先用 comma-ok
+	// 断言不是转换:any(int(3)).(float64) 不会自动把 3 转为浮点数
 
 	// ═══════════════════════════════════════════════════════
-	// 第 3 节：any 与类型 switch
+	// 第 3 节:any 与类型 switch
 	// ═══════════════════════════════════════════════════════
-	// any 是 interface{} 的别名，不能直接调用任意字段/方法或参与任意运算。
+	// any 是 interface{} 的别名, 不能直接调用任意字段/方法或参与任意运算
 	describe := func(value any) string {
-		// switch 内的 v 在各 case 中具有对应的具体类型。
+		// switch 内的 v 在各 case 中具有对应的具体类型
 		switch v := value.(type) {
 		case string:
 			return "文本：" + v
@@ -136,78 +136,78 @@ func main() {
 	for _, value := range []any{"hello", 42, true, nil} {
 		fmt.Println("动态数据：", describe(value))
 	}
-	// TS 接口会在编译后擦除；Go 接口值在运行时携带动态类型，支持运行时断言。
-	// 不要让所有函数都接收 any；优先用具体类型或表达所需能力的小接口。
+	// TS 接口会在编译后擦除;Go 接口值在运行时携带动态类型, 支持运行时断言
+	// 不要让所有函数都接收 any;优先用具体类型或表达所需能力的小接口
 
 	// ═══════════════════════════════════════════════════════
-	// 第 4 节：接口的 nil：类型和值都要为空
+	// 第 4 节:接口的 nil:类型和值都要为空
 	// ═══════════════════════════════════════════════════════
-	// 接口只有“动态类型和动态值都为空”时才等于 nil。
+	// 接口只有“动态类型和动态值都为空”时才等于 nil
 	var empty Getter
 	var missing *MemoryStore
 	var wrapped Getter = missing
 	fmt.Println("空接口值：", empty == nil)           // true
 	fmt.Println("带 nil 指针的接口值：", wrapped == nil) // false
 	fmt.Printf("接口仍携带类型：%T\n", wrapped)          // *main.MemoryStore
-	// wrapped 的动态值为 nil，但动态类型是 *MemoryStore。
-	// 本例的 Get 特别处理了 nil，所以安全；不能推断其他实现也安全。
+	// wrapped 的动态值为 nil, 但动态类型是 *MemoryStore
+	// 本例的 Get 特别处理了 nil, 所以安全;不能推断其他实现也安全
 	showValue(wrapped, "theme")
-	// 若某工厂函数的返回类型是 Getter，“无结果”时应直接 return nil，
-	// 不要先声明 *MemoryStore 的 nil 再把它装进接口返回。
+	// 若某工厂函数的返回类型是 Getter, “无结果”时应直接 return nil,
+	// 不要先声明 *MemoryStore 的 nil 再把它装进接口返回
 
 	// ═══════════════════════════════════════════════════════
-	// 第 5 节：按能力断言与依赖注入
+	// 第 5 节:按能力断言与依赖注入
 	// ═══════════════════════════════════════════════════════
-	// 也可以断言为另一个接口：询问是否支持写能力，而不是绑定某个具体实现。
+	// 也可以断言为另一个接口:询问是否支持写能力, 而不是绑定某个具体实现
 	if writable, ok := getter.(Setter); ok {
 		writable.Set("theme", "light")
 	}
 	production := PreferenceService{reader: store}
 	fixture := PreferenceService{reader: FixedGetter{Value: "dark"}}
 	fmt.Println("相同业务逻辑、不同依赖：", production.Theme(), fixture.Theme()) // light dark
-	// 测试时传入简单实现即可控制输入；把任意实现都放进 any 会丢掉有用的能力约束。
+	// 测试时传入简单实现即可控制输入;把任意实现都放进 any 会丢掉有用的能力约束
 
 	// ═══════════════════════════════════════════════════════
-	// 第 6 节：标准库 Reader / Writer
+	// 第 6 节:标准库 Reader / Writer
 	// ═══════════════════════════════════════════════════════
-	// 读写接口让 io.Copy 同时适用于文件、网络和内存，算法不必随数据来源重写。
-	// 本例 source 供数据，destination 接数据，参数顺序是先目标、后来源。
+	// 读写接口让 io.Copy 同时适用于文件、网络和内存, 算法不必随数据来源重写
+	// 本例 source 供数据, destination 接数据, 参数顺序是先目标、后来源
 
 	demonstrateStandardInterfaces := func() {
-		// 标准库也大量使用小接口：Reader 只有 Read([]byte) (int, error)，
-		// Writer 只有 Write([]byte) (int, error)。字符串、文件和网络连接可提供同类能力。
+		// 标准库也大量使用小接口:Reader 只有 Read([]byte) (int, error),
+		// Writer 只有 Write([]byte) (int, error)字符串、文件和网络连接可提供同类能力
 		var source io.Reader = strings.NewReader("shared interfaces")
 		var buffer bytes.Buffer
 		var destination io.Writer = &buffer
-		// io.Copy 只依赖读写能力，不需要知道这里其实是内存字符串和内存缓冲区。
+		// io.Copy 只依赖读写能力, 不需要知道这里其实是内存字符串和内存缓冲区
 		written, err := io.Copy(destination, source)
 		if err != nil {
 			fmt.Println("复制失败：", err)
 			return
 		}
 		fmt.Println("接口组合完成复制：", written, buffer.String()) // 17 shared interfaces
-		// 若自己循环调用 Read，要先处理 n>0 的数据，再处理 err；同次调用可能两者都有。
-		// io.Copy 已处理这些通用细节；第 18、20 章再展开 error 和文件读取。
+		// 若自己循环调用 Read, 要先处理 n>0 的数据, 再处理 err;同次调用可能两者都有
+		// io.Copy 已处理这些通用细节;第 18、20 章再展开 error 和文件读取
 	}
 
 	demonstrateStandardInterfaces()
 
 	// ═══════════════════════════════════════════════════════
-	// 第 7 节：接口比较与动态类型
+	// 第 7 节:接口比较与动态类型
 	// ═══════════════════════════════════════════════════════
-	// any(1) 和 any(int64(1)) 的数值相同，动态类型却不同，所以不相等。
-	// 判断接口是否 nil 是安全的，比较两个内部都装切片的接口则可能 panic。
+	// any(1) 和 any(int64(1)) 的数值相同, 动态类型却不同, 所以不相等
+	// 判断接口是否 nil 是安全的, 比较两个内部都装切片的接口则可能 panic
 
 	demonstrateInterfaceEquality := func() {
 		fmt.Println("接口比较动态类型和值：", any(1) == any(1), any(1) == any(int64(1))) // true false
 		var values any = []int{1, 2}
 		fmt.Println("包含切片的接口仍可判断 nil：", values == nil) // false
-		// 接口语法上可以 ==，但若两边装着相同的不可比较类型，运行时会 panic。
-		// 例如 values == values 会尝试比较 []int，而 slice 不支持这种比较，所以不能执行。
-		// map[any] 的键同样不能装 slice/map/function；需要键时优先设计明确的可比较类型。
+		// 接口语法上可以 ==, 但若两边装着相同的不可比较类型, 运行时会 panic
+		// 例如 values == values 会尝试比较 []int, 而 slice 不支持这种比较, 所以不能执行
+		// map[any] 的键同样不能装 slice/map/function;需要键时优先设计明确的可比较类型
 	}
 
 	demonstrateInterfaceEquality()
 }
 
-// 反射不是使用 any 的默认方案，优先用具体类型、接口或 type switch。
+// 反射不是使用 any 的默认方案, 优先用具体类型、接口或 type switch

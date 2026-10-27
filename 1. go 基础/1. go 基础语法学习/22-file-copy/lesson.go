@@ -1,9 +1,9 @@
 /*
-章节：22-文件复制
+章节:22-文件复制
 */
 
-// TS 对照：类似 fs.copyFile 或把 readable stream pipe 到 writable stream；
-// io.Copy 使用 Reader/Writer 接口，不需要把整个大文件先读入内存。
+// TS 对照:类似 fs.copyFile 或把 readable stream pipe 到 writable stream;
+// io.Copy 使用 Reader/Writer 接口, 不需要把整个大文件先读入内存
 
 package main
 
@@ -17,14 +17,14 @@ import (
 )
 
 func main() {
-	// 文件复制先在本次创建的临时目录中演示；函数返回时统一清理。
+	// 文件复制先在本次创建的临时目录中演示;函数返回时统一清理
 	demoCopy := func() (err error) {
 
 		// ═══════════════════════════════════════════════════════
-		// 第 1 节：复制前先准备并验证文件
+		// 第 1 节:复制前先准备并验证文件
 		// ═══════════════════════════════════════════════════════
-		// 本例把目标预先写得更长，用于验证复制后不会残留旧尾部。
-		// 阅读 copyFile 时按“打开源 -> 验证 -> 打开目标 -> 验证 -> 截断 -> 复制”追踪。
+		// 本例把目标预先写得更长, 用于验证复制后不会残留旧尾部
+		// 阅读 copyFile 时按“打开源 -> 验证 -> 打开目标 -> 验证 -> 截断 -> 复制”追踪
 
 		dir, err := os.MkdirTemp("", "go-copy-*")
 		if err != nil {
@@ -41,14 +41,14 @@ func main() {
 		}
 
 		// ═══════════════════════════════════════════════════════
-		// 第 2 节：io.Copy：目标在前，来源在后
+		// 第 2 节:io.Copy:目标在前, 来源在后
 		// ═══════════════════════════════════════════════════════
-		// io.Copy(destination, source) 持续把源字节写到目标，正常读完返回 nil 错误。
-		// copyFile 另负责文件的打开与关闭；成功字节数应与源内容长度一致。
+		// io.Copy(destination, source) 持续把源字节写到目标, 正常读完返回 nil 错误
+		// copyFile 另负责文件的打开与关闭;成功字节数应与源内容长度一致
 
-		// copyFile 用于本地、受控路径，覆盖普通目标文件，不保留源权限/时间等元数据。
-		// 若复制失败，目标可能只有部分数据；需要完整替换语义时应另写临时文件再提交。
-		// 此处不处理其他进程同时替换路径/修改文件的情况。
+		// copyFile 用于本地、受控路径, 覆盖普通目标文件, 不保留源权限/时间等元数据
+		// 若复制失败, 目标可能只有部分数据;需要完整替换语义时应另写临时文件再提交
+		// 此处不处理其他进程同时替换路径/修改文件的情况
 		copyFile := func(sourcePath, destinationPath string) (written int64, err error) {
 			source, err := os.Open(sourcePath)
 			if err != nil {
@@ -63,8 +63,8 @@ func main() {
 				return 0, errors.New("源必须是普通文件")
 			}
 
-			// 不能先 os.Create：它会立刻截断，若 src/dst 实际是同一文件就已经损坏源内容。
-			// 先打开但不截断，比较已打开文件的身份，再清空目标。
+			// 不能先 os.Create:它会立刻截断, 若 src/dst 实际是同一文件就已经损坏源内容
+			// 先打开但不截断, 比较已打开文件的身份, 再清空目标
 			destination, err := os.OpenFile(destinationPath, os.O_CREATE|os.O_WRONLY, 0o600)
 			if err != nil {
 				return 0, fmt.Errorf("打开目标文件: %w", err)
@@ -78,15 +78,15 @@ func main() {
 				return 0, errors.New("目标必须是普通文件")
 			}
 			if os.SameFile(sourceInfo, destinationInfo) {
-				// 单纯比较路径字符串不够：硬链接、符号链接也可能指向同一文件。
+				// 单纯比较路径字符串不够:硬链接、符号链接也可能指向同一文件
 				return 0, errors.New("源与目标是同一文件")
 			}
 			if err := destination.Truncate(0); err != nil {
 				return 0, fmt.Errorf("清空目标: %w", err)
 			}
 			written, err = io.Copy(destination, source)
-			// written 是已成功写出的字节数，不是字符数；io.Copy 读到正常 EOF 时返回 nil 错误。
-			// 出错时 written 仍可能大于 0，不能只根据“已经写出一些内容”就视作复制成功。
+			// written 是已成功写出的字节数, 不是字符数;io.Copy 读到正常 EOF 时返回 nil 错误
+			// 出错时 written 仍可能大于 0, 不能只根据“已经写出一些内容”就视作复制成功
 			if err != nil {
 				return written, fmt.Errorf("复制内容: %w", err)
 			}
@@ -104,37 +104,37 @@ func main() {
 		fmt.Printf("复制 %d 字节，目标内容：%q\n", n, content)
 
 		// ═══════════════════════════════════════════════════════
-		// 第 3 节：同文件检查必须早于截断
+		// 第 3 节:同文件检查必须早于截断
 		// ═══════════════════════════════════════════════════════
-		// 不同路径也可能是同一文件的链接，必须用文件信息确认身份。
-		// 如果先 os.Create 或 O_TRUNC，再检查，源数据可能已经被清空。
+		// 不同路径也可能是同一文件的链接, 必须用文件信息确认身份
+		// 如果先 os.Create 或 O_TRUNC, 再检查, 源数据可能已经被清空
 
 		_, sameFileErr := copyFile(source, source)
 		fmt.Println("同文件复制被拒绝：", sameFileErr)
 
 		// ═══════════════════════════════════════════════════════
-		// 第 4 节：Reader / Writer：复制流程不依赖磁盘
+		// 第 4 节:Reader / Writer:复制流程不依赖磁盘
 		// ═══════════════════════════════════════════════════════
-		// Reader/Writer 让同一复制流程也适用于内存、压缩流、网络流等。
+		// Reader/Writer 让同一复制流程也适用于内存、压缩流、网络流等
 		var output strings.Builder
 		n, err = io.Copy(&output, strings.NewReader("Go你好"))
 		if err != nil {
 			return err
 		}
 		fmt.Printf("内存流复制：%d 字节，%d 个 Unicode 码点，内容=%q\n", n, len([]rune(output.String())), output.String())
-		// io.Copy 不会关闭两端，创建资源的一方负责关闭。
-		// io.CopyN 复制指定字节数，源不够时会报错；io.CopyBuffer 可复用缓冲区，减少重复分配。
-		// 对实现 WriterTo/ReaderFrom 的对象，Copy/CopyBuffer 可能使用对象自己的优化路径。
+		// io.Copy 不会关闭两端, 创建资源的一方负责关闭
+		// io.CopyN 复制指定字节数, 源不够时会报错;io.CopyBuffer 可复用缓冲区, 减少重复分配
+		// 对实现 WriterTo/ReaderFrom 的对象, Copy/CopyBuffer 可能使用对象自己的优化路径
 
 		// ═══════════════════════════════════════════════════════
-		// 第 5 节：覆盖约定与失败后的状态
+		// 第 5 节:覆盖约定与失败后的状态
 		// ═══════════════════════════════════════════════════════
-		// 覆盖策略与失败收尾要一起设计：
-		// - 目标不能已存在：用 O_CREATE|O_EXCL，避免“先检查存在，再创建”的竞态窗口。
-		// - 允许覆盖但不能暴露半成品：参考上一章，同目录临时文件写好后再提交。
-		// - 当前示例直接覆盖：失败可能留下不完整目标；不能无条件 Remove 目标，
-		//   因为它可能是原先存在的用户文件。只清理由本次调用创建且明确归自己所有的临时文件。
-		// io.Copy 只复制内容，不复制权限、所有者、修改时间或扩展属性；它也不会自动创建父目录。
+		// 覆盖策略与失败收尾要一起设计:
+		// - 目标不能已存在:用 O_CREATE|O_EXCL, 避免“先检查存在, 再创建”的竞态窗口
+		// - 允许覆盖但不能暴露半成品:参考上一章, 同目录临时文件写好后再提交
+		// - 当前示例直接覆盖:失败可能留下不完整目标;不能无条件 Remove 目标,
+		//   因为它可能是原先存在的用户文件只清理由本次调用创建且明确归自己所有的临时文件
+		// io.Copy 只复制内容, 不复制权限、所有者、修改时间或扩展属性;它也不会自动创建父目录
 		return nil
 	}
 

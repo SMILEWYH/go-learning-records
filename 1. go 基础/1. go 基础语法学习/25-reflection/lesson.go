@@ -1,8 +1,8 @@
 /*
-章节：25-反射与ORM原理
+章节:25-反射与ORM原理
 */
 
-// TS 对照：TS 类型大多在编译后擦除；Go reflect 可在运行时读取具体类型、字段和 tag。
+// TS 对照:TS 类型大多在编译后擦除;Go reflect 可在运行时读取具体类型、字段和 tag
 
 package main
 
@@ -23,7 +23,7 @@ type Profile struct {
 	Age    int    `db:"age" json:"age"`
 	Active bool   `db:"active" json:"active"`
 	Note   string `db:"-" json:"-"`
-	secret string // 未导出字段：可以查看元数据，但不能随意 Interface 或 Set。
+	secret string // 未导出字段:可以查看元数据, 但不能随意 Interface 或 Set
 }
 
 func (profile Profile) Greeting(prefix string) string { return prefix + profile.Name }
@@ -33,26 +33,26 @@ func main() {
 	demoReflection := func() error {
 
 		// ═══════════════════════════════════════════════════════
-		// 第 1 节：Type、Value 与 Kind
+		// 第 1 节:Type、Value 与 Kind
 		// ═══════════════════════════════════════════════════════
-		// describe 同时取得类型和值：Type 保留 UserID 身份，Kind 只把它归为 Int64 类别。
-		// nil 没有动态类型，而 (*Profile)(nil) 有指针类型；反射前先分清两者。
+		// describe 同时取得类型和值:Type 保留 UserID 身份, Kind 只把它归为 Int64 类别
+		// nil 没有动态类型, 而 (*Profile)(nil) 有指针类型;反射前先分清两者
 
 		describe := func(value any) {
 			t := reflect.TypeOf(value)
 			v := reflect.ValueOf(value)
-			if !v.IsValid() { // ValueOf(nil) 是无效 Value；TypeOf(nil) 返回 nil。
+			if !v.IsValid() { // ValueOf(nil) 是无效 Value;TypeOf(nil) 返回 nil
 				fmt.Println("nil：没有动态类型，IsValid=false")
 				return
 			}
 			fmt.Printf("Type=%v，Kind=%v，值=", t, t.Kind())
-			// Type 区分 int64 和 UserID；Kind 将两者都归入 reflect.Int64。
-			// Kind() 是方法，case 使用 reflect.String 等常量。
+			// Type 区分 int64 和 UserID;Kind 将两者都归入 reflect.Int64
+			// Kind() 是方法, case 使用 reflect.String 等常量
 			switch v.Kind() {
 			case reflect.String:
 				fmt.Println(v.String())
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				fmt.Println(v.Int()) // 返回 int64，包括定义的整数类型。
+				fmt.Println(v.Int()) // 返回 int64, 包括定义的整数类型
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 				fmt.Println(v.Uint())
 			case reflect.Float32, reflect.Float64:
@@ -62,10 +62,10 @@ func main() {
 			case reflect.Pointer:
 				fmt.Println("指针，IsNil=", v.IsNil())
 			default:
-				fmt.Println(v.Interface()) // 这里的 v 来自 ValueOf，允许 Interface。
+				fmt.Println(v.Interface()) // 这里的 v 来自 ValueOf, 允许 Interface
 			}
-			// String() 不是通用格式化方法；在错误 Kind 上调用 Int/Bool 等通常会 panic。
-			// IsNil 只用于 pointer/interface/map/slice/chan/func 等允许为 nil 的 Kind。
+			// String() 不是通用格式化方法;在错误 Kind 上调用 Int/Bool 等通常会 panic
+			// IsNil 只用于 pointer/interface/map/slice/chan/func 等允许为 nil 的 Kind
 		}
 
 		for _, value := range []any{"Go", 42, UserID(7), true, 3.5, nil, (*Profile)(nil)} {
@@ -73,15 +73,15 @@ func main() {
 		}
 
 		// ═══════════════════════════════════════════════════════
-		// 第 2 节：通过指针修改原变量
+		// 第 2 节:通过指针修改原变量
 		// ═══════════════════════════════════════════════════════
-		// ValueOf(name) 包装的是副本；ValueOf(&name).Elem() 才能取得原变量的可写位置。
-		// setValue 先检查指针和 nil，assignValue 再检查 CanSet 与赋值兼容性。
+		// ValueOf(name) 包装的是副本;ValueOf(&name).Elem() 才能取得原变量的可写位置
+		// setValue 先检查指针和 nil, assignValue 再检查 CanSet 与赋值兼容性
 
-		// TS 的 as 只影响静态检查；reflect.Value 的 SetString 会真实修改运行中的值。
+		// TS 的 as 只影响静态检查;reflect.Value 的 SetString 会真实修改运行中的值
 		name := "旧名字"
 		fmt.Println("值副本 CanSet：", reflect.ValueOf(name).CanSet()) // false
-		writable := reflect.ValueOf(&name).Elem()                  // & 取地址，Elem 解引用。
+		writable := reflect.ValueOf(&name).Elem()                  // & 取地址, Elem 解引用
 		writable.SetString("直接通过反射修改")
 		fmt.Println("SetString 后：", name)
 		if err := setValue(&name, "新名字"); err != nil {
@@ -92,10 +92,10 @@ func main() {
 		fmt.Println("类型不匹配：", setValue(&name, 123))
 
 		// ═══════════════════════════════════════════════════════
-		// 第 3 节：字段元数据、字段值与 tag
+		// 第 3 节:字段元数据、字段值与 tag
 		// ═══════════════════════════════════════════════════════
-		// showFields 中 Type.Field(i) 提供字段名、类型、tag；Value.Field(i) 提供这一项的值。
-		// 读取未导出字段前检查 CanInterface，修改字段前检查 CanSet。
+		// showFields 中 Type.Field(i) 提供字段名、类型、tag;Value.Field(i) 提供这一项的值
+		// 读取未导出字段前检查 CanInterface, 修改字段前检查 CanSet
 
 		showFields := func(value Profile) {
 			t, v := reflect.TypeOf(value), reflect.ValueOf(value)
@@ -109,9 +109,9 @@ func main() {
 					fmt.Println("，未导出，跳过读取")
 				}
 			}
-			// Type.Field 返回 StructField 元数据；Value.Field 返回对应字段的值。
-			// NumField/Field 只能用于结构体；如果传入指针，要先检查类型再 Elem()。
-			// Tag.Get 不区分“缺少标签”和“标签值为空”；需要区分时用 Tag.Lookup。
+			// Type.Field 返回 StructField 元数据;Value.Field 返回对应字段的值
+			// NumField/Field 只能用于结构体;如果传入指针, 要先检查类型再 Elem()
+			// Tag.Get 不区分“缺少标签”和“标签值为空”;需要区分时用 Tag.Lookup
 		}
 
 		profile := Profile{ID: 7, Name: "小林", Age: 20, Active: true, secret: "private"}
@@ -123,10 +123,10 @@ func main() {
 		fmt.Println("修改结构体字段：", profile.Name)
 
 		// ═══════════════════════════════════════════════════════
-		// 第 4 节：动态方法调用与方法集
+		// 第 4 节:动态方法调用与方法集
 		// ═══════════════════════════════════════════════════════
-		// MethodByName 得到已经绑定接收者的函数，Call 接收 []reflect.Value 参数并返回同类结果列表。
-		// 调用前要确认方法存在、参数个数和类型正确，否则运行时会 panic。
+		// MethodByName 得到已经绑定接收者的函数, Call 接收 []reflect.Value 参数并返回同类结果列表
+		// 调用前要确认方法存在、参数个数和类型正确, 否则运行时会 panic
 
 		demonstrateMethods := func(profile *Profile) error {
 			v, t := reflect.ValueOf(profile), reflect.TypeOf(profile)
@@ -134,8 +134,8 @@ func main() {
 				fmt.Println("可见方法：", t.Method(i).Name, v.Method(i).Type())
 			}
 			fmt.Println("值的方法数 / 指针的方法数：", reflect.TypeOf(*profile).NumMethod(), t.NumMethod()) // 1 / 2
-			// *Profile 的方法集中含 Greeting 和 Rename，Profile 只有 Greeting。
-			// 用名称选择方法比硬编码下标清楚；未导出方法不会作为这里的可调用方法列出。
+			// *Profile 的方法集中含 Greeting 和 Rename, Profile 只有 Greeting
+			// 用名称选择方法比硬编码下标清楚;未导出方法不会作为这里的可调用方法列出
 			method := v.MethodByName("Greeting")
 			if !method.IsValid() {
 				return errors.New("方法不存在")
@@ -145,9 +145,9 @@ func main() {
 			}
 			results := method.Call([]reflect.Value{reflect.ValueOf("你好，")})
 			fmt.Println("反射调用：", results[0].String())
-			// Value.Method/MethodByName 取得的函数已经绑定接收者，只传业务参数。
-			// Type.Method(i).Func 尚未绑定接收者，Call 时还需要把接收者放在第一个参数。
-			// 不是 Method(i).方法名()；Call 的参数数量或类型不匹配会 panic。
+			// Value.Method/MethodByName 取得的函数已经绑定接收者, 只传业务参数
+			// Type.Method(i).Func 尚未绑定接收者, Call 时还需要把接收者放在第一个参数
+			// 不是 Method(i).方法名();Call 的参数数量或类型不匹配会 panic
 			return nil
 		}
 
@@ -156,13 +156,13 @@ func main() {
 		}
 
 		// ═══════════════════════════════════════════════════════
-		// 第 5 节：ORM 原理：生成 SQL 结构与独立参数
+		// 第 5 节:ORM 原理:生成 SQL 结构与独立参数
 		// ═══════════════════════════════════════════════════════
-		// buildInsert 依次扫描可导出的 db 字段，分别收集列名、占位符和参数。
-		// 名字 O'Reilly 始终留在 args 中；SQL 只放 ?，交给未来的数据库驱动绑定。
-		// 反射只解决结构检查与值提取，本例尚未执行数据库操作。
+		// buildInsert 依次扫描可导出的 db 字段, 分别收集列名、占位符和参数
+		// 名字 O'Reilly 始终留在 args 中;SQL 只放 ?, 交给未来的数据库驱动绑定
+		// 反射只解决结构检查与值提取, 本例尚未执行数据库操作
 
-		profile.Name = "O'Reilly" // 含单引号仍留在参数里，不能手动拼到 SQL。
+		profile.Name = "O'Reilly" // 含单引号仍留在参数里, 不能手动拼到 SQL
 		query, args, err := buildInsert("users", profile)
 		if err != nil {
 			return err
@@ -170,7 +170,7 @@ func main() {
 		fmt.Println("SQL：", query)
 		fmt.Printf("参数：%#v\n", args)
 		// INSERT INTO `users` (`id`, `name`, `age`, `active`) VALUES (?, ?, ?, ?)
-		// 参数顺序对应字段声明顺序：7、O'Reilly、20、true。
+		// 参数顺序对应字段声明顺序:7、O'Reilly、20、true
 		return nil
 	}
 
@@ -180,9 +180,9 @@ func main() {
 	}
 }
 
-// 以下函数封装本章示例中的赋值校验和 SQL 生成。
-// assignValue 要求新值可直接赋给目标，不自动把 int 转成 int64 或 UserID。
-// CanSet + AssignableTo 比“只比较 Kind”准确；相同 Kind 不代表相同类型。
+// 以下函数封装本章示例中的赋值校验和 SQL 生成
+// assignValue 要求新值可直接赋给目标, 不自动把 int 转成 int64 或 UserID
+// CanSet + AssignableTo 比“只比较 Kind”准确;相同 Kind 不代表相同类型
 func assignValue(target reflect.Value, next any) error {
 	if !target.IsValid() || !target.CanSet() {
 		return errors.New("目标不可修改")
@@ -202,11 +202,11 @@ func assignValue(target reflect.Value, next any) error {
 	case reflect.Bool:
 		target.SetBool(source.Bool())
 	default:
-		target.Set(source) // 通用写法；上面的分支只是演示专用 setter。
+		target.Set(source) // 通用写法;上面的分支只是演示专用 setter
 	}
-	// SetString 接收 string，但不要求“必须类型断言”：来源可以本来就是 string，
-	// 也可以像这里用 source.String()。若用 next.(string)，应先检查断言的 ok。
-	// 如果另行允许数值转换，需考虑 OverflowInt 等；Convert 并不会替你拒绝数值截断。
+	// SetString 接收 string, 但不要求“必须类型断言”:来源可以本来就是 string,
+	// 也可以像这里用 source.String()若用 next.(string), 应先检查断言的 ok
+	// 如果另行允许数值转换, 需考虑 OverflowInt 等;Convert 并不会替你拒绝数值截断
 	return nil
 }
 
@@ -215,15 +215,15 @@ func setValue(destination, next any) error {
 	if !v.IsValid() || v.Kind() != reflect.Pointer || v.IsNil() {
 		return errors.New("请传入非 nil 指针")
 	}
-	return assignValue(v.Elem(), next) // Elem() 解引用，取得指针指向的可修改变量。
+	return assignValue(v.Elem(), next) // Elem() 解引用, 取得指针指向的可修改变量
 }
 
 var sqlIdentifier = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
-// buildInsert 只演示“结构体 -> 列名、占位符、参数”，不连接或创建数据库。
-// ORM（对象关系映射）把结构体对应到表，把字段对应到列；真实 ORM 还负责执行、查询映射等。
-// 本例使用 MySQL 风格的反引号和 ?，只支持一层结构体、显式 db 标签和基础标量。
-// 不支持嵌套结构体、时间、NULL、自动主键或事务；标签为 "-"、缺少标签、未导出字段均跳过。
+// buildInsert 只演示“结构体 -> 列名、占位符、参数”, 不连接或创建数据库
+// ORM（对象关系映射）把结构体对应到表, 把字段对应到列;真实 ORM 还负责执行、查询映射等
+// 本例使用 MySQL 风格的反引号和 ?, 只支持一层结构体、显式 db 标签和基础标量
+// 不支持嵌套结构体、时间、NULL、自动主键或事务;标签为 "-"、缺少标签、未导出字段均跳过
 func buildInsert(table string, model any) (string, []any, error) {
 	if !sqlIdentifier.MatchString(table) {
 		return "", nil, errors.New("表名只能使用字母、数字和下划线，且不能以数字开头")
@@ -260,7 +260,7 @@ func buildInsert(table string, model any) (string, []any, error) {
 		case reflect.Bool:
 			argument = data.Bool()
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			argument = data.Int() // 将 UserID 等定义类型归一为 int64。
+			argument = data.Int() // 将 UserID 等定义类型归一为 int64
 		case reflect.Float32, reflect.Float64:
 			argument = data.Float()
 		default:
@@ -276,7 +276,7 @@ func buildInsert(table string, model any) (string, []any, error) {
 	query := "INSERT INTO `" + table + "` (" + strings.Join(columns, ", ") + ") VALUES (" +
 		strings.Join(placeholders, ", ") + ")"
 	return query, args, nil
-	// 将来学 database/sql 时调用 db.ExecContext(ctx, query, args...)。
-	// 值不拼进 SQL；单引号等由数据库驱动处理。表名/列名不能用 ? 占位，所以单独限制。
-	// 合法标识符不等于有访问权限；真实应用还要明确允许访问哪些表。
+	// 将来学 database/sql 时调用 db.ExecContext(ctx, query, args...)
+	// 值不拼进 SQL;单引号等由数据库驱动处理表名/列名不能用 ? 占位, 所以单独限制
+	// 合法标识符不等于有访问权限;真实应用还要明确允许访问哪些表
 }

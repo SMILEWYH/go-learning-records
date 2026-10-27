@@ -1,10 +1,10 @@
 /*
-章节：28-RPC远程调用
+章节:28-RPC远程调用
 */
 
-// TS 对照：调用形式像 await api.quote(input)，但这里把方法名和参数编码后交给远端执行。
-// 双终端：go run ./28-rpc/lesson.go server；go run ./28-rpc/lesson.go client
-// 可在 server/client 后传地址，默认 127.0.0.1:8082。
+// TS 对照:调用形式像 await api.quote(input), 但这里把方法名和参数编码后交给远端执行
+// 双终端:go run ./28-rpc/lesson.go server;go run ./28-rpc/lesson.go client
+// 可在 server/client 后传地址, 默认 127.0.0.1:8082
 
 package main
 
@@ -19,31 +19,31 @@ import (
 )
 
 // ═══════════════════════════════════════════════════════
-// 第 1 节：RPC：把本地调用拆成远程通信
+// 第 1 节:RPC:把本地调用拆成远程通信
 // ═══════════════════════════════════════════════════════
-// 调用形式简洁，但参数和结果都要经过编码与网络。
-// 先看调用链与注册条件，再对应 Quote 的请求结构体、结果指针和 error。
+// 调用形式简洁, 但参数和结果都要经过编码与网络
+// 先看调用链与注册条件, 再对应 Quote 的请求结构体、结果指针和 error
 
 /*
-RPC（Remote Procedure Call）：像调用本地方法一样请求远程服务。
-调用链：客户端参数 -> 编码 -> 传输 -> 服务端解码 -> 执行方法 -> 编码结果 -> 客户端解码。
-HTTP 是协议，RPC 是调用方式；RPC 可使用 HTTP 或其他传输，两者不是互斥关系。
-本例用标准库 net/rpc + TCP + gob 编码，两端均使用 Go，无需另装框架。
-net/rpc 已冻结、不再增加新功能，适合学习原理；它不等于 gRPC，也不是浏览器 fetch API。
+RPC（Remote Procedure Call）:像调用本地方法一样请求远程服务
+调用链:客户端参数 -> 编码 -> 传输 -> 服务端解码 -> 执行方法 -> 编码结果 -> 客户端解码
+HTTP 是协议, RPC 是调用方式;RPC 可使用 HTTP 或其他传输, 两者不是互斥关系
+本例用标准库 net/rpc + TCP + gob 编码, 两端均使用 Go, 无需另装框架
+net/rpc 已冻结、不再增加新功能, 适合学习原理;它不等于 gRPC, 也不是浏览器 fetch API
 
-用 Register 注册的方法需要满足：
-  - 服务类型和方法导出，例如 PriceService.Quote。
-  - 两个业务参数的类型是导出类型或内置类型；第二个参数必须是指针。
-  - 返回值只有 error；参数和结果还必须能被所选编码器序列化。
-  - 常见签名：func (service *Service) Method(args Request, reply *Response) error。
-  - gob 只编码结构体的导出字段，字段小写可能导致数据丢失或编码失败。
+用 Register 注册的方法需要满足:
+  - 服务类型和方法导出, 例如 PriceService.Quote
+  - 两个业务参数的类型是导出类型或内置类型;第二个参数必须是指针
+  - 返回值只有 error;参数和结果还必须能被所选编码器序列化
+  - 常见签名:func (service *Service) Method(args Request, reply *Response) error
+  - gob 只编码结构体的导出字段, 字段小写可能导致数据丢失或编码失败
 */
 
 // ═══════════════════════════════════════════════════════
-// 第 2 节：服务方法：请求、reply 指针与业务校验
+// 第 2 节:服务方法:请求、reply 指针与业务校验
 // ═══════════════════════════════════════════════════════
-// QuoteRequest 是输入，QuoteResponse 保存结果；reply 指针让方法写回计算值。
-// 数量和单价先校验范围，再相乘；返回 nil 才表示服务端业务成功。
+// QuoteRequest 是输入, QuoteResponse 保存结果;reply 指针让方法写回计算值
+// 数量和单价先校验范围, 再相乘;返回 nil 才表示服务端业务成功
 
 type QuoteRequest struct {
 	Quantity       int
@@ -63,20 +63,20 @@ func (service *PriceService) Quote(args QuoteRequest, reply *QuoteResponse) erro
 	if args.UnitPriceCents < 0 || args.UnitPriceCents > 100_000_000 {
 		return errors.New("单价必须在 0..100000000 分")
 	}
-	reply.TotalCents = int64(args.Quantity) * args.UnitPriceCents // 整数分避免常见小数金额误差。
+	reply.TotalCents = int64(args.Quantity) * args.UnitPriceCents // 整数分避免常见小数金额误差
 	return nil
-	// 限制乘数范围，也避免 int64 乘法溢出。业务可预期失败通过 error 返回。
-	// 方法可能并发执行；若在 service 中加 map/计数器，需像第 17 章那样保护共享状态。
+	// 限制乘数范围, 也避免 int64 乘法溢出业务可预期失败通过 error 返回
+	// 方法可能并发执行;若在 service 中加 map/计数器, 需像第 17 章那样保护共享状态
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 3 节：服务注册与连接处理
+// 第 3 节:服务注册与连接处理
 // ═══════════════════════════════════════════════════════
-// Register 将 PriceService 的可用方法登记到服务表，客户端通过字符串方法名查找。
-// ServeConn 接管单条连接的编解码和分发，外层 Accept 负责接待不同连接。
+// Register 将 PriceService 的可用方法登记到服务表, 客户端通过字符串方法名查找
+// ServeConn 接管单条连接的编解码和分发, 外层 Accept 负责接待不同连接
 
 func newRPCServer() (*rpc.Server, error) {
-	server := rpc.NewServer() // 独立注册表；不污染默认全局 rpc.Server。
+	server := rpc.NewServer() // 独立注册表;不污染默认全局 rpc.Server
 	if err := server.Register(&PriceService{}); err != nil {
 		return nil, err
 	}
@@ -94,14 +94,14 @@ func serveRPC(server *rpc.Server, listener net.Listener, once bool) error {
 		if err != nil {
 			return err
 		}
-		// 学习示例限制每条连接的总 I/O 时间为 5 秒，避免坏客户端永久占着连接。
-		// 长期服务需要另外设计空闲超时及请求级限制，不应照搬这个固定会话时长。
+		// 学习示例限制每条连接的总 I/O 时间为 5 秒, 避免坏客户端永久占着连接
+		// 长期服务需要另外设计空闲超时及请求级限制, 不应照搬这个固定会话时长
 		if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
 			conn.Close()
 			return err
 		}
 		if once {
-			server.ServeConn(conn) // 内部读请求、调方法、写响应；结束时关闭连接。
+			server.ServeConn(conn) // 内部读请求、调方法、写响应;结束时关闭连接
 			return nil
 		}
 		workers.Add(1)
@@ -113,14 +113,14 @@ func serveRPC(server *rpc.Server, listener net.Listener, once bool) error {
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 4 节：客户端同步调用、异步调用与远程错误
+// 第 4 节:客户端同步调用、异步调用与远程错误
 // ═══════════════════════════════════════════════════════
-// Call 等待本次完成；Go 返回 *rpc.Call，结果要等 Done 到达后读取。
-// 方法名必须写 PriceService.Quote；reply 传地址，客户端才能填入解码结果。
-// 远端返回的错误文本不会保留本进程中的原始错误实例。
+// Call 等待本次完成;Go 返回 *rpc.Call, 结果要等 Done 到达后读取
+// 方法名必须写 PriceService.Quote;reply 传地址, 客户端才能填入解码结果
+// 远端返回的错误文本不会保留本进程中的原始错误实例
 
 func runRPCClient(address string) error {
-	// rpc.Dial("tcp", address) 是简写；这里自行 DialTimeout 以限制连接建立时间。
+	// rpc.Dial("tcp", address) 是简写;这里自行 DialTimeout 以限制连接建立时间
 	conn, err := net.DialTimeout("tcp", address, 5*time.Second)
 	if err != nil {
 		return err
@@ -130,9 +130,9 @@ func runRPCClient(address string) error {
 		return err
 	}
 	client := rpc.NewClient(conn)
-	defer client.Close() // Close 同时关闭底层连接，无需再由其他代码长期持有它。
-	// TS 常写 const reply = await api.quote(args)。
-	// net/rpc 把业务结果写进 &reply；Call 自身返回的是 error。
+	defer client.Close() // Close 同时关闭底层连接, 无需再由其他代码长期持有它
+	// TS 常写 const reply = await api.quote(args)
+	// net/rpc 把业务结果写进 &reply;Call 自身返回的是 error
 	var reply QuoteResponse
 	if err := client.Call("PriceService.Quote", QuoteRequest{Quantity: 3, UnitPriceCents: 1990}, &reply); err != nil {
 		return err
@@ -144,7 +144,7 @@ func runRPCClient(address string) error {
 
 	var asyncReply QuoteResponse
 	call := client.Go("PriceService.Quote", QuoteRequest{Quantity: 2, UnitPriceCents: 500}, &asyncReply,
-		make(chan *rpc.Call, 1)) // Done 通道必须有缓冲；传 nil 时库会创建。
+		make(chan *rpc.Call, 1)) // Done 通道必须有缓冲;传 nil 时库会创建
 	completed := <-call.Done
 	if completed.Error != nil {
 		return completed.Error
@@ -153,7 +153,7 @@ func runRPCClient(address string) error {
 		return fmt.Errorf("异步报价不符：%d", asyncReply.TotalCents)
 	}
 	fmt.Println("异步 RPC，总价（分）：", asyncReply.TotalCents) // 1000
-	// Go 返回后可做其他工作，但只有 Done 到来后才能安全读取 reply。
+	// Go 返回后可做其他工作, 但只有 Done 到来后才能安全读取 reply
 
 	var invalidReply QuoteResponse
 	err = client.Call("PriceService.Quote", QuoteRequest{Quantity: 0, UnitPriceCents: 500}, &invalidReply)
@@ -162,16 +162,16 @@ func runRPCClient(address string) error {
 		return fmt.Errorf("期望远程业务错误，实际为：%v", err)
 	}
 	fmt.Println("远程校验失败：", err)
-	// 远程 error 以字符串传回来；不能用 errors.Is 匹配服务端的本地 sentinel 实例。
-	// 有业务错误时 reply 不发送，客户端不能把旧 reply 当作本次成功结果。
+	// 远程 error 以字符串传回来;不能用 errors.Is 匹配服务端的本地 sentinel 实例
+	// 有业务错误时 reply 不发送, 客户端不能把旧 reply 当作本次成功结果
 	return nil
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 5 节：自动演示与资源归属
+// 第 5 节:自动演示与资源归属
 // ═══════════════════════════════════════════════════════
-// 先注册服务，再监听空闲端口，然后启动处理并连接客户端。
-// 客户端 Close 关闭底层连接，ServeConn 才能结束，主流程继续等待服务端完成。
+// 先注册服务, 再监听空闲端口, 然后启动处理并连接客户端
+// 客户端 Close 关闭底层连接, ServeConn 才能结束, 主流程继续等待服务端完成
 
 func demoRPC() error {
 	server, err := newRPCServer()
@@ -191,13 +191,13 @@ func demoRPC() error {
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 6 节：运行模式与远程调用的失败边界
+// 第 6 节:运行模式与远程调用的失败边界
 // ═══════════════════════════════════════════════════════
-// server 和 client 分开运行时仍共享相同的请求、响应类型和方法名约定。
-// 超时只说明调用方没有按时得到结果，服务端是否已经执行还要按业务协议确认。
+// server 和 client 分开运行时仍共享相同的请求、响应类型和方法名约定
+// 超时只说明调用方没有按时得到结果, 服务端是否已经执行还要按业务协议确认
 
 func main() {
-	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	// 匿名函数负责选择运行模式并返回 error, main 在调用后统一处理失败
 	runRPC := func(args []string) error {
 		if len(args) == 0 {
 			return demoRPC()
@@ -232,7 +232,7 @@ func main() {
 	}
 }
 
-// 与本地函数的区别：会断网、超时，超时后服务端仍可能已执行。
-// 给 client.Go 的 Done 加 select 超时只让调用方停止等，并不会取消远端执行。
-// net/rpc 没有内建的每次调用 context；关闭 client 会影响该连接上其他未完成调用。
-// 创建订单等非幂等操作不能在失败后盲目重试，后续应学习业务幂等键与结果查询。
+// 与本地函数的区别:会断网、超时, 超时后服务端仍可能已执行
+// 给 client.Go 的 Done 加 select 超时只让调用方停止等, 并不会取消远端执行
+// net/rpc 没有内建的每次调用 context;关闭 client 会影响该连接上其他未完成调用
+// 创建订单等非幂等操作不能在失败后盲目重试, 后续应学习业务幂等键与结果查询

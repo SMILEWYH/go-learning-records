@@ -1,11 +1,11 @@
 /*
-章节：29-WebSocket双向通信
+章节:29-WebSocket双向通信
 */
 
-// TS 对照：浏览器有 new WebSocket(url)，Go 标准库不提供完整的 WebSocket 消息 API。
-// 本章使用 github.com/gorilla/websocket v1.5.3，首次运行需下载这个固定版本。
-// 双终端：go run ./29-websocket/lesson.go server；go run ./29-websocket/lesson.go client
-// 可在 server/client 后传地址，默认 127.0.0.1:8083。
+// TS 对照:浏览器有 new WebSocket(url), Go 标准库不提供完整的 WebSocket 消息 API
+// 本章使用 github.com/gorilla/websocket v1.5.3, 首次运行需下载这个固定版本
+// 双终端:go run ./29-websocket/lesson.go server;go run ./29-websocket/lesson.go client
+// 可在 server/client 后传地址, 默认 127.0.0.1:8083
 
 package main
 
@@ -23,43 +23,43 @@ import (
 )
 
 // ═══════════════════════════════════════════════════════
-// 第 1 节：HTTP 升级与 WebSocket 消息
+// 第 1 节:HTTP 升级与 WebSocket 消息
 // ═══════════════════════════════════════════════════════
-// 先完成 HTTP 握手，连接升级后使用 WebSocket 消息协议。
-// 服务端可以主动发 welcome，客户端不必先发送一条业务消息才能收到它。
+// 先完成 HTTP 握手, 连接升级后使用 WebSocket 消息协议
+// 服务端可以主动发 welcome, 客户端不必先发送一条业务消息才能收到它
 
 /*
-本例过程：HTTP/1.1 GET /ws + Upgrade 请求 -> 101 Switching Protocols -> WebSocket 帧。
-握手后两端都可以主动发送消息，不需要每次推送都等客户端发新的 HTTP 请求。
-ws:// 是明文，wss:// 是经 TLS 保护的连接；部署到 HTTPS 页面通常配套使用 wss://。
-WebSocket 有消息边界，一条消息也可拆成多个帧；库的 ReadMessage 帮我们组装完整消息。
-底层 TCP 的一次 Read 仍不对应一条 WebSocket 消息。不能把 TCP conn.Read 当作 ReadMessage。
+本例过程:HTTP/1.1 GET /ws + Upgrade 请求 -> 101 Switching Protocols -> WebSocket 帧
+握手后两端都可以主动发送消息, 不需要每次推送都等客户端发新的 HTTP 请求
+ws:// 是明文, wss:// 是经 TLS 保护的连接;部署到 HTTPS 页面通常配套使用 wss://
+WebSocket 有消息边界, 一条消息也可拆成多个帧;库的 ReadMessage 帮我们组装完整消息
+底层 TCP 的一次 Read 仍不对应一条 WebSocket 消息不能把 TCP conn.Read 当作 ReadMessage
 
-消息有文本、二进制两种常见类型；Ping/Pong 用于探活，Close 用于关闭握手。
-客户端帧需要掩码等协议细节由库处理；不要把普通 HTTP 长连接当作 WebSocket。
+消息有文本、二进制两种常见类型;Ping/Pong 用于探活, Close 用于关闭握手
+客户端帧需要掩码等协议细节由库处理;不要把普通 HTTP 长连接当作 WebSocket
 */
 
 // ═══════════════════════════════════════════════════════
-// 第 2 节：服务端：握手、主动推送与读取循环
+// 第 2 节:服务端:握手、主动推送与读取循环
 // ═══════════════════════════════════════════════════════
-// Upgrade 成功才获得 conn，之后用 ReadMessage/WriteMessage 收发完整消息。
-// 先限制消息大小并推送欢迎消息，再进入循环；读写出错就退出并关闭连接。
+// Upgrade 成功才获得 conn, 之后用 ReadMessage/WriteMessage 收发完整消息
+// 先限制消息大小并推送欢迎消息, 再进入循环;读写出错就退出并关闭连接
 
 func handleWebSocket(writer http.ResponseWriter, request *http.Request) {
 	upgrader := websocket.Upgrader{HandshakeTimeout: 3 * time.Second}
-	// 保留默认 CheckOrigin：浏览器带 Origin 时，主机部分须与请求 Host 相同。
-	// 不要为了“解决跨域”直接 return true；真实跨站前端应配置明确的来源白名单。
-	// Origin 检查不是登录认证，非浏览器客户端可以不带 Origin 或伪造它。
+	// 保留默认 CheckOrigin:浏览器带 Origin 时, 主机部分须与请求 Host 相同
+	// 不要为了“解决跨域”直接 return true;真实跨站前端应配置明确的来源白名单
+	// Origin 检查不是登录认证, 非浏览器客户端可以不带 Origin 或伪造它
 	conn, err := upgrader.Upgrade(writer, request, nil)
 	if err != nil {
-		return // 库已经写了 HTTP 错误响应；升级失败时没有 WebSocket 连接可用。
+		return // 库已经写了 HTTP 错误响应;升级失败时没有 WebSocket 连接可用
 	}
 	defer conn.Close()
-	conn.SetReadLimit(1024) // 限制完整消息大小，不只是单个帧的大小。
+	conn.SetReadLimit(1024) // 限制完整消息大小, 不只是单个帧的大小
 	if err := conn.SetWriteDeadline(time.Now().Add(5 * time.Second)); err != nil {
 		return
 	}
-	// 服务端主动推送欢迎消息，无需等待客户端先发业务消息。
+	// 服务端主动推送欢迎消息, 无需等待客户端先发业务消息
 	if err := conn.WriteMessage(websocket.TextMessage, []byte("welcome")); err != nil {
 		return
 	}
@@ -67,13 +67,13 @@ func handleWebSocket(writer http.ResponseWriter, request *http.Request) {
 		if err := conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
 			return
 		}
-		// 浏览器通过 onmessage 回调接收；Go 在这里等待下一条消息。
+		// 浏览器通过 onmessage 回调接收;Go 在这里等待下一条消息
 		kind, message, err := conn.ReadMessage()
 		if err != nil {
 			if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 				fmt.Fprintln(os.Stderr, "WebSocket 读取结束：", err)
 			}
-			return // 出错后退出；不能无限循环读取一个已失败的连接。
+			return // 出错后退出;不能无限循环读取一个已失败的连接
 		}
 		if kind != websocket.TextMessage {
 			_ = conn.WriteControl(websocket.CloseMessage,
@@ -87,15 +87,15 @@ func handleWebSocket(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 	}
-	// 默认 Close handler 会响应对端的关闭帧；默认 Ping handler 会回 Pong。
-	// 必须持续 Read 才能处理这些控制帧，即使暂时不关心业务消息也要有读取循环。
+	// 默认 Close handler 会响应对端的关闭帧;默认 Ping handler 会回 Pong
+	// 必须持续 Read 才能处理这些控制帧, 即使暂时不关心业务消息也要有读取循环
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 3 节：路由与浏览器入口
+// 第 3 节:路由与浏览器入口
 // ═══════════════════════════════════════════════════════
-// GET /ws 负责升级，GET /{$} 只匹配根路径并返回使用说明。
-// 普通 HTTP 页面和 WebSocket 端点可以共用同一个 HTTP 服务。
+// GET /ws 负责升级, GET /{$} 只匹配根路径并返回使用说明
+// 普通 HTTP 页面和 WebSocket 端点可以共用同一个 HTTP 服务
 
 func newWebSocketMux() *http.ServeMux {
 	mux := http.NewServeMux()
@@ -108,10 +108,10 @@ func newWebSocketMux() *http.ServeMux {
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 4 节：客户端：欢迎消息、回显与关闭握手
+// 第 4 节:客户端:欢迎消息、回显与关闭握手
 // ═══════════════════════════════════════════════════════
-// Dial 完成握手后先读 welcome，再逐条发送文本并验证回显。
-// 结束时先发 Close 控制帧，再有期限地等对端确认，最后释放底层连接。
+// Dial 完成握手后先读 welcome, 再逐条发送文本并验证回显
+// 结束时先发 Close 控制帧, 再有期限地等对端确认, 最后释放底层连接
 
 func runWebSocketClient(address string) error {
 	dialer := websocket.Dialer{HandshakeTimeout: 3 * time.Second}
@@ -154,7 +154,7 @@ func runWebSocketClient(address string) error {
 		}
 		fmt.Println("收到消息：", string(message))
 	}
-	// Close() 直接关闭底层连接；正常退出应先发关闭帧，并在有期限的等待中接收对方关闭帧。
+	// Close() 直接关闭底层连接;正常退出应先发关闭帧, 并在有期限的等待中接收对方关闭帧
 	if err := conn.WriteControl(websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "done"), time.Now().Add(time.Second)); err != nil {
 		return err
@@ -171,10 +171,10 @@ func runWebSocketClient(address string) error {
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 5 节：自动演示：等待升级后的处理结束
+// 第 5 节:自动演示:等待升级后的处理结束
 // ═══════════════════════════════════════════════════════
-// HTTP 连接升级后交给 WebSocket 管理，HTTP server 的关闭不能代替 WebSocket 的关闭。
-// 本例客户端关闭、服务端有期限退出，再用 WaitGroup 确认 handler 已返回。
+// HTTP 连接升级后交给 WebSocket 管理, HTTP server 的关闭不能代替 WebSocket 的关闭
+// 本例客户端关闭、服务端有期限退出, 再用 WaitGroup 确认 handler 已返回
 
 func demoWebSocket() error {
 	mux := newWebSocketMux()
@@ -186,20 +186,20 @@ func demoWebSocket() error {
 	}))
 	err := runWebSocketClient("ws" + strings.TrimPrefix(server.URL, "http") + "/ws")
 	server.Close()
-	// HTTP Server.Close/Shutdown 不会代管已经被 Upgrade 接管的连接。
-	// 本例客户端会 Close，服务端又有读取期限，再等待所有 handler 真正返回。
+	// HTTP Server.Close/Shutdown 不会代管已经被 Upgrade 接管的连接
+	// 本例客户端会 Close, 服务端又有读取期限, 再等待所有 handler 真正返回
 	handlers.Wait()
 	return err
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 6 节：双终端运行与单读单写规则
+// 第 6 节:双终端运行与单读单写规则
 // ═══════════════════════════════════════════════════════
-// server 提供 /ws，client 建立连接；末尾也提供浏览器控制台的连接代码。
-// 同一 Gorilla 连接应由一个读取流程和一个写入流程负责，多个发送者可先汇入发送队列。
+// server 提供 /ws, client 建立连接;末尾也提供浏览器控制台的连接代码
+// 同一 Gorilla 连接应由一个读取流程和一个写入流程负责, 多个发送者可先汇入发送队列
 
 func main() {
-	// 匿名函数负责选择运行模式并返回 error，main 在调用后统一处理失败。
+	// 匿名函数负责选择运行模式并返回 error, main 在调用后统一处理失败
 	runWebSocket := func(args []string) error {
 		if len(args) == 0 {
 			return demoWebSocket()
@@ -230,16 +230,16 @@ func main() {
 	}
 }
 
-// Gorilla 的一条连接同时最多一个 reader 和一个 writer；不能让多个 goroutine 并发 WriteMessage。
-// 广播时可为每个连接设一个发送 channel，由唯一写协程消费；channel 还需容量和慢客户端策略。
-// Close/WriteControl 有独立并发约定，可与其他方法并行。JSON 可用 WriteJSON/ReadJSON 编解码。
-// 读写超时后应关闭连接；真实长连接通常用 Ping/Pong 刷新存活期限，并实现重连策略。
-// 本例没有周期心跳，所以空闲 5 秒即关闭，只适合短时教学会话。
+// Gorilla 的一条连接同时最多一个 reader 和一个 writer;不能让多个 goroutine 并发 WriteMessage
+// 广播时可为每个连接设一个发送 channel, 由唯一写协程消费;channel 还需容量和慢客户端策略
+// Close/WriteControl 有独立并发约定, 可与其他方法并行JSON 可用 WriteJSON/ReadJSON 编解码
+// 读写超时后应关闭连接;真实长连接通常用 Ping/Pong 刷新存活期限, 并实现重连策略
+// 本例没有周期心跳, 所以空闲 5 秒即关闭, 只适合短时教学会话
 //
-// 浏览器练习：先启动 server，打开 http://127.0.0.1:8083，再在同页面控制台一次执行：
+// 浏览器练习:先启动 server, 打开 http://127.0.0.1:8083, 再在同页面控制台一次执行:
 // const ws = new WebSocket("ws://127.0.0.1:8083/ws");
 // ws.onopen = () => ws.send("来自浏览器");
 // ws.onmessage = event => { console.log(event.data); if (event.data !== "welcome") ws.close(1000, "done"); };
 // ws.onclose = event => console.log("closed", event.code);
 // ws.onerror = event => console.error(event);
-// 浏览器不能随意为 WebSocket 构造器添加 Authorization 请求头，鉴权方案需要单独设计。
+// 浏览器不能随意为 WebSocket 构造器添加 Authorization 请求头, 鉴权方案需要单独设计
