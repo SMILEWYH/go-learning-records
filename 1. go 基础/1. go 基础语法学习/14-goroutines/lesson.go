@@ -2,8 +2,8 @@
 章节：14-协程与任务等待
 */
 
-// TS 对照：go f() 可以并发执行 f；它不会返回类似 Promise 的结果对象。
-// goroutine 由 Go 运行时调度，并发不代表所有任务一定在同一时刻并行运行。
+// 在函数前使用 go 关键字, go f() 可以并发在新的 goroutine 中执行 f
+// goroutine 由 Go 运行时调度, 并发不代表所有任务一定在同一时刻并行运行
 
 package main
 
@@ -24,16 +24,16 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 1 节：go 启动任务，WaitGroup 等待完成
 	// ═══════════════════════════════════════════════════════
-	// 主 goroutine 结束时进程退出，不会自动等待后台任务。
-	// 用 Sleep 猜任务何时完成不可靠；忙循环轮询一个共享 bool 还可能产生数据竞争。
-	// WaitGroup 的零值可用，开始使用后不要复制它；传递时使用指针。
-	// 可类比 Promise.all 的“等待全部完成”，但 WaitGroup 不替你收集返回值或错误。
+	// 主 goroutine 结束时进程退出, 不会自动等待其他 goroutine 完成
+	// bad idea: 用 Sleep 猜任务何时完成不可靠、忙循环轮询一个共享状态还可能产生数据竞争
+	// good ldea: WaitGroup
+	// WaitGroup 的零值可用, 开始使用后不要复制它, 传递时使用指针
+	// 可类比 Ts 的 Promise.all 的等待全部完成, 但 WaitGroup 不替你收集返回值或错误
 	var wait sync.WaitGroup
 	var profile string
 	var unreadCount int
 
 	wait.Add(2) // 在启动任务前登记；尤其不要在 go 函数内部才 Add。
-	// 末尾 () 调用匿名函数，前面的 go 让这次调用在新的 goroutine 中执行。
 	go func() {
 		defer wait.Done() // 即使提前 return，当前任务也会报告一次完成。
 		profile = "Lin"
@@ -44,15 +44,16 @@ func main() {
 	}()
 	wait.Wait() // 只阻塞当前 goroutine；其他 goroutine 可以继续运行。
 	fmt.Printf("页面聚合：用户=%s，未读=%d\n", profile, unreadCount)
-	// 这里每个变量只有一个写入者，主 goroutine 等 Wait 返回后才读取，因而安全。
-	// Done 必须与 Add 登记数量一致：少调用会一直等待，多调用可能 panic。
-	// WaitGroup 只负责等待完成，不传结果、错误，也没有内建取消或超时。
+	// 主 goroutine 等 Wait 返回后才读取，因而安全
+	// Done 必须与 Add 登记数量一致：少调用会一直等待，多调用可能 panic
+	// WaitGroup 只负责等待完成，不传结果、错误，也没有内建取消或超时
 
 	// ═══════════════════════════════════════════════════════
-	// 第 2 节：并发结果按输入索引保存
+	// 第 2 节：循环中的并发任务
 	// ═══════════════════════════════════════════════════════
-	// 批量独立工作：每个任务仅写固定长度结果切片中自己的一格。
-	// 任务可以乱序结束；最后按输入顺序打印，所以示例输出是稳定的。
+	// 循环并发任务可能会乱序结束
+	// good idea: 声明一个切片, 在循环执行并发任务时, 给各个并发任务分发一个专属的切片下索引
+	// 这样无论它是首个结束还是最后结束, 它的结果都可以保存切片的对应下索引中
 	buildPage := func(title string) PageResult {
 		trimmed := strings.TrimSpace(title)
 		if trimmed == "" {
@@ -70,7 +71,6 @@ func main() {
 		var wait sync.WaitGroup
 		wait.Add(len(titles))
 		for index, title := range titles {
-			// 显式传参让“每个任务拿到自己的索引和值”更直观，也不依赖循环变量版本差异。
 			go func(i int, value string) {
 				defer wait.Done()
 				results[i] = buildPage(value)
@@ -90,7 +90,8 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 3 节：独立实例与共享数据边界
 	// ═══════════════════════════════════════════════════════
-	// 相互独立的实例也可交给不同 goroutine 通过指针填写。
+	// 上面两小节的例子都是可以通过上下文链去找到 WaitGroup 实例进行使用, 而如果无法依靠上下文链了呢?
+	// good idea: 那么需要传递 WaitGroup 指针
 	buildInto := func(title string, result *PageResult, wait *sync.WaitGroup) {
 		defer wait.Done()
 		*result = buildPage(title)
@@ -103,20 +104,19 @@ func main() {
 	go buildInto("Settings", &second, &separate)
 	separate.Wait()
 	fmt.Println("独立实例：", first.Slug, second.Slug) // admin settings
-	// 本例字段仅为 string/bool。若两个结构体内的 map、slice、指针共享数据，
+	// 本例字段仅为 string 和 bool。若两个结构体内的 map、slice、指针共享数据,
 	// “顶层是两个实例”仍不能保证没有竞争，需要另外安排所有权或同步。
 
 	// 数据竞争：多个 goroutine 并发访问同一内存位置，至少一个是写入，且没有同步。
 	// 不要并发 append 同一个 slice，不要无保护写共享 map，也不要无保护 total++。
 	// Wait 只保证读取发生在任务完成之后，不会消除多个任务执行期间彼此的竞争。
 	// 下章用 channel 交付结果，后续并发安全章再讲 Mutex。
-	// 可运行 go run -race ./14-goroutines/lesson.go 检查本次执行中是否发现竞争。
 
 	// ═══════════════════════════════════════════════════════
 	// 第 4 节：WaitGroup.Go 与分批复用
 	// ═══════════════════════════════════════════════════════
-	// Go 1.25 起，WaitGroup.Go 把“登记、启动、完成通知”合成一次调用。
-	// 仍需先启动任务再 Wait；函数正常返回后自动完成，不要再手动 Add 或 Done。
+	// Go 1.25 起, WaitGroup.Go 把"登记 Add、启动 go、完成通知 Done"合成一次调用
+	// 仍需先启动任务再 Wait, 函数正常返回后自动完成
 	var modern sync.WaitGroup
 	var message string
 	modern.Go(func() {
@@ -124,9 +124,8 @@ func main() {
 	})
 	modern.Wait()
 	fmt.Println("WaitGroup.Go：", message)
-	// API 约定传入的函数不能 panic；它不是异常捕获器，也不会把失败变成返回值。
-	// 复用同一个 WaitGroup 等下一批任务时，必须等上一批所有 Wait 调用都已返回，
-	// 才为新批次调用 Add 或 Go。不要在上一批 Wait 正在收尾时立即复用。
+	// API 约定传入的函数不能 panic；它不是异常捕获器，也不会把失败变成返回值
+	// 复用同一个 WaitGroup 等下一批任务时，必须等上一批所有 Wait 调用都已返回, 才为新批次调用 Add 或 Go
 	modern.Go(func() {
 		message = "second batch completed"
 	})
@@ -136,7 +135,7 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 5 节：限制并发数并收集错误
 	// ═══════════════════════════════════════════════════════
-	// 不默认“每条数据一个 goroutine”：数据很大时会消耗大量内存与外部服务容量。
+	// 不默认每条数据一个 goroutine: 数据很大时会消耗大量内存与外部服务容量
 	// 此处先学固定数量任务分摊工作；第 15 章再用 channel 实现动态领任务的 worker pool。
 	type VersionResult struct {
 		Input  string
@@ -177,4 +176,4 @@ func main() {
 	fmt.Println("拒绝无效并发数：", accepted) // false
 }
 
-// goroutine 不是越多越快，应根据任务规模、CPU 与外部服务限制选择并发量。
+// goroutine 不是越多越快，应根据任务规模、CPU 与外部服务限制选择并发量

@@ -3,7 +3,6 @@
 */
 
 // TS 对照：struct 是明确的数据布局；方法接收者类似显式 this，但没有 class 继承。
-// 大写开头表示可被其他包访问；并不是所有结构体或字段都必须大写。
 
 package main
 
@@ -13,49 +12,42 @@ import (
 	"strings"
 )
 
-// 方法必须在包级声明，不能像第 08 章的匿名函数那样写进 main。
-// struct 类似 TS 对象的数据形状，但赋值会复制结构体本身；方法另外声明。
-// JSON 只编码导出的字段。标签中的冒号后没有空格，标签使用反引号包裹。
+// 大写开头表示可被其他包访问; 并不是所有结构体或字段都必须大写
 type User struct {
-	ID       int    `json:"id"`
+	ID       int    `json:"id"` // 在 JSON 序列化和反序列化时对属性名进行改名
 	Name     string `json:"name"`
-	Age      int    `json:"age,omitempty"`
-	Password string `json:"-"`
-	internal string // 未导出的字段不会被 encoding/json 编码。
+	Age      int    `json:"age,omitempty"` // omitempty 字段表示如果字段的值是空值, 就省略这个字段
+	Password string `json:"-"`             // 在 JSON 序列化和反序列化时都忽略这个字段, json:"-" 只约束该编码器，fmt.Printf("%+v", user) 仍可能打印 Password
+	internal string // 小写开头, 未导出, 其他包不能直接访问, 所以在 JSON 序列化和反序列化时不会被编码, 即使加了 json 标签也一样
 }
 
-// 值接收者 u 是副本，适合不需要修改接收者的操作。
-func (u User) Label() string {
-	return fmt.Sprintf("%d:%s", u.ID, u.Name)
-}
-
-func (u User) RenameCopy(name string) {
-	u.Name = name // 仅修改副本。
-}
-
-// 指针接收者修改原值；u.Name 等价于 (*u).Name。
-func (u *User) Rename(name string) {
-	if u == nil {
-		return
-	}
+// 结构体的方法必须在包级声明, 不能像第 08 章的匿名函数那样写进 main
+// (u User) 表示当前函数方式属于 User 结构体, u 则是结构体本身(this)
+func (u User) Rename_1(name string) { // 仅修改副本
 	u.Name = name
 }
 
-// 此处同时展示两种接收者以便比较。实际工程中同一类型的方法一般保持一致；
-// 尤其当它持有锁或表示可变实体时，更应避免无意复制。
-// 即使是值接收者，内部 slice、map、指针字段仍可能共享底层数据。
+func (u *User) Rename_2(name string) { // 这样才可以修改到结构体的值
+	u.Name = name
+}
 
+func (u User) Label() {
+	fmt.Println(u.Name)
+}
+
+// 结构体没有类似 class 继承, 而是直接在内部声明另一种结构体
 type Organization struct {
 	Name string
 }
 
-func (o Organization) OrganizationLabel() string {
-	return "组织：" + o.Name
+type Member struct {
+	Organization // 嵌入字段：字段名是 Organization, Member实例.Organization.Name
+	Name         string
 }
 
-type Member struct {
-	Organization // 嵌入字段：字段名是 Organization。
-	Name         string
+func (m Member) consoleName() {
+	fmt.Println(m.Name)
+	fmt.Println(m.Organization.Name)
 }
 
 func main() {
@@ -64,99 +56,89 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 零值结构体的每个字段也都是零值，不需要构造函数才能使用。
 	var zero User
-	fmt.Printf("零值：%+v\n", zero)
+	fmt.Printf("零值：%+v", zero)
 	user := User{ID: 7, Name: "小林", Password: "demo-secret", internal: "cache"}
-	fmt.Println("用户标签：", user.Label())
 
 	// ═══════════════════════════════════════════════════════
 	// 第 2 节：结构体复制与两种方法接收者
 	// ═══════════════════════════════════════════════════════
-	// 复制结构体，再修改字符串字段，不影响原来的结构体。
-	// TS 对象赋值通常仍指向同一个对象；这里先得到一份结构体副本。
+	// Go: 复制结构体是值复制, 修改复制结构体的字符串不会影响到原来的结构体
+	// Ts: 对象赋值通常仍指向同一个对象, 修改复制对象的字符串会影响到原来的对象
 	copyOfUser := user
 	copyOfUser.Name = "副本"
 	fmt.Println("原值 / 副本：", user.Name, copyOfUser.Name) // 小林 副本
-	user.RenameCopy("无效改名")
+
+	// 现在再试一试两种不同结构体方法修改内部值
+	user.Rename_1("无效改名")
 	fmt.Println("值接收者执行后：", user.Name) // 小林
-	user.Rename("小周")
+	user.Rename_2("小周")
 	fmt.Println("指针接收者执行后：", user.Name) // 小周
-	// user 可取地址，编译器允许 user.Rename(...) 简写 (&user).Rename(...)。
-	// 这项调用便利不会改变方法集规则：第 13 章接口里会区分 User 和 *User。
-	// map 下标表达式通常不可取地址；修改 map[string]User 的值需取出、修改、写回。
+	// Rename_2 需要一个指向 User 的指针, 那么应该这么调用 (&user).Rename_2("小周") 但有语法糖所以直接写 user.Rename_2("小周") 也是可以的
 
 	// ═══════════════════════════════════════════════════════
 	// 第 3 节：嵌入：组合、提升与同名字段
 	// ═══════════════════════════════════════════════════════
-	// 嵌入是组合。Member 拥有 Organization 字段，不是继承其类型身份。
+	// 构造复合字面量时必须写 Organization: { ... }, 不可以直接 { ... }
 	member := Member{Organization: Organization{Name: "平台组"}, Name: "小周"}
-	fmt.Println("外层 Name：", member.Name)                // 小周
-	fmt.Println("嵌入字段 Name：", member.Organization.Name) // 平台组
-	fmt.Println("提升的方法：", member.OrganizationLabel())
-	// 外层 Name 遮蔽了嵌入层的同名字段，仍可写完整路径访问内部字段。
-	// 若同一深度两个嵌入类型都有 Name，而外层没有 Name，member.Name 会有歧义。
-	// 构造复合字面量时必须写 Organization: ...，不能直接设置提升的内部字段。
+	fmt.Println("外层 Name: ", member.Name)                // 小周
+	fmt.Println("嵌入字段 Name: ", member.Organization.Name) // 平台组
+	member.consoleName()
+	// 如果 Member 第一层没有 Name 属性, 而其内部 Organization 有, 那么 member.Name 会指向 Organization.Name, 类似 Ts 的作用域链
 
 	// ═══════════════════════════════════════════════════════
 	// 第 4 节：JSON 编码与字段标签
 	// ═══════════════════════════════════════════════════════
-	// 转成 API JSON：Age 为 0 被省略，Password 被永久忽略，internal 不导出。
+	// Age 为 0 被省略, Password 被永久忽略, internal 不导出
 	encoded, err := json.Marshal(user)
-	// Marshal 返回数据和错误。本章先采用最简单的非 nil 检查，错误章再系统介绍。
 	if err != nil {
 		fmt.Println("JSON 编码失败：", err)
 		return
 	}
-	fmt.Println("API 响应：", string(encoded)) // {"id":7,"name":"小周"}
-	// omitempty 对此处 int 使用 0 作为空值，对字符串使用 ""；并非通用校验器。
-	// 若 API 需要区分“未提供 age”和“提供 age=0”，可以使用 *int + omitempty。
-	// json:"-" 只约束该编码器，fmt.Printf("%+v", user) 仍可能打印 Password。
+	fmt.Println("JSON 序列化: ", string(encoded)) // {"id":7,"name":"小周"}
+	// 若需要区分“未提供 age”和“提供 age=0”，可以使用属性类型为 *int + omitempty 字段
 
 	// ═══════════════════════════════════════════════════════
 	// 第 5 节：构造函数与业务校验
 	// ═══════════════════════════════════════════════════════
-	// NewXxx 是普通函数的命名约定，不是语言内建构造语法，也不会被自动调用。
+	// struct 没有类似 class 的构造函数, 那么我们可以自己写一个工厂函数代替构造函数
 	NewUser := func(id int, name string) (User, bool) {
 		name = strings.TrimSpace(name)
 		if id <= 0 || name == "" {
 			return User{}, false
 		}
 		return User{ID: id, Name: name}, true
-		// 第 18 章学习 error 后，可返回更具体的校验失败原因。
 	}
 
-	created, ok := NewUser(9, "  阿青  ")
-	fmt.Println("构造并校验：", created.Label(), ok) // 9:阿青 true
+	_, ok := NewUser(9, "vvyh")
+	fmt.Println("构造并校验：", ok) // true
 	_, ok = NewUser(0, "")
 	fmt.Println("拒绝无效数据：", ok) // false
-	// 仍然可以直接写 User{}，因此需要明确哪些 API 要求先校验，不能假设所有实例合法。
-	// 工程中可用未导出字段限制外部直接写字段，但零值能否使用仍需自己设计。
 
 	// ═══════════════════════════════════════════════════════
 	// 第 6 节：结构体能否比较
 	// ═══════════════════════════════════════════════════════
-	// 所有字段类型都可比较时，结构体才能使用 == / !=，也可作为 map 键。
-	fmt.Println("结构体逐字段比较：", User{ID: 1} == User{ID: 1}) // true
-	// 带 []string、map 或函数字段的结构体不能直接 ==，要按业务定义如何比较。
-	// 带接口字段时还需要注意接口中的实际值是否可比较，第 13 章会展开。
+	// 所有字段类型都可比较时, 结构体才能使用 == / !=，也可作为 map 键
+	user1 := User{ID: 1}
+	user2 := User{ID: 1}
+	fmt.Println("结构体逐字段比较：", user1 == user2) // true
+	// 带 []string、map 或函数字段的结构体不能直接 ==
 
 	// ═══════════════════════════════════════════════════════
 	// 第 7 节：JSON 解码：缺失、零值与 null
 	// ═══════════════════════════════════════════════════════
-	// 传 &user 才能填充变量；复用旧目标时，没出现的字段仍保留旧值。
 	// 下方示例再用 *int 区分“没有数值”和“数值为 0”。
 
 	demonstrateJSONInput := func() {
-		// Unmarshal 必须接收可写目标的指针；传入结构体值无法填充调用方变量。
 		user := User{Name: "旧名字", Age: 30}
-		if err := json.Unmarshal([]byte(`{"name":"新名字","extra":true}`), &user); err != nil {
+		err := json.Unmarshal([]byte(`{"name":"新名字","extra":true}`), &user) // 第一个参数为 JSON 字符串, 第二个参数为结构体指针
+		if err != nil {
 			fmt.Println("JSON 解码失败：", err)
 			return
 		}
 		fmt.Println("缺失字段保留已有值：", user.Name, user.Age) // 新名字 30
-		// 缺失字段不会自动清零。每次请求通常用新的目标结构体，避免无意复用旧数据。
-		// 默认忽略未知 extra 字段；需要严格拒绝时再学习 Decoder.DisallowUnknownFields。
-		// 成功解码只说明类型能匹配，不代表 ID、年龄等业务值已经通过校验。
+		// 忽略 extra 字段; 结构体 age 旧值保留, 每次请求通常用新的目标结构体，避免无意复用旧数据
 
+		// 小巧思
 		for _, raw := range []string{`{}`, `{"limit":0}`, `{"limit":null}`} {
 			// 匿名结构体适合局部、一次性的数据形状，不需要为每个简单响应声明公共类型。
 			var input struct {
@@ -173,10 +155,10 @@ func main() {
 			}
 			fmt.Printf("输入 %s -> 指针为 nil=%v -> 输出 %s\n", raw, input.Limit == nil, encoded)
 		}
-		// 新目标上：缺失与 null 都得到 nil；0 得到非 nil 指针，omitempty 仍保留 limit:0。
-		// omitempty 只影响编码，不改变解码规则；移除该标签后，nil 指针编码为 JSON null。
-		// 单个 *int 无法区分“缺失”与“显式 null”；PATCH 需要三态时需另设计存在性信息。
-		// 将 JSON null 解到普通 int 不会把它自动设为 0，而是保持原值；类型选择需符合 API 约定。
+
+		// 输入 {} -> 指针为 nil=true -> 输出 {}
+		// 输入 {"limit":0} -> 指针为 nil=false -> 输出 {"limit":0}
+		// 输入 {"limit":null} -> 指针为 nil=true -> 输出 {}
 	}
 
 	demonstrateJSONInput()
@@ -184,21 +166,21 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 8 节：方法值与方法表达式（选读）
 	// ═══════════════════════════════════════════════════════
-	// user.Label 是已经选定接收者的方法值，User.Label 则需要把接收者作为参数传入。
-	// 先掌握直接调用，再看把方法保存为回调时复制了什么。
+	demonstrateMethodValues := func() {
+		vvyh := User{
+			Name: "vvyh",
+		}
 
-	demonstrateMethodValues := func(user User) {
-		// 选读：把方法当回调时，方法值会在创建时求值并保存接收者。
-		labelSnapshot := user.Label // 值接收者：保存当时的 User 副本。
-		rename := user.Rename       // 指针接收者：保存 &user，后续修改同一实例。
-		rename("阿禾")
-		fmt.Println("方法值捕获的副本 / 当前值：", labelSnapshot(), user.Label())
-		// 方法表达式把接收者变成第一个显式参数，类型是 func(User) string。
+		labelSnapshot := vvyh.Label // 保存当时的 User 副本
+		rename := user.Rename_2     // 保存 &user，后续修改同一实例
+		rename("wyh")
+
+		labelSnapshot() // "vvyh"
+		user.Label()    // "wyh"
+
 		labelFunction := User.Label
-		fmt.Println("方法表达式：", labelFunction(user))
+		labelFunction(user) // "wyh"
 	}
 
-	demonstrateMethodValues(user)
+	demonstrateMethodValues()
 }
-
-// 方法值/方法表达式先能读懂即可，不必为简单业务刻意使用。

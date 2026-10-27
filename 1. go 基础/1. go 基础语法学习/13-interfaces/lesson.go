@@ -2,8 +2,9 @@
 章节：13-接口与类型断言
 */
 
-// TS 对照：Go 接口在本章描述方法契约，类型无需写 implements。
-// Go 的 any 可容纳任意值，但使用前需判断类型，更接近 TS unknown，而非 TS any。
+// struct 用来定义“数据有哪些字段”，interface 用来定义“一个类型需要有哪些方法”
+// 调用方只关心“你能做什么”，不需要知道“你具体是什么类型”
+// Go 的 any 可容纳任意值, 但使用前需判断类型, 更接近 TS unknown, 而非 TS any
 
 package main
 

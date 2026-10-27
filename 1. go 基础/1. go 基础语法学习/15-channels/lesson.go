@@ -20,31 +20,31 @@ type TaskResult struct {
 
 func main() {
 	// ═══════════════════════════════════════════════════════
-	// 第 1 节：无缓冲 channel：发送与接收配对
+	// 第 1 节：无缓冲 channel: 发送与接收配对
 	// ═══════════════════════════════════════════════════════
-	// 无缓冲通道没有队列，发送与接收要配对才能交付。
-	result := make(chan string)     // 创建只能传 string 的通道；零值 nil 通道还不能正常通信。
-	finished := make(chan struct{}) // 只用于完成通知，不携带业务数据。
-	go func() {
-		result <- "profile-ready" // ch <- value 发送；<-ch 接收。
-		// 发送之后还可以有工作；收到结果不代表本 goroutine 的所有工作已完成。
-		close(finished)
-	}()
+	// 无缓冲通道没有队列，发送与接收要配对才能交付
+	result := make(chan string) // 创建只能传 string 的通道
+	// var result chan string // 只是声明, 值为 nil, 没有创建可用通道。
+	var resultWait sync.WaitGroup
+	resultWait.Go(func() {
+		result <- "profile-ready" // ch <- value 发送; <-ch 接收
+		fmt.Println("发送后的业务：保存操作记录")
+	})
 	fmt.Println("无缓冲交付：", <-result)
-	<-finished // 明确等待发送之后的完成信号。
-	// result 不必关闭：此处已知只接收一次，没有接收者要靠 close 结束 range。
-	// 若在同一 goroutine 里先 result <- x 再 <-result，会卡在发送处。
+	// 先接收再等待，否则后台会阻塞在发送处，无法完成任务。
+	resultWait.Wait()
+	// 注意: 无缓冲通道保证“发送和接收完成配对”，但不保证接收方先打印
 
 	// ═══════════════════════════════════════════════════════
 	// 第 2 节：缓冲、关闭与接收的 ok
 	// ═══════════════════════════════════════════════════════
-	// 缓冲区可先容纳有限个值；满时发送仍会阻塞，空时接收仍会阻塞。
+	// 缓冲区可先容纳有限个值；满时发送仍会阻塞，空时接收仍会阻塞
 	queue := make(chan string, 2)
 	queue <- "compile"
 	queue <- "deploy"
 	fmt.Println("队列长度/容量：", len(queue), cap(queue)) // 2 2
-	// 不能仅凭 len(queue) 判断下一步一定不会阻塞：有其他 goroutine 时状态会变化。
-	close(queue) // 关闭后，已缓冲的数据仍然可以被读完。
+	// 不能仅凭 len(queue) 判断下一步一定不会阻塞：有其他 goroutine 时状态会变化
+	close(queue) // 关闭后，已缓冲的数据仍然可以被读完
 	for job := range queue {
 		fmt.Println("缓冲任务：", job) // compile，然后 deploy。
 	}
