@@ -2,8 +2,8 @@
 章节:16-多路选择与超时取消
 */
 
-// TS 对照:select 类似在多项可完成操作中选择一项;超时像 Promise.race 的超时分支,
-// 仅停止当前等待, 不会自动终止另一个任务取消机制更接近 AbortSignal 的协作方式
+// Go 的 select 专门用来选择 channel 的发送、接收操作
+// select 的主要作用是：让一个 goroutine 可以同时等待几种 channel 通信操作，根据哪种操作可以进行，决定接下来做什么。
 
 package main
 
@@ -15,18 +15,19 @@ import (
 
 func main() {
 	// ═══════════════════════════════════════════════════════
-	// 第 1 节:select 与 default:等待还是立即返回
+	// 第 1 节: select 与 default: 等待还是立即返回
 	// ═══════════════════════════════════════════════════════
-	// 没有 case 可以执行且存在 default 时, 立即执行 default
 	empty := make(chan string)
+	// 有 default 的 select 会立即判断当前 case 中有没有可以进行的? 有则执行, 无则执行 default, 然后结束
+	// 没有 default 的 select 在所有 case 都无法进行, 就会阻塞等待, 直到执行一个 case, 然后结束
+	// 注意如果多个 case 同时就绪时会伪随机选择一个, case 的书写顺序不构成优先级
 	select {
 	case message := <-empty:
 		fmt.Println(message)
 	default:
 		fmt.Println("当前没有待处理消息")
 	}
-	// 去掉 default 就会等待for + select + default 可能形成消耗 CPU 的忙循环
-	// 多个 case 同时就绪时会伪随机选择一个, case 的书写顺序不构成优先级
+	// for + select + default 可能形成消耗 CPU 的忙循环
 
 	// ═══════════════════════════════════════════════════════
 	// 第 2 节:关闭的通道与 nil:结束一路输入

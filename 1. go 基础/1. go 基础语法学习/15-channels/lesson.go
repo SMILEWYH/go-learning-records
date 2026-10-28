@@ -37,17 +37,19 @@ func main() {
 	// var result chan string // 只是声明, chanel 零值为 nil, 该通道目前还不可用
 	var resultWait sync.WaitGroup
 	resultWait.Go(func() {
+		// 业务逻辑
 		result <- "profile-ready-1" // 把字符串推入到 channel
-		fmt.Println("后续业务逻辑")
+		// 后续业务逻辑
 	})
 	resultWait.Go(func() {
+		// 业务逻辑
 		result <- "profile-ready-2" // 把字符串推入到 channel
-		fmt.Println("后续业务逻辑")
+		// 后续业务逻辑
 	})
-	answer_1, ok := <-result                  // 获取通道的字符串
-	answer_2, ok := <-result                  // 获取通道的字符串
-	fmt.Println("无缓冲交付：", answer_1, answer_2) // 注意这里接受消息的顺序不一定
-	resultWait.Wait()                         // 先接收再等待, 否则后台会阻塞在发送处, 无法完成任务
+	answer_1, ok := <-result                      // 获取通道的字符串
+	answer_2, ok := <-result                      // 获取通道的字符串
+	fmt.Println("无缓冲交付：", answer_1, answer_2, ok) // 注意这里接受消息的顺序不一定
+	resultWait.Wait()                             // 先接收再等待, 否则后台会阻塞在发送处, 无法完成任务
 	// 注意: 这里的 Wait() 是必须的, 因为 goroutine 中往 channel 推入消息后还有其他业务逻辑执行需要等待, 不然 main goroutine 结束了, 会导致其他 goroutine 任务丢失
 	// 注意: 无缓冲通道保证“发送和接收完成配对”, 但不保证接收方先打印
 
@@ -55,19 +57,35 @@ func main() {
 	// 第 2 节: 缓冲 channel 的发送与接收、关闭、接收的 ok
 	// ═══════════════════════════════════════════════════════
 	queue := make(chan string, 2) // 创建只能传 string 类型、缓冲区长度为2的通道
-	queue <- "compile"
-	queue <- "deploy"
-	fmt.Println("队列长度/容量：", len(queue), cap(queue)) // 2 2
-	// 关闭后, 已缓冲的数据仍然可以被读完
+
+	resultWait.Go(func() {
+		// 业务逻辑
+		queue <- "queue-msg-1" // 把字符串推入到 channel , 如果缓冲区有空位或有接收配对, 则不堵塞 goroutine 内下一句代码的执行
+		// 后续业务逻辑
+	})
+	resultWait.Go(func() {
+		// 业务逻辑
+		queue <- "queue-msg-2" // 把字符串推入到 channel, 如果缓冲区有空位或有接收配对, 则不堵塞 goroutine 内下一句代码的执行
+		// 后续业务逻辑
+	})
+
+	answer_3, ok := <-queue // queue-msg-1 或者 queue-msg-2	、true
+	answer_4, ok := <-queue // queue-msg-1 或者 queue-msg-2	、true
+	// ok 只会在 channel 关闭且已读空消息时为 false
+
 	close(queue)
-	for job := range queue {
-		fmt.Println("缓冲任务：", job) // compile、deploy
-	}
-	// channel 缓冲区消息都已被取完
-	value, ok := <-queue
-	fmt.Printf("关闭并读空后：%q, ok=%v\n", value, ok) // ""、false; 如果在之前没有 for 循环输出, 那么这时候的值为 compile、true
-	// ok=false 只表示关闭且已读空, 不表示“暂时没有值”
-	// 空但未关闭的通道会等待; nil 通道的发送与接收会永远等待
+	fmt.Println(answer_3, answer_4)
+	fmt.Println("队列长度/容量：", len(queue), cap(queue)) // 2 0
+
+	// for job := range queue {
+	// 	fmt.Println("缓冲任务：", job)
+	// }
+	// 像这种 range 循环 channel 情况下, 空但未关闭的通道会一直等待新消息, 直到 close channel 才会跳出循环
+	// 但不可以这样直接 range 循环 channel, 因为你拿捏不准 close channel 的时机
+
+	// 总结:
+	// 无缓冲 channel 的发送必须等到接收方配对
+	// 有缓冲 channel 的发送只要缓冲区还有空间, 就可以完成并继续执行 goroutine 内下一行代码
 
 	// ═══════════════════════════════════════════════════════
 	// 第 3 节: 单个(缓冲或无缓冲) channel 的多个发送者与统一关闭
@@ -116,25 +134,27 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 4 节:发送值与数据所有权
 	// ═══════════════════════════════════════════════════════
-	// 通道发送的是值, 指针、slice、map 和结构体内部引用不会被自动深拷贝
-	// 将 *TaskResult 发出去后, 继续无同步地修改它仍可能和接收方产生数据竞争
+	// channel 发送的变量也是按值复制, 所以发送切片、map或指针要小心
 	// 常用约定是发送后移交使用权, 或发送完整的独立副本
-	// 用缓冲通道在同一个 goroutine 内演示复制, 不引入并发读写
 	shared := []int{1, 2}
 	values := make(chan []int, 1)
 	values <- shared
 	shared[0] = 9
 	fmt.Println("发送切片仍共享底层数组：", <-values) // [9 2]
 
+	// 下面示例只演示发送完整的独立副本, 发送后移交使用权在第十七章讲解
 	independent := append([]int(nil), shared...) // 复制本例的 int 元素
 	values <- independent
 	shared[0] = 100
 	fmt.Println("发送独立副本：", <-values) // [9 2]
-	// 缓冲容量不是修复所有死锁的办法:双方仍需约定发送数量、结束方式和取消方式
 
 	// ═══════════════════════════════════════════════════════
 	// 第 5 节:worker pool: 有限任务队列
 	// ═══════════════════════════════════════════════════════
+	// 这段代码就是一个 jobs channel 分发任务，两个 worker goroutine 持续处理任务，再通过 results channel 汇总结果。这个组合本身就是 worker pool。
+	// 它的价值在于：即使任务从 3 个增加到 10 万个，你仍然可以只用两个 worker 处理，并控制中间积压多少任务
+	// 两个 channel 对应一条“派活 → 干活 → 交结果”的流程
+
 	// 用固定数量 worker 从队列持续领任务, 避免每条数据都新建一个 goroutine
 	type previewJob struct {
 		index int

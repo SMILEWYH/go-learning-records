@@ -2,8 +2,9 @@
 章节:18-错误与异常处理
 */
 
-// TS 对照:TS 常用 throw/try/catch;Go 中可预期的失败通常返回 (结果, error),
-// 调用者用 if err != nil 处理panic 不替代正常业务错误
+// TS 对照: TS 常用 throw/try/catch
+// Go 中可预期的失败通常返回 (结果, error), 调用者用 if err != nil 处理
+// panic 不替代正常业务错误
 
 package main
 
@@ -27,7 +28,7 @@ func (e *ValidationError) Error() string {
 
 func main() {
 	// ═══════════════════════════════════════════════════════
-	// 第 1 节:error 接口与显式检查
+	// 第 1 节: error 接口与显式检查
 	// ═══════════════════════════════════════════════════════
 	// error 的核心方法是 Error() string, nil 表示没有错误
 	// parseQuantity 先解析文本, 再检查数量是否大于 0, 调用方先处理 err 再使用 quantity

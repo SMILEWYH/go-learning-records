@@ -2,9 +2,11 @@
 章节:13-接口与类型断言
 */
 
-// struct 用来定义“数据有哪些字段”, interface 用来定义“一个类型需要有哪些方法”
-// 调用方只关心“你能做什么”, 不需要知道“你具体是什么类型”
-// Go 的 any 可容纳任意值, 但使用前需判断类型, 更接近 TS unknown, 而非 TS any
+// struct: 用来定义结构体（属性 / 数据），可以附带方法
+// interface: 定义方法签名集，不包含字段，不实现逻辑
+
+// Go 的 interface 是隐式实现的: 只要一个类型实现了接口中所有方法, 它就自动满足该接口, 不需要显式声明 implements
+// Go 的 any 可容纳任意值, 但使用前需进行类型断言, 更接近 TS unknown, 而非 TS any
 
 package main
 
@@ -15,9 +17,6 @@ import (
 	"strings"
 )
 
-// Go 接口在这里约束方法, 不像 TS interface 那样直接列出对象的数据字段
-// 方法必须在包级声明, 所以先定义接口和实现, 再在 main 中逐节调用
-// 消费者只依赖读取能力, 不必知道数据存在缓存、数据库还是测试替身中
 type Getter interface {
 	Get(key string) (string, bool)
 }
