@@ -22,19 +22,51 @@ import (
 
 /*
 TCP 与 HTTP:
-  TCP 负责传输字节;HTTP 是应用层协议, 规定方法、URL、头、状态码、正文等语义
-  HTTP/1.1、HTTP/2 通常基于 TCP;HTTP/3 使用基于 UDP 的 QUIC, 不能说 HTTP 永远基于 TCP
-  HTTPS 给 HTTP 通信加密并验证对端身份;HTTP/1.1/2 常用 TLS 加 TCP
-  HTTP 是请求/响应模型;一条连接可服务多个请求, 不是每次请求必定重新三次握手
-  “无状态”指请求语义本身不替应用保存会话;登录态仍可用 Cookie/Token 等实现
+	TCP 和 HTTP 是不同层的协议: TCP 是传输层协议, 负责可靠地传输字节, HTTP 是应用层协议, 负责规定这些字节表达什么请求、什么响应
+	HTTP 包含了请求方法、HTTP 版本、请求头、请求体、响应头、响应体、状态码
+  	HTTP/1.1、HTTP/2 通常基于 TCP; HTTP/3 使用基于 UDP 的 QUIC, 所以不能说 HTTP 永远基于 TCP
+  	HTTPS 给 HTTP 通信加密并验证对端身份; HTTP/1.1/2 常用 TLS 加 TCP
+ 	HTTP 是请求/响应模型; 一条连接可服务多个请求, 不是每次请求必定重新三次握手
+	HTTP 协议本身是“无状态”的, 不会自动在多次请求之间保存和关联用户的会话信息; 但应用仍可通过 Cookie、Token 等机制实现登录态
 
-常用方法（服务器具体支持哪些方法由路由决定）:
+常见方法（服务器具体支持哪些方法由路由决定）:
+	GET 请求:
+	POST 请求:
+	PUT 请求:
+	PATCH 请求:
+	DELETE 请求:
+	OPTIONS 请求:
+
+
   GET 获取资源;HEAD 类似 GET 但不返回正文;POST 提交/创建;PUT 整体替换;
   PATCH 局部修改;DELETE 删除;OPTIONS 查询能力, 也常用于浏览器跨域预检
   幂等指相同请求重复执行的预期效果相同, 不要求每次响应正文/状态码相同
   GET/HEAD 应只读取;PUT/DELETE 在协议语义上幂等, POST/PATCH 通常不保证幂等
   2xx 成功, 3xx 重定向, 4xx 请求问题, 5xx 服务端问题
   常见:200、201、204、400、401、403、404、405、413、415、500
+
+常见响应状态码:
+	2xx : 请求成功
+		200 : 请求成功
+		201 : 已创建资源
+		204 : 请求成功, 没有响应正文
+
+	3xx : 重定向
+		301 : 网站永久迁移到新地址
+		302 : 临时跳转到另一个地址
+		304 : 资源未修改，可复用已有缓存
+
+	4xx : 请求存在问题，例如缺少身份凭据、资源不存在
+		400 : 请求 JSON 格式错误、参数不符合要求
+		401 : 缺少有效的身份凭据
+		403 : 服务器拒绝处理 (已登录，但没有访问权限)
+		404 : 找不到目标资源
+		405 : 目标不支持该请求方法
+
+	5xx : 服务端处理请求时发生问题
+		500 : 服务端内部错误
+		503 : 服务暂时不可用
+		504 : 网关等待上游响应超时
 */
 
 // ═══════════════════════════════════════════════════════
@@ -42,18 +74,20 @@ TCP 与 HTTP:
 // ═══════════════════════════════════════════════════════
 func main() {
 	address := "127.0.0.1:8080"
+
 	if err := runHTTPServer(address); err != nil {
 		fmt.Println("HTTP 服务端失败:", err)
 	}
 }
 
 func runHTTPServer(address string) error {
-	// 先注册路由, 再 ListenAndServe;后者会阻塞当前 goroutine
-	// 简写 http.ListenAndServe(address, mux);传 nil 才使用全局路由表
-	server := &http.Server{
-		Addr: address, Handler: newHTTPMux(),
-		ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 5 * time.Second,
-		WriteTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
+	server := http.Server{
+		Addr:              address,
+		Handler:           newHTTPMux(),    // 请求路由表
+		ReadHeaderTimeout: 3 * time.Second, // 读取请求头的超时
+		ReadTimeout:       5 * time.Second, // 读取整个请求的超时
+		WriteTimeout:      5 * time.Second,
+		IdleTimeout:       30 * time.Second, // 等待下一个 HTTP 请求的空闲超时
 	}
 	fmt.Println("HTTP 服务:http://" + address + "; Ctrl+C 结束")
 	err := server.ListenAndServe()
@@ -64,41 +98,41 @@ func runHTTPServer(address string) error {
 }
 
 // ═══════════════════════════════════════════════════════
-// 第 3 节: 路由与输入: 接收请求并处理路径、查询、JSON 和表单
+// 第 3 节: 请求路由表
 // ═══════════════════════════════════════════════════════
-// newHTTPMux 注册 GET /hello/{name}、POST /users、POST /form 三个路由
-// 路径参数取名字, 查询参数决定语言, JSON 或表单正文承载提交内容
-// 读 POST /users 时按媒体类型、大小、语法、尾部内容、业务字段的顺序检查
-
 func newHTTPMux() *http.ServeMux {
-	// 类似前端路由表:先登记“方法 + 路径 -> 处理函数”, 再启动服务接收请求
-	mux := http.NewServeMux() // 独立路由表, 避免多个示例共用全局 DefaultServeMux
+	mux := http.NewServeMux()
 	// Go 1.22+ 支持“方法 路径”模式和 {name} 路径参数
 	mux.HandleFunc("GET /hello/{name}", func(writer http.ResponseWriter, request *http.Request) {
-		name := request.PathValue("name")
-		language := request.URL.Query().Get("lang")
+		name := request.PathValue("name")           // 动态路径参数
+		language := request.URL.Query().Get("lang") // 查询 ? 后的参数
 		greeting := "Hello, " + name
 		if language == "zh" {
 			greeting = "你好，" + name
 		}
-		writer.Header().Set("X-Lesson", "27")
+		writer.Header().Set("X-Lesson", "27") // 自定义响应头
 		writeJSON(writer, http.StatusOK, map[string]string{"message": greeting})
 	})
 	mux.HandleFunc("POST /users", func(writer http.ResponseWriter, request *http.Request) {
+		// 检查请求头的 Content-Type 参数
 		mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 		if err != nil || mediaType != "application/json" {
 			http.Error(writer, "请使用 application/json", http.StatusUnsupportedMediaType)
 			return
 		}
+		// 限制请求体大小
 		request.Body = http.MaxBytesReader(writer, request.Body, 1024)
+		// 创建 JSON 解码器
 		decoder := json.NewDecoder(request.Body)
+		// 设置规则: 遇到未知字段时报错
 		decoder.DisallowUnknownFields()
 		var input CreateUserRequest
+		// 读取正文, 按规则解码并写入 input
 		if err := decoder.Decode(&input); err != nil {
 			bodyError(writer, err)
 			return
 		}
-		// Decode 一次只消费一个 JSON 值;还要拒绝尾部的第二个值和其他垃圾内容
+		// Decode 一次只消费一个 JSON 值; 还要拒绝尾部的第二个值和其他垃圾内容
 		var extra any
 		if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
 			bodyError(writer, err)
@@ -121,14 +155,6 @@ func newHTTPMux() *http.ServeMux {
 		writeJSON(writer, http.StatusOK, map[string]string{"name": request.PostForm.Get("name")})
 	})
 	return mux
-	// Request 常用字段:Method、URL.Path、Header、Body、Host、RemoteAddr
-	// 常用方法:URL.Query().Get、PathValue、ParseForm/PostForm、Cookie、Context
-	// FormValue 会合并查询与表单且忽略解析错误;需要校验时先 ParseForm 再读取指定来源
-	// JSON 正文要用 json.Decoder;ParseForm 不会解析 JSON
-	// request.Context() 可传播客户端断开/取消;耗时业务需主动检查 ctx
-	// ResponseWriter 提供 Header、WriteHeader、Write;不是 *ResponseWriter
-	// 服务端在 handler 返回后关闭请求 Body;客户端的响应 Body 由调用方关闭
-	// handler 会并发运行, 共享 map/计数器需要锁;本例没有可变共享状态
 }
 
 // ═══════════════════════════════════════════════════════
@@ -154,7 +180,7 @@ func writeJSON(writer http.ResponseWriter, status int, data any) {
 		return
 	}
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	writer.WriteHeader(status) // 必须在 Write 前;首次 Write 默认隐式发送 200
+	writer.WriteHeader(status) // 设置状态码, 必须在 writer.Write() 前; 首次 Write 默认隐式发送 200
 	if _, err := writer.Write(append(body, '\n')); err != nil {
 		// 头已发出后无法改写成 500, 记录传输错误即可
 		fmt.Fprintln(os.Stderr, "响应写入失败：", err)
