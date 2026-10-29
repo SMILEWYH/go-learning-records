@@ -14,8 +14,10 @@ import (
 	"strconv"
 )
 
+// 失败的固定错误值
 var ErrUserNotFound = errors.New("用户不存在")
 
+// 失败的自定义错误值
 type ValidationError struct {
 	Field   string
 	Message string
@@ -30,13 +32,10 @@ func main() {
 	// ═══════════════════════════════════════════════════════
 	// 第 1 节: error 接口与显式检查
 	// ═══════════════════════════════════════════════════════
-	// error 的核心方法是 Error() string, nil 表示没有错误
-	// parseQuantity 先解析文本, 再检查数量是否大于 0, 调用方先处理 err 再使用 quantity
-
 	parseQuantity := func(raw string) (int, error) {
 		quantity, err := strconv.Atoi(raw)
 		if err != nil {
-			// %w 保留原错误链;%v 只保留文字, 不支持继续按错误类型检查
+			// 失败的自定义错误值
 			return 0, fmt.Errorf("解析购买数量 %q: %w", raw, err)
 		}
 		if quantity <= 0 {
@@ -45,8 +44,8 @@ func main() {
 		return quantity, nil
 	}
 
-	// 与 try/catch 不同:返回 error 不会自动中断调用方, 必须自己判断
 	quantity, err := parseQuantity("3")
+	// 与 try/catch 不同: 返回 error 不会自动中断调用方, 必须自己判断函数的第二个返回值
 	if err != nil {
 		fmt.Println("解析失败：", err)
 		return
@@ -68,20 +67,20 @@ func main() {
 
 	_, err = loadUser("missing")
 	if errors.Is(err, ErrUserNotFound) {
-		fmt.Println("可以映射为 HTTP 404：", err)
+		fmt.Println("可以映射为 HTTP 404: ", err)
 	}
-	// errors.Is 沿错误链查找某个错误;不要通过比较错误字符串识别错误
+	// errors.Is 沿错误链查找某个错误; 不要通过比较错误字符串识别错误
 
 	// ═══════════════════════════════════════════════════════
-	// 第 3 节:自定义错误与 errors.As
+	// 第 3 节: 自定义错误与 errors.As
 	// ═══════════════════════════════════════════════════════
-	// Is 询问是否包含某个原因;As 查找指定错误类型, 并取出它的字段
+	// Is 询问是否包含某个原因; As 查找指定错误类型, 并取出它的字段
 	// validationErr 是 *ValidationError, 传 &validationErr 是让 As 能填入匹配到的指针
 
 	_, err = parseQuantity("0")
 	var validationErr *ValidationError
 	if errors.As(err, &validationErr) {
-		fmt.Println("可以映射为 HTTP 400，字段：", validationErr.Field)
+		fmt.Println("可以映射为 HTTP 400, 字段: ", validationErr.Field)
 	}
 	// errors.As 沿错误链查找某种类型, 把匹配结果放入目标变量
 	_, err = parseQuantity("abc")
