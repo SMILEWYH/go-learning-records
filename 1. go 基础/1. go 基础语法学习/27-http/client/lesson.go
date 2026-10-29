@@ -1,7 +1,5 @@
 /*
 章节:27-HTTP网络编程 - 客户端
-在本章目录执行: go run ./client/lesson.go
-先启动服务端, 再在另一个终端启动客户端.
 */
 
 package main
@@ -12,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -25,7 +22,6 @@ func main() {
 	address := "http://127.0.0.1:8080"
 	if err := runHTTPClient(address); err != nil {
 		fmt.Println("HTTP 客户端失败:", err)
-		os.Exit(1)
 	}
 }
 
