@@ -2,6 +2,8 @@ package main
 
 import "github.com/gin-gonic/gin"
 
+// Gin 框架是一个基于 Go语言的轻量级 Web 框架, 它基于 Go 语言的 net/http 包进行开发, 提供了高效、快速、易用的 Web 服务开发体验
+
 type Response struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`

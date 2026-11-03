@@ -1,7 +1,7 @@
 package main
 
 import (
-	"example.com/hello/3-gin-json-response/res"
+	"example.com/hello/3-json-response/res"
 
 	"github.com/gin-gonic/gin"
 )
