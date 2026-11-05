@@ -1,0 +1,24 @@
+syntax = "proto3"; // 指定 proto 版本
+// 指定这个 Protobuf 定义文件的命名, 生成的 go 文件中的方法、数据类型前面都会带它
+package protobuf_hello_grpc; 
+
+// 指定生成 go 文件的包名, 别的 go 文件引入使用方法、数据类型前面都会带它
+option go_package = "./;hello_grpc"; 
+
+//定义 rpc 服务
+service HelloService {
+  // 定义给外部调用的函数方法
+  rpc SayHello (SayHelloRequest) returns (SayHelloResponse) {}
+}
+
+// 请求参数类型
+message SayHelloRequest {
+  string name = 1; // 需要按顺序排列, 不能重复
+  string message = 2;
+}
+
+// 响应内容类型
+message SayHelloResponse{
+  string name = 1;
+  string message = 2;
+}

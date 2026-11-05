@@ -1,0 +1,116 @@
+syntax = "proto3"; 
+
+option go_package = ".;dataType_grpc";
+
+// 基础类型 start:
+
+message BasicType {
+  double a1 = 1;
+  float a2 = 2;
+  int32 a3 = 3;
+  uint32 a4 = 4;
+  uint64 a5 = 5;
+  sint32 a6 = 6;
+  sint64 a7 = 7;
+  fixed32 a8 = 8;
+  fixed64 a9 = 9;
+  sfixed32 a10 = 10;
+  sfixed64 a11 = 11;
+  bool a12 = 12;
+  string a13 = 13;
+  bytes a14 = 14;
+}
+
+// 基础数据类型生成的 go 代码:
+/*
+type BasicType struct {
+  state         protoimpl.MessageState
+  sizeCache     protoimpl.SizeCache
+  unknownFields protoimpl.UnknownFields
+
+  A1  float64 `protobuf:"fixed64,1,opt,name=a1,proto3" json:"a1,omitempty"`
+  A2  float32 `protobuf:"fixed32,2,opt,name=a2,proto3" json:"a2,omitempty"`
+  A3  int32   `protobuf:"varint,3,opt,name=a3,proto3" json:"a3,omitempty"`
+  A4  uint32  `protobuf:"varint,4,opt,name=a4,proto3" json:"a4,omitempty"`
+  A5  uint64  `protobuf:"varint,5,opt,name=a5,proto3" json:"a5,omitempty"`
+  A6  int32   `protobuf:"zigzag32,6,opt,name=a6,proto3" json:"a6,omitempty"`
+  A7  int64   `protobuf:"zigzag64,7,opt,name=a7,proto3" json:"a7,omitempty"`
+  A8  uint32  `protobuf:"fixed32,8,opt,name=a8,proto3" json:"a8,omitempty"`
+  A9  uint64  `protobuf:"fixed64,9,opt,name=a9,proto3" json:"a9,omitempty"`
+  A10 int32   `protobuf:"fixed32,10,opt,name=a10,proto3" json:"a10,omitempty"`
+  A11 int64   `protobuf:"fixed64,11,opt,name=a11,proto3" json:"a11,omitempty"`
+  A12 bool    `protobuf:"varint,12,opt,name=a12,proto3" json:"a12,omitempty"`
+  A13 string  `protobuf:"bytes,13,opt,name=a13,proto3" json:"a13,omitempty"`
+  A14 []byte  `protobuf:"bytes,14,opt,name=a14,proto3" json:"a14,omitempty"`
+}
+*/
+
+// 如果没有被赋值, 则不会被序列化, 解析时, 会赋予默认值
+// strings: 空字符串
+// bytes: 空序列
+// bools: false
+// 数值类型: 0
+
+// 基础类型 end
+
+// 数组类型 start: 
+
+message ArrayRequest {
+  repeated int64 a1 = 1;
+  repeated string a2 = 2;
+  repeated Request request_list = 3;
+}
+
+// 数组类型生成的 go 代码:
+/*
+type ArrayRequest struct {
+  A1          []int64 
+  A2          []string   
+  RequestList []*Request
+}
+*/
+
+// 数组类型 end
+
+// Map 数据类型 start: 
+
+message MapRequest {
+  map<int64, string> m_i_s = 1;
+  map<string, bool> m_i_b = 2;
+  map<string, ArrayRequest> m_i_arr = 3;
+}
+
+// Map 数据类型生成的 go 代码:
+/*
+type MapRequest struct {
+  MIS   map[int64]string
+  MIB   map[string]bool
+  MIArr map[string]*ArrayRequest
+}
+*/
+
+// Map 数据类型 end
+
+// 嵌套数据类型 start: 
+
+message Q1 {
+  message Q2{
+    string name2 = 2;
+  }
+  string name1 = 1;
+  Q2 q2 = 2;
+}
+
+// 嵌套数据类型生成的 go 代码:
+/*
+type Q1 struct {
+  state         protoimpl.MessageState
+  sizeCache     protoimpl.SizeCache
+  unknownFields protoimpl.UnknownFields
+
+  Name1 string `protobuf:"bytes,1,opt,name=name1,proto3" json:"name1,omitempty"`
+  Q2    *Q1_Q2 `protobuf:"bytes,2,opt,name=q2,proto3" json:"q2,omitempty"`
+}
+*/
+
+// 嵌套数据类型 end

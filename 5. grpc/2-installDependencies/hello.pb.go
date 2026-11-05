@@ -21,29 +21,29 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HelloRequest 请求内容
-type HelloRequest struct {
+// 请求参数类型
+type SayHelloRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // 需要按顺序排列, 不能重复
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HelloRequest) Reset() {
-	*x = HelloRequest{}
+func (x *SayHelloRequest) Reset() {
+	*x = SayHelloRequest{}
 	mi := &file_hello_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HelloRequest) String() string {
+func (x *SayHelloRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloRequest) ProtoMessage() {}
+func (*SayHelloRequest) ProtoMessage() {}
 
-func (x *HelloRequest) ProtoReflect() protoreflect.Message {
+func (x *SayHelloRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_hello_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,27 +55,27 @@ func (x *HelloRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloRequest.ProtoReflect.Descriptor instead.
-func (*HelloRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SayHelloRequest.ProtoReflect.Descriptor instead.
+func (*SayHelloRequest) Descriptor() ([]byte, []int) {
 	return file_hello_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *HelloRequest) GetName() string {
+func (x *SayHelloRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *HelloRequest) GetMessage() string {
+func (x *SayHelloRequest) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-// HelloResponse 响应内容
-type HelloResponse struct {
+// 响应内容类型
+type SayHelloResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
@@ -83,20 +83,20 @@ type HelloResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HelloResponse) Reset() {
-	*x = HelloResponse{}
+func (x *SayHelloResponse) Reset() {
+	*x = SayHelloResponse{}
 	mi := &file_hello_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HelloResponse) String() string {
+func (x *SayHelloResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloResponse) ProtoMessage() {}
+func (*SayHelloResponse) ProtoMessage() {}
 
-func (x *HelloResponse) ProtoReflect() protoreflect.Message {
+func (x *SayHelloResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_hello_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -108,19 +108,19 @@ func (x *HelloResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloResponse.ProtoReflect.Descriptor instead.
-func (*HelloResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SayHelloResponse.ProtoReflect.Descriptor instead.
+func (*SayHelloResponse) Descriptor() ([]byte, []int) {
 	return file_hello_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *HelloResponse) GetName() string {
+func (x *SayHelloResponse) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *HelloResponse) GetMessage() string {
+func (x *SayHelloResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
@@ -131,16 +131,15 @@ var File_hello_proto protoreflect.FileDescriptor
 
 const file_hello_proto_rawDesc = "" +
 	"\n" +
-	"\vhello.proto\x12\n" +
-	"hello_grpc\"<\n" +
-	"\fHelloRequest\x12\x12\n" +
+	"\vhello.proto\x12\x13protobuf_hello_grpc\"?\n" +
+	"\x0fSayHelloRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"=\n" +
-	"\rHelloResponse\x12\x12\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"@\n" +
+	"\x10SayHelloResponse\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2Q\n" +
-	"\fHelloService\x12A\n" +
-	"\bSayHello\x12\x18.hello_grpc.HelloRequest\x1a\x19.hello_grpc.HelloResponse\"\x00B\rZ\v/hello_grpcb\x06proto3"
+	"\amessage\x18\x02 \x01(\tR\amessage2i\n" +
+	"\fHelloService\x12Y\n" +
+	"\bSayHello\x12$.protobuf_hello_grpc.SayHelloRequest\x1a%.protobuf_hello_grpc.SayHelloResponse\"\x00B\x0fZ\r./;hello_grpcb\x06proto3"
 
 var (
 	file_hello_proto_rawDescOnce sync.Once
@@ -156,12 +155,12 @@ func file_hello_proto_rawDescGZIP() []byte {
 
 var file_hello_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_hello_proto_goTypes = []any{
-	(*HelloRequest)(nil),  // 0: hello_grpc.HelloRequest
-	(*HelloResponse)(nil), // 1: hello_grpc.HelloResponse
+	(*SayHelloRequest)(nil),  // 0: protobuf_hello_grpc.SayHelloRequest
+	(*SayHelloResponse)(nil), // 1: protobuf_hello_grpc.SayHelloResponse
 }
 var file_hello_proto_depIdxs = []int32{
-	0, // 0: hello_grpc.HelloService.SayHello:input_type -> hello_grpc.HelloRequest
-	1, // 1: hello_grpc.HelloService.SayHello:output_type -> hello_grpc.HelloResponse
+	0, // 0: protobuf_hello_grpc.HelloService.SayHello:input_type -> protobuf_hello_grpc.SayHelloRequest
+	1, // 1: protobuf_hello_grpc.HelloService.SayHello:output_type -> protobuf_hello_grpc.SayHelloResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
