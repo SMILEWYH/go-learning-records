@@ -4,6 +4,8 @@
 // - protoc             v7.36.2
 // source: hello.proto
 
+// 指定这个 Protobuf 定义文件的命名, 生成的 go 文件中的方法、数据类型前面都会带它
+
 package hello_grpc
 
 import (

@@ -2,31 +2,34 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"grpc_study/grpc_proto/duo_proto"
+	online_mall "grpc-learning/6-multiService/proto"
 	"log"
 	"net"
 
 	"google.golang.org/grpc"
 )
 
-type VideoServer struct {
+type ProductService struct {
+	online_mall.UnimplementedProductServiceServer
 }
 
-func (VideoServer) Look(ctx context.Context, request *duo_proto.Request) (res *duo_proto.Response, err error) {
-	fmt.Println("video:", request)
-	return &duo_proto.Response{
-		Name: "fengfeng",
+func (ProductService) Find(ctx context.Context, request *online_mall.Request) (res *online_mall.Response, err error) {
+	// request.ID
+
+	return &online_mall.Response{
+		Price: 10,
 	}, nil
 }
 
-type OrderServer struct {
+type OrderService struct {
+	online_mall.UnimplementedOrderServiceServer
 }
 
-func (OrderServer) Buy(ctx context.Context, request *duo_proto.Request) (res *duo_proto.Response, err error) {
-	fmt.Println("order:", request)
-	return &duo_proto.Response{
-		Name: "fengfeng",
+func (OrderService) Find(ctx context.Context, request *online_mall.Request) (res *online_mall.Response, err error) {
+	// request.ID
+
+	return &online_mall.Response{
+		Price: 10,
 	}, nil
 }
 
@@ -37,8 +40,8 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	duo_proto.RegisterVideoServiceServer(s, &VideoServer{})
-	duo_proto.RegisterOrderServiceServer(s, &OrderServer{})
+	online_mall.RegisterProductServiceServer(s, &ProductService{})
+	online_mall.RegisterOrderServiceServer(s, &OrderService{})
 
 	err = s.Serve(listen)
 }

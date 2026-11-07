@@ -4,6 +4,8 @@
 // 	protoc        v7.36.2
 // source: hello.proto
 
+// 指定这个 Protobuf 定义文件的命名, 生成的 go 文件中的方法、数据类型前面都会带它
+
 package hello_grpc
 
 import (
@@ -139,7 +141,7 @@ const file_hello_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage2i\n" +
 	"\fHelloService\x12Y\n" +
-	"\bSayHello\x12$.protobuf_hello_grpc.SayHelloRequest\x1a%.protobuf_hello_grpc.SayHelloResponse\"\x00B\x0fZ\r./;hello_grpcb\x06proto3"
+	"\bSayHello\x12$.protobuf_hello_grpc.SayHelloRequest\x1a%.protobuf_hello_grpc.SayHelloResponse\"\x00B1Z/grpc-learning/4-grpc-helloWord/proto;hello_grpcb\x06proto3"
 
 var (
 	file_hello_proto_rawDescOnce sync.Once

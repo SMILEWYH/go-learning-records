@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	hello_grpc "grpc-learning/4-grpc-helloWord"
+	hello_grpc "grpc-learning/4-grpc-helloWord/proto" // 包名, 模块下的地址
 	"net"
 
 	"google.golang.org/grpc"
@@ -11,11 +11,12 @@ import (
 )
 
 type HelloServer struct {
+	hello_grpc.UnimplementedHelloServiceServer
 }
 
-func (HelloServer) SayHello(ctx context.Context, request *hello_grpc.HelloRequest) (res *hello_grpc.HelloResponse, err error) {
+func (HelloServer) SayHello(ctx context.Context, request *hello_grpc.SayHelloRequest) (res *hello_grpc.SayHelloResponse, err error) {
 	fmt.Println("入参：", request.Name, request.Message)
-	res = new(hello_grpc.HelloResponse)
+	res = new(hello_grpc.SayHelloResponse)
 	res.Name = "你好"
 	res.Message = "ok"
 	return

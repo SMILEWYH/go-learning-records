@@ -2,23 +2,30 @@ syntax = "proto3";
 
 option go_package = ".;dataType_grpc";
 
+// 编写风格
+// 1.文件名建议下划线，例如:my_student.proto
+// 2.包名和目录名对应
+// :3.服务名、方法名、消息名均为大驼峰
+// 4.字段名为下划线
+
 // 基础类型 start:
 
 message BasicType {
   double a1 = 1;
   float a2 = 2;
   int32 a3 = 3;
-  uint32 a4 = 4;
-  uint64 a5 = 5;
-  sint32 a6 = 6;
-  sint64 a7 = 7;
-  fixed32 a8 = 8;
-  fixed64 a9 = 9;
-  sfixed32 a10 = 10;
-  sfixed64 a11 = 11;
-  bool a12 = 12;
-  string a13 = 13;
-  bytes a14 = 14;
+  int64 a4 = 4;
+  uint32 a5 = 5;
+  uint64 a6 = 6;
+  sint32 a7 = 7;
+  sint64 a8 = 8;
+  fixed32 a9 = 9;
+  fixed64 a10 = 10;
+  sfixed32 a11 = 11;
+  sfixed64 a12 = 12;
+  bool a13 = 13;
+  string a14 = 14;
+  bytes a15 = 15;
 }
 
 // 基础数据类型生成的 go 代码:
@@ -31,29 +38,45 @@ type BasicType struct {
   A1  float64 `protobuf:"fixed64,1,opt,name=a1,proto3" json:"a1,omitempty"`
   A2  float32 `protobuf:"fixed32,2,opt,name=a2,proto3" json:"a2,omitempty"`
   A3  int32   `protobuf:"varint,3,opt,name=a3,proto3" json:"a3,omitempty"`
-  A4  uint32  `protobuf:"varint,4,opt,name=a4,proto3" json:"a4,omitempty"`
-  A5  uint64  `protobuf:"varint,5,opt,name=a5,proto3" json:"a5,omitempty"`
-  A6  int32   `protobuf:"zigzag32,6,opt,name=a6,proto3" json:"a6,omitempty"`
-  A7  int64   `protobuf:"zigzag64,7,opt,name=a7,proto3" json:"a7,omitempty"`
-  A8  uint32  `protobuf:"fixed32,8,opt,name=a8,proto3" json:"a8,omitempty"`
-  A9  uint64  `protobuf:"fixed64,9,opt,name=a9,proto3" json:"a9,omitempty"`
-  A10 int32   `protobuf:"fixed32,10,opt,name=a10,proto3" json:"a10,omitempty"`
-  A11 int64   `protobuf:"fixed64,11,opt,name=a11,proto3" json:"a11,omitempty"`
-  A12 bool    `protobuf:"varint,12,opt,name=a12,proto3" json:"a12,omitempty"`
-  A13 string  `protobuf:"bytes,13,opt,name=a13,proto3" json:"a13,omitempty"`
-  A14 []byte  `protobuf:"bytes,14,opt,name=a14,proto3" json:"a14,omitempty"`
+  A4  int64   `protobuf:"varint,4,opt,name=a4,proto3" json:"a4,omitempty"`
+  A5  uint32  `protobuf:"varint,5,opt,name=a5,proto3" json:"a5,omitempty"`
+  A6  uint64  `protobuf:"varint,6,opt,name=a6,proto3" json:"a6,omitempty"`
+  A7  int32   `protobuf:"zigzag32,7,opt,name=a7,proto3" json:"a7,omitempty"`
+  A8  int64   `protobuf:"zigzag64,8,opt,name=a8,proto3" json:"a8,omitempty"`
+  A9  uint32  `protobuf:"fixed32,9,opt,name=a9,proto3" json:"a9,omitempty"`
+  A10 uint64  `protobuf:"fixed64,10,opt,name=a10,proto3" json:"a10,omitempty"`
+  A11 int32   `protobuf:"fixed32,11,opt,name=a11,proto3" json:"a11,omitempty"`
+  A12 int64   `protobuf:"fixed64,12,opt,name=a12,proto3" json:"a12,omitempty"`
+  A13 bool    `protobuf:"varint,13,opt,name=a13,proto3" json:"a13,omitempty"`
+  A14 string  `protobuf:"bytes,14,opt,name=a14,proto3" json:"a14,omitempty"`
+  A15 []byte  `protobuf:"bytes,15,opt,name=a15,proto3" json:"a15,omitempty"`
 }
 */
 
-// 如果没有被赋值, 则不会被序列化, 解析时, 会赋予默认值
+// proto3 普通基础类型字段（未使用 optional）：
+// 值为默认值时，序列化会省略该字段。
+// 解析时，缺失字段读取为默认值。
+// 因此无法区分“没有赋值”和“明确赋了默认值”
+
+// 单个消息字段：
+// 未提供（nil）时，序列化会省略该字段。
+// 已提供时，即使消息内部为空，也会序列化该字段。
+// 解析后可以通过是否为 nil，区分“未提供”和“提供了空消息”。
+
+// `repeated Request` 列表不区分“未提供列表”和“提供了空列表”。
+
 // strings: 空字符串
 // bytes: 空序列
-// bools: false
+// bool: false
 // 数值类型: 0
 
 // 基础类型 end
 
 // 数组类型 start: 
+
+message Request {
+  int64 a1 
+}
 
 message ArrayRequest {
   repeated int64 a1 = 1;
@@ -63,6 +86,9 @@ message ArrayRequest {
 
 // 数组类型生成的 go 代码:
 /*
+// 基础类型字段默认不区分“没提供”和“提供了零值”, 因为在 go 中都会为默认值
+// 而消息类型需要区分“没提供”和“提供了一个空消息”, 所以提供指针来判断是否为 nil
+
 type ArrayRequest struct {
   A1          []int64 
   A2          []string   

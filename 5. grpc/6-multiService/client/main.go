@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"grpc_study/grpc_proto/duo_proto"
+	online_mall "grpc-learning/6-multiService/proto"
 	"log"
 
 	"google.golang.org/grpc"
@@ -11,25 +11,22 @@ import (
 )
 
 func main() {
-	addr := ":8080"
-	// 使用 grpc.Dial 创建一个到指定地址的 gRPC 连接。
-	// 此处使用不安全的证书来实现 SSL/TLS 连接
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf(fmt.Sprintf("grpc connect addr [%s] 连接失败 %s", addr, err))
+		log.Fatalf("grpc connect addr [%s] 连接失败 %s", "127.0.0.1:8080", err)
 	}
 	defer conn.Close()
 
-	orderClient := duo_proto.NewOrderServiceClient(conn)
-	res, err := orderClient.Buy(context.Background(), &duo_proto.Request{
-		Name: "枫枫",
+	productClient := online_mall.NewProductServiceClient(conn)
+	res1, err1 := productClient.Find(context.Background(), &online_mall.Request{
+		ID: 1,
 	})
-	fmt.Println(res, err)
+	fmt.Println(res1, err1)
 
-	videoClient := duo_proto.NewVideoServiceClient(conn)
-	res, err = videoClient.Look(context.Background(), &duo_proto.Request{
-		Name: "枫枫",
+	orderClient := online_mall.NewOrderServiceClient(conn)
+	res2, err2 := orderClient.Find(context.Background(), &online_mall.Request{
+		ID: 1,
 	})
-	fmt.Println(res, err)
+	fmt.Println(res2, err2)
 
 }
