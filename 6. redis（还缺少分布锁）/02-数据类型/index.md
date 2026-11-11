@@ -1,13 +1,12 @@
-# 2. Redis的八种数据类型
+# 2. Redis 的 五、四、八数据类型
 
-## 2.1 Redis的五大数据类型
+示例：
 
-官网可查看命令： http://www.redis.cn/commands.html
-
-**Redis-key**
+	1.  set 一个 value 时候是否使用 “” 包裹，取决 value 之间是否存在空格，如果存在空格但不使用 “” 包裹，那么 redis 会默认认为是两个内容。
+	1.  命令操作返回 1 一般意味着成功，返回 0 一般意味着失败。 
 
 ~~~shell
-127.0.0.1:6379> keys *
+127.0.0.1:6379> keys *		# 查看当前数据库下的全部 key
 (empty list or set)
 127.0.0.1:6379> set name xxx
 OK
@@ -22,7 +21,7 @@ OK
 (integer) 1
 127.0.0.1:6379> exists name1
 (integer) 0
-127.0.0.1:6379> move name 1
+127.0.0.1:6379> move name 1		# 把 name 移动到数据库 1
 (integer) 1
 127.0.0.1:6379> keys *
 1) "age"
@@ -36,16 +35,16 @@ OK
 (integer) -2
 127.0.0.1:6379> type age		# 查看当前key的类型
 string
-127.0.0.1:6379> 
+127.0.0.1:6379> SELECT 1    # 切换到 1 号数据库, 默认配置有 16 个数据库, 编号为 0～15，数量可以配置
 ~~~
 
-Redis 有以下 5 种基本的数据类型
+## 2.1 Redis的五大基本数据类型
 
-数据类型 指的是value
+Redis 五、四 数据类型指的是 key - value 中 value 的类型。
 
 ### 2.1.1 String
 
-set key value(String 数据类型)
+set key value (String 数据类型)
 
 ~~~shell
 127.0.0.1:6379> set key1 v1			#设置值
@@ -61,7 +60,7 @@ OK
 127.0.0.1:6379> 
 ~~~
 
-自增、自减
+incr 自增、decr 自减
 
 ~~~shell
 127.0.0.1:6379> set views 0
@@ -84,7 +83,7 @@ OK
 (integer) 4
 ~~~
 
-字符串范围:
+getrange 截取:
 
 ~~~shell
 127.0.0.1:6379> set key1 "hello,world!"
@@ -93,12 +92,12 @@ OK
 "hello,world!"
 127.0.0.1:6379> getrange key1 0 3		# 截取字符串[0, 3]
 "hell"
-127.0.0.1:6379> getrange key1 0 -1		# 获取全部的字符串，和 get key一样 -1代表尾部
+127.0.0.1:6379> getrange key1 0 -1		# 获取全部的字符串，-1代表尾部, 最终表现和 get key 一样 
 "hello,world!"
 127.0.0.1:6379> 
 ~~~
 
-替换：
+setrange 替换：
 
 ~~~shell
 127.0.0.1:6379> set key2 abcdefg
@@ -112,9 +111,9 @@ OK
 127.0.0.1:6379> 
 ~~~
 
-`setex(set with expire)`：设置过期时间
+`setex(set with expire)`：设置过期时间， set + ex
 
-`setnx(set if not exist)`：不存在再设置（在分布式锁中会经常使用）
+`setnx(set if not exist)`：不存在再设置， set + nx
 
 ~~~shell
 127.0.0.1:6379> setex key3 30 "hello"		# 设置 30 秒后过期
@@ -135,7 +134,7 @@ OK
 127.0.0.1:6379> 
 ~~~
 
-`mset`和`mget`
+`mset`、 `mget`
 
 ~~~shell
 127.0.0.1:6379> mset k1 v1 k2 v2 k3 v3		# 同时设置多个值
@@ -155,19 +154,6 @@ OK
 127.0.0.1:6379>
 ~~~
 
-对象
-
-~~~shell
-set user:1 {name:zhangsan, age:3}     # 设置一个 user:1 对象 值为 json  字符来保存一个对象
-
-127.0.0.1:6379> mset user:1:name zhangsan user:1:age 2
-OK
-127.0.0.1:6379> mget user:1:name user:1:age
-1) "zhangsan"
-2) "2"
-127.0.0.1:6379> 
-~~~
-
 `getset`：先 get 再 set
 
 ~~~shell
@@ -182,17 +168,29 @@ OK
 127.0.0.1:6379> 
 ~~~
 
-String 的使用场景：value 除了是字符串以外还可以是数字
+对象
 
-- 计数器
-- 粉丝数
-- 对象缓存存储
+~~~shell
+set user:1 {name:zhangsan, age:3}     # 设置一个 user:1 对象 值为 json 字符来保存一个对象
+
+# 接下来直接 get user:1:username 是获取不到值的，meget 命令是无法把 user:1:username 看成获取 user:1 的 username 属性，而是看成了获取 key 为 user:1:username 的 value，因为 redis 数据库中并没有 user:1:username 这么一个 key ，所以获取返回 nil
+
+# 或者可以像示例一样通过mset分开保存对象的属性，然后mget来获取
+127.0.0.1:6379> mset user:1:name zhangsan user:1:age 2
+OK
+127.0.0.1:6379> mget user:1:name user:1:age
+1) "zhangsan"
+2) "2"
+127.0.0.1:6379> 
+~~~
+
+经过上面示例可以发现 String 可以表示字符串外还可以表示数字、对象。
 
 ### 2.1.2 List
 
-基本的数据类型，列表。
+底层实现为双向链表。
 
-在 Redis 中可以把 list 用作栈、队列、阻塞队列。
+它可以用于栈、队列、消息队列、有容量上限的数据集合 。
 
 list 命令以 `l`开头 一般代表 队列左侧执行，`r`代表队列右侧执行。
 
@@ -467,6 +465,7 @@ linsert：将某个具体的value插入到列表中某个元素的前面或者�
 1) "e"
 2) "d"
 3) "c"
+# SDIFF 的结果与集合的书写顺序有关。 它返回的是：存在于第一个集合，但不存在于后面集合中的元素。
 127.0.0.1:6379> sdiff key1 key2			# 差集
 1) "b"
 2) "a"
@@ -551,18 +550,18 @@ Hash 适合存储经常变动的对象信息，String 更适合于存储字符�
 
 ### 2.1.5 ZSet
 
-zadd key score value
+ZSet 本身就按分数维护顺序，所以排序、范围查询都不需要重新排序。
 
 ~~~shell
-127.0.0.1:6379> zadd myset 1 one		# 添加一个值
+127.0.0.1:6379> zadd myset 1 one		# 添加一个值 zadd key score value
 (integer) 1
 127.0.0.1:6379> zadd myset 2 two 3 three	# 添加多个值
 (integer) 2
-127.0.0.1:6379> zrange myset 0 -1
+127.0.0.1:6379> zrange myset 0 -1  # 获取指定下标范围的成员, 默认情况从小到大排序
 1) "one"
 2) "two"
 3) "three"
-127.0.0.1:6379> 
+127.0.0.1:6379> zrange myset 0 -1 withscores   # 显示值的 score
 ~~~
 
 实现排序：
@@ -574,26 +573,22 @@ zadd key score value
 (integer) 1
 127.0.0.1:6379> zadd salary 500 xaiozhang
 (integer) 1
-127.0.0.1:6379> zrange salary 0 -1
+127.0.0.1:6379> zrange salary 0 -1  # 获取指定下标范围的成员, 默认情况从小到大排序
 1) "xaiozhang"
 2) "xiaohong"
 3) "xiaoming"
-127.0.0.1:6379> zrangebyscore salary -inf +inf		# 从小到大显示全部的用户
-1) "xaiozhang"
-2) "xiaohong"
-3) "xiaoming"
-127.0.0.1:6379> zrevrange salary 0 -1		# 从大到小进行排序
+127.0.0.1:6379> zrevrange salary 0 -1		# 获取指定下标范围的成员, 反转默认情况, 现在为从大到小排序
 1) "xiaoming"
 2) "xiaohong"
 3) "xaiozhang"
-127.0.0.1:6379> zrangebyscore salary -inf +inf withscores   # 附带成绩的显示所有用户
+127.0.0.1:6379> zrangebyscore salary -inf +inf withscores  # 按分数范围查询, 分数范围为负无穷到正无穷
 1) "xaiozhang"
 2) "500"
 3) "xiaohong"
 4) "2500"
 5) "xiaoming"
 6) "5000"
-127.0.0.1:6379> zrangebyscore salary -inf 2500 withscores			# 显示工资小于 2500 的用户
+127.0.0.1:6379> zrangebyscore salary -inf 2500 withscores  # 按分数范围查询, 分数范围为负无穷到2500
 1) "xaiozhang"
 2) "500"
 3) "xiaohong"
@@ -837,4 +832,6 @@ bitmap 常用于统计用户信息比如活跃粉丝和不活跃粉丝、登录�
 (integer) 4
 127.0.0.1:6379> 
 ~~~
+
+## 2.3 Redis 八种底层数据结构
 

@@ -112,13 +112,13 @@ Ask重定向发生于集群伸缩时，集群伸缩会导致槽迁移，当我�
 
    
 
-4. master连接的slave最小数量
+4. master连接的slave最小数量，用于限制 Redis Cluster 中从节点的自动迁移 
 
 ```properties
 cluster-migration-barrier min_slave_number
 ```
 
-**Cluster节点操作命令:**
+###### **Cluster节点操作命令: （先启动要做集群的全部 redis 节点）**
 
 1. 查看集群节点信息
 

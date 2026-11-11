@@ -1,12 +1,8 @@
-# Redis系列教程
+# 1. Redis 入门
 
-# 1. Redis入门
+## 1.1 什么是 NoSQL
 
-## 1.1 什么是NoSQL
-
-NoSQL = Not Only SQL（不仅仅是 SQL） 非关系型数据库
-
-关系型数据库：以关系模型组织数据，表现形式为：表格，行，列。
+NoSQL 全称 Not Only SQL（不仅仅是 SQL），它是非关系型数据库。
 
 随着 web 2.0 互联网的诞生！传统的关系型数据库很难对付 web 2.0 时代！尤其是超大规模的高并发的社区！暴露出来很多难以克服的问题 。
 
@@ -40,6 +36,10 @@ NoSQL 在当今大数据环境下发展的十分迅速，Redis 是发展最快�
 > - 高性能，高可用，高可扩
 
 ## 1.2 NoSQL的四大分类
+
+关系型数据库：以关系模型组织数据，表现形式为：表格，行，列。
+
+而非关系型数据库：
 
 1. KV 键值对：Redis
 
@@ -77,10 +77,6 @@ Redis （Remote Dictionary Server），即远程字典服务！
 2. 持久化
 3. 集群
 4. 事务
-
-Redis 官网： https://redis.io/
-
-Redis 中文网： http://www.redis.cn/
 
 ## 1.4 Redis安装启动
 
